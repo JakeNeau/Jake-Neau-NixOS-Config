@@ -53,7 +53,10 @@
   stylix.targets.grub.enable = false;
   system.nixos.label = "test";
 
-  boot.kernelParams = [ "video=5120x1440" ];
+  boot.kernelParams = [
+    "video=5120x1440"
+    "usbcore.quirks=2972:0047:u"
+  ];
 
   boot.initrd.luks.devices."luks-014e6aef-d36f-4b5b-9b48-447d6bc40b95".device = "/dev/disk/by-uuid/014e6aef-d36f-4b5b-9b48-447d6bc40b95";
   networking.hostName = "nixos"; # Define your hostname.
@@ -87,9 +90,6 @@
   # Enable the X11 windowing system.
   # You can disable this if you're only using the Wayland session.
   services.xserver.enable = true;
-
-  # Display manager: handles login
-  # services.displayManager.sddm.enable = true;
 
   # Compositor: displays the desktop
   programs.hyprland.enable = true;
@@ -127,12 +127,7 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    # If you want to use JACK applications, uncomment this
-    #jack.enable = true;
-
-    # use the example session manager (no others are packaged yet so this is enabled by default,
-    # no need to redefine it in your config for now)
-    #media-session.enable = true;
+    jack.enable = true;
   };
 
   # Enable touchpad support (enabled default in most desktopManager).
@@ -150,9 +145,17 @@
   # Set users of the wheel group to not need sudo passwords
   security.sudo.wheelNeedsPassword = false;
 
-  # Enable automatic login for the user.
-  services.displayManager.autoLogin.enable = true;
-  services.displayManager.autoLogin.user = "jakeneau";
+  # Greeter: handles login
+  services.greetd = {
+    enable = true;
+    settings = rec {
+      initial_session = {
+        command = "${pkgs.hyprland}/bin/hyprland";
+        user = "jakeneau";
+      };
+      default_session = initial_session;
+    };
+  };
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -162,8 +165,7 @@
     enable = true;
     config = { 
       init.defaultBranch = "main";
-      user.name = "Jake Neau";
-      user.email = "jakeneau@proton.me";
+      safe.directory = "/etc/nixos";
     };
   };
 
@@ -202,6 +204,7 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    audacity                              # Audio recording program
     bitwarden-desktop                     # Password manager for all devices
     blender-hip                           # 3D Modeling art program with AMD GPU support (hip)
     (bottles.override {                   # A wine prefix manager
@@ -234,6 +237,7 @@
     librewolf                             # Firefox based browser with more privacy
     obs-studio                            # Screen recording software
     obsidian                              # Note taking utility using markdown files
+    papirus-icon-theme                    # Fallback icon set
     pavucontrol                           # Sound setting control GUI
     playerctl                             # Keyboard controls for audio players
     prismlauncher                         # Minecraft launcher
