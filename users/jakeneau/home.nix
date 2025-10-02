@@ -190,7 +190,7 @@
                 ];
               }];
               iconMapObj."16" = "https://wiki.nixos.org/favicon.ico";
-              definedAliases = [ "@nh" ];
+              definedAliases = [ "@ho" ];
 	    };
 
             "nix-options" = {
