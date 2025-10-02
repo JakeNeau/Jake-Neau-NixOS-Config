@@ -1,8 +1,13 @@
 { config, pkgs, lib, ... }:
 
 {
-  # Experimental nix settings
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings = {
+    # Experimental nix settings
+    experimental-features = [ "nix-command" "flakes" ];
+    
+    # Other nix settings
+    warn-dirty = false;
+  };
 
   imports =
     [
@@ -49,10 +54,7 @@
   stylix.targets.grub.enable = false;
   system.nixos.label = "test";
 
-  boot.kernelParams = [
-    "video=5120x1440"
-    "usbcore.quirks=2972:0047:u"
-  ];
+  boot.kernelParams = [ "video=5120x1440" ];
 
   boot.initrd.luks.devices."luks-014e6aef-d36f-4b5b-9b48-447d6bc40b95".device = "/dev/disk/by-uuid/014e6aef-d36f-4b5b-9b48-447d6bc40b95";
   networking.hostName = "nixos"; # Define your hostname.
@@ -258,23 +260,24 @@
 
       # General Command Aliases
       ls = "eza";
+      l = "eza-long"; # This is needed because the function 'eza-long' will not override the fish default 'l' function if named 'l'
       r = "sudo systemctl reboot";
       s = "sudo systemctl poweroff";
     };
     shellInit = ''
-      function nr
+      function nr --description "Reloads the NixOS config and pushes it to git. If a message is specified, create a new commit" 
         if test (count $argv) -eq 0
-          git -C /etc/nixos pull; sudo nix flake update --flake /etc/nixos; sudo nixos-rebuild switch --upgrade --flake /etc/nixos; git -C /etc/nixos add *; git -C /etc/nixos commit --amend --no-edit; git -C /etc/nixos push --force-with-lease
+          git -C /etc/nixos pull; sudo nix flake update --flake /etc/nixos; sudo nixos-rebuild switch --upgrade --flake /etc/nixos; git -C /etc/nixos add /etc/nixos/*; git -C /etc/nixos commit --amend --no-edit; git -C /etc/nixos push --force-with-lease
         else 
-          git -C /etc/nixos pull; sudo nix flake update --flake /etc/nixos; sudo nixos-rebuild switch --upgrade --flake /etc/nixos; git -C /etc/nixos add *; git -C /etc/nixos commit -m $argv; git -C /etc/nixos push
+          git -C /etc/nixos pull; sudo nix flake update --flake /etc/nixos; sudo nixos-rebuild switch --upgrade --flake /etc/nixos; git -C /etc/nixos add /etc/nixos/*; git -C /etc/nixos commit -m $argv; git -C /etc/nixos push
         end
       end
 
-      function l
-        if test (count $argv) -eq 0
-          eza -algh --git-repos --git
+      function eza-long --description "Runs eza with a lot of information"
+        if test (count $argv) -eq 0; or test $argv[1] = 0
+          eza -algh --git-repos --git $argv[2]
         else
-          eza -algh --git-repos --git -T -L $argv
+          eza -algh --git-repos --git -T -L=$argv[1] $argv[2] 2>/dev/null; or eza -algh --git-repos --git $argv[1]
         end
       end
     '';
