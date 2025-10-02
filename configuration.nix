@@ -234,7 +234,10 @@
   ];
 
   # RGB control software
-  services.hardware.openrgb.enable = true;
+  services.hardware.openrgb = {
+    enable = true;
+    startupProfile = "orange";
+  };
 
   programs.bash = {
     enable = true;
