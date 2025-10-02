@@ -267,9 +267,19 @@
     shellInit = ''
       function nr --description "Reloads the NixOS config and pushes it to git. If a message is specified, create a new commit" 
         if test (count $argv) -eq 0
-          git -C /etc/nixos pull; sudo nix flake update --flake /etc/nixos; sudo nixos-rebuild switch --upgrade --flake /etc/nixos; git -C /etc/nixos add /etc/nixos/*; git -C /etc/nixos commit --amend --no-edit; git -C /etc/nixos push --force-with-lease
+          git -C /etc/nixos pull;
+          sudo nix flake update --flake /etc/nixos;
+          sudo nixos-rebuild switch --upgrade --flake /etc/nixos;
+          git -C /etc/nixos add /etc/nixos/*;
+          git -C /etc/nixos commit --amend --no-edit;
+          git -C /etc/nixos push --force-with-lease
         else 
-          git -C /etc/nixos pull; sudo nix flake update --flake /etc/nixos; sudo nixos-rebuild switch --upgrade --flake /etc/nixos; git -C /etc/nixos add /etc/nixos/*; git -C /etc/nixos commit -m $argv; git -C /etc/nixos push
+          git -C /etc/nixos pull;
+          sudo nix flake update --flake /etc/nixos;
+          sudo nixos-rebuild switch --upgrade --flake /etc/nixos;
+          git -C /etc/nixos add /etc/nixos/*;
+          git -C /etc/nixos commit -m $argv;
+          git -C /etc/nixos push
         end
       end
 
