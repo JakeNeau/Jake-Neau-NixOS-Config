@@ -250,11 +250,11 @@
     enable = true;
     shellAliases = {
       # NixOS Aliases
-      nf = "git -C /etc/nixos pull; sudoedit /etc/nixos/flake.nix";
-      nc = "git -C /etc/nixos pull; sudoedit /etc/nixos/configuration.nix";
-      nh = "git -C /etc/nixos pull; $EDITOR /etc/nixos/users/$USER/home.nix";
+      nf = "git -C /etc/nixos pull 1>/dev/null; sudoedit /etc/nixos/flake.nix";
+      nc = "git -C /etc/nixos pull 1>/dev/null; sudoedit /etc/nixos/configuration.nix";
+      nh = "git -C /etc/nixos pull 1>/dev/null; $EDITOR /etc/nixos/users/$USER/home.nix";
       ng = "sudo nix-collect-garbage --delete-old";
-      ns = "git -C /etc/nixos pull; sops /etc/nixos/secrets/secrets.yaml";
+      ns = "git -C /etc/nixos pull 1>/dev/null; sops /etc/nixos/secrets/secrets.yaml";
 
       # General Command Aliases
       ls = "eza";
@@ -265,14 +265,14 @@
     shellInit = ''
       function nr --description "Reloads the NixOS config and pushes it to git. If a message is specified, create a new commit" 
         if test (count $argv) -eq 0
-          git -C /etc/nixos pull;
+          git -C /etc/nixos pull 1>/dev/null;
           sudo nix flake update --flake /etc/nixos;
           sudo nixos-rebuild switch --upgrade --flake /etc/nixos;
           git -C /etc/nixos add /etc/nixos/*;
           git -C /etc/nixos commit --amend --no-edit;
           git -C /etc/nixos push --force-with-lease
         else 
-          git -C /etc/nixos pull;
+          git -C /etc/nixos pull 1>/dev/null;
           sudo nix flake update --flake /etc/nixos;
           sudo nixos-rebuild switch --upgrade --flake /etc/nixos;
           git -C /etc/nixos add /etc/nixos/*;
