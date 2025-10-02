@@ -359,7 +359,7 @@
         font = lib.mkForce "monospace:size=24";
 	line-height = 60;
         lines = 12;
-        match-mode = "fuzzy";
+        match-mode = "fzf";
 	tabs = 4;
 	use-bold = "true";
 	width = 32;
