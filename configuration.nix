@@ -233,6 +233,9 @@
     wget                                  # Download web files from the command line 
   ];
 
+  # RGB control software
+  services.hardware.openrgb.enable = true;
+
   programs.bash = {
     enable = true;
     interactiveShellInit = ''
