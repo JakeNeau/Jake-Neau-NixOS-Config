@@ -271,27 +271,28 @@
         or return 1
 
         set -l no_git $_flag_no_git
+        git -C /etc/nixos pull 1>/dev/null;
+        sudo nix flake update --flake /etc/nixos;
+        sudo nixos-rebuild switch --upgrade --flake /etc/nixos
+        or return 1
 
-        if test (count $argv) -eq 0
-          git -C /etc/nixos pull 1>/dev/null;
-          sudo nix flake update --flake /etc/nixos;
-          sudo nixos-rebuild switch --upgrade --flake /etc/nixos
-          or return 1
-        else 
-          git -C /etc/nixos pull 1>/dev/null;
-          sudo nix flake update --flake /etc/nixos;
-          sudo nixos-rebuild switch --upgrade --flake /etc/nixos
-          or return 1
-        end
-       
         # Run git commands unless told not to
         if not set -q _flag_no_git
           git -C /etc/nixos add /etc/nixos/*
+          # Amend the last commit with the new generatioin if a message is not specified
           if test (count $argv) -eq 0
-            git -C /etc/nixos commit --amend --no-edit;
+            set last_commit_message (git log -1 --pretty=%s)
+            if string match -rq '^[0-9]+:' -- $last_commit_message
+              set new_commit_message (string replace -r '^[0-9]+:' "$new_generation:" -- $last_commit_message
+            else
+              set new_commit_message "$new_generation: $last_commit_message"
+            end
+            git -C /etc/nixos commit --amend -m "$new_commit_message";
             git -C /etc/nixos push --force-with-lease
+          # Make a new commit if the message is specified
           else
-            git -C /etc/nixos commit -m $argv;
+            set new_commit_message "$new_generation: $argv"
+            git -C /etc/nixos commit -m "$new_commit_message";
             git -C /etc/nixos push
           end
         end
