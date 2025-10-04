@@ -45,7 +45,7 @@
     extraOptions = [
       "--group-directories-first"
     ];
-    enableZshIntegration = false;
+    enableFishIntegration = true;
   };
 
   wayland.windowManager.hyprland = {
@@ -117,6 +117,7 @@
 
   programs.ghostty = {
     enable = true;
+    enableFishIntegration = true;
     settings = {
       background-opacity = 0.8;
     };

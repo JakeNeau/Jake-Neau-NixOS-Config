@@ -385,7 +385,7 @@
     # Set fonts
     fonts = {
       monospace = {
-        package = pkgs.fira-code;
+        package = pkgs.nerd-fonts.fira-code;
 	name = "fira-code";
       };
       sansSerif = {
