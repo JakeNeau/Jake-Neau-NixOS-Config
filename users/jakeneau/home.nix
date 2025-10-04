@@ -42,10 +42,10 @@
     enable = true;
     colors = "always";
     icons = "always";
+    enableFishIntegration = true;
     extraOptions = [
       "--group-directories-first"
     ];
-    enableFishIntegration = true;
   };
 
   wayland.windowManager.hyprland = {
@@ -352,6 +352,11 @@
     };
   };
   stylix.targets.librewolf.profileNames = [ "default" ];
+
+  programs.fzf = {
+    enable = true;
+    enableFishIntegration = true;
+  };
 
   programs.fuzzel = {
     enable = true;
