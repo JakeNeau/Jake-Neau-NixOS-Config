@@ -228,6 +228,7 @@
     sops                                  # CLI tools for secrets management
     spotify                               # Music subscription service
     todoist-electron                      # Todo tracker app
+    unzip                                 # CLI file unzipping
     vesktop                               # Alternative to discord messaging app
     wget                                  # Download web files from the command line 
   ];
@@ -364,7 +365,7 @@
     '';
   };
 
-  # Style system with stylix
+  # Stylix works with home manager to give most apps a consistent styling
   stylix = {
     enable = true;
 
@@ -386,7 +387,7 @@
     fonts = {
       monospace = {
         package = pkgs.nerd-fonts.lilex;
-	name = "lilex";
+	name = "LilexMonoNerdFont";
       };
       sansSerif = {
         package = pkgs.montserrat;

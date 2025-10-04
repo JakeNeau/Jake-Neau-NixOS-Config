@@ -115,11 +115,14 @@
       };
   };
 
+  stylix.targets.ghostty.enable = false;
   programs.ghostty = {
     enable = true;
     enableFishIntegration = true;
     settings = {
       background-opacity = 0.8;
+      font-feature = [ "liga" "calt" "dlig" ];
+      font-family = "LilexMonoNerdFont";
     };
   };
 
