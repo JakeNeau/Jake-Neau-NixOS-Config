@@ -271,10 +271,7 @@
     };
     shellInit = ''
       function nr --description "Reloads the NixOS config and pushes it to git. If a message is specified, create a new commit" 
-        argparse 'n/no-git' -- $argv
-        or return 1
-
-        argparse 'f/full' -- $argv
+        argparse 'n/no-git' 'f/full-output' -- $argv
         or return 1
 
         if set -q _flag_full
@@ -284,32 +281,57 @@
           or return 1
         else
           git -C /etc/nixos pull 1>/dev/null
-          echo "Rebuilding NixOS configuration"
-          sudo nix flake update --flake /etc/nixos 1>/dev/null
-          sudo nixos-rebuild switch --upgrade --flake /etc/nixos 1>/dev/null
+          echo "Rebuilding NixOS configuration..."
+          sudo nix flake update --flake /etc/nixos --quiet
+          sudo nixos-rebuild switch --upgrade --flake /etc/nixos --quiet
           or return 1
         end
         set new_generation (readlink /nix/var/nix/profiles/system | cut -d- -f2)
         echo "NixOS configuration rebuilt for generation $new_generation"
 
         # Run git commands unless told not to
-        if not set -q _flag_no_git
-          git -C /etc/nixos add /etc/nixos/*
-          # Amend the last commit with the new generatioin if a message is not specified
-          if test (count $argv) -eq 0
-            set last_commit_message (git -C /etc/nixos log -1 --pretty=%s)
-            if test (string match -r '^Generation [0-9]+:' -- $last_commit_message | count) -gt 0
-              set new_commit_message (string replace -r '^Generation [0-9]+:' "Generation $new_generation:" -- $last_commit_message)
+        if set -q _flag_full
+          if not set -q _flag_no_git
+            git -C /etc/nixos add /etc/nixos/*
+            # Amend the last commit with the new generatioin if a message is not specified
+            if test (count $argv) -eq 0
+              set last_commit_message (git -C /etc/nixos log -1 --pretty=%s)
+              if test (string match -r '^Generation [0-9]+:' -- $last_commit_message | count) -gt 0
+                set new_commit_message (string replace -r '^Generation [0-9]+:' "Generation $new_generation:" -- $last_commit_message)
+              else
+                set new_commit_message "Generation $new_generation: $last_commit_message"
+              end
+              git -C /etc/nixos commit --amend -m "$new_commit_message"
+              git -C /etc/nixos push --force-with-lease
+            # Make a new commit if the message is specified
             else
-              set new_commit_message "Generation $new_generation: $last_commit_message"
+              set new_commit_message "Generation $new_generation: $argv"
+              git -C /etc/nixos commit -m "$new_commit_message"
+              git -C /etc/nixos push
             end
-            git -C /etc/nixos commit --amend -m "$new_commit_message"
-            git -C /etc/nixos push --force-with-lease
-          # Make a new commit if the message is specified
-          else
-            set new_commit_message "Generation $new_generation: $argv"
-            git -C /etc/nixos commit -m "$new_commit_message"
-            git -C /etc/nixos push
+          end
+        else
+          if not set -q _flag_no_git
+            git -C /etc/nixos add /etc/nixos/* 1>/dev/null
+            # Amend the last commit with the new generatioin if a message is not specified
+            if test (count $argv) -eq 0
+              set last_commit_message (git -C /etc/nixos log -1 --pretty=%s)
+              if test (string match -r '^Generation [0-9]+:' -- $last_commit_message | count) -gt 0
+                set new_commit_message (string replace -r '^Generation [0-9]+:' "Generation $new_generation:" -- $last_commit_message)
+              else
+                set new_commit_message "Generation $new_generation: $last_commit_message"
+              end
+              git -C /etc/nixos commit --amend -qm "$new_commit_message"
+              git -C /etc/nixos push --force-with-lease -q
+              or return 1
+            # Make a new commit if the message is specified
+            else
+              set new_commit_message "Generation $new_generation: $argv"
+              git -C /etc/nixos commit -qm "$new_commit_message" 
+              git -C /etc/nixos push --q
+              or return 1
+            end
+            echo "Commit \"$new_commit_message\" pushed to GitHub"
           end
         end
       end
