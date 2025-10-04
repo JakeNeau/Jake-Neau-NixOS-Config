@@ -302,12 +302,16 @@
                 set new_commit_message "Generation $new_generation: $last_commit_message"
               end
               git -C /etc/nixos commit --amend -m "$new_commit_message"
+              or return 1
               git -C /etc/nixos push --force-with-lease
+              or return 1
             # Make a new commit if the message is specified
             else
               set new_commit_message "Generation $new_generation: $argv"
               git -C /etc/nixos commit -m "$new_commit_message"
+              or return 1
               git -C /etc/nixos push
+              or return 1
             end
           end
         else
@@ -322,12 +326,14 @@
                 set new_commit_message "Generation $new_generation: $last_commit_message"
               end
               git -C /etc/nixos commit --amend -qm "$new_commit_message"
+              or return 1
               git -C /etc/nixos push --force-with-lease -q
               or return 1
             # Make a new commit if the message is specified
             else
               set new_commit_message "Generation $new_generation: $argv"
               git -C /etc/nixos commit -qm "$new_commit_message" 
+              or return 1
               git -C /etc/nixos push --q
               or return 1
             end
@@ -337,10 +343,22 @@
       end
 
       function eza-long --description "Runs eza with a lot of information"
-        if test (count $argv) -eq 0; or test $argv[1] = 0
-          eza -algh --git-repos --git $argv[2]
+        set -l depth
+        set -l path
+
+        for arg in $argv
+          # Set depth if depth is not set and the argument is a number
+          if test -z "$depth" -a (string match -r '^[0-9]+$' "$arg" | count) -gt 0
+            set depth "$arg"
+          else if test -z "$path"
+            set path "$arg"
+          end
+        end
+
+        if not test -z "$depth"
+          eza -algh --git-repos --git -T -L=$depth $path
         else
-          eza -algh --git-repos --git -T -L=$argv[1] $argv[2] 2>/dev/null; or eza -algh --git-repos --git $argv[1]
+          eza -algh --git-repos --git $path
         end
       end
     '';
