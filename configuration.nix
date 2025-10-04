@@ -264,7 +264,7 @@
       ns = "git -C /etc/nixos pull 1>/dev/null; sops /etc/nixos/secrets/secrets.yaml";
 
       # General Command Aliases
-      ls = "eza";
+      ls = "eza --icons --group-directories-first";
       l = "eza-long"; # This is needed because the function 'eza-long' will not override the fish default 'l' function if named 'l'
       r = "sudo systemctl reboot";
       s = "sudo systemctl poweroff";
@@ -356,9 +356,9 @@
         end
 
         if not test -z "$depth"
-          eza -algh --git-repos --git -T -L=$depth $path
+          eza -algh --git-repos --git --icons --group-directories-first -T -L=$depth $path
         else
-          eza -algh --git-repos --git $path
+          eza -algh --git-repos --git --icons --group-directories-first $path
         end
       end
     '';
