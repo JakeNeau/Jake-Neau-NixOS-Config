@@ -143,8 +143,9 @@
   };
   
   # Run pipewire setup scripts on startup
-  systemd.user.services.pipewire-startup = {
-    description = "sets up pipewire connections on startup";
+  systemd.user.services.create-pipewire-links = {
+    description = "sets up pipewire connections after pipewire is loaded";
+    wants = [ "pipewire.service" ];
     script = ''
       #!/usr/bin/env bash
 
@@ -158,7 +159,6 @@
       pw-link "Multi-Output:monitor_FL" "alsa_output.usb-GuangZhou_FiiO_Electronics_Co._Ltd_FiiO_K7-00.analog-stereo:playback_FL"
       pw-link "Multi-Output:monitor_FR" "alsa_output.usb-GuangZhou_FiiO_Electronics_Co._Ltd_FiiO_K7-00.analog-stereo:playback_FR"
     '';
-    wantedBy = [ "multi-user.target" ];
   };
 
   # User accounts
