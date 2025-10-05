@@ -141,6 +141,25 @@
       };
     };
   };
+  
+  # Run pipewire setup scripts on startup
+  systemd.user.services.pipewire-startup = {
+    description = "sets up pipewire connections on startup";
+    script = ''
+      #!/usr/bin/env bash
+
+      # ports obtained from `pw-link -io`
+
+      # Connect multi-output to focusrite headphones
+      pw-link "Multi-Output:monitor_FL" "alsa_output.usb-Focusrite_Scarlett_2i2_USB_Y8XBPE40BA5F9E-00.HiFi__Line1__sink:playback_FL"
+      pw-link "Multi-Output:monitor_FR" "alsa_output.usb-Focusrite_Scarlett_2i2_USB_Y8XBPE40BA5F9E-00.HiFi__Line1__sink:playback_FR"
+
+      # Connect multi-output to fiio amp
+      pw-link "Multi-Output:monitor_FL" "alsa_output.usb-GuangZhou_FiiO_Electronics_Co._Ltd_FiiO_K7-00.analog-stereo:playback_FL"
+      pw-link "Multi-Output:monitor_FR" "alsa_output.usb-GuangZhou_FiiO_Electronics_Co._Ltd_FiiO_K7-00.analog-stereo:playback_FR"
+    '';
+    wantedBy = [ "multi-user.target" ];
+  };
 
   # User accounts
   users.mutableUsers= false;
