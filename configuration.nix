@@ -387,15 +387,15 @@
     fonts = {
       monospace = {
         package = pkgs.nerd-fonts.lilex;
-	name = "LilexMonoNerdFont";
+	name = "Lilex Nerd Font Mono";
       };
       sansSerif = {
         package = pkgs.montserrat;
-	name = "montserrat";
+	name = "Montserrat";
       };
       serif = {
         package = pkgs.zilla-slab;
-	name = "zilla-slab";
+	name = "Zilla Slab";
       };
     };
   };
