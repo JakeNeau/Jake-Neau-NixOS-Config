@@ -116,6 +116,19 @@
     alsa.support32Bit = true;
     pulse.enable = true;
     jack.enable = true;
+    extraConfig.pipewire = {
+      "91-null-sinks" = {
+        
+      };
+      "92-low-latency" = {
+        "context.properties" = {
+          "default.clock.rate" = 48000;
+          "default.clock.quantum" = 32;
+          "default.clock.min-quantum" = 32;
+          "default.clock.max-quantum" = 32;
+        };
+      };
+    };
   };
 
   # User accounts
@@ -195,6 +208,7 @@
       removeWarningPopup = true;
     })
     candy-icons                           # A gradient vector icon theme
+    carla                                 # A patchbay and volume control program that works with pipewire
     eza                                   # A better version of ls written in rust
     fastfetch                             # Terminal program for displaying system info and flexing on arch users
     fishPlugins.colored-man-pages         # More interesting man pages
