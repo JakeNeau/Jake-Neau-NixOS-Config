@@ -118,7 +118,18 @@
     jack.enable = true;
     extraConfig.pipewire = {
       "91-null-sinks" = {
-        
+        "context.objects" = [
+          {
+            factory = "adapter";
+            args = {
+              "factory.name" = "support.null-audio-sink";
+              "node.name" = "Multi-Output";
+              "node.desctiption" = "Replicates output to multiple sinks";
+              "media.class" = "Audio/Sink";
+              "audio.position" = "FL,FR";
+            };
+          }
+        ];
       };
       "92-low-latency" = {
         "context.properties" = {
