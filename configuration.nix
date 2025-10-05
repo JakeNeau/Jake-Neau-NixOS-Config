@@ -208,7 +208,6 @@
       removeWarningPopup = true;
     })
     candy-icons                           # A gradient vector icon theme
-    carla                                 # A patchbay and volume control program that works with pipewire
     eza                                   # A better version of ls written in rust
     fastfetch                             # Terminal program for displaying system info and flexing on arch users
     fishPlugins.colored-man-pages         # More interesting man pages
@@ -239,6 +238,7 @@
     pavucontrol                           # Sound setting control GUI
     playerctl                             # Keyboard controls for audio players
     prismlauncher                         # Minecraft launcher
+    qpwgraph                              # A patchbay and volume control program that works with pipewire
     sops                                  # CLI tools for secrets management
     spotify                               # Music subscription service
     todoist-electron                      # Todo tracker app
