@@ -271,6 +271,7 @@
     qpwgraph                              # A patchbay and volume control program that works with pipewire
     sops                                  # CLI tools for secrets management
     spotify                               # Music subscription service
+    tldr                                  # Summarize man pages for commands
     todoist-electron                      # Todo tracker app
     unzip                                 # CLI file unzipping
     vesktop                               # Alternative to discord messaging app
