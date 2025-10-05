@@ -144,20 +144,32 @@
   
   # Run pipewire setup scripts on startup
   systemd.user.services.create-pipewire-links = {
-    description = "sets up pipewire connections after pipewire is loaded";
-    wants = [ "pipewire.service" ];
+    description = "create-pipewire-links: sets up pipewire connections after pipewire is set up";
+    wantedBy = [
+      "pipewire.service" 
+    ];
+    requires = [
+      "pipewire.service"
+      "wireplumber.service"
+    ];
+    after = [
+      "pipewire.service"
+      "wireplumber.service"
+    ];
+    serviceConfig = {
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
     script = ''
-      #!/usr/bin/env bash
-
       # ports obtained from `pw-link -io`
 
       # Connect multi-output to focusrite headphones
-      pw-link "Multi-Output:monitor_FL" "alsa_output.usb-Focusrite_Scarlett_2i2_USB_Y8XBPE40BA5F9E-00.HiFi__Line1__sink:playback_FL"
-      pw-link "Multi-Output:monitor_FR" "alsa_output.usb-Focusrite_Scarlett_2i2_USB_Y8XBPE40BA5F9E-00.HiFi__Line1__sink:playback_FR"
+      /run/current-system/sw/bin/pw-link "Multi-Output:monitor_FL" "alsa_output.usb-Focusrite_Scarlett_2i2_USB_Y8XBPE40BA5F9E-00.HiFi__Line1__sink:playback_FL"
+      /run/current-system/sw/bin/pw-link "Multi-Output:monitor_FR" "alsa_output.usb-Focusrite_Scarlett_2i2_USB_Y8XBPE40BA5F9E-00.HiFi__Line1__sink:playback_FR"
 
       # Connect multi-output to fiio amp
-      pw-link "Multi-Output:monitor_FL" "alsa_output.usb-GuangZhou_FiiO_Electronics_Co._Ltd_FiiO_K7-00.analog-stereo:playback_FL"
-      pw-link "Multi-Output:monitor_FR" "alsa_output.usb-GuangZhou_FiiO_Electronics_Co._Ltd_FiiO_K7-00.analog-stereo:playback_FR"
+      /run/current-system/sw/bin/pw-link "Multi-Output:monitor_FL" "alsa_output.usb-GuangZhou_FiiO_Electronics_Co._Ltd_FiiO_K7-00.analog-stereo:playback_FL"
+      /run/current-system/sw/bin/pw-link "Multi-Output:monitor_FR" "alsa_output.usb-GuangZhou_FiiO_Electronics_Co._Ltd_FiiO_K7-00.analog-stereo:playback_FR"
     '';
   };
 
