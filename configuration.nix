@@ -289,6 +289,7 @@
     unzip                                 # CLI file unzipping
     vesktop                               # Alternative to discord messaging app
     wget                                  # Download web files from the command line 
+    xournalpp                             # App for signing PDFs
   ];
 
   # RGB control software
