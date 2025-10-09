@@ -143,14 +143,15 @@
           }
         ];
       };
-      "92-low-latency" = {
-        "context.properties" = {
-          "default.clock.rate" = 48000;
-          "default.clock.quantum" = 32;
-          "default.clock.min-quantum" = 32;
-          "default.clock.max-quantum" = 32;
-        };
-      };
+#      Evil ass low latency audio script, turning it on makes my mic go funny
+#      "92-low-latency" = {
+#        "context.properties" = {
+#          "default.clock.rate" = 48000;
+#          "default.clock.quantum" = 32;
+#          "default.clock.min-quantum" = 32;
+#          "default.clock.max-quantum" = 32;
+#        };
+#      };
     };
   };
   
