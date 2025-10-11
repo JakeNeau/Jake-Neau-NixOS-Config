@@ -286,6 +286,7 @@
     hyprpaper                             # Hyprland wallpaper utility
     hyprpolkitagent                       # Hyprland elevated privledges utility
     inkscape                              # Vector graphics editor
+    iwgtk                                 # A graphical wireless management tool
     jdk21                                 # Java Development Kit
     jujutsu                               # A better VCS built on top of git
     librewolf                             # Firefox based browser with more privacy
