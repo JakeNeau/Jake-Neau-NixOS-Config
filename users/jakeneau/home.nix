@@ -58,7 +58,10 @@
         ];
       };
       # Enable programs on startup
-      exec-once = [];
+      exec-once = [
+        "clipse -listen"
+      ];
+
       # Monitors
       monitor = [
         "DP-1, 5120x1440@240, 0x0, 1"
@@ -67,6 +70,13 @@
       # Programs
       "$terminal" = "ghostty";
       "$menu" = "fuzzel --fuzzy-max-length-discrepancy=4";
+
+      # Window rules
+      windowrule = [
+        "float, class:(clipse)"
+        "size 622 652, class:(clipse)"
+        "stayfocused, class:(clipse)"
+      ];
 
       # Keys
       "$mod" = "SUPER"; # Windows key on most keyboards
@@ -83,6 +93,7 @@
         "$mod, J, movefocus, d"
 	"$mod, K, movefocus, u"
 	"$mod, L, movefocus, r"
+        "$mod, V, exec, $terminal --class=clipse -e clipse"
       ] ++ (
         # Dynamically generate workspaces bindings
         builtins.concatLists (builtins.genList (i:

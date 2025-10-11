@@ -279,6 +279,7 @@
       removeWarningPopup = true;
     })
     candy-icons                           # A gradient vector icon theme
+    clipse                                # A cool clipboard manager
     eza                                   # A better version of ls written in rust
     fastfetch                             # Terminal program for displaying system info and flexing on arch users
     fishPlugins.colored-man-pages         # More interesting man pages
