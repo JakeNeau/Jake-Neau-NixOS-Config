@@ -60,6 +60,7 @@
       # Enable programs on startup
       exec-once = [
         "clipse -listen"
+        "wl-clip-persist --clipboard regular"
       ];
 
       # Monitors
@@ -73,9 +74,9 @@
 
       # Window rules
       windowrule = [
-        "float, class:(clipse)"
-        "size 622 652, class:(clipse)"
-        "stayfocused, class:(clipse)"
+        "float, class:(.*[.]clipse$)"
+        "size 622 652, class:(.*[.]clipse$)"
+        "stayfocused, class:(.*[.]clipse$)"
       ];
 
       # Keys
@@ -93,7 +94,7 @@
         "$mod, J, movefocus, d"
 	"$mod, K, movefocus, u"
 	"$mod, L, movefocus, r"
-        "$mod, V, exec, $terminal --class=clipse -e clipse"
+        "$mod, V, exec, $terminal --confirm-close-surface=false --class=com.clipse -e clipse"
       ] ++ (
         # Dynamically generate workspaces bindings
         builtins.concatLists (builtins.genList (i:

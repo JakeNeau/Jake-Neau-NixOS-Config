@@ -321,6 +321,8 @@
     unzip                                 # CLI file unzipping
     vesktop                               # Alternative to discord messaging app
     wget                                  # Download web files from the command line 
+    wl-clip-persist                       # Make sure clipboard items persist after programs close
+    wl-clipboard                          # Clipboard manager backend
     xournalpp                             # App for signing PDFs
   ];
 
