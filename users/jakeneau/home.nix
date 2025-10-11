@@ -48,6 +48,15 @@
     ];
   };
 
+  services.clipse = {
+    enable = true;
+    imageDisplay = {
+      type = "kitty";
+      scaleX = 9;
+      scaleY = 9;
+    };
+  };
+
   wayland.windowManager.hyprland = {
     enable = true;
     settings = {
@@ -75,7 +84,7 @@
       # Window rules
       windowrule = [
         "float, class:(.*[.]clipse$)"
-        "size 622 652, class:(.*[.]clipse$)"
+        "size 1500 1000, class:(.*[.]clipse$)"
         "stayfocused, class:(.*[.]clipse$)"
       ];
 
