@@ -300,6 +300,7 @@
     spotify                               # Music subscription service
     tldr                                  # Summarize man pages for commands
     todoist-electron                      # Todo tracker app
+    udiskie                               # Automounting for removable media
     unzip                                 # CLI file unzipping
     vesktop                               # Alternative to discord messaging app
     wget                                  # Download web files from the command line 
