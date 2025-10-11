@@ -284,6 +284,7 @@
     ghostty                               # A fast and GPU accelerated terminal emulator
     grc                                   # Generic text colorizer
     hyprpaper                             # Hyprland wallpaper utility
+    hyprpolkitagent                       # Hyprland elevated privledges utility
     inkscape                              # Vector graphics editor
     jdk21                                 # Java Development Kit
     jujutsu                               # A better VCS built on top of git
