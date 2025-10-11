@@ -58,8 +58,24 @@
   boot.initrd.luks.devices."luks-014e6aef-d36f-4b5b-9b48-447d6bc40b95".device = "/dev/disk/by-uuid/014e6aef-d36f-4b5b-9b48-447d6bc40b95";
   networking.hostName = "nixos"; # Define your hostname.
 
+  # Set the wireless daemon
+  networking.wireless.iwd = {
+    enable = true;
+    settings = {
+      IPv6 = {
+        Enabled = true;
+      };
+      Settings = {
+        AutoConnect = true;
+      };
+    };
+  };
+
   # Enable networking
-  networking.networkmanager.enable = true;
+  networking.networkmanager = {
+    enable = true;
+    wifi.backend = "iwd";
+  };
 
   # Set your time zone.
   time.timeZone = "America/Chicago";
@@ -253,7 +269,6 @@
       proton-ge-bin
     ];
   };
-
 
   # List packages installed in system profile
   environment.systemPackages = with pkgs; [
