@@ -272,6 +272,7 @@
 
   # List packages installed in system profile
   environment.systemPackages = with pkgs; [
+    vscode
     audacity                              # Audio recording program
     bitwarden-desktop                     # Password manager for all devices
     blender-hip                           # 3D Modeling art program with AMD GPU support (hip)
