@@ -285,12 +285,10 @@
     fastfetch                             # Terminal program for displaying system info and flexing on arch users
     fishPlugins.colored-man-pages         # More interesting man pages
     fishPlugins.fish-bd                   # Go back directories with bd
-    fishPlugins.forgit                    # Interactive git editor
     fishPlugins.fzf-fish                  # Search for multiple things with fzf
     fishPlugins.grc                       # A generic colorizer
     fishPlugins.pisces                    # Adds parentheses, quotes, etc. in pairs
     fishPlugins.plugin-sudope             # Add sudo to a command when you forgot
-    fishPlugins.plugin-git                # Git aliases for fish
     fishPlugins.puffer                    # Useful text expansions
     fishPlugins.pure                      # Minimal and fast fish prompt
     fishPlugins.sponge                    # Remove typos from terminal
@@ -358,6 +356,11 @@
       ng = "sudo nix-collect-garbage --delete-old";
       ns = "git -C /etc/nixos pull 1>/dev/null; sops /etc/nixos/secrets/secrets.yaml";
 
+      # Git aliases
+      ga = "git add";
+      gc = "git commit -m";
+      gp = "git push";
+
       # General Command Aliases
       ls = "eza --icons --group-directories-first";
       l = "eza-long"; # This is needed because the function 'eza-long' will not override the fish default 'l' function if named 'l'
@@ -365,6 +368,9 @@
       s = "sudo systemctl poweroff";
     };
     shellInit = ''
+      # Clean up all failed commands from history after 20 entries
+      set sponge_delay 20
+
       function nr --description "Reloads the NixOS config and pushes it to git. If a message is specified, create a new commit" 
         argparse 'n/no-git' 'f/full-output' -- $argv
         or return 1
@@ -455,6 +461,33 @@
         else
           eza -algh --git-repos --git --icons --group-directories-first $path
         end
+      end
+
+      function g --description "General git function for adding, commiting, and pushing"
+        argparse 'f/force' 'a/amend' -- $argv
+
+        set commit_flags ""
+        if set -q _flag_amend
+          set commit_flags "$commit_flags --amend"
+        end
+        if test (count $argv) -eq 0
+          set commit_flags "$commit_flags --no-edit"
+        else
+          set commit_flage "$commit_flags -m"
+        end
+
+        set push_flags ""
+        if set -q _flag_force
+          set push_flags = "$push_flags --force-with-lease"
+        end
+
+        git add *
+        or return 1
+        
+        git commit $commit_flags $argv 
+        or return 1
+
+        git push $push_flags
       end
     '';
   };
