@@ -435,7 +435,7 @@
               set new_commit_message "Generation $new_generation: $argv"
               git -C /etc/nixos commit -qm "$new_commit_message" 
               or return 1
-              git -C /etc/nixos push --q
+              git -C /etc/nixos push -q
               or return 1
             end
             echo "Commit \"$new_commit_message\" pushed to GitHub"
@@ -464,7 +464,17 @@
       end
 
       function g --description "General git function for adding, commiting, and pushing"
-        argparse 'f/force' 'a/amend' -- $argv
+        argparse 'f/force' 'a/amend' 'l/local' 'l/full' -- $argv
+
+        set parse_flags ""
+        if not set -q _flag_full
+          set parse_flags "$parse_flags --quiet"
+        end
+
+        set add_flags ""
+        if not set -q _flag_full
+          set add_flags "$add_flags 1>/dev/null"
+        end
 
         set commit_flags ""
         if set -q _flag_amend
@@ -473,21 +483,32 @@
         if test (count $argv) -eq 0
           set commit_flags "$commit_flags --no-edit"
         else
-          set commit_flage "$commit_flags -m"
+          set commit_flags "$commit_flags -m"
+        end
+        if not set -q _flag_full
+          set commit_flags "$commit_flags -q"
         end
 
         set push_flags ""
         if set -q _flag_force
           set push_flags = "$push_flags --force-with-lease"
         end
+        if not set -q _flag_full
+          set push_flags = "$push_flags -q"
+        end
 
-        git add *
+        set git_root (git rev-parse --show-toplevel $parse_flags)
+        or return 1
+        set git_all "$git_root/*"
+
+        git add $git_all $add_flags
         or return 1
         
         git commit $commit_flags $argv 
         or return 1
 
         git push $push_flags
+        or return 1
       end
     '';
   };
