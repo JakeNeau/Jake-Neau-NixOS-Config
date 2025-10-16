@@ -464,15 +464,22 @@
       end
 
       function g --description "General git function for adding, commiting, and pushing"
-        argparse 'f/force' 'a/amend' 'l/local' 'l/full' -- $argv
+        argparse 'f/force' 'a/amend' 'c/current-directory' 'l/long' -- $argv
+
+        if test (count $argv) -eq 0
+          set _flag_amend true
+        end
+        if set -q _flag_amend
+          set _flag_force true
+        end
 
         set parse_flags ""
-        if not set -q _flag_full
+        if not set -q _flag_long
           set parse_flags "$parse_flags --quiet"
         end
 
         set add_flags ""
-        if not set -q _flag_full
+        if not set -q _flag_long
           set add_flags "$add_flags 1>/dev/null"
         end
 
@@ -485,7 +492,7 @@
         else
           set commit_flags "$commit_flags -m"
         end
-        if not set -q _flag_full
+        if not set -q _flag_long
           set commit_flags "$commit_flags -q"
         end
 
@@ -493,12 +500,16 @@
         if set -q _flag_force
           set push_flags = "$push_flags --force-with-lease"
         end
-        if not set -q _flag_full
+        if not set -q _flag_long
           set push_flags = "$push_flags -q"
         end
 
-        set git_root (git rev-parse --show-toplevel $parse_flags)
-        or return 1
+        if set -q _flag_current-directory
+          set git root "."
+        else
+          set git_root (git rev-parse --show-toplevel $parse_flags)
+          or return 1
+        end
         set git_all "$git_root/*"
 
         git add $git_all $add_flags
