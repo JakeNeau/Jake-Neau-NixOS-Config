@@ -243,20 +243,6 @@
   programs.nvf = {
     enable = true;
     defaultEditor = true;
-    settings = {
-      vim = {
-        viAlias = false;
-        vimAlias = true;
-        lsp = {
-          enable = true;
-        };
-       
-        statusline.lualine.enable = true;
-        telescope.enable = true;
-        autocomplete.nvim-cmp.enable = true;
-      };
-    };
-
   };
 
   # PC game platform

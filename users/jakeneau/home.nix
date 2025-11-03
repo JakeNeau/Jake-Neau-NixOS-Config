@@ -34,8 +34,10 @@
   # basic configuration of git, please change to your own
   programs.git = {
     enable = true;
-    userName = "Jake Neau";
-    userEmail = "jakeneau@proton.me";
+    settings.user = {
+      name = "Jake Neau";
+      email = "jakeneau@proton.me";
+    };
   };
 
   programs.eza = {
