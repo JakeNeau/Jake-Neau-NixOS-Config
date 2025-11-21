@@ -269,6 +269,7 @@
     clipse                                # A cool clipboard manager
     eza                                   # A better version of ls written in rust
     fastfetch                             # Terminal program for displaying system info and flexing on arch users
+    freetube                              # An open source Youtube frontend
     fishPlugins.colored-man-pages         # More interesting man pages
     fishPlugins.fish-bd                   # Go back directories with bd
     fishPlugins.fzf-fish                  # Search for multiple things with fzf
