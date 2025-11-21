@@ -266,6 +266,7 @@
 	  force = true;
 	  packages = with pkgs.nur.repos.rycee.firefox-addons; [
 	    bitwarden
+            chrome-mask
 	    darkreader
 	    don-t-fuck-with-paste
 	    return-youtube-dislikes
@@ -324,6 +325,12 @@
       ExtensionSettings = {
         # Bitwarden
         "{446900e4-71c2-419f-a6a7-df9c091e268b}" = {
+          force_installed = true;
+	  default_area = "menupanel";
+	  private_browsing = true;
+	};
+        # Chrome Mask
+        "chrome-mask@overengineer.dev" = {
           force_installed = true;
 	  default_area = "menupanel";
 	  private_browsing = true;
