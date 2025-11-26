@@ -298,6 +298,7 @@
     playerctl                             # Keyboard controls for audio players
     prismlauncher                         # Minecraft launcher
     qpwgraph                              # A patchbay and volume control program that works with pipewire
+    reaper                                # A configurable digital audio workstation
     sops                                  # CLI tools for secrets management
     spotify                               # Music subscription service
     tldr                                  # Summarize man pages for commands
