@@ -283,6 +283,7 @@
     fuzzel                                # Super fast application launcher
     fzf                                   # System wide fuzzy finder
     ghostty                               # A fast and GPU accelerated terminal emulator
+    google-chrome                         # The chrome browser for development reasons
     grc                                   # Generic text colorizer
     hyprpaper                             # Hyprland wallpaper utility
     hyprpolkitagent                       # Hyprland elevated privledges utility
