@@ -135,6 +135,7 @@
     enable32Bit = true;
   };
 
+
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
@@ -159,7 +160,7 @@
           }
         ];
       };
-#      Evil ass low latency audio script, turning it on makes my mic go funny
+#      Evil ass low latency audio script, turning it on kills my sound output
 #      "92-low-latency" = {
 #        "context.properties" = {
 #          "default.clock.rate" = 48000;
@@ -202,6 +203,10 @@
       /run/current-system/sw/bin/pw-link "Multi-Output:monitor_FR" "alsa_output.usb-GuangZhou_FiiO_Electronics_Co._Ltd_FiiO_K7-00.analog-stereo:playback_FR"
     '';
   };
+
+  # Bluetooth settings and blueman for a gui
+  hardware.bluetooth.enable = true;
+  services.blueman.enable = true;
 
   # User accounts
   users.mutableUsers= false;
