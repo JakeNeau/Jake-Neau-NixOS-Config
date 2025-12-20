@@ -77,6 +77,10 @@
     wifi.backend = "iwd";
   };
 
+  # Bluetooth settings
+  hardware.bluetooth.enable = true;
+
+
   # Set your time zone.
   time.timeZone = "America/Chicago";
 
@@ -204,10 +208,6 @@
     '';
   };
 
-  # Bluetooth settings and blueman for a gui
-  hardware.bluetooth.enable = true;
-  services.blueman.enable = true;
-
   # User accounts
   users.mutableUsers= false;
   users.users.jakeneau = {
@@ -267,6 +267,7 @@
     audacity                              # Audio recording program
     bitwarden-desktop                     # Password manager for all devices
     blender-hip                           # 3D Modeling art program with AMD GPU support (hip)
+    bluetui                               # A tui for managing bluetooth
     (bottles.override {                   # A wine prefix manager
       removeWarningPopup = true;
     })
