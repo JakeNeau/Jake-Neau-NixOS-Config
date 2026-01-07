@@ -138,6 +138,7 @@
     enable = true;
     enable32Bit = true;
   };
+  nixpkgs.config.rocmSupport = true;
 
 
   # Enable sound with pipewire.
@@ -266,7 +267,7 @@
     vscode
     audacity                              # Audio recording program
     bitwarden-desktop                     # Password manager for all devices
-    blender-hip                           # 3D Modeling art program with AMD GPU support (hip)
+    blender                               # 3D Modeling art program with AMD GPU support (hip)
     bluetui                               # A tui for managing bluetooth
     (bottles.override {                   # A wine prefix manager
       removeWarningPopup = true;
