@@ -85,9 +85,6 @@
 
       # Window rules
       windowrule = [
-        "float, class:(.*[.]clipse$)"
-        "size 1500 1000, class:(.*[.]clipse$)"
-        "stayfocused, class:(.*[.]clipse$)"
       ];
 
       # Keys
