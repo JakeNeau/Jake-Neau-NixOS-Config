@@ -102,10 +102,14 @@
   # Compositor: displays the desktop
   programs.niri.enable = true;
 
-  # Enable other desktop portals for screen sharing
+  # Enable the gnome keyring for storing passphrases
+  services.gnome.gnome-keyring.enable = true;
+
+  # Enable other desktop portals
   xdg.portal = {
     enable = true;
     extraPortals = [
+      pkgs.xdg-desktop-portal-gnome
       pkgs.xdg-desktop-portal-gtk
     ];
   };
@@ -220,6 +224,9 @@
 
   # Set users of the wheel group to not need sudo passwords
   security.sudo.wheelNeedsPassword = false;
+
+  # Enable polkit for running privledged operations
+  security.polkit.enable = true;
 
   # Greeter: handles login
   services.greetd = {
