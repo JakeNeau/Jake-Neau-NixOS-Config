@@ -100,7 +100,7 @@
   };
 
   # Compositor: displays the desktop
-  programs.hyprland.enable = true;
+  programs.niri.enable = true;
 
   # Enable other desktop portals for screen sharing
   xdg.portal = {
@@ -226,7 +226,7 @@
     enable = true;
     settings = rec {
       initial_session = {
-        command = "${pkgs.hyprland}/bin/hyprland";
+        command = "${pkgs.niri}/bin/niri";
         user = "jakeneau";
       };
       default_session = initial_session;
