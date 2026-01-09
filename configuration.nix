@@ -323,7 +323,6 @@
     wl-clip-persist                       # Make sure clipboard items persist after programs close
     wl-clipboard                          # Clipboard manager backend
     xournalpp                             # App for signing PDFs
-    xwayland-satellite                    # Run xwayland outside the wayland compositor
   ];
 
   # RGB control software
