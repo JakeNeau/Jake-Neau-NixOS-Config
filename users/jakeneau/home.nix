@@ -68,22 +68,6 @@
     };
   };
 
-  services.hyprpaper = {
-    enable = true;
-    settings = {
-      splash = false;
-      ipc = true;
-
-      preload = [
-        "${config.stylix.image}"
-      ];
-
-      wallpaper = [
-        "DP-1, ${config.stylix.image}"
-      ];
-    };
-  };
-
   programs.librewolf = {
     enable = true;
     settings = {

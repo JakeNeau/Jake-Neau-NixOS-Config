@@ -292,8 +292,6 @@
     ghostty                               # A fast and GPU accelerated terminal emulator
     google-chrome                         # The chrome browser for development reasons
     grc                                   # Generic text colorizer
-    hyprpaper                             # Hyprland wallpaper utility
-    hyprpolkitagent                       # Hyprland elevated privledges utility
     inkscape                              # Vector graphics editor
     jdk21                                 # Java Development Kit
     jujutsu                               # A better VCS built on top of git
@@ -308,6 +306,7 @@
     reaper                                # A configurable digital audio workstation
     sops                                  # CLI tools for secrets management
     spotify                               # Music subscription service
+    swaybg                                # Wallpaper utility
     tldr                                  # Summarize man pages for commands
     todoist-electron                      # Todo tracker app
     udiskie                               # Automounting for removable media
