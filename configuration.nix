@@ -294,7 +294,6 @@
     fishPlugins.pure                      # Minimal and fast fish prompt
     fishPlugins.sponge                    # Remove typos from terminal
     fishPlugins.z                         # Jump to previous directories
-    freecad                               # An open source CAD program
     fuzzel                                # Super fast application launcher
     fzf                                   # System wide fuzzy finder
     ghostty                               # A fast and GPU accelerated terminal emulator
