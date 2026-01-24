@@ -298,7 +298,6 @@
     fuzzel                                # Super fast application launcher
     fzf                                   # System wide fuzzy finder
     ghostty                               # A fast and GPU accelerated terminal emulator
-    google-chrome                         # The chrome browser for development reasons
     grc                                   # Generic text colorizer
     inkscape                              # Vector graphics editor
     jdk21                                 # Java Development Kit
@@ -318,6 +317,7 @@
     tldr                                  # Summarize man pages for commands
     todoist-electron                      # Todo tracker app
     udiskie                               # Automounting for removable media
+    ungoogled-chromium                    # Chromium without all the callbacks to google
     unzip                                 # CLI file unzipping
     vesktop                               # Alternative to discord messaging app
     wget                                  # Download web files from the command line 
