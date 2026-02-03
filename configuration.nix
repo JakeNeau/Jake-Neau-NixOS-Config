@@ -141,6 +141,10 @@
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
+    extraPackages = with pkgs; [
+      # Needed for Davinci Resolve
+      rocmPackages.clr.icd
+    ];
   };
   nixpkgs.config.rocmSupport = true;
 
@@ -282,6 +286,7 @@
     })
     candy-icons                           # A gradient vector icon theme
     clipse                                # A cool clipboard manager
+    davinci-resolve                       # Professional video editor
     eza                                   # A better version of ls written in rust
     fastfetch                             # Terminal program for displaying system info and flexing on arch users
     freecad                               # An open source parametric 3D modeling program
@@ -303,6 +308,7 @@
     jdk21                                 # Java Development Kit
     jujutsu                               # A better VCS built on top of git
     librewolf                             # Firefox based browser with more privacy
+    mpv                                   # General purpose video player
     obs-studio                            # Screen recording software
     obsidian                              # Note taking utility using markdown files
     papirus-icon-theme                    # Fallback icon set
