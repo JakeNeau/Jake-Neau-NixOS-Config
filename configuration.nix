@@ -274,6 +274,11 @@
     ];
   };
 
+  # A TUI file browser
+  programs.yazi = {
+    enable = true;
+  };
+
   # List packages installed in system profile
   environment.systemPackages = with pkgs; [
     vscode
@@ -307,6 +312,7 @@
     grc                                   # Generic text colorizer
     inkscape                              # Vector graphics editor
     jdk21                                 # Java Development Kit
+    jmtpfs                                # Mount devices to a VFS (remove when gvfs yazi integration is in nixpkgs)
     jujutsu                               # A better VCS built on top of git
     librewolf                             # Firefox based browser with more privacy
     mpv                                   # General purpose video player
@@ -332,7 +338,6 @@
     wl-clipboard                          # Clipboard manager backend
     xournalpp                             # App for signing PDFs
     xwayland-satellite                    # Xwayland compatability for wayland only compositors
-    yazi                                  # TUI file manager
   ];
 
   # RGB control software
