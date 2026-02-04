@@ -332,6 +332,7 @@
     wl-clipboard                          # Clipboard manager backend
     xournalpp                             # App for signing PDFs
     xwayland-satellite                    # Xwayland compatability for wayland only compositors
+    yazi                                  # TUI file manager
   ];
 
   # RGB control software
