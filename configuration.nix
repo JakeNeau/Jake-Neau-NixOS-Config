@@ -289,6 +289,7 @@
     davinci-resolve                       # Professional video editor
     eza                                   # A better version of ls written in rust
     fastfetch                             # Terminal program for displaying system info and flexing on arch users
+    ffmpeg                                # Video codec
     freecad                               # An open source parametric 3D modeling program
     fishPlugins.colored-man-pages         # More interesting man pages
     fishPlugins.fish-bd                   # Go back directories with bd
