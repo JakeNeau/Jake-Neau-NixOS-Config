@@ -340,6 +340,14 @@
     xwayland-satellite                    # Xwayland compatability for wayland only compositors
   ];
 
+  # Fonts
+  fonts.packages = with pkgs; [
+    noto-fonts
+    noto-fonts-cjk-sans
+    noto-fonts-color-emoji
+    liberation_ttf
+  ];
+
   # RGB control software
   services.hardware.openrgb = {
     enable = true;
