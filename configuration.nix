@@ -310,10 +310,13 @@
     fzf                                   # System wide fuzzy finder
     ghostty                               # A fast and GPU accelerated terminal emulator
     grc                                   # Generic text colorizer
+    hunspell                              # Spell check needed for LibreOffice
+    hunspellDicts.en_US                   # US English dictionary for Hunspell
     inkscape                              # Vector graphics editor
     jdk21                                 # Java Development Kit
     jmtpfs                                # Mount devices to a VFS (remove when gvfs yazi integration is in nixpkgs)
     jujutsu                               # A better VCS built on top of git
+    libreoffice-qt-fresh                  # A FOSS office suite
     librewolf                             # Firefox based browser with more privacy
     mpv                                   # General purpose video player
     obs-studio                            # Screen recording software
