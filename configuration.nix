@@ -347,6 +347,7 @@
   # Fonts
   fonts = {
     packages = with pkgs; [
+      google-fonts
       noto-fonts
       noto-fonts-cjk-sans
       noto-fonts-color-emoji
