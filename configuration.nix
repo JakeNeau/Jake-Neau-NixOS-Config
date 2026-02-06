@@ -325,6 +325,7 @@
     pavucontrol                           # Sound setting control GUI
     playerctl                             # Keyboard controls for audio players
     prismlauncher                         # Minecraft launcher
+    loupe                                 # Fast and lightweight image viewer
     qpwgraph                              # A patchbay and volume control program that works with pipewire
     reaper                                # A configurable digital audio workstation
     sops                                  # CLI tools for secrets management
