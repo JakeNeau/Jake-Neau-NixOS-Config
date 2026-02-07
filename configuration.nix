@@ -289,6 +289,7 @@
     (bottles.override {                   # A wine prefix manager
       removeWarningPopup = true;
     })
+    bottom                                # A TUI system monitor
     candy-icons                           # A gradient vector icon theme
     clipse                                # A cool clipboard manager
     davinci-resolve                       # Professional video editor
