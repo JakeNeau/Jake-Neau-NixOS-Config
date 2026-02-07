@@ -317,6 +317,7 @@
     jdk21                                 # Java Development Kit
     jmtpfs                                # Mount devices to a VFS (remove when gvfs yazi integration is in nixpkgs)
     jujutsu                               # A better VCS built on top of git
+    krita                                 # A FOSS art program
     libreoffice-qt-fresh                  # A FOSS office suite
     librewolf                             # Firefox based browser with more privacy
     mpv                                   # General purpose video player
