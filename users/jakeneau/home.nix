@@ -298,7 +298,7 @@
     enable = true;
     settings = {
       main = {
-        terminal = "${pkgs.ghostty}/bin/ghostty";
+        terminal = "${pkgs.ghostty}/bin/ghostty -e";
         font = lib.mkForce "monospace:size=24";
 	line-height = 60;
         lines = 12;
