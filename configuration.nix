@@ -412,6 +412,69 @@
       # Clean up all failed commands from history after 20 entries
       set sponge_delay 20
 
+      function fish_greeting --description "What to run when fish starts up every time"
+        fastfetch
+      end
+
+      function npd --description "Nix Package Describe: builds a nix package and lists the contents inside of it at the specified tree level"
+        argparse -- $argv
+        or return 1
+        if test (count $argv) -gt 2
+          echo "Error: expected at most two arguments but got " (count $argv)
+          echo "Usage: npd <package> [tree-level]"
+          return 1
+        end
+
+        set -l package_name $argv[1]
+
+        set -l tree_level 4
+        if test (count $argv) -eq 2
+          set tree_level $argv[2..-1]
+        end
+
+        npr $package_name "l $tree_level | less"
+        or return 1
+      end
+
+      function npv --description "Nix Package View: enter an editor for a single file in the desired nix package"
+        argparse -- $argv
+        or return 1
+        if test (count $argv) -ne 2
+          echo "Error: expected two arguments but got " (count $argv)
+          echo "Usage: npv <package> <file>"
+          return 1
+        end
+
+        set -l package_name $argv[1]
+        set -l file $argv[2]
+
+        npr $package_name less $file
+      end
+
+      function npr --description "Nix Package Run: builds a nix package and runs the specified command from the package root"
+        argparse -- $argv
+        or return 1
+
+        if test (count $argv) -lt 2
+          echo "Error: expected at least 2 arguments but got " (count $argv)
+          echo "Usage: npr <package> <command>"
+          return 1
+        end
+
+        set -l package_name $argv[1]
+        set -l command $argv[2..-1]
+        set -l start_directory (pwd)
+
+        nix build nixpkgs#$package_name
+        or return 1
+        mv result package-build-result
+        cd package-build-result
+        eval $command
+        cd $start_directory
+        rm -rf package-build-result
+        or return 1
+      end
+
       function nr --description "Reloads the NixOS config and pushes it to git. If a message is specified, create a new commit" 
         argparse 'n/no-git' 'f/full-output' -- $argv
         or return 1
