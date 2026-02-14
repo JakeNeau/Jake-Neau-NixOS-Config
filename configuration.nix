@@ -346,6 +346,14 @@
     xwayland-satellite                    # Xwayland compatability for wayland only compositors
   ];
 
+  # Set default applications
+  xdg.mime = {
+    enable = true;
+    defaultApplications = {
+      "inode/directory" = "yazi.desktop";
+    };
+  };
+
   # Fonts
   fonts = {
     packages = with pkgs; [
