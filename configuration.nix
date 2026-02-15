@@ -296,6 +296,7 @@
     candy-icons                           # A gradient vector icon theme
     clipse                                # A cool clipboard manager
     davinci-resolve                       # Professional video editor
+    element-desktop                       # A group messaging service with an open source API
     eza                                   # A better version of ls written in rust
     fastfetch                             # Terminal program for displaying system info and flexing on arch users
     ffmpeg                                # Video codec
