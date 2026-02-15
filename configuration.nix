@@ -244,6 +244,9 @@
     };
   };
 
+  # Enable Gnome Keyring for staying logged in
+  security.pam.services.greetd.enableGnomeKeyring = true;
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
