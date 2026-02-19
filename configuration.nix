@@ -102,9 +102,6 @@
   # Compositor: displays the desktop
   programs.niri.enable = true;
 
-  # Enable the gnome keyring for storing passphrases
-  services.gnome.gnome-keyring.enable = true;
-
   # Enable other desktop portals
   xdg.portal = {
     enable = true;
@@ -244,7 +241,8 @@
     };
   };
 
-  # Enable Gnome Keyring for staying logged in
+  # Enable Gnome Keyring for staying logged into applications
+  services.gnome.gnome-keyring.enable = true;
   security.pam.services.greetd.enableGnomeKeyring = true;
 
   # Allow unfree packages
