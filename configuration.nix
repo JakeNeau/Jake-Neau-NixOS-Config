@@ -234,7 +234,7 @@
     enable = true;
     settings = rec {
       initial_session = {
-        command = "${pkgs.niri}/bin/niri-session";
+        command = "${pkgs.niri}/bin/niri-session -l";
         user = "jakeneau";
       };
       default_session = initial_session;
@@ -244,6 +244,7 @@
   # Enable Gnome Keyring for staying logged into applications
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.greetd.enableGnomeKeyring = true;
+  services.dbus.packages = [ pkgs.gcr ];
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -298,7 +299,7 @@
     eza                                   # A better version of ls written in rust
     fastfetch                             # Terminal program for displaying system info and flexing on arch users
     ffmpeg                                # Video codec
-    freecad                               # An open source parametric 3D modeling program
+    # freecad                               # An open source parametric 3D modeling program
     fishPlugins.colored-man-pages         # More interesting man pages
     fishPlugins.fish-bd                   # Go back directories with bd
     fishPlugins.fzf-fish                  # Search for multiple things with fzf
@@ -319,7 +320,7 @@
     jdk21                                 # Java Development Kit
     jmtpfs                                # Mount devices to a VFS (remove when gvfs yazi integration is in nixpkgs)
     jujutsu                               # A better VCS built on top of git
-    krita                                 # A FOSS art program
+    # krita                                 # A FOSS art program
     libreoffice-qt-fresh                  # A FOSS office suite
     librewolf                             # Firefox based browser with more privacy
     mpv                                   # General purpose video player
