@@ -244,7 +244,6 @@
   # Enable Gnome Keyring for staying logged into applications
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.greetd.enableGnomeKeyring = true;
-  services.dbus.packages = [ pkgs.gcr ];
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
