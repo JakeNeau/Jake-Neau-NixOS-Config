@@ -305,7 +305,7 @@
     bottom                                # A TUI system monitor
     candy-icons                           # A gradient vector icon theme
     clipse                                # A cool clipboard manager
-    davinci-resolve                       # Professional video editor
+    davinci-resolve-studio                # Professional video editor
     element-desktop                       # A group messaging service with an open source API
     eza                                   # A better version of ls written in rust
     fastfetch                             # Terminal program for displaying system info and flexing on arch users
@@ -329,7 +329,6 @@
     hunspellDicts.en_US                   # US English dictionary for Hunspell
     inkscape                              # Vector graphics editor
     jdk21                                 # Java Development Kit
-    jmtpfs                                # Mount devices to a VFS (remove when gvfs yazi integration is in nixpkgs)
     jujutsu                               # A better VCS built on top of git
     # krita                                 # A FOSS art program
     libreoffice-qt-fresh                  # A FOSS office suite
@@ -358,6 +357,7 @@
     wl-clipboard                          # Clipboard manager backend
     xournalpp                             # App for signing PDFs
     xwayland-satellite                    # Xwayland compatability for wayland only compositors
+    yaziPlugins.gvfs                      # Mount devices to a VFS in yazi 
   ];
 
   # Set default applications
