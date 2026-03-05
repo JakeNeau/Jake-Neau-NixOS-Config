@@ -153,6 +153,7 @@
     extraPackages = with pkgs; [
       # Needed for Davinci Resolve
       rocmPackages.clr.icd
+      mesa.opencl
     ];
   };
   nixpkgs.config.rocmSupport = true;
@@ -389,6 +390,7 @@
   # Environment varables set on shell init
   environment.variables = {
     NIX_ROOT = "/etc/nixos";
+    RUSTICL_ENABLE = "radeonsi";
   };
 
   programs.bash = {
