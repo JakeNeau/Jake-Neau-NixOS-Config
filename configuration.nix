@@ -491,6 +491,10 @@
         or return 1
       end
 
+      function nrr --description "Runs the nixos-rebuild alias with a 'regular update' method" 
+        nr "Regular update"
+      end
+
       function nr --description "Reloads the NixOS config and pushes it to git. If a message is specified, create a new commit" 
         argparse 'n/no-git' 'f/full-output' -- $argv
         or return 1
