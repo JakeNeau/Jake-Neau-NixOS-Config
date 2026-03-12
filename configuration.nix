@@ -274,6 +274,48 @@
   programs.nvf = {
     enable = true;
     defaultEditor = true;
+    settings.vim = {
+      # Set leader key (space is common)
+      globals.mapleader = " ";
+
+      # Global editor options
+      options = {
+        number = true;
+        relativenumber = true;
+        tabstop = 2;
+        shiftwidth = 2;
+        expandtab = true;
+        smartindent = true;
+        wrap = false;
+        hlsearch = false;
+        termguicolors = true;
+        scrolloff = 8;
+        signcolumn = "yes";
+        updatetime = 50;
+        colorcolumn = "100";
+        cursorline = true;
+      };
+
+      # Languages, each with their own LSP
+      languages = {
+        enableLSP = true;
+        enableFormat = true;
+        enableTreesitter = true;
+        enableExtraDiagnostics = true;
+
+        nix = {
+          enable = true;
+          format.type = [ "alejandra" ];
+          lsp.server = "nil";
+        };
+
+        python = {
+          enable = true;
+          lsp.server = "pyright";
+          format.type = "black";
+        };
+      };
+    };
   };
 
   # PC game platform
