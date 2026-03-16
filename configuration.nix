@@ -1,18 +1,20 @@
-{ config, pkgs, lib, ... }:
-
 {
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
   nix.settings = {
     # Experimental nix settings
-    experimental-features = [ "nix-command" "flakes" ];
-    
+    experimental-features = ["nix-command" "flakes"];
+
     # Other nix settings
     warn-dirty = false;
   };
 
-  imports =
-    [
-      ./hardware-configuration.nix
-    ];
+  imports = [
+    ./hardware-configuration.nix
+  ];
 
   # Files for secrets management
   sops = {
@@ -53,7 +55,7 @@
   };
   stylix.targets.grub.enable = false;
 
-  boot.kernelParams = [ "video=5120x1440" ];
+  boot.kernelParams = ["video=5120x1440"];
 
   boot.kernelPatches = [
     {
@@ -91,7 +93,6 @@
 
   # Bluetooth settings
   hardware.bluetooth.enable = true;
-
 
   # Set your time zone.
   time.timeZone = "America/Chicago";
@@ -158,7 +159,6 @@
   };
   nixpkgs.config.rocmSupport = true;
 
-
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
@@ -183,23 +183,23 @@
           }
         ];
       };
-#      Evil ass low latency audio script, turning it on kills my sound output
-#      "92-low-latency" = {
-#        "context.properties" = {
-#          "default.clock.rate" = 48000;
-#          "default.clock.quantum" = 32;
-#          "default.clock.min-quantum" = 32;
-#          "default.clock.max-quantum" = 32;
-#        };
-#      };
+      #      Evil ass low latency audio script, turning it on kills my sound output
+      #      "92-low-latency" = {
+      #        "context.properties" = {
+      #          "default.clock.rate" = 48000;
+      #          "default.clock.quantum" = 32;
+      #          "default.clock.min-quantum" = 32;
+      #          "default.clock.max-quantum" = 32;
+      #        };
+      #      };
     };
   };
-  
+
   # Run pipewire setup scripts on startup
   systemd.user.services.create-pipewire-links = {
     description = "create-pipewire-links: sets up pipewire connections after pipewire is set up";
     wantedBy = [
-      "pipewire.service" 
+      "pipewire.service"
     ];
     requires = [
       "pipewire.service"
@@ -228,11 +228,11 @@
   };
 
   # User accounts
-  users.mutableUsers= false;
+  users.mutableUsers = false;
   users.users.jakeneau = {
     isNormalUser = true;
     description = "Jake Neau";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = ["networkmanager" "wheel"];
     hashedPasswordFile = config.sops.secrets.hashedPasswordJakeNeau.path;
   };
 
@@ -264,7 +264,7 @@
   # Default version control software
   programs.git = {
     enable = true;
-    config = { 
+    config = {
       init.defaultBranch = "main";
       safe.directory = "/etc/nixos";
     };
@@ -289,19 +289,19 @@
       # Global Options
       # ----------------
       options = {
-        autoindent    = true;   # Automatically indent on a newline
-        cmdheight     = 1;      # The height of the command pane in lines
-        cursorlineopt = "line"; # The way to highlight the line the cursor is on
-        mouse         = "nvi";  # Supported modes for mouse control
-        shiftwidth    = 0;      # Number of spaces to use for autoindent, 0 means use tabstop vaule
-        signcolumn    = "yes";  # Show the sign column (what is sign column)
-        splitbelow    = true;   # On true new splits open below instead of above (what?)
-        splitright    = true;   # New splits will open to the right (what?)
-        tabstop       = 2;      # The number of spaces a tab counts for
-        termguicolors = true;   # On true use 256 colors for terminal
-        tm            = 500;    # The time in ms that Neovim will wait for the mapped action (what?)
-        updatetime    = 25;     # The number of ms until the cursor hold event is triggered
-        wrap          = false;  # Whether to wrap lines if they go off screen
+        autoindent = true; # Automatically indent on a newline
+        cmdheight = 1; # The height of the command pane in lines
+        cursorlineopt = "number"; # The way to highlight the line the cursor is on
+        mouse = "nvi"; # Supported modes for mouse control
+        shiftwidth = 0; # Number of spaces to use for autoindent, 0 means use tabstop vaule
+        signcolumn = "yes"; # Show the sign column (what is sign column)
+        splitbelow = true; # On true new splits open below instead of above (what?)
+        splitright = true; # New splits will open to the right (what?)
+        tabstop = 2; # The number of spaces a tab counts for
+        termguicolors = true; # On true use 256 colors for terminal
+        tm = 500; # The time in ms that Neovim will wait for the mapped action (what?)
+        updatetime = 25; # The number of ms until the cursor hold event is triggered
+        wrap = false; # Whether to wrap lines if they go off screen
       };
 
       # ------------------
@@ -313,9 +313,9 @@
         enableExtraDiagnostics = true;
 
         bash.enable = true;
-        
+
         clang.enable = true;
-        
+
         css.enable = true;
 
         go.enable = true;
@@ -338,14 +338,14 @@
 
         nix = {
           enable = true;
-          format.type = [ "alejandra" ];
-          lsp.servers = [ "nil" ];
+          format.type = ["alejandra"];
+          lsp.servers = ["nil"];
         };
 
         python = {
           enable = true;
-          lsp.server = [ "pyright" ];
-          format.type = [ "black" ];
+          lsp.server = ["pyright"];
+          format.type = ["black"];
         };
 
         rust = {
@@ -358,7 +358,7 @@
         # Both JavaScript and TypeScript
         ts = {
           enable = true;
-          format.type = [ "prettier" ];
+          format.type = ["prettier"];
         };
 
         yaml.enable = true;
@@ -443,7 +443,7 @@
       # ------------
       autocomplete.nvim-cmp = {
         enable = true;
-        
+
         mappings = {
           confirm = "<CR>";
           next = "<Tab>";
@@ -459,7 +459,7 @@
       # ---------------------------------
       snippets.luasnip = {
         enable = true;
-        providers = [ "friendly-snippets" ];
+        providers = ["friendly-snippets"];
       };
 
       # -----------
@@ -468,15 +468,15 @@
       telescope = {
         enable = true;
         mappings = {
-          findFiles       = "<leader>ff";
-          liveGrep        = "<leader>fg";
-          buffers         = "<leader>fb";
-          helpTags        = "<leader>fh";
-          diagnostics     = "<leader>fd";
-          lspReferences   = "<leader>fr";
-          lspDefinitions  = "<leader>fD";
-          gitCommits      = "<leader>gc";
-          gitBranches     = "<leader>gb";
+          findFiles = "<leader>ff";
+          liveGrep = "<leader>fg";
+          buffers = "<leader>fb";
+          helpTags = "<leader>fh";
+          diagnostics = "<leader>fd";
+          lspReferences = "<leader>fr";
+          lspDefinitions = "<leader>fD";
+          gitCommits = "<leader>gc";
+          gitBranches = "<leader>gb";
         };
       };
     };
@@ -502,69 +502,70 @@
   # List packages installed in system profile
   environment.systemPackages = with pkgs; [
     vscode
-    audacity                              # Audio recording program
+    audacity # Audio recording program
     # bitwarden-desktop                     # Password manager for all devices
-    blender                               # 3D Modeling art program with AMD GPU support (hip)
-    bluetui                               # A tui for managing bluetooth
-    (bottles.override {                   # A wine prefix manager
+    blender # 3D Modeling art program with AMD GPU support (hip)
+    bluetui # A tui for managing bluetooth
+    (bottles.override {
+      # A wine prefix manager
       removeWarningPopup = true;
     })
-    bottom                                # A TUI system monitor
-    candy-icons                           # A gradient vector icon theme
-    clipse                                # A cool clipboard manager
-    davinci-resolve-studio                # Professional video editor
-    element-desktop                       # A group messaging service with an open source API
-    eza                                   # A better version of ls written in rust
-    fastfetch                             # Terminal program for displaying system info and flexing on arch users
-    ffmpeg                                # Video codec
+    bottom # A TUI system monitor
+    candy-icons # A gradient vector icon theme
+    clipse # A cool clipboard manager
+    davinci-resolve-studio # Professional video editor
+    element-desktop # A group messaging service with an open source API
+    eza # A better version of ls written in rust
+    fastfetch # Terminal program for displaying system info and flexing on arch users
+    ffmpeg # Video codec
     # freecad                               # An open source parametric 3D modeling program
-    fishPlugins.colored-man-pages         # More interesting man pages
-    fishPlugins.fish-bd                   # Go back directories with bd
-    fishPlugins.fzf-fish                  # Search for multiple things with fzf
-    fishPlugins.grc                       # A generic colorizer
-    fishPlugins.pisces                    # Adds parentheses, quotes, etc. in pairs
-    fishPlugins.plugin-sudope             # Add sudo to a command when you forgot
-    fishPlugins.puffer                    # Useful text expansions
-    fishPlugins.pure                      # Minimal and fast fish prompt
-    fishPlugins.sponge                    # Remove typos from terminal
-    fishPlugins.z                         # Jump to previous directories
-    fuzzel                                # Super fast application launcher
-    fzf                                   # System wide fuzzy finder
-    ghostty                               # A fast and GPU accelerated terminal emulator
-    grc                                   # Generic text colorizer
-    hunspell                              # Spell check needed for LibreOffice
-    hunspellDicts.en_US                   # US English dictionary for Hunspell
-    inkscape                              # Vector graphics editor
-    jdk21                                 # Java Development Kit
-    jujutsu                               # A better VCS built on top of git
+    fishPlugins.colored-man-pages # More interesting man pages
+    fishPlugins.fish-bd # Go back directories with bd
+    fishPlugins.fzf-fish # Search for multiple things with fzf
+    fishPlugins.grc # A generic colorizer
+    fishPlugins.pisces # Adds parentheses, quotes, etc. in pairs
+    fishPlugins.plugin-sudope # Add sudo to a command when you forgot
+    fishPlugins.puffer # Useful text expansions
+    fishPlugins.pure # Minimal and fast fish prompt
+    fishPlugins.sponge # Remove typos from terminal
+    fishPlugins.z # Jump to previous directories
+    fuzzel # Super fast application launcher
+    fzf # System wide fuzzy finder
+    ghostty # A fast and GPU accelerated terminal emulator
+    grc # Generic text colorizer
+    hunspell # Spell check needed for LibreOffice
+    hunspellDicts.en_US # US English dictionary for Hunspell
+    inkscape # Vector graphics editor
+    jdk21 # Java Development Kit
+    jujutsu # A better VCS built on top of git
     # krita                                 # A FOSS art program
-    libreoffice-qt-fresh                  # A FOSS office suite
-    librewolf                             # Firefox based browser with more privacy
-    mpv                                   # General purpose video player
-    obs-studio                            # Screen recording software
-    obsidian                              # Note taking utility using markdown files
-    papirus-icon-theme                    # Fallback icon set
-    pavucontrol                           # Sound setting control GUI
-    playerctl                             # Keyboard controls for audio players
-    prismlauncher                         # Minecraft launcher
-    loupe                                 # Fast and lightweight image viewer
-    qpwgraph                              # A patchbay and volume control program that works with pipewire
-    reaper                                # A configurable digital audio workstation
-    sops                                  # CLI tools for secrets management
-    spotify                               # Music subscription service
-    swaybg                                # Wallpaper utility
-    tldr                                  # Summarize man pages for commands
-    todoist-electron                      # Todo tracker app
-    udiskie                               # Automounting for removable media
-    ungoogled-chromium                    # Chromium without all the callbacks to google
-    unzip                                 # CLI file unzipping
-    vesktop                               # Alternative to discord messaging app
-    wget                                  # Download web files from the command line 
-    wl-clip-persist                       # Make sure clipboard items persist after programs close
-    wl-clipboard                          # Clipboard manager backend
-    xournalpp                             # App for signing PDFs
-    xwayland-satellite                    # Xwayland compatability for wayland only compositors
-    yaziPlugins.gvfs                      # Mount devices to a VFS in yazi 
+    libreoffice-qt-fresh # A FOSS office suite
+    librewolf # Firefox based browser with more privacy
+    mpv # General purpose video player
+    obs-studio # Screen recording software
+    obsidian # Note taking utility using markdown files
+    papirus-icon-theme # Fallback icon set
+    pavucontrol # Sound setting control GUI
+    playerctl # Keyboard controls for audio players
+    prismlauncher # Minecraft launcher
+    loupe # Fast and lightweight image viewer
+    qpwgraph # A patchbay and volume control program that works with pipewire
+    reaper # A configurable digital audio workstation
+    sops # CLI tools for secrets management
+    spotify # Music subscription service
+    swaybg # Wallpaper utility
+    tldr # Summarize man pages for commands
+    todoist-electron # Todo tracker app
+    udiskie # Automounting for removable media
+    ungoogled-chromium # Chromium without all the callbacks to google
+    unzip # CLI file unzipping
+    vesktop # Alternative to discord messaging app
+    wget # Download web files from the command line
+    wl-clip-persist # Make sure clipboard items persist after programs close
+    wl-clipboard # Clipboard manager backend
+    xournalpp # App for signing PDFs
+    xwayland-satellite # Xwayland compatability for wayland only compositors
+    yaziPlugins.gvfs # Mount devices to a VFS in yazi
   ];
 
   # Set default applications
@@ -697,11 +698,11 @@
         or return 1
       end
 
-      function nrr --description "Runs the nixos-rebuild alias with a 'regular update' method" 
+      function nrr --description "Runs the nixos-rebuild alias with a 'regular update' method"
         nr "Regular update"
       end
 
-      function nr --description "Reloads the NixOS config and pushes it to git. If a message is specified, create a new commit" 
+      function nr --description "Reloads the NixOS config and pushes it to git. If a message is specified, create a new commit"
         argparse 'n/no-git' 'f/full-output' -- $argv
         or return 1
 
@@ -763,7 +764,7 @@
             # Make a new commit if the message is specified
             else
               set new_commit_message "Generation $new_generation: $argv"
-              git -C /etc/nixos commit -qm "$new_commit_message" 
+              git -C /etc/nixos commit -qm "$new_commit_message"
               or return 1
               git -C /etc/nixos push -q
               or return 1
@@ -844,8 +845,8 @@
 
         git add $git_all $add_flags
         or return 1
-        
-        git commit $commit_flags $argv 
+
+        git commit $commit_flags $argv
         or return 1
 
         git push $push_flags
@@ -876,24 +877,23 @@
     fonts = {
       monospace = {
         package = pkgs.nerd-fonts.lilex;
-	name = "Lilex Nerd Font Mono";
+        name = "Lilex Nerd Font Mono";
       };
       sansSerif = {
         package = pkgs.montserrat;
-	name = "Montserrat";
+        name = "Montserrat";
       };
       serif = {
         package = pkgs.zilla-slab;
-	name = "Zilla Slab";
+        name = "Zilla Slab";
       };
     };
   };
 
-
   # List services that you want to enable:
 
   # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 25565 ];
+  networking.firewall.allowedTCPPorts = [25565];
 
   # The first system version installed
   # Do not change unless you know what you are doing, things will break
