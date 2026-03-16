@@ -274,45 +274,209 @@
   programs.nvf = {
     enable = true;
     defaultEditor = true;
+
     settings.vim = {
-      # Set leader key (space is common)
+      viAlias = true;
+      vimAlias = true;
+
+      # Set leader key for shortcuts (space is common)
       globals.mapleader = " ";
 
-      # Global editor options
+      # Set leader key for buffer-local mappings
+      globals.maplocalleader = "\\";
+
+      # ----------------
+      # Global Options
+      # ----------------
       options = {
-        number = true;
-        relativenumber = true;
-        tabstop = 2;
-        shiftwidth = 2;
-        expandtab = true;
-        smartindent = true;
-        wrap = false;
-        hlsearch = false;
-        termguicolors = true;
-        scrolloff = 8;
-        signcolumn = "yes";
-        updatetime = 50;
-        colorcolumn = "100";
-        cursorline = true;
+        autoindent    = true;   # Automatically indent on a newline
+        cmdheight     = 1;      # The height of the command pane in lines
+        cursorlineopt = "line"; # The way to highlight the line the cursor is on
+        mouse         = "nvi";  # Supported modes for mouse control
+        shiftwidth    = 0;      # Number of spaces to use for autoindent, 0 means use tabstop vaule
+        signcolumn    = "yes";  # Show the sign column (what is sign column)
+        splitbelow    = true;   # On true new splits open below instead of above (what?)
+        splitright    = true;   # New splits will open to the right (what?)
+        tabstop       = 2;      # The number of spaces a tab counts for
+        termguicolors = true;   # On true use 256 colors for terminal
+        tm            = 500;    # The time in ms that Neovim will wait for the mapped action (what?)
+        updatetime    = 25;     # The number of ms until the cursor hold event is triggered
+        wrap          = false;  # Whether to wrap lines if they go off screen
       };
 
-      # Languages, each with their own LSP
+      # ------------------
+      # Language Support
+      # ------------------
       languages = {
-        enableLSP = true;
         enableFormat = true;
         enableTreesitter = true;
         enableExtraDiagnostics = true;
 
+        bash.enable = true;
+        
+        clang.enable = true;
+        
+        css.enable = true;
+
+        go.enable = true;
+
+        html.enable = true;
+
+        java.enable = true;
+
+        json.enable = true;
+
+        lua = {
+          enable = true;
+          lsp.lazydev.enable = true; # Extra config for NeoVim Files
+        };
+
+        markdown = {
+          enable = true;
+          extensions.render-markdown-nvim.enable = true; # Inline markdown rendering
+        };
+
         nix = {
           enable = true;
           format.type = [ "alejandra" ];
-          lsp.server = "nil";
+          lsp.servers = [ "nil" ];
         };
 
         python = {
           enable = true;
-          lsp.server = "pyright";
-          format.type = "black";
+          lsp.server = [ "pyright" ];
+          format.type = [ "black" ];
+        };
+
+        rust = {
+          enable = true;
+          crates.enable = true;
+        };
+
+        toml.enable = true;
+
+        # Both JavaScript and TypeScript
+        ts = {
+          enable = true;
+          format.type = [ "prettier" ];
+        };
+
+        yaml.enable = true;
+      };
+
+      # ---------------------
+      # Global LSP Behavior
+      # ---------------------
+      lsp = {
+        enable = true;
+        formatOnSave = true;
+
+        # Pretty icons next to completion items
+        lspkind.enable = true;
+
+        # Enhanced LSP UI
+        lspsaga = {
+          enable = true;
+          # mappings = {
+          #   codeAction = "<leader>ca";
+          #   definiton = "gd";
+          #   hover = "K";
+          #   rename = "<leader>rn";
+          # };
+        };
+
+        # Inline Errors
+        trouble.enable = true;
+
+        # Function signature help popup
+        nvim-docs-view.enable = true;
+      };
+
+      # ------------
+      # Treesitter
+      # ------------
+      treesitter = {
+        enable = true;
+        fold = true;
+
+        # Function and class headers at the top
+        context = {
+          enable = true;
+          maxLines = 4;
+        };
+
+        textobjects = {
+          enable = true;
+          setupOpts = {
+            # Move between functions and classes
+            move = {
+              enable = true;
+              gotoNextStart = {
+                "]m" = "@function.outer";
+                "]]" = "@class.outer";
+              };
+              gotoPreviousStart = {
+                "[m" = "@function.outer";
+                "[[" = "@class.outer";
+              };
+            };
+
+            # Select blocks of code semantically
+            select = {
+              enable = true;
+              lookahead = true;
+              keymaps = {
+                "af" = "@function.outer";
+                "if" = "@function.inner";
+                "ac" = "@class.outer";
+                "ic" = "@class.inner";
+                "aa" = "@parameter.outer";
+                "ia" = "@parameter.inner";
+              };
+            };
+          };
+        };
+      };
+
+      # ------------
+      # Completion
+      # ------------
+      autocomplete.nvim-cmp = {
+        enable = true;
+        
+        mappings = {
+          confirm = "<CR>";
+          next = "<Tab>";
+          previous = "<S-Tab>";
+          scrollDocsUp = "<C-b>";
+          scrollDocsDown = "<C-f>";
+          complete = "<C-Space>";
+        };
+      };
+
+      # ---------------------------------
+      # Snippets for custom completions
+      # ---------------------------------
+      snippets.luasnip = {
+        enable = true;
+        providers = [ "friendly-snippets" ];
+      };
+
+      # -----------
+      # Telescope
+      # -----------
+      telescope = {
+        enable = true;
+        mappings = {
+          findFiles       = "<leader>ff";
+          liveGrep        = "<leader>fg";
+          buffers         = "<leader>fb";
+          helpTags        = "<leader>fh";
+          diagnostics     = "<leader>fd";
+          lspReferences   = "<leader>fr";
+          lspDefinitions  = "<leader>fD";
+          gitCommits      = "<leader>gc";
+          gitBranches     = "<leader>gb";
         };
       };
     };
@@ -339,7 +503,7 @@
   environment.systemPackages = with pkgs; [
     vscode
     audacity                              # Audio recording program
-    bitwarden-desktop                     # Password manager for all devices
+    # bitwarden-desktop                     # Password manager for all devices
     blender                               # 3D Modeling art program with AMD GPU support (hip)
     bluetui                               # A tui for managing bluetooth
     (bottles.override {                   # A wine prefix manager
