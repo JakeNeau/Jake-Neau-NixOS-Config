@@ -860,7 +860,7 @@
     enable = true;
 
     # Set color scheme
-    base16Scheme = "${pkgs.base16-schemes}/share/themes/tarot.yaml";
+    base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-hard.yaml";
     polarity = "dark";
 
     # Set Wallpaper
