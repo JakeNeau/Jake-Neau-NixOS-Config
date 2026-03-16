@@ -518,7 +518,7 @@
     eza # A better version of ls written in rust
     fastfetch # Terminal program for displaying system info and flexing on arch users
     ffmpeg # Video codec
-    # freecad                               # An open source parametric 3D modeling program
+    freecad # An open source parametric 3D modeling program
     fishPlugins.colored-man-pages # More interesting man pages
     fishPlugins.fish-bd # Go back directories with bd
     fishPlugins.fzf-fish # Search for multiple things with fzf
@@ -538,7 +538,7 @@
     inkscape # Vector graphics editor
     jdk21 # Java Development Kit
     jujutsu # A better VCS built on top of git
-    # krita                                 # A FOSS art program
+    krita # A FOSS art program
     libreoffice-qt-fresh # A FOSS office suite
     librewolf # Firefox based browser with more privacy
     mpv # General purpose video player
