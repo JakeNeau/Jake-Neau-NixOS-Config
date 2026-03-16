@@ -344,7 +344,7 @@
 
         python = {
           enable = true;
-          lsp.server = ["pyright"];
+          lsp.servers = ["pyright"];
           format.type = ["black"];
         };
 
