@@ -291,20 +291,18 @@
       options = {
         autoindent = true; # Automatically indent on a newline
         cmdheight = 1; # The height of the command pane in lines
-        cursorlineopt = "both"; # The way to highlight the line the cursor is on
+        cursorlineopt = "both"; # The way to highlight the line the cursor is on (what?)
         mouse = "nvi"; # Supported modes for mouse control
         shiftwidth = 0; # Number of spaces to use for autoindent, 0 means use tabstop vaule
         signcolumn = "yes"; # Show the sign column (what is sign column)
-        splitbelow = true; # On true new splits open below instead of above (what?)
-        splitright = true; # New splits will open to the right (what?)
+        splitbelow = true; # On true new splits open below instead of above
+        splitright = true; # New splits will open to the right
         tabstop = 2; # The number of spaces a tab counts for
         termguicolors = true; # On true use 256 colors for terminal
         tm = 500; # The time in ms that Neovim will wait for the mapped action (what?)
         updatetime = 25; # The number of ms until the cursor hold event is triggered
         wrap = false; # Whether to wrap lines if they go off screen
       };
-
-      visuals.nvim-cursorline.setupOpts.cursorline.enable = true;
 
       # ------------------
       # Language Support
