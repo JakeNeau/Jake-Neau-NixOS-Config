@@ -285,6 +285,15 @@
       # Set leader key for buffer-local mappings
       globals.maplocalleader = "\\";
 
+      # How to display the line number for the current line
+      lineNumberMode = "relNumber";
+
+      # How to do a search, smart means case insensitive unless there is an upper cap_sys_nice_begone.patch
+      searchCase = "smart";
+
+      # Pressing escape clears all highlighted search results
+      hideSearchHighlight = true;
+
       # ----------------
       # Global Options
       # ----------------
