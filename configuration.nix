@@ -291,7 +291,7 @@
       options = {
         autoindent = true; # Automatically indent on a newline
         cmdheight = 1; # The height of the command pane in lines
-        cursorlineopt = "number"; # The way to highlight the line the cursor is on
+        cursorlineopt = "both"; # The way to highlight the line the cursor is on
         mouse = "nvi"; # Supported modes for mouse control
         shiftwidth = 0; # Number of spaces to use for autoindent, 0 means use tabstop vaule
         signcolumn = "yes"; # Show the sign column (what is sign column)
@@ -303,6 +303,8 @@
         updatetime = 25; # The number of ms until the cursor hold event is triggered
         wrap = false; # Whether to wrap lines if they go off screen
       };
+
+      visuals.nvim-cursorline.setupOpts.cursorline.enable = true;
 
       # ------------------
       # Language Support
@@ -350,7 +352,7 @@
 
         rust = {
           enable = true;
-          crates.enable = true;
+          extensions.crates-nvim.enable = true;
         };
 
         toml.enable = true;
@@ -402,7 +404,7 @@
         # Function and class headers at the top
         context = {
           enable = true;
-          maxLines = 4;
+          setupOpts.max_lines = 4;
         };
 
         textobjects = {
