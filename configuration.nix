@@ -279,20 +279,44 @@
       viAlias = true;
       vimAlias = true;
 
+      # Turn off the annoying notification sound on invalid actions
+      bell = "none";
+
+      # Set the clipboard so the unnamed register is the system clipboard
+      clipboard = {
+        enable = true;
+        registers = "unnamedplus";
+      };
+
+      # Diagnostics for plugins to communicate error states
+      diagnostics.enable = true;
+
+      # Cache lua bytecode for faster launches
+      enableLuaLoader = true;
+
       # Set leader key for shortcuts (space is common)
       globals.mapleader = " ";
 
       # Set leader key for buffer-local mappings
       globals.maplocalleader = "\\";
 
+      # Pressing escape clears all highlighted search results
+      hideSearchHighlight = true;
+
       # How to display the line number for the current line
       lineNumberMode = "relNumber";
 
-      # How to do a search, smart means case insensitive unless there is an upper cap_sys_nice_begone.patch
+      # Store intermediate files in XDG compliant location to keep work dir clean
+      preventJunkFiles = true;
+
+      # How to do a search, smart means case insensitive unless there is any upper case
       searchCase = "smart";
 
-      # Pressing escape clears all highlighted search results
-      hideSearchHighlight = true;
+      # Fallback syntax highlighting when treesitter is not avaliable
+      syntaxHighlighting = true;
+
+      # Persist undo state across opening and closing neovim
+      undoFile.enable = true;
 
       # ----------------
       # Global Options
@@ -300,7 +324,7 @@
       options = {
         autoindent = true; # Automatically indent on a newline
         cmdheight = 1; # The height of the command pane in lines
-        cursorlineopt = "both"; # The way to highlight the line the cursor is on (what?)
+        cursorlineopt = "both"; # The way to highlight the line the cursor is on
         mouse = "nvi"; # Supported modes for mouse control
         shiftwidth = 0; # Number of spaces to use for autoindent, 0 means use tabstop vaule
         signcolumn = "yes"; # Show the sign column (what is sign column)
@@ -308,9 +332,17 @@
         splitright = true; # New splits will open to the right
         tabstop = 2; # The number of spaces a tab counts for
         termguicolors = true; # On true use 256 colors for terminal
-        tm = 500; # The time in ms that Neovim will wait for the mapped action (what?)
+        tm = 500; # The time in ms that Neovim will wait for the next key in chord
         updatetime = 25; # The number of ms until the cursor hold event is triggered
         wrap = false; # Whether to wrap lines if they go off screen
+      };
+
+      # --------------
+      # Lazy Loading
+      # --------------
+      lazy = {
+        enable = true; # Enable lazy loading for plugins to load in only when needed
+        enableLznAutoRequire = true; # Builtin plugins need this, only turn off for debug
       };
 
       # ------------------
@@ -373,6 +405,13 @@
         yaml.enable = true;
       };
 
+      # ---------
+      # Lualine
+      # ---------
+      statusline.lualine = {
+        enable = true;
+      };
+
       # ---------------------
       # Global LSP Behavior
       # ---------------------
@@ -405,8 +444,10 @@
       # Treesitter
       # ------------
       treesitter = {
-        enable = true;
-        fold = true;
+        enable = true; # Use a full syntax tree for parser
+        fold = true; # Use treesitter for folding text (collapse)
+        addDefaultGrammars = true; # A set of starter grammars
+        autotagHtml = true; # Automatically add matching closing tags to HTML
 
         # Function and class headers at the top
         context = {
