@@ -23,25 +23,36 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     minegrub-theme.url = "github:Lxtharia/minegrub-theme";
+    nix-minecraft.url = "github:Infinidoge/nix-minecraft";
   };
 
-  outputs = { self, nixpkgs, home-manager, ... }@inputs: {
+  outputs = {
+    self,
+    nixpkgs,
+    home-manager,
+    ...
+  } @ inputs: {
     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
         ./configuration.nix
-	home-manager.nixosModules.home-manager {
-	  home-manager.useGlobalPkgs = true;
-	  home-manager.useUserPackages = true;
-	  home-manager.users.jakeneau = import ./users/jakeneau/home.nix;
-	  nixpkgs.overlays = [
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.jakeneau = import ./users/jakeneau/home.nix;
+          nixpkgs.overlays = [
             inputs.nur.overlays.default
-	  ];
-	}
-	inputs.stylix.nixosModules.stylix
-	inputs.nvf.nixosModules.default
+          ];
+        }
+        inputs.stylix.nixosModules.stylix
+        inputs.nvf.nixosModules.default
         inputs.sops-nix.nixosModules.sops
         inputs.minegrub-theme.nixosModules.default
+        inputs.nix-minecraft.nixosModules.minecraft-servers
+        {
+          nixpkgs.overlays = [inputs.nix-minecraft.overlay];
+        }
       ];
     };
   };

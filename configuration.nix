@@ -941,10 +941,19 @@
     };
   };
 
-  # List services that you want to enable:
+  # A decaritively configured minecraft server
+  services.minecraft-servers = {
+    enable = true;
+    eula = true;
+    openFirewall = true;
 
-  # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [25565];
+    servers = {
+      vanilla-optimized = {
+        enable = true;
+        package = pkgs.purpurServers.purpur-1_21_11;
+      };
+    };
+  };
 
   # The first system version installed
   # Do not change unless you know what you are doing, things will break
