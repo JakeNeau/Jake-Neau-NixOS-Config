@@ -904,12 +904,12 @@
         or return 1
       end
 
-      function mc-list --desctiption "Lists all available minecraft servers in systemd"
+      function mc-list --description "Lists all available minecraft servers in systemd"
         echo "Available servers:"
-        for unit in (systemctl list-units --type=service --all --no-legend | grep minecraft-server | awk '{print $1}')
+        for unit in (systemctl list-unit-files --type=service --all --no-legend | grep minecraft-server | awk '{print $1}')
           set name (string replace --regex 'minecraft-server-(.+)\.service' '$1' $unit)
-          set status (systemctl is-active $unit)
-          echo "  $name ($status)"
+          set server_status (systemctl is-active $unit)
+          echo "  $name ($server_status)"
         end
       end
 
@@ -918,17 +918,17 @@
           echo "Usage: mc-start <server-name>"
           echo ""
           mc-list
-          exit 1
+          return 1
         end
 
         set server $argv[1]
-        set service "miecraft-server-$server"
+        set service "minecraft-server-$server"
 
-        if not systemctl list-units --type=service --all --no-legend | grep -q "$service"
+        if not systemctl list-unit-files --type=service --all --no-legend | grep -q "$service"
           echo "Error: server '$server' not found"
           echo ""
           mc-list
-          exit 1
+          return 1
         end
 
         sudo systemctl start $service
@@ -937,34 +937,64 @@
             echo "Server '$server' is up"
         else
           echo "Failed to start '$server' -- check logs with: journalctl -u $service -f"
-          exit 1
+          return 1
         end
+      end
 
       function mc-stop --description "Stop the specified minecraft server in systemd"
         if test (count $argv) -eq 0
           echo "Usage: mc-stop <server-name>"
           echo ""
           mc-list
-          exit 1
+          return 1
         end
 
         set server $argv[1]
-        set service "miecraft-server-$server"
+        set service "minecraft-server-$server"
 
-        if not systemctl list-units --type=service --all --no-legend | grep -q "$service"
+        if not systemctl list-unit-files --type=service --all --no-legend | grep -q "$service"
           echo "Error: server '$server' not found"
           echo ""
           mc-list
-          exit 1
+          return 1
         end
 
         sudo systemctl stop $service
 
         if test $status -eq 0
-          echo "Server '$server' is up"
+          echo "Server '$server' is down"
         else
-          echo "Failed to start '$server' -- check logs with: journalctl -u $service -f"
-          exit 1
+          echo "Failed to stop '$server' -- check logs with: journalctl -u $service -f"
+          return 1
+        end
+      end
+
+      function mc-logs --description "List the systemd logs for the specified server"
+        argparse 'f/follow' -- $argv
+
+        if test (count $argv) -eq 0
+          echo "Usage: mc-logs <server-name> [flags]"
+          echo "Options:"
+          echo "  -f, --follow    Follow log output"
+          echo ""
+          mc-list
+          return 1
+        end
+
+        set server $argv[1]
+        set service "minecraft-server-$server"
+
+        if not systemctl list-unit-files --type=service --all --no-legend | grep -q "$service"
+          echo "Error: server '$server' not found"
+          echo ""
+          mc-list
+          return 1
+        end
+
+        if set -q _flag_follow
+          journalctl -u $service -f
+        else
+          journalctl -u $service
         end
       end
     '';
