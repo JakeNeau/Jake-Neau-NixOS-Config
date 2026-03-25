@@ -325,6 +325,7 @@
         autoindent = true; # Automatically indent on a newline
         cmdheight = 1; # The height of the command pane in lines
         cursorlineopt = "both"; # The way to highlight the line the cursor is on
+        foldlevel = 99; # stops auto folding when opening document
         mouse = "nvi"; # Supported modes for mouse control
         shiftwidth = 0; # Number of spaces to use for autoindent, 0 means use tabstop vaule
         signcolumn = "yes"; # Show the sign column (what is sign column)
