@@ -125,6 +125,8 @@ Install a NixOS from an [image file](https://nixos.org/download/). You will need
    cd /etc/nixos/
    rm -f configuration.nix
    git clone https://github.com/jakeneau/Jake-Neau-NixOS-Config.git
+   mv ./Jake-Neau-NixOS-Config/* .
+   rm -rf ./Jake-Neau-NixOS-Config
    ```
 2. Copy keys.txt into secrets/ to decrypt password hash
 3. Build the system
