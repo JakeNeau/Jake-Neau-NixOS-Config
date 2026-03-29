@@ -37,13 +37,8 @@
 <h3 align="center">Jake Neau's NixOS Configuration</h3>
 
   <p align="center">
-    project_description
+    A complete system configuration for my systems for use with the Nix package manager
     <br />
-    <a href="https://github.com/jakeneau/Jake-Neau-NixOS-Config"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/jakeneau/Jake-Neau-NixOS-Config">View Demo</a>
-    &middot;
     <a href="https://github.com/jakeneau/Jake-Neau-NixOS-Config/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     &middot;
     <a href="https://github.com/jakeneau/Jake-Neau-NixOS-Config/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
