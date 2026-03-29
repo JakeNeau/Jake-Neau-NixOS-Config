@@ -667,11 +667,11 @@
     enable = true;
     shellAliases = {
       # NixOS Aliases
-      nf = "git -C /etc/nixos pull 1>/dev/null; sudoedit /etc/nixos/flake.nix";
-      nc = "git -C /etc/nixos pull 1>/dev/null; sudoedit /etc/nixos/configuration.nix";
-      nh = "git -C /etc/nixos pull 1>/dev/null; $EDITOR /etc/nixos/users/$USER/home.nix";
+      nf = "suu git -C /etc/nixos pull 1>/dev/null; sudoedit /etc/nixos/flake.nix";
+      nc = "suu git -C /etc/nixos pull 1>/dev/null; sudoedit /etc/nixos/configuration.nix";
+      nh = "suu git -C /etc/nixos pull 1>/dev/null; $EDITOR /etc/nixos/users/$USER/home.nix";
       ng = "sudo nix-collect-garbage --delete-old";
-      ns = "git -C /etc/nixos pull 1>/dev/null; sops /etc/nixos/secrets/secrets.yaml";
+      ns = "suu git -C /etc/nixos pull 1>/dev/null; sops /etc/nixos/secrets/secrets.yaml";
 
       # Git aliases
       ga = "git add";
