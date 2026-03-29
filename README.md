@@ -59,6 +59,7 @@
     <li>
       <a href="#about-the-project">About The Project</a>
       <ul>
+        <li><a href="#core-design-principles">Core Design Principles/a></li>
         <li><a href="#built-with">Built With</a></li>
       </ul>
     </li>
@@ -74,7 +75,6 @@
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
 
@@ -91,7 +91,7 @@ Right now, all configuration is un-modularized for simplicity with system config
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-## Core Design Principles
+### Core Design Principles
 - You should avoid all package managers except the Nix Package Manager
 - Any program configuration that is possible through home manager should be done through home manager
 - Prefer configuration implementations that fully utilize flakes
