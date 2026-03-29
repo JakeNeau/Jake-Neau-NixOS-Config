@@ -69,9 +69,6 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
 This is my NixOS config to fully define any system I want to build. It include configuration for installing anything on a fully-featured system of mine, and the Home Manager configs for editing the configuration of installed software.
 The usage of Home Manager in this project is to the point that some would call it dogmatic, but it makes all config reproducible between systems.
 Right now, all configuration is un-modularized for simplicity with system configuration in `configuration.nix` and program configuration in `users/<user>/home.nix`, but in the future, these will be moved to adhere to the [Dendritic Pattern](https://github.com/mightyiam/dendritic).
@@ -82,7 +79,6 @@ Right now, all configuration is un-modularized for simplicity with system config
 - You should avoid all package managers except the Nix Package Manager
 - Any program configuration that is possible through home manager should be done through home manager
 - Prefer configuration implementations that fully utilize flakes
-
 
 ### Built With
 
