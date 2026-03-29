@@ -781,7 +781,7 @@
         # Run git commands unless told not to
         if set -q _flag_full
           if not set -q _flag_no_git
-            sudo git -C /etc/nixos add /etc/nixos/*
+            sudo git -C /etc/nixos add -A
             # Amend the last commit with the new generatioin if a message is not specified
             if test (count $argv) -eq 0
               set last_commit_message (git -C /etc/nixos log -1 --pretty=%s)
@@ -805,7 +805,7 @@
           end
         else
           if not set -q _flag_no_git
-            sudo git -C /etc/nixos add /etc/nixos/* 1>/dev/null
+            sudo git -C /etc/nixos add -A 1>/dev/null
             # Amend the last commit with the new generatioin if a message is not specified
             if test (count $argv) -eq 0
               set last_commit_message (git -C /etc/nixos log -1 --pretty=%s)
