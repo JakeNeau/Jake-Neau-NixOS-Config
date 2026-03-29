@@ -147,6 +147,7 @@ Additionally Fish is used for interactive shells. Here are some shortcuts I have
 - [ ] Get the Niri Window Manager looking nicer
   - [ ] Find a way to make screens take up an exactly 16:9 form factor on ultrawides
   - [ ] Re-enable [Noctalia Shell](https://github.com/noctalia-dev/noctalia-shell) for beautiful bars and widgets
+  - [ ] Fix wallpapers that broke after moving from Hyprland
 - [ ] Move repository to the Dendritic Pattern
 - [ ] The hardware-configuration.nix file needs to be tracked despite being different on different machines, find a way around this for multi-environment
 - [ ] Configure a cut-down environment for laptops
