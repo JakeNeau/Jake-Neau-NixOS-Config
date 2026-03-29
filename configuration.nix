@@ -265,6 +265,8 @@
   programs.git = {
     enable = true;
     config = {
+      user.name = "Jake Neau";
+      user.email = "jakeneau@proton.me";
       init.defaultBranch = "main";
       safe.directory = "/etc/nixos";
     };
@@ -690,6 +692,10 @@
         fastfetch
       end
 
+      function suu --description "Run sudo as the current user"
+        sudo SSH_AUTH_SOCK="$SSH_AUTH_SOCK" $argv
+      end
+
       function npd --description "Nix Package Describe: builds a nix package and lists the contents inside of it at the specified tree level"
         argparse -- $argv
         or return 1
@@ -758,12 +764,12 @@
         or return 1
 
         if set -q _flag_full
-          git -C /etc/nixos pull
+          suu git -C /etc/nixos pull
           sudo nix flake update --flake /etc/nixos
           sudo nixos-rebuild switch --upgrade --flake /etc/nixos
           or return 1
         else
-          git -C /etc/nixos pull 1>/dev/null
+          suu git -C /etc/nixos pull 1>/dev/null
           echo "Rebuilding NixOS configuration..."
           sudo nix flake update --flake /etc/nixos --quiet
           sudo nixos-rebuild switch --upgrade --flake /etc/nixos --quiet
@@ -775,7 +781,7 @@
         # Run git commands unless told not to
         if set -q _flag_full
           if not set -q _flag_no_git
-            git -C /etc/nixos add /etc/nixos/*
+            suu git -C /etc/nixos add /etc/nixos/*
             # Amend the last commit with the new generatioin if a message is not specified
             if test (count $argv) -eq 0
               set last_commit_message (git -C /etc/nixos log -1 --pretty=%s)
@@ -784,22 +790,22 @@
               else
                 set new_commit_message "Generation $new_generation: $last_commit_message"
               end
-              git -C /etc/nixos commit --amend -m "$new_commit_message"
+              suu git -C /etc/nixos commit --amend -m "$new_commit_message"
               or return 1
-              git -C /etc/nixos push --force-with-lease
+              suu git -C /etc/nixos push --force-with-lease
               or return 1
             # Make a new commit if the message is specified
             else
               set new_commit_message "Generation $new_generation: $argv"
-              git -C /etc/nixos commit -m "$new_commit_message"
+              suu git -C /etc/nixos commit -m "$new_commit_message"
               or return 1
-              git -C /etc/nixos push
+              suu git -C /etc/nixos push
               or return 1
             end
           end
         else
           if not set -q _flag_no_git
-            git -C /etc/nixos add /etc/nixos/* 1>/dev/null
+            suu git -C /etc/nixos add /etc/nixos/* 1>/dev/null
             # Amend the last commit with the new generatioin if a message is not specified
             if test (count $argv) -eq 0
               set last_commit_message (git -C /etc/nixos log -1 --pretty=%s)
@@ -808,16 +814,16 @@
               else
                 set new_commit_message "Generation $new_generation: $last_commit_message"
               end
-              git -C /etc/nixos commit --amend -qm "$new_commit_message"
+              suu git -C /etc/nixos commit --amend -qm "$new_commit_message"
               or return 1
-              git -C /etc/nixos push --force-with-lease -q
+              suu git -C /etc/nixos push --force-with-lease -q
               or return 1
             # Make a new commit if the message is specified
             else
               set new_commit_message "Generation $new_generation: $argv"
-              git -C /etc/nixos commit -qm "$new_commit_message"
+              suu git -C /etc/nixos commit -qm "$new_commit_message"
               or return 1
-              git -C /etc/nixos push -q
+              suu git -C /etc/nixos push -q
               or return 1
             end
             echo "Commit \"$new_commit_message\" pushed to GitHub"
