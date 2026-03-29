@@ -27,7 +27,6 @@
   </a>
 
 <h3 align="center">Jake Neau's NixOS Configuration</h3>
-
   <p align="center">
     A complete system configuration for my systems for use with the Nix package manager
     <br />
@@ -36,6 +35,10 @@
     <a href="https://github.com/jakeneau/Jake-Neau-NixOS-Config/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
   </p>
 </div>
+
+
+
+https://github.com/user-attachments/assets/fbb78d00-4d93-4653-9067-c7595167a16f
 
 
 
