@@ -556,7 +556,7 @@
   environment.systemPackages = with pkgs; [
     vscode
     audacity # Audio recording program
-    # bitwarden-desktop                     # Password manager for all devices
+    bitwarden-desktop # Password manager for all devices
     blender # 3D Modeling art program with AMD GPU support (hip)
     bluetui # A tui for managing bluetooth
     (bottles.override {
@@ -605,6 +605,7 @@
     qpwgraph # A patchbay and volume control program that works with pipewire
     reaper # A configurable digital audio workstation
     sops # CLI tools for secrets management
+    signal-desktop # A private messaging service
     spotify # Music subscription service
     swaybg # Wallpaper utility
     tldr # Summarize man pages for commands
