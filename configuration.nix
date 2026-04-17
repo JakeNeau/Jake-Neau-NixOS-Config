@@ -572,6 +572,7 @@
     bottom # A TUI system monitor
     candy-icons # A gradient vector icon theme
     clipse # A cool clipboard manager
+    ckan # A mod manager for Kerbal Space Program
     davinci-resolve-studio # Professional video editor
     element-desktop # A group messaging service with an open source API
     eza # A better version of ls written in rust
