@@ -579,6 +579,7 @@
     fastfetch # Terminal program for displaying system info and flexing on arch users
     ffmpeg # Video codec
     freecad # An open source parametric 3D modeling program
+    figma-linux # A web design tool
     fishPlugins.colored-man-pages # More interesting man pages
     fishPlugins.fish-bd # Go back directories with bd
     fishPlugins.fzf-fish # Search for multiple things with fzf
