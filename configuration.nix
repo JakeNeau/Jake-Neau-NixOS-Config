@@ -406,7 +406,7 @@
         toml.enable = true;
 
         # Both JavaScript and TypeScript
-        ts = {
+        typescript = {
           enable = true;
           format.type = ["prettier"];
         };
@@ -565,10 +565,10 @@
     bitwarden-desktop # Password manager for all devices
     blender # 3D Modeling art program with AMD GPU support (hip)
     bluetui # A tui for managing bluetooth
-    (bottles.override {
-      # A wine prefix manager
-      removeWarningPopup = true;
-    })
+    # (bottles.override {
+    #   # A wine prefix manager
+    #   removeWarningPopup = true;
+    # })
     bottom # A TUI system monitor
     candy-icons # A gradient vector icon theme
     clipse # A cool clipboard manager
