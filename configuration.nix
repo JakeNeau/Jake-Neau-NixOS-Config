@@ -12,6 +12,9 @@
     warn-dirty = false;
   };
 
+  # direnv will load nix configs automatically in project folders
+  programs.direnv.enable = true;
+
   imports = [
     ./hardware-configuration.nix
   ];
