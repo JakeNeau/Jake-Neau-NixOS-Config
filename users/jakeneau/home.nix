@@ -500,10 +500,15 @@
   home.file = {
     ".local/share/applications/qt5ct.desktop".text = "[Desktop Entry]\nNoDisplay=true";
     ".local/share/applications/qt6ct.desktop".text = "[Desktop Entry]\nNoDisplay=true";
+    ".local/share/applications/kvantummanager.desktop".text = "[Desktop Entry]\nNoDisplay=true";
     ".local/share/applications/xterm.desktop".text = "[Desktop Entry]\nNoDisplay=true";
     ".local/share/applications/nvim.desktop".text = "[Desktop Entry]\nNoDisplay=true";
     ".local/share/applications/nixos-manual.desktop".text = "[Desktop Entry]\nNoDisplay=true";
   };
+
+  # Legacy config from old system state
+  gtk.gtk4.theme = null;
+
   # This value determines the home Manager release that your
   # configuration is compatible with. This helps avoid breakage
   # when a new home Manager release introduces backwards
