@@ -595,6 +595,7 @@
     fuzzel # Super fast application launcher
     fzf # System wide fuzzy finder
     ghostty # A fast and GPU accelerated terminal emulator
+    gnucash # Double-entry accounting software
     grc # Generic text colorizer
     hunspell # Spell check needed for LibreOffice
     hunspellDicts.en_US # US English dictionary for Hunspell
