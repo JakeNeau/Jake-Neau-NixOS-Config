@@ -13,7 +13,10 @@
   };
 
   # direnv will load nix configs automatically in project folders
-  programs.direnv.enable = true;
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+  };
 
   imports = [
     ./hardware-configuration.nix
