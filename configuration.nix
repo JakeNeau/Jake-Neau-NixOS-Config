@@ -297,7 +297,15 @@
       };
 
       # Diagnostics for plugins to communicate error states
-      diagnostics.enable = true;
+      diagnostics = {
+        enable = true;
+        config = {
+          signs = true;
+          underline = true;
+          update_in_insert = false;
+          virtual_lines = true;
+        };
+      };
 
       # Cache lua bytecode for faster launches
       enableLuaLoader = true;
