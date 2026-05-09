@@ -589,6 +589,13 @@
         gitStatus.enable = true;
       };
 
+      # -----------
+      # Dashboard
+      # -----------
+      dashboard.alpha = {
+        enable = true;
+      };
+
       # ---------------
       # Other keymaps
       # ---------------
