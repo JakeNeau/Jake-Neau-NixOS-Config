@@ -604,21 +604,31 @@
           key = "<C-h>";
           mode = "n";
           action = "<C-w>h";
+          desc = "Move right one window";
         }
         {
           key = "<C-j>";
           mode = "n";
           action = "<C-w>j";
+          desc = "Move down one window";
         }
         {
           key = "<C-k>";
           mode = "n";
           action = "<C-w>k";
+          desc = "Move up one window";
         }
         {
           key = "<C-l>";
           mode = "n";
           action = "<C-w>l";
+          desc = "Move left one window";
+        }
+        {
+          key = "-";
+          mode = "n";
+          action = "<cmd>Oil<cr>";
+          desc = "Open oil (parent directory)";
         }
       ];
     };
