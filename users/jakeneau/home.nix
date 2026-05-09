@@ -75,6 +75,9 @@
     settings = {
       background-opacity = 0.8;
       font-feature = ["liga" "calt" "dlig"];
+      keybind = [
+        "ctrl+enter=unbind"
+      ];
     };
   };
 
