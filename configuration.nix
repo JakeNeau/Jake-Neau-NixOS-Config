@@ -544,6 +544,14 @@
           gitBranches = "<leader>gb";
         };
       };
+
+      # ---------------
+      # File Explorer
+      # ---------------
+      utility.oil-nvim = {
+        enable = true;
+        gitStatus.enable = true;
+      };
     };
   };
 
