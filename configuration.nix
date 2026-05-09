@@ -587,6 +587,15 @@
       utility.oil-nvim = {
         enable = true;
         gitStatus.enable = true;
+        setupOpts = {
+          keymaps = {
+            "<C-h>" = false;
+            "<C-l>" = false;
+            "<C-r>" = "actions.refresh";
+            "<C-w><CR>" = "actions.select_vsplit";
+            "<C-w><C-CR>" = "actions.select_split";
+          };
+        };
       };
 
       # -----------
