@@ -12,15 +12,15 @@
     warn-dirty = false;
   };
 
+  imports = [
+    ./hardware-configuration.nix
+  ];
+
   # direnv will load nix configs automatically in project folders
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
   };
-
-  imports = [
-    ./hardware-configuration.nix
-  ];
 
   # Files for secrets management
   sops = {
@@ -120,6 +120,13 @@
 
   # Compositor: displays the desktop
   programs.niri.enable = true;
+
+  # Podman is a container runtime
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+    defaultNetwork.settings.dns_enabled = true;
+  };
 
   # Enable other desktop portals
   xdg.portal = {
