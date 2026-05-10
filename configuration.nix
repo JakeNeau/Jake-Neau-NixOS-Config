@@ -354,12 +354,39 @@
         wrap = false; # Whether to wrap lines if they go off screen
       };
 
-      # --------------
-      # Lazy Loading
-      # --------------
+      # ---------------------------------------
+      # Lazy Loading and non-included plugins
+      # ---------------------------------------
       lazy = {
         enable = true; # Enable lazy loading for plugins to load in only when needed
         enableLznAutoRequire = true; # Builtin plugins need this, only turn off for debug
+        plugins = {
+          "pi.nvim" = {
+            package = pkgs.vimPlugins.pi-nvim;
+            setupModule = "pi";
+            setupOpts = {
+              provider = "openai-codex";
+              model = "gpt-5.5";
+              thinking = "off";
+            };
+            cmd = ["PiAsk" "PiAskSelection"];
+
+            keys = [
+              {
+                key = "<leader>ai";
+                mode = "n";
+                action = "<cmd>PiAsk<cr>";
+                desc = "Ask pi";
+              }
+              {
+                key = "<leader>ai";
+                mode = "v";
+                action = "<cmd>PiAskSelection<cr>";
+                desc = "Ask pi with current selection";
+              }
+            ];
+          };
+        };
       };
 
       # ------------------
