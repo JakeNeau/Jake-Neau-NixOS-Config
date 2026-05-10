@@ -484,7 +484,7 @@
                 return ""
               end
               local name = vim.fn.expand("%:~:.")
-              return name
+              return vim.fs.basename(name)
             end
           '')
         ];
