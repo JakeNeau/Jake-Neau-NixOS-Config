@@ -451,6 +451,8 @@
           extensions.crates-nvim.enable = true;
         };
 
+        svelte.enable = true;
+
         toml.enable = true;
 
         # Both JavaScript and TypeScript
