@@ -766,6 +766,7 @@
     xournalpp # App for signing PDFs
     xwayland-satellite # Xwayland compatability for wayland only compositors
     yaziPlugins.gvfs # Mount devices to a VFS in yazi
+    zellij # A modern terminal multiplexer
   ];
 
   # Set default applications
