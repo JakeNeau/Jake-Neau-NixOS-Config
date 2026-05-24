@@ -14,6 +14,10 @@
       url = "github:danth/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-darwin = {
+      url = "github:nix-darwin/nix-darwin/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # Nix user repository: packages not on nixpkgs
     nur.url = "github:nix-community/NUR";
     # Declarative Neovim
@@ -29,6 +33,7 @@
   outputs = {
     self,
     nixpkgs,
+    nix-darwin,
     home-manager,
     ...
   } @ inputs: {
@@ -56,6 +61,9 @@
           nixpkgs.overlays = [inputs.nix-minecraft.overlay];
         }
       ];
+    };
+    darwinConfigurations."Jakes-MacBook-Air" = nix-darwin.lib.darwinSystem {
+      modules = [ ./configuration-mac.nix ];
     };
   };
 }
