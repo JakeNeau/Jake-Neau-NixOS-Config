@@ -1,8 +1,11 @@
 { pkgs, ... }: {
-  # List packages installed in system profile. To search by name, run:
-  # $ nix-env -qaP | grep wget
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
   environment.systemPackages = [
     pkgs.vim
+    pkgs.librewolf
+    pkgs.claude-code
   ];
 
   # Necessary for using flakes on this system.
