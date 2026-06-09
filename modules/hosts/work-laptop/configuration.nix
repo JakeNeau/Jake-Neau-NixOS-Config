@@ -4,6 +4,7 @@
     imports = [
       inputs.self.modules.darwin.system-desktop
       inputs.self.modules.darwin."jake.neau"
+      inputs.self.modules.generic.cli
     ];
 
     networking.hostName = "work-laptop";

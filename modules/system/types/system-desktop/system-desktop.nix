@@ -9,10 +9,12 @@
     lib,
     ...
   }: {
-    imports = with inputs.self.modules.nixos; [
-      system-default
-      stylix
-    ];
+    imports =
+      (with inputs.self.modules.nixos; [
+        system-default
+        stylix
+      ])
+      ++ [inputs.self.modules.generic.cli];
 
     # direnv will load nix configs automatically in project folders
     programs.direnv = {
@@ -162,15 +164,11 @@
       #   # A wine prefix manager
       #   removeWarningPopup = true;
       # })
-      bottom # A TUI system monitor
       candy-icons # A gradient vector icon theme
       clipse # A cool clipboard manager
       ckan # A mod manager for Kerbal Space Program
       davinci-resolve-studio # Professional video editor
       element-desktop # A group messaging service with an open source API
-      eza # A better version of ls written in rust
-      fastfetch # Terminal program for displaying system info and flexing on arch users
-      ffmpeg # Video codec
       freecad # An open source parametric 3D modeling program
       fishPlugins.colored-man-pages # More interesting man pages
       fishPlugins.fish-bd # Go back directories with bd
@@ -183,15 +181,11 @@
       fishPlugins.sponge # Remove typos from terminal
       fishPlugins.z # Jump to previous directories
       fuzzel # Super fast application launcher
-      fzf # System wide fuzzy finder
       ghostty # A fast and GPU accelerated terminal emulator
       gnucash # Double-entry accounting software
-      grc # Generic text colorizer
       hunspell # Spell check needed for LibreOffice
       hunspellDicts.en_US # US English dictionary for Hunspell
       inkscape # Vector graphics editor
-      jdk21 # Java Development Kit
-      jujutsu # A better VCS built on top of git
       krita # A FOSS art program
       libreoffice-qt-fresh # A FOSS office suite
       librewolf # Firefox based browser with more privacy
@@ -205,23 +199,18 @@
       loupe # Fast and lightweight image viewer
       qpwgraph # A patchbay and volume control program that works with pipewire
       reaper # A configurable digital audio workstation
-      sops # CLI tools for secrets management
       signal-desktop # A private messaging service
       spotify # Music subscription service
       swaybg # Wallpaper utility
-      tldr # Summarize man pages for commands
       todoist-electron # Todo tracker app
       udiskie # Automounting for removable media
       ungoogled-chromium # Chromium without all the callbacks to google
-      unzip # CLI file unzipping
       vesktop # Alternative to discord messaging app
-      wget # Download web files from the command line
       wl-clip-persist # Make sure clipboard items persist after programs close
       wl-clipboard # Clipboard manager backend
       xournalpp # App for signing PDFs
       xwayland-satellite # Xwayland compatability for wayland only compositors
       yaziPlugins.gvfs # Mount devices to a VFS in yazi
-      zellij # A modern terminal multiplexer
     ];
 
     # Set default applications
