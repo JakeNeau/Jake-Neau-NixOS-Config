@@ -1,69 +1,32 @@
+# DO-NOT-EDIT. This file was auto-generated using github:vic/flake-file.
+# Use `nix run .#write-flake` to regenerate it.
 {
-  description = "NixOS top level flake";
+  outputs = inputs: inputs.flake-parts.lib.mkFlake {inherit inputs;} (inputs.import-tree ./modules);
 
   inputs = {
-    # Version of nixpkgs for installing software
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    # Declarative management of the home configuration
+    flake-file.url = "github:vic/flake-file";
+    flake-parts.url = "github:hercules-ci/flake-parts";
     home-manager = {
+      inputs.nixpkgs.follows = "nixpkgs";
       url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
-    # Apply common styling options shared across many home manager modules
-    stylix = {
-      url = "github:danth/stylix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    import-tree.url = "github:vic/import-tree";
+    minegrub-theme.url = "github:Lxtharia/minegrub-theme";
     nix-darwin = {
-      url = "github:nix-darwin/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:nix-darwin/nix-darwin/master";
     };
-    # Nix user repository: packages not on nixpkgs
+    nix-minecraft.url = "github:Infinidoge/nix-minecraft";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nur.url = "github:nix-community/NUR";
-    # Declarative Neovim
     nvf.url = "github:notashelf/nvf";
     sops-nix = {
-      url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:Mic92/sops-nix";
     };
-    minegrub-theme.url = "github:Lxtharia/minegrub-theme";
-    nix-minecraft.url = "github:Infinidoge/nix-minecraft";
-  };
-
-  outputs = {
-    self,
-    nixpkgs,
-    nix-darwin,
-    home-manager,
-    ...
-  } @ inputs: {
-    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        ./configuration.nix
-        home-manager.nixosModules.home-manager
-        {
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            users.jakeneau = import ./users/jakeneau/home.nix;
-          };
-          nixpkgs.overlays = [
-            inputs.nur.overlays.default
-          ];
-        }
-        inputs.stylix.nixosModules.stylix
-        inputs.nvf.nixosModules.default
-        inputs.sops-nix.nixosModules.sops
-        inputs.minegrub-theme.nixosModules.default
-        inputs.nix-minecraft.nixosModules.minecraft-servers
-        {
-          nixpkgs.overlays = [inputs.nix-minecraft.overlay];
-        }
-      ];
-    };
-    darwinConfigurations."Jakes-MacBook-Air" = nix-darwin.lib.darwinSystem {
-      modules = [ ./configuration-mac.nix ];
+    stylix = {
+      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:danth/stylix";
     };
   };
 }

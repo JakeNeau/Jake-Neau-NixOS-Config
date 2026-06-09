@@ -48,3 +48,9 @@ Skills specific to this nix-darwin repo live under `.claude/skills/`:
   across NixOS and macOS, features/aspects/module classes, the flake wiring, and
   recipes and conventions for adding or editing configuration. Bundles
   `aspects.md`, a reference for the eight aspect design patterns.
+- **nvf** (`.claude/skills/nvf/SKILL.md`) — how to configure Neovim with
+  [nvf](https://github.com/NotAShelf/nvf) using the standalone flake method
+  (`nvf.lib.neovimConfiguration`), which builds Neovim as a self-contained,
+  portable package exposed as a flake output rather than a NixOS/home-manager
+  module. Covers the builder API, the `vim` option namespace, wiring the built
+  editor into a host, and migrating off the old `programs.nvf` module.

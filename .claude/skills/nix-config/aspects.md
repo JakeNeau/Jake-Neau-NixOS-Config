@@ -6,6 +6,12 @@ to shape `flake.modules.<class>.<name>` aspects. They are suggestions, not rules
 and a single feature often combines several. See [`SKILL.md`](SKILL.md) for the
 mental model and the core rules these all obey.
 
+Every section below follows the same shape:
+
+- **What it is** — the structure of the aspect.
+- **Why use it** — the problem it solves.
+- **Use it over others when** — how to pick it against the neighbouring patterns.
+
 | Pattern | Reach for it when… |
 | --- | --- |
 | [Simple](#simple) | a feature is independent and just configures something per class |
@@ -17,16 +23,32 @@ mental model and the core rules these all obey.
 | [DRY](#dry) | you must reuse a value inside an "attrs-of-submodule" option |
 | [Factory](#factory) | you want to stamp out features from parameters |
 
+Quick decision guide:
+
+- Just configuring something, no relationship to other features → **Simple**.
+- Need to also reach into a nested context (home-manager from a system) → **Multi-Context**.
+- Building on top of an existing feature → **Inheritance**.
+- One aspect, but some lines only apply sometimes → **Conditional**.
+- Many features each want to add to one shared thing → **Collector**.
+- A plain value/function shared widely → **Constants** (function ⇒ a `flake.lib` library).
+- A reusable chunk *inside* an attrs-of-submodule option → **DRY**.
+- The same shape repeated with varying parameters → **Factory**.
+
 ---
 
 ## Simple
 
-**Use when:** a feature is optional, independent of other features, and just
-needs configuring in one or more contexts.
+**What it is:** an independent `class` module per context, defining configuration
+directly. Independent classes can live in one file (handy for sharing partial
+config) or be split into `nixos.nix` / `darwin.nix` / etc.
 
-Define a `class` module per context. Independent classes can live in one file
-(handy for sharing partial config) or be split into `nixos.nix` / `darwin.nix` /
-etc.
+**Why use it:** it is the lowest-ceremony way to turn a feature on — the aspect's
+own body does the enabling, and there is nothing to wire up beyond importing it.
+
+**Use it over others when:** the feature stands alone. It neither reaches into a
+nested context (that's *Multi-Context*), builds on another feature (*Inheritance*),
+nor varies by parameter (*Factory*). Most features are Simple — start here and
+escalate only when a real relationship appears.
 
 ```nix
 {
@@ -48,12 +70,18 @@ etc.
 
 ## Multi-Context
 
-**Use when:** a feature is used in *one* main context (e.g. NixOS or Darwin) but
-must also configure a *nested* context (home-manager) as part of itself.
+**What it is:** a main `class` module (e.g. NixOS or Darwin) plus an auxiliary
+module of a *nested* class (home-manager), where the main module pulls the
+auxiliary one in (via `home-manager.sharedModules` or `home-manager.users.<name>`).
 
-Create the main `class` module, plus an auxiliary module of the nested class, and
-have the main module pull the auxiliary one in (e.g. via
-`home-manager.sharedModules` or `home-manager.users.<name>`).
+**Why use it:** some configuration only makes sense from the system side but must
+also drive per-user home-manager settings as one indivisible feature — so the two
+halves travel together and turn on with a single import.
+
+**Use it over others when:** you must configure two *contexts at once* from one
+feature. If the home-manager part is genuinely standalone, leave it a Simple
+`homeManager` aspect instead; reach for Multi-Context only when a system aspect
+owns and must activate the nested config.
 
 ```nix
 {inputs, ...}: {
@@ -73,10 +101,18 @@ so it can also be reused directly as a standalone home-manager feature later.
 
 ## Inheritance
 
-**Use when:** you want to take an existing feature and extend or tweak it.
+**What it is:** an aspect that `imports` one or more *parent* aspects in each
+class and layers its own additions on top. This is how layered "system types" and
+composed hosts/users are built.
 
-Import the parent aspect in each class and add your changes. This is how layered
-"system types" and composed hosts/users are built.
+**Why use it:** it lets you compose features instead of copy-pasting them — a
+"desktop" is "cli plus a browser plus printing", expressed as imports, so the
+parent stays the single source of truth.
+
+**Use it over others when:** you want to *reuse and extend* an existing feature
+as-is. Choose Collector instead when many features should contribute *into* one
+shared aspect (the dependency points the other way); choose Factory when the thing
+you'd be extending is really the same template stamped out with different values.
 
 ```nix
 {inputs, ...}: {
@@ -104,11 +140,18 @@ Import the parent aspect in each class and add your changes. This is how layered
 
 ## Conditional
 
-**Use when:** some parts of an aspect should apply only under a condition — most
-often the platform, inside a cross-platform `homeManager` aspect.
+**What it is:** a single aspect whose body is built with `lib.mkMerge`, gating
+parts with `lib.mkIf` — most often on the platform, inside a cross-platform
+`homeManager` aspect. **Imports stay unconditional; only content is conditional.**
 
-Build the module body with `lib.mkMerge` and gate parts with `lib.mkIf`. Keep
-**imports unconditional** — only content is conditional.
+**Why use it:** one feature can serve every context while still adapting the
+details (a different package name per OS) — without splitting into near-duplicate
+aspects or breaking evaluation with a conditional import.
+
+**Use it over others when:** the variation is *within* one aspect and switches on a
+runtime-detectable condition (`pkgs.stdenv.isLinux/isDarwin`). If the contexts are
+genuinely separate modules, prefer Simple's per-class split; reach for Conditional
+when you want one aspect that bends rather than several that duplicate.
 
 ```nix
 flake.modules.homeManager.office = {pkgs, lib, ...}:
@@ -125,13 +168,20 @@ flake.modules.homeManager.office = {pkgs, lib, ...}:
 
 ## Collector
 
-**Use when:** a feature's configuration is the sum of contributions made by
-*other* features (so each contributor keeps its own data next to itself).
+**What it is:** a base aspect (the *collector*) plus other features that each add
+to that *same* named aspect; flake-parts merges the contributions. This is the one
+place it's fine for a feature to define an aspect named after a *different*
+feature — keep that contribution in a file named after the collector.
 
-The collector defines its base config; each contributing feature adds to the
-*same* named aspect. flake-parts merges the contributions. This is the one place
-it's fine for a feature to define an aspect named after a *different* feature —
-keep that contribution in a file named after the collector.
+**Why use it:** it keeps each contributor's data next to the contributor (a host
+declares its own syncthing device id), instead of forcing one central file to know
+about everything that feeds it.
+
+**Use it over others when:** the final config is the *sum of many features'
+contributions* and you want data to live with its owner. This is the inverse of
+Inheritance: there a child reaches out to pull parents in; here contributors push
+into a shared aspect. Use Constants instead when what's shared is a single value
+rather than accumulated config.
 
 ```nix
 # modules/services/syncthing/syncthing.nix  — the collector
@@ -153,12 +203,20 @@ keep that contribution in a file named after the collector.
 
 ## Constants
 
-**Use when:** you need to share constant values (or functions) across many
-features, independent of class. Replaces older `specialArgs` plumbing.
+**What it is:** a `generic` aspect that declares an option and sets it, imported
+high in the hierarchy (e.g. into a default system type) so the value is available
+everywhere. Read it back like any other config option. Replaces older
+`specialArgs` plumbing.
 
-Define a `generic` aspect that declares an option and sets it, then import that
-aspect high in the hierarchy (e.g. into a default system type) so it's available
-everywhere. Read the values like any other config option.
+**Why use it:** it shares plain values (an admin email, a domain) across features
+and across classes through the normal module system, so there's one definition and
+type-checked reads instead of threaded arguments.
+
+**Use it over others when:** the shared thing is *data*, not config that
+accumulates (that's Collector) and not a template (that's Factory). If the
+"constant" is actually a *function*, it becomes a *library* aspect — the repo keeps
+such helpers in `flake.lib`. For a value used in just one file, a plain `let … in`
+is lighter than a Constants aspect.
 
 ```nix
 # define
@@ -190,16 +248,22 @@ flake.modules.nixos.homeserver = {config, ...}: {
 ```
 
 > Alternatives for sharing values: a `let … in` in a single file, or an
-> `options.<name>` on the feature read via `inputs.self.<name>`. If the "constant"
-> is actually a function, this becomes a *library* aspect — the repo keeps such
-> helpers in `flake.lib`.
+> `options.<name>` on the feature read via `inputs.self.<name>`.
 
 ## DRY
 
-**Use when:** Simple won't fit because the attribute you want to reuse lives
-inside an "attribute set of submodules" option (e.g.
-`networking.interfaces.<name>…`). Define the reusable chunk under a **custom
-class** and merge it in.
+**What it is:** a reusable config chunk defined under a **custom module class**,
+merged into an "attribute set of submodules" option (e.g.
+`networking.interfaces.<name>…`) with `lib.mkMerge`.
+
+**Why use it:** Simple can't help when the value you want to reuse lives *inside* a
+per-instance submodule — there's no top-level option to share. A custom-class
+aspect gives that chunk a name so several instances can pull it in.
+
+**Use it over others when:** you're factoring out a repeated fragment *within*
+attrs-of-submodule options and the fragment itself benefits from being extended.
+DRY supports inheritance but not parameters; if each instance differs by an
+argument rather than a fixed shared chunk, use **Factory** instead.
 
 ```nix
 # define a reusable chunk under a new class
@@ -220,16 +284,20 @@ networking.interfaces."enp86s0" =
     ];
 ```
 
-DRY supports inheritance (unlike Factory); Factory supports parameters (unlike
-DRY).
-
 ## Factory
 
-**Use when:** you want to generate features from parameters — e.g. every user, or
-every CIFS mount, follows the same template.
+**What it is:** a function in the `flake.factory` library that, given parameters,
+returns named aspects across classes. Call it to mint features, then merge
+per-instance customizations with `lib.mkMerge`.
 
-Store factory functions in the `flake.factory` library, then call them to mint
-named aspects (merge customizations with `lib.mkMerge`).
+**Why use it:** when many features follow the same template (every user, every
+CIFS mount), a factory captures the shape once so each instance is a call with
+arguments rather than a hand-copied block.
+
+**Use it over others when:** instances differ by *parameters* and share a template.
+Factory supports parameters but not inheritance — the mirror image of DRY. If
+instances instead share a fixed chunk you want to extend, use DRY; if there's only
+one of the thing, a Simple aspect is enough.
 
 ```nix
 # a factory function in the library

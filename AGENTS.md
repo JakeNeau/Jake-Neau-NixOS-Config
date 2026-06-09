@@ -9,6 +9,13 @@ NixOS (Linux) and nix-darwin (macOS). Configuration is dogmatically declarative:
 system setup lives in Nix, and program configuration is pushed through
 home-manager wherever possible so it stays reproducible across machines.
 
+The flake is organized with the **dendritic pattern** on top of flake-parts:
+every `.nix` under `modules/` is a feature module, auto-imported by
+`import-tree`, and hosts/users are themselves features composed of smaller ones.
+Read `.claude/skills/nix-config/SKILL.md` before adding or changing anything —
+it documents the module classes, the `flake.modules.<class>.<name>` aspects, the
+host/user factories, and the rules for writing them.
+
 ## Conventions
 
 Follow the project's core design principles (from the README):
@@ -27,9 +34,13 @@ Prefer dry builds — they check evaluation and build without activating anythin
 
 ```sh
 nix flake check
-nixos-rebuild build --flake .#<host>     # NixOS
-darwin-rebuild build --flake .#<host>    # macOS
+nixos-rebuild build  --flake .#<host>    # NixOS  (hosts: nixos-desktop, nixos-laptop)
+darwin-rebuild build --flake .#<host>    # macOS  (hosts: macos-laptop, work-laptop)
+nix run .#write-flake                    # regenerate flake.nix after changing inputs
 ```
+
+`flake.nix` is **auto-generated** by `flake-file` and must not be hand-edited;
+declare inputs via `flake-file.inputs` in the relevant feature and regenerate.
 
 Do **not** run `switch` rebuilds, `nix flake update`, or the `nr`/`nrr` shell
 functions on your own — see below.
