@@ -13,6 +13,7 @@
     environment.systemPackages = [
       pkgs.librewolf
       pkgs.claude-code
+      pkgs.claude-agent-acp # ACP bridge for CodeCompanion's claude_code adapter
     ];
   };
 }

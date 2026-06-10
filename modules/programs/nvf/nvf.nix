@@ -122,28 +122,31 @@
           enable = true; # Enable lazy loading for plugins to load in only when needed
           enableLznAutoRequire = true; # Builtin plugins need this, only turn off for debug
           plugins = {
-            "pi.nvim" = {
-              package = pkgs.vimPlugins.pi-nvim;
-              setupModule = "pi";
+            "codecompanion.nvim" = {
+              package = pkgs.vimPlugins.codecompanion-nvim;
+              setupModule = "codecompanion";
+              # Drive Claude Code over ACP. Needs CLAUDE_CODE_OAUTH_TOKEN in the
+              # env; generate one with `claude setup-token`.
               setupOpts = {
-                provider = "openai-codex";
-                model = "gpt-5.5";
-                thinking = "off";
+                strategies = {
+                  chat.adapter = "claude_code";
+                  inline.adapter = "claude_code";
+                };
               };
-              cmd = ["PiAsk" "PiAskSelection"];
+              cmd = ["CodeCompanion" "CodeCompanionChat" "CodeCompanionActions"];
 
               keys = [
                 {
                   key = "<leader>ai";
                   mode = "n";
-                  action = "<cmd>PiAsk<cr>";
-                  desc = "Ask pi";
+                  action = "<cmd>CodeCompanionChat Toggle<cr>";
+                  desc = "Toggle CodeCompanion chat";
                 }
                 {
                   key = "<leader>ai";
                   mode = "v";
-                  action = "<cmd>PiAskSelection<cr>";
-                  desc = "Ask pi with current selection";
+                  action = "<cmd>CodeCompanionChat Add<cr>";
+                  desc = "Add selection to CodeCompanion chat";
                 }
               ];
             };
