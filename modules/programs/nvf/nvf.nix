@@ -122,31 +122,98 @@
           enable = true; # Enable lazy loading for plugins to load in only when needed
           enableLznAutoRequire = true; # Builtin plugins need this, only turn off for debug
           plugins = {
-            "codecompanion.nvim" = {
-              package = pkgs.vimPlugins.codecompanion-nvim;
-              setupModule = "codecompanion";
-              # Drive Claude Code over ACP. Needs CLAUDE_CODE_OAUTH_TOKEN in the
-              # env; generate one with `claude setup-token`.
-              setupOpts = {
-                strategies = {
-                  chat.adapter = "claude_code";
-                  inline.adapter = "claude_code";
-                };
-              };
-              cmd = ["CodeCompanion" "CodeCompanionChat" "CodeCompanionActions"];
+            # Claude Code IDE integration: spawns the `claude` CLI
+            "claudecode.nvim" = {
+              package = pkgs.vimPlugins.claudecode-nvim;
+              setupModule = "claudecode";
+              setupOpts = {};
+              cmd = [
+                "ClaudeCode"
+                "ClaudeCodeFocus"
+                "ClaudeCodeSelectModel"
+                "ClaudeCodeAdd"
+                "ClaudeCodeSend"
+                "ClaudeCodeTreeAdd"
+                "ClaudeCodeStatus"
+                "ClaudeCodeStart"
+                "ClaudeCodeStop"
+                "ClaudeCodeOpen"
+                "ClaudeCodeClose"
+                "ClaudeCodeDiffAccept"
+                "ClaudeCodeDiffDeny"
+                "ClaudeCodeCloseAllDiffs"
+              ];
 
               keys = [
                 {
-                  key = "<leader>ai";
+                  # Group label only (no action): registers <leader>a as the
+                  # AI prefix for which-key style hints.
+                  key = "<leader>a";
                   mode = "n";
-                  action = "<cmd>CodeCompanionChat Toggle<cr>";
-                  desc = "Toggle CodeCompanion chat";
+                  desc = "AI/Claude Code";
                 }
                 {
-                  key = "<leader>ai";
+                  key = "<leader>at";
+                  mode = "n";
+                  action = "<cmd>ClaudeCode<cr>";
+                  desc = "Toggle Claude";
+                }
+                {
+                  key = "<leader>af";
+                  mode = "n";
+                  action = "<cmd>ClaudeCodeFocus<cr>";
+                  desc = "Focus Claude";
+                }
+                {
+                  key = "<leader>ar";
+                  mode = "n";
+                  action = "<cmd>ClaudeCode --resume<cr>";
+                  desc = "Resume Claude";
+                }
+                {
+                  key = "<leader>ac";
+                  mode = "n";
+                  action = "<cmd>ClaudeCode --continue<cr>";
+                  desc = "Continue Claude";
+                }
+                {
+                  key = "<leader>am";
+                  mode = "n";
+                  action = "<cmd>ClaudeCodeSelectModel<cr>";
+                  desc = "Select Claude model";
+                }
+                {
+                  key = "<leader>ab";
+                  mode = "n";
+                  action = "<cmd>ClaudeCodeAdd %<cr>";
+                  desc = "Add current buffer";
+                }
+                {
+                  key = "<leader>as";
                   mode = "v";
-                  action = "<cmd>CodeCompanionChat Add<cr>";
-                  desc = "Add selection to CodeCompanion chat";
+                  action = "<cmd>ClaudeCodeSend<cr>";
+                  desc = "Send to Claude";
+                }
+                {
+                  # In file explorers, <leader>as adds the file under the
+                  # cursor instead of sending a selection.
+                  key = "<leader>as";
+                  mode = "n";
+                  action = "<cmd>ClaudeCodeTreeAdd<cr>";
+                  desc = "Add file";
+                  ft = ["NvimTree" "neo-tree" "oil" "minifiles" "netrw" "snacks_picker_list"];
+                }
+                {
+                  key = "<leader>aa";
+                  mode = "n";
+                  action = "<cmd>ClaudeCodeDiffAccept<cr>";
+                  desc = "Accept diff";
+                }
+                {
+                  key = "<leader>ad";
+                  mode = "n";
+                  action = "<cmd>ClaudeCodeDiffDeny<cr>";
+                  desc = "Deny diff";
                 }
               ];
             };
@@ -373,6 +440,12 @@
             gitBranches = "<leader>gb";
           };
         };
+
+        # ----------------------------
+        # Snacks (QoL plugin bundle)
+        # ----------------------------
+        # claudecode.nvim's recommended terminal provider.
+        utility.snacks-nvim.enable = true;
 
         # ---------------
         # File Explorer
