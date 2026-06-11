@@ -5,12 +5,15 @@
     imports = [
       inputs.self.modules.darwin.system-desktop
       inputs.self.modules.darwin.podman
-      inputs.self.modules.darwin.fastfetch-laptop
+      inputs.self.modules.darwin.fastfetch
       inputs.self.modules.darwin."jake.neau"
       inputs.self.modules.generic.cli
     ];
 
     networking.hostName = "jake-neau-work-laptop";
+
+    # Host facts features branch on (e.g. fastfetch's Power box).
+    systemConstants.isLaptop = true;
 
     # macOS keyboard behavior
     system.defaults.NSGlobalDomain = {

@@ -4,7 +4,7 @@
   flake.modules.nixos.nixos-desktop = {pkgs, ...}: {
     imports = with inputs.self.modules.nixos; [
       system-desktop
-      fastfetch-desktop
+      fastfetch
       minegrub
       nix-minecraft
       jakeneau

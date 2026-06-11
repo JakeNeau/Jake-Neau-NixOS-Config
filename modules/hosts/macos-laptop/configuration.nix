@@ -4,12 +4,15 @@
     imports =
       (with inputs.self.modules.darwin; [
         system-desktop
-        fastfetch-laptop
+        fastfetch
         jakeneau
       ])
       ++ [inputs.self.modules.generic.cli];
 
     networking.hostName = "macos-laptop";
+
+    # Host facts features branch on (e.g. fastfetch's Power box).
+    systemConstants.isLaptop = true;
 
     environment.systemPackages = [
       pkgs.librewolf

@@ -4,11 +4,14 @@
   flake.modules.nixos.nixos-laptop = {
     imports = with inputs.self.modules.nixos; [
       system-desktop
-      fastfetch-laptop
+      fastfetch
       jakeneau
     ];
 
     networking.hostName = "nixos-laptop";
+
+    # Host facts features branch on (e.g. fastfetch's Power box).
+    systemConstants.isLaptop = true;
 
     # Simple UEFI bootloader (the desktop's themed GRUB is desktop-specific).
     boot.loader.systemd-boot.enable = true;
