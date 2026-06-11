@@ -14,7 +14,9 @@
 
     programs.fzf = {
       enable = true;
-      enableFishIntegration = true;
+      # The fzf.fish plugin (see modules/programs/fish) owns the fish
+      # keybindings; the stock integration would override its ctrl-r binding.
+      enableFishIntegration = false;
     };
   };
 }

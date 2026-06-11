@@ -8,8 +8,9 @@
   #              ctrl keeps its terminal meanings there.
   # Ghostty [d]: ctrl+c / ctrl+v are copy/paste and the interrupt byte moves
   #              to alt+c, identical on both platforms.
-  # NixOS   [N]: the fzf.fish variables widget moves off ctrl-v to ctrl-alt-v,
-  #              joining the plugin's own ctrl-alt-f/l/s/p family.
+  # Fish    [nd]: the fzf.fish variables widget moves off ctrl-v to ctrl-alt-v,
+  #              joining the plugin's own ctrl-alt-f/l/s/p family, and fish's
+  #              capitalize-word re-homes to ctrl-alt-c.
   #
   # Related: the nvf keymap alt+v -> visual block (modules/programs/nvf)
   # replaces vim's ctrl+v, which ghostty now consumes.
@@ -88,10 +89,8 @@
         "alt+c=text:\\x03"
       ];
     };
-  };
 
-  flake.modules.nixos.copy-paste-remaps = {
-    # Runs after the plugin's vendor conf.d installed its defaults;
+    # Runs after the plugins' conf.d snippets installed their defaults;
     # fzf_configure_bindings erases its previous bindings before re-installing.
     programs.fish.interactiveShellInit = ''
       # ctrl-v is paste now (ghostty); move the fzf variables widget to the
