@@ -13,6 +13,7 @@
       (with inputs.self.modules.nixos; [
         system-default
         stylix
+        caps-dual-role
       ])
       ++ [inputs.self.modules.generic.cli];
 
@@ -85,7 +86,7 @@
     services.xserver.xkb = {
       layout = "us";
       variant = "";
-      options = "ctrl:nocaps";
+      options = ""; # Caps lock behavior is owned by the caps-dual-role feature (kanata)
     };
     console.useXkbConfig = true;
 
@@ -596,6 +597,7 @@
   flake.modules.darwin.system-desktop = {
     imports = with inputs.self.modules.darwin; [
       system-default
+      caps-dual-role
     ];
   };
 
@@ -605,6 +607,7 @@
       system-default
       nvf
       cli-tools
+      caps-dual-role
     ];
   };
 }
