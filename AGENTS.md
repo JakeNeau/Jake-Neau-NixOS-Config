@@ -35,7 +35,7 @@ Prefer dry builds — they check evaluation and build without activating anythin
 ```sh
 nix flake check
 nixos-rebuild build  --flake .#<host>    # NixOS  (hosts: nixos-desktop, nixos-laptop)
-darwin-rebuild build --flake .#<host>    # macOS  (hosts: macos-laptop, work-laptop)
+darwin-rebuild build --flake .#<host>    # macOS  (hosts: macos-laptop, jake-neau-work-laptop)
 nix run .#write-flake                    # regenerate flake.nix after changing inputs
 ```
 
