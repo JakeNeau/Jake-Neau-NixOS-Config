@@ -46,7 +46,6 @@
     # Host-specific homebrew casks (the homebrew machinery itself comes from
     # the homebrew feature via system-desktop).
     homebrew.casks = [
-      "ghostty"
       "firefox"
     ];
   };

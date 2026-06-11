@@ -183,7 +183,6 @@
       fishPlugins.sponge # Remove typos from terminal
       fishPlugins.z # Jump to previous directories
       fuzzel # Super fast application launcher
-      ghostty # A fast and GPU accelerated terminal emulator
       gnucash # Double-entry accounting software
       hunspell # Spell check needed for LibreOffice
       hunspellDicts.en_US # US English dictionary for Hunspell
@@ -598,6 +597,7 @@
   flake.modules.darwin.system-desktop = {
     imports = with inputs.self.modules.darwin; [
       system-default
+      ghostty
       homebrew
       karabiner
     ];
@@ -611,6 +611,7 @@
       cli-tools
       caps-dual-role
       copy-paste-remaps
+      ghostty
       karabiner
     ];
   };
