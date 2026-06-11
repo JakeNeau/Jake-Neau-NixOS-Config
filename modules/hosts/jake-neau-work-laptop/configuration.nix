@@ -4,6 +4,7 @@
   flake.modules.darwin.jake-neau-work-laptop = {pkgs, ...}: {
     imports = [
       inputs.self.modules.darwin.system-desktop
+      inputs.self.modules.darwin.podman
       inputs.self.modules.darwin."jake.neau"
       inputs.self.modules.generic.cli
     ];
@@ -23,25 +24,10 @@
       nix-direnv.enable = true;
     };
 
-    environment.systemPackages = let
-      # Provide a real `docker` binary symlinked to podman, mimicking NixOS's
-      # virtualisation.podman.dockerCompat (which is unavailable on darwin).
-      docker-podman = pkgs.runCommand "docker-podman" {} ''
-        mkdir -p $out/bin
-        ln -s ${pkgs.podman}/bin/podman $out/bin/docker
-      '';
-    in [
-      docker-podman # `docker` aliased to podman
+    environment.systemPackages = [
       pkgs.claude-code
-      pkgs.docker-compose # Provider for podman compose
       pkgs.getopt # Needed to get some arguments for some bash scripts
-      pkgs.gvproxy # Network plumbing for native VMs
-      pkgs.podman # Daemonless container engine
-      pkgs.vfkit # Apple's hypervisor for launching native VMs
     ];
-
-    # Use Apple-native virtualization for `podman machine`.
-    environment.variables.CONTAINERS_MACHINE_PROVIDER = "applehv";
 
     # Host-specific homebrew casks (the homebrew machinery itself comes from
     # the homebrew feature via system-desktop).

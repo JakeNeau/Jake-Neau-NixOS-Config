@@ -15,6 +15,7 @@
         stylix
         caps-dual-role
         fish
+        podman
       ])
       ++ [inputs.self.modules.generic.cli];
 
@@ -66,13 +67,6 @@
 
     # Compositor: displays the desktop
     programs.niri.enable = true;
-
-    # Podman is a container runtime
-    virtualisation.podman = {
-      enable = true;
-      dockerCompat = true;
-      defaultNetwork.settings.dns_enabled = true;
-    };
 
     # Enable other desktop portals
     xdg.portal = {
