@@ -528,6 +528,12 @@
             action = ''function() require("which-key").show({ global = false }) end'';
             desc = "Buffer local keymaps (which-key)";
           }
+          {
+            key = "<A-v>";
+            mode = ["n" "x"];
+            action = "<C-v>";
+            desc = "Visual block mode (ctrl+v is paste in ghostty)";
+          }
         ];
       };
     };

@@ -14,6 +14,7 @@
         system-default
         stylix
         caps-dual-role
+        copy-paste-remaps
       ])
       ++ [inputs.self.modules.generic.cli];
 
@@ -597,7 +598,8 @@
   flake.modules.darwin.system-desktop = {
     imports = with inputs.self.modules.darwin; [
       system-default
-      caps-dual-role
+      homebrew
+      karabiner
     ];
   };
 
@@ -608,6 +610,8 @@
       nvf
       cli-tools
       caps-dual-role
+      copy-paste-remaps
+      karabiner
     ];
   };
 }

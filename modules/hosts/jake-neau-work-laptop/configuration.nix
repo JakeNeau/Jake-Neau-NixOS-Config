@@ -5,7 +5,6 @@
     imports = [
       inputs.self.modules.darwin.system-desktop
       inputs.self.modules.darwin."jake.neau"
-      inputs.self.modules.darwin.nix-homebrew
       inputs.self.modules.generic.cli
     ];
 
@@ -44,16 +43,11 @@
     # Use Apple-native virtualization for `podman machine`.
     environment.variables.CONTAINERS_MACHINE_PROVIDER = "applehv";
 
-    # Homebrew is another package manager on Mac, there is integration with it
-    # through nix. Some stubborn packages work better when installed through
-    # homebrew.
-    nix-homebrew.user = "jake.neau";
-    homebrew = {
-      enable = true;
-      casks = [
-        "ghostty"
-        "firefox"
-      ];
-    };
+    # Host-specific homebrew casks (the homebrew machinery itself comes from
+    # the homebrew feature via system-desktop).
+    homebrew.casks = [
+      "ghostty"
+      "firefox"
+    ];
   };
 }

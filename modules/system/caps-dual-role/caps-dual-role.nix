@@ -4,11 +4,9 @@
   #
   # NixOS  [N]: kanata grabs the real keyboards at the evdev level, so the
   #             remap works in Wayland, X, and the console alike.
-  # macOS [Dd]: Karabiner-Elements (homebrew cask -- the nixpkgs build cannot
-  #             activate its system extension) with a declarative
-  #             karabiner.json from home-manager. The app's system extension
-  #             and input-monitoring permissions still need one-time manual
-  #             approval in System Settings.
+  # macOS  [d]: a Karabiner-Elements rule contributed to the karabiner
+  #             feature (modules/programs/karabiner), which owns the app
+  #             install and renders karabiner.json.
 
   flake.modules.nixos.caps-dual-role = {
     services.kanata = {
@@ -25,47 +23,29 @@
     };
   };
 
-  flake.modules.darwin.caps-dual-role = {
-    homebrew.casks = ["karabiner-elements"];
-  };
-
   flake.modules.homeManager.caps-dual-role = {
-    pkgs,
-    lib,
-    ...
-  }:
-    lib.mkIf pkgs.stdenv.isDarwin {
-      xdg.configFile."karabiner/karabiner.json".text = builtins.toJSON {
-        profiles = [
+    karabiner.rules = [
+      {
+        description = "Caps lock: ctrl when held, escape when tapped";
+        manipulators = [
           {
-            name = "Default";
-            selected = true;
-            virtual_hid_keyboard.keyboard_type_v2 = "ansi";
-            complex_modifications.rules = [
+            type = "basic";
+            from = {
+              key_code = "caps_lock";
+              modifiers.optional = ["any"];
+            };
+            to = [
               {
-                description = "Caps lock: ctrl when held, escape when tapped";
-                manipulators = [
-                  {
-                    type = "basic";
-                    from = {
-                      key_code = "caps_lock";
-                      modifiers.optional = ["any"];
-                    };
-                    to = [
-                      {
-                        key_code = "left_control";
-                        # Only emit ctrl once another key is pressed, so a
-                        # bare tap can become escape.
-                        lazy = true;
-                      }
-                    ];
-                    to_if_alone = [{key_code = "escape";}];
-                  }
-                ];
+                key_code = "left_control";
+                # Only emit ctrl once another key is pressed, so a
+                # bare tap can become escape.
+                lazy = true;
               }
             ];
+            to_if_alone = [{key_code = "escape";}];
           }
         ];
-      };
-    };
+      }
+    ];
+  };
 }
