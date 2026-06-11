@@ -5,6 +5,7 @@
     imports = [
       inputs.self.modules.darwin.system-desktop
       inputs.self.modules.darwin.podman
+      inputs.self.modules.darwin.fastfetch-laptop
       inputs.self.modules.darwin."jake.neau"
       inputs.self.modules.generic.cli
     ];

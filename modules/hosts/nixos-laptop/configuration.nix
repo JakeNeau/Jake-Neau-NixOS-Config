@@ -4,6 +4,7 @@
   flake.modules.nixos.nixos-laptop = {
     imports = with inputs.self.modules.nixos; [
       system-desktop
+      fastfetch-laptop
       jakeneau
     ];
 

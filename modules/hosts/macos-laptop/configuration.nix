@@ -4,6 +4,7 @@
     imports =
       (with inputs.self.modules.darwin; [
         system-desktop
+        fastfetch-laptop
         jakeneau
       ])
       ++ [inputs.self.modules.generic.cli];

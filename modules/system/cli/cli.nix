@@ -5,7 +5,6 @@
     environment.systemPackages = with pkgs; [
       bottom # A TUI system monitor
       eza # A better version of ls written in rust
-      fastfetch # Terminal program for displaying system info and flexing on arch users
       ffmpeg # Video codec
       fzf # System wide fuzzy finder
       grc # Generic text colorizer
