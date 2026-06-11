@@ -146,13 +146,6 @@
 
               keys = [
                 {
-                  # Group label only (no action): registers <leader>a as the
-                  # AI prefix for which-key style hints.
-                  key = "<leader>a";
-                  mode = "n";
-                  desc = "AI/Claude Code";
-                }
-                {
                   key = "<leader>at";
                   mode = "n";
                   action = "<cmd>ClaudeCode<cr>";
@@ -471,6 +464,27 @@
           enable = true;
         };
 
+        # ----------------------------
+        # Keybind hints (which-key)
+        # ----------------------------
+        # Press a prefix (e.g. <leader>) and pause to get a popup of every
+        # mapping that continues from there. Purely informational; never
+        # blocks or changes what the keys do.
+        binds.whichKey = {
+          enable = true;
+          setupOpts = {
+            preset = "modern"; # Full-width rounded panel at the bottom
+            delay = 200; # ms of hesitation before the popup appears
+
+            # Name the key groups so prefixes show a label instead of "+prefix"
+            spec = [
+              (lib.generators.mkLuaInline ''{ "<leader>a", group = "AI/Claude Code" }'')
+              (lib.generators.mkLuaInline ''{ "<leader>f", group = "Find/Telescope" }'')
+              (lib.generators.mkLuaInline ''{ "<leader>g", group = "Git" }'')
+            ];
+          };
+        };
+
         # ---------------
         # Other keymaps
         # ---------------
@@ -504,6 +518,15 @@
             mode = "n";
             action = "<cmd>Oil<cr>";
             desc = "Open oil (parent directory)";
+          }
+          {
+            # Recommended by the which-key README: show only the keymaps
+            # local to the current buffer (e.g. oil's browser mappings).
+            key = "<leader>?";
+            mode = "n";
+            lua = true;
+            action = ''function() require("which-key").show({ global = false }) end'';
+            desc = "Buffer local keymaps (which-key)";
           }
         ];
       };
