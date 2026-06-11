@@ -8,8 +8,27 @@
   # modification rules through the `karabiner.rules` option and this aspect
   # renders them all into karabiner.json.
 
-  flake.modules.darwin.karabiner = {
+  flake.modules.darwin.karabiner = {config, ...}: {
     homebrew.casks = ["karabiner-elements"];
+
+    # Karabiner's first-run approvals (driver extension + Input Monitoring)
+    # cannot be automated. A fully set-up system has the Karabiner-Core-Service
+    # daemon running AND the virtual HID driver extension approved; if either
+    # is missing, nag on activation and launch the app to surface the macOS
+    # prompts. (The daemon alone is not enough -- it already runs before the
+    # driver is approved.)
+    system.activationScripts.postActivation.text = ''
+      if [ -d /Applications/Karabiner-Elements.app ]; then
+        if ! /usr/bin/pgrep -qf Karabiner-Core-Service \
+          || ! /usr/bin/systemextensionsctl list 2>/dev/null \
+            | /usr/bin/grep -q "org.pqrs.Karabiner-DriverKit-VirtualHIDDevice.*activated enabled"; then
+          printf '\n\033[1;33mwarning:\033[0m Karabiner-Elements is installed but not fully set up.\n'
+          echo "Launching it now -- approve the driver extension and Input Monitoring in"
+          echo "System Settings > Privacy & Security so the karabiner.json rules apply."
+          sudo -u ${config.system.primaryUser} /usr/bin/open -a Karabiner-Elements || true
+        fi
+      fi
+    '';
   };
 
   flake.modules.homeManager.karabiner = {
