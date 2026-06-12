@@ -50,27 +50,27 @@ in {
             }
             {
               type = "host";
-              key = " PC         ";
+              key = " PC         ";
               keyColor = "green";
             }
             {
               type = "cpu";
-              key = "│ ├ CPU     ";
+              key = "│ ├ CPU     ";
               keyColor = "green";
             }
             {
               type = "gpu";
-              key = "│ ├ GPU     ";
+              key = "│ ├ GPU     ";
               keyColor = "green";
             }
             {
               type = "memory";
-              key = "│ ├ Memory  ";
+              key = "│ ├ Memory  ";
               keyColor = "green";
             }
             {
               type = "disk";
-              key = "└ └ Disk    ";
+              key = "└ └ Disk    ";
               keyColor = "green";
             }
             {
@@ -86,17 +86,17 @@ in {
             }
             {
               type = "os";
-              key = " OS         ";
+              key = " OS         ";
               keyColor = "yellow";
             }
             {
               type = "kernel";
-              key = "│ ├ Kernel  ";
+              key = "│ ├ Kernel  ";
               keyColor = "yellow";
             }
             {
               type = "bios";
-              key = "│ ├ BIOS    ";
+              key = "│ ├ BIOS    ";
               keyColor = "yellow";
             }
             {
@@ -106,23 +106,23 @@ in {
             }
             {
               type = "shell";
-              key = "└ └ Shell   ";
+              key = "└ └ Shell   ";
               keyColor = "yellow";
             }
             "break"
             {
               type = "wm";
-              key = " Compositor ";
+              key = " Compositor ";
               keyColor = "blue";
             }
             {
               type = "lm";
-              key = "│ ├ LM      ";
+              key = "│ ├ LM      ";
               keyColor = "blue";
             }
             {
               type = "terminal";
-              key = "└ └ Terminal";
+              key = "└ └ Terminal";
               keyColor = "blue";
             }
             {
