@@ -21,7 +21,7 @@
       package = lib.mkIf pkgs.stdenv.isDarwin null;
       enableFishIntegration = true;
       settings = {
-        background-opacity = 0.8;
+        background-opacity = 0.9;
         font-feature = ["liga" "calt" "dlig"];
         keybind = [
           "ctrl+enter=unbind"
