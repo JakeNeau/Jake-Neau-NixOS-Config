@@ -281,6 +281,22 @@
           yaml.enable = true;
         };
 
+        # nvf always passes `lsp.color` to flutter-tools' setup, which trips a
+        # deprecation warning on Neovim 0.12+ even with color support disabled.
+        # Re-emit the same setup call without that key until nvf drops it
+        # upstream.
+        pluginRC.flutter-tools = lib.mkForce (inputs.nvf.lib.nvim.dag.entryAfter ["lsp-servers"] ''
+          require('flutter-tools').setup {
+            flutter_path = "${pkgs.flutter}/bin/flutter",
+            lsp = {
+              capabilities = capabilities,
+            },
+            debugger = {
+              enabled = true,
+            },
+          }
+        '');
+
         # ---------
         # Lualine
         # ---------
