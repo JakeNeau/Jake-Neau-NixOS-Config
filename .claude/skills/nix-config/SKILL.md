@@ -256,10 +256,14 @@ Dry-build only — never activate, and never push (see `AGENTS.md`):
 
 ```sh
 nix flake check
-nixos-rebuild build  --flake .#<host>   # NixOS
-darwin-rebuild build --flake .#<host>   # macOS
+nix build .#nixosConfigurations.<host>.config.system.build.toplevel --no-link   # NixOS
+nix build .#darwinConfigurations.<host>.system --no-link                        # macOS
 nix run .#write-flake                   # after adding/removing flake inputs
 ```
+
+Always use `--no-link` — the `nixos-rebuild build` / `darwin-rebuild build`
+wrappers try to create a `./result` symlink in this root-owned repo, which
+fails with a spurious `Permission denied` after the build has succeeded.
 
 Format Nix with **`alejandra`** (2-space indent). Do **not** run `switch`,
 `nix flake update`, or the `nr`/`nrr` shell functions yourself — those rebuild

@@ -133,9 +133,9 @@ The Niri Window Manager is used as the graphical interface for the system. Here 
 - **Mod + c**: Close focused window
 
 Additionally Fish is used for interactive shells. Here are some shortcuts I have configures with fish.
-- **nrr**: Rebuild the system and push to GitHub with a default update status message
-- **nr "message"**: Rebuild the system and push to GitHub with the message "message", a generation number is appended
-- **nr**: Amend the last commit and push to GitHub with the same message byt a new generation number
+- **nrr**: Run nr with a default update status message
+- **nr "message"**: Verify every environment in the flake, push to GitHub with the message "message" (a generation number is prepended), then rebuild the system
+- **nr**: The same, but amend the last commit with the same message and a new generation number
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

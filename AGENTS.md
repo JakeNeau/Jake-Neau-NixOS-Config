@@ -34,10 +34,15 @@ Prefer dry builds — they check evaluation and build without activating anythin
 
 ```sh
 nix flake check
-nixos-rebuild build  --flake .#<host>    # NixOS  (hosts: nixos-desktop, nixos-laptop)
-darwin-rebuild build --flake .#<host>    # macOS  (hosts: macos-laptop, jake-neau-work-laptop)
+nix build .#nixosConfigurations.<host>.config.system.build.toplevel --no-link   # NixOS  (hosts: nixos-desktop, nixos-laptop)
+nix build .#darwinConfigurations.<host>.system --no-link                        # macOS  (hosts: macos-laptop, jake-neau-work-laptop)
 nix run .#write-flake                    # regenerate flake.nix after changing inputs
 ```
+
+Always pass `--no-link`: without it (or via `nixos-rebuild build` /
+`darwin-rebuild build`) the build tries to drop a `./result` symlink into this
+root-owned repo and fails with a spurious `Permission denied` after the build
+itself has already succeeded.
 
 `flake.nix` is **auto-generated** by `flake-file` and must not be hand-edited;
 declare inputs via `flake-file.inputs` in the relevant feature and regenerate.
@@ -51,16 +56,19 @@ functions on your own — see below.
   NixOS, `/etc/nix-darwin` on macOS). Editing files therefore requires `sudo`;
   plain file edits will fail on permissions. Surface this rather than silently
   retrying.
-- **`nr` / `nrr` auto-commit AND push to GitHub.** The fish functions rebuild the
-  system and then `git add -A`, commit, and `git push` (sometimes
-  `--force-with-lease`) to the public repo. Never invoke them, or replicate their
-  push behavior, unless the user explicitly asks. A rebuild here is system-wide
-  and outward-facing.
+- **`nr` / `nrr` auto-commit AND push to GitHub.** The fish functions pull,
+  update the flake inputs, verify that every environment in the flake builds,
+  then `git add -A`, commit, and `git push` (sometimes `--force-with-lease`) to
+  the public repo before rebuilding the system. Never invoke them, or replicate
+  their push behavior, unless the user explicitly asks. A rebuild here is
+  system-wide and outward-facing.
 - **Commit message format.** Generation commits use
-  `Generation <N>: <message>`, where `<N>` is the system generation number from
-  `/nix/var/nix/profiles/system`. Running `nr` with no message *amends* the last
-  commit with an updated generation number. Match this convention if asked to
-  commit, but default to letting the user run the rebuild flow.
+  `<host> Generation <N>: <message>`, where `<host>` is the machine running the
+  rebuild and `<N>` is the upcoming system generation number predicted from
+  `/nix/var/nix/profiles/system` (the commit happens just before the rebuild).
+  Running `nr` with no message *amends* the last commit with an updated
+  generation number. Match this convention if asked to commit,
+  but default to letting the user run the rebuild flow.
 - **Secrets.** Secrets are managed with sops-nix + age. Never put plaintext
   secrets in `.nix` files; add them to `secrets/secrets.yaml` via sops. Never
   commit `secrets/keys.txt`. Decryption requires that key present locally.
