@@ -1,6 +1,8 @@
 {inputs, ...}: {
   # Baseline settings every NixOS system needs.
   flake.modules.nixos.system-minimal = {
+    imports = [inputs.self.modules.generic.system-minimal];
+
     nixpkgs.config.allowUnfree = true;
     # todoist-electron pins an electron flagged insecure upstream.
     nixpkgs.config.permittedInsecurePackages = ["electron-39.8.10"];
@@ -12,10 +14,5 @@
 
     # Users are managed declaratively (passwords via sops-nix).
     users.mutableUsers = false;
-
-    nix.settings = {
-      experimental-features = ["nix-command" "flakes"];
-      warn-dirty = false;
-    };
   };
 }
