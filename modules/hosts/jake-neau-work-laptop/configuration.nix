@@ -1,7 +1,7 @@
 {inputs, ...}: {
   # The macOS work laptop ("jake-neau-work-laptop"). Only the jake.neau user
   # lives here.
-  flake.modules.darwin.jake-neau-work-laptop = {pkgs, ...}: {
+  flake.modules.darwin.jake-neau-work-laptop = {...}: {
     imports = [
       inputs.self.modules.darwin.system-desktop
       inputs.self.modules.darwin.podman
@@ -27,11 +27,6 @@
       enable = true;
       nix-direnv.enable = true;
     };
-
-    environment.systemPackages = [
-      pkgs.claude-code
-      pkgs.getopt # Needed to get some arguments for some bash scripts
-    ];
 
     # Host-specific homebrew casks (the homebrew machinery itself comes from
     # the homebrew feature via system-desktop).
