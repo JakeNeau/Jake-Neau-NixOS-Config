@@ -4,13 +4,18 @@ function nr --description "Pulls, verifies every environment in the flake, commi
 
   # The flake location, configuration class, and rebuild command are the
   # only platform-specific parts; everything else is shared
+  #
+  # darwin-rebuild has no --quiet, so the rebuild step gets its own quiet flag
+  # (empty on macOS) while the nix subcommands below keep using --quiet
   set -l flake /etc/nixos
   set -l this_class nixosConfigurations
   set -l rebuild nixos-rebuild switch --upgrade --flake
+  set -l rebuild_quiet --quiet
   if test (uname) = Darwin
     set flake /etc/nix-darwin
     set this_class darwinConfigurations
     set rebuild darwin-rebuild switch --flake
+    set rebuild_quiet
   end
 
   # Quiet by default; -f/--full-output shows everything
@@ -19,6 +24,7 @@ function nr --description "Pulls, verifies every environment in the flake, commi
   if set -q _flag_full_output
     set git_quiet
     set nix_quiet
+    set rebuild_quiet
   end
 
   suu git -C $flake pull $git_quiet
@@ -121,7 +127,7 @@ function nr --description "Pulls, verifies every environment in the flake, commi
 
   # Everything is already built and verified, so the rebuild is mostly activation
   echo "Rebuilding the system configuration..."
-  sudo $rebuild $flake $nix_quiet
+  sudo $rebuild $flake $rebuild_quiet
   or begin
     echo "nr: the rebuild failed" >&2
     return 1
