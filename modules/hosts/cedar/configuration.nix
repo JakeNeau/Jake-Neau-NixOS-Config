@@ -1,7 +1,7 @@
 {inputs, ...}: {
-  # The macOS work laptop ("jake-neau-work-laptop"). Only the jake.neau user
+  # The macOS work laptop ("cedar"). Only the jake.neau user
   # lives here.
-  flake.modules.darwin.jake-neau-work-laptop = {...}: {
+  flake.modules.darwin.cedar = {...}: {
     imports = [
       inputs.self.modules.darwin.system-desktop
       inputs.self.modules.darwin.podman
@@ -10,7 +10,7 @@
       inputs.self.modules.generic.cli
     ];
 
-    networking.hostName = "jake-neau-work-laptop";
+    networking.hostName = "cedar";
 
     # Host facts features branch on (e.g. fastfetch's Power box).
     systemConstants.isLaptop = true;

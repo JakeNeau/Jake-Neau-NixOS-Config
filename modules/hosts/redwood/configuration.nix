@@ -1,7 +1,7 @@
 {inputs, ...}: {
-  # The NixOS desktop ("nixos-desktop"). Shared desktop config comes from
+  # The NixOS desktop ("redwood"). Shared desktop config comes from
   # system-desktop; this file holds only desktop-specific hardware/features.
-  flake.modules.nixos.nixos-desktop = {pkgs, ...}: {
+  flake.modules.nixos.redwood = {pkgs, ...}: {
     imports = with inputs.self.modules.nixos; [
       system-desktop
       fastfetch
@@ -10,7 +10,7 @@
       jakeneau
     ];
 
-    networking.hostName = "nixos-desktop";
+    networking.hostName = "redwood";
 
     # Bootloader.
     boot.loader = {

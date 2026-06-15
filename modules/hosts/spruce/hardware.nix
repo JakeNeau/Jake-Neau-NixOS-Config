@@ -5,7 +5,7 @@
   # │ will NOT boot until you replace this with the real output of         │
   # │ `nixos-generate-config` run on the actual laptop.                    │
   # └─────────────────────────────────────────────────────────────────────┘
-  flake.modules.nixos.nixos-laptop = {
+  flake.modules.nixos.spruce = {
     config,
     lib,
     modulesPath,

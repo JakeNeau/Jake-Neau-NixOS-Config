@@ -1,14 +1,14 @@
 {inputs, ...}: {
-  # The NixOS laptop ("nixos-laptop"). Same desktop experience as the desktop
+  # The NixOS laptop ("spruce"). Same desktop experience as the desktop
   # host, minus the desktop-only hardware (GPU/audio rig, openrgb, minecraft).
-  flake.modules.nixos.nixos-laptop = {
+  flake.modules.nixos.spruce = {
     imports = with inputs.self.modules.nixos; [
       system-desktop
       fastfetch
       jakeneau
     ];
 
-    networking.hostName = "nixos-laptop";
+    networking.hostName = "spruce";
 
     # Host facts features branch on (e.g. fastfetch's Power box).
     systemConstants.isLaptop = true;

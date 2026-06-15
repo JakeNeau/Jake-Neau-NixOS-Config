@@ -1,6 +1,6 @@
 {inputs, ...}: {
-  # Jake's personal MacBook ("macos-laptop", formerly "Jakes-MacBook-Air").
-  flake.modules.darwin.macos-laptop = {pkgs, ...}: {
+  # Jake's personal MacBook ("aspen", formerly "Jakes-MacBook-Air").
+  flake.modules.darwin.aspen = {pkgs, ...}: {
     imports =
       (with inputs.self.modules.darwin; [
         system-desktop
@@ -9,7 +9,7 @@
       ])
       ++ [inputs.self.modules.generic.cli];
 
-    networking.hostName = "macos-laptop";
+    networking.hostName = "aspen";
 
     # Host facts features branch on (e.g. fastfetch's Power box).
     systemConstants.isLaptop = true;
