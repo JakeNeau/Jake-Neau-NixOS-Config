@@ -54,3 +54,8 @@ Skills specific to this nix-darwin repo live under `.claude/skills/`:
   portable package exposed as a flake output rather than a NixOS/home-manager
   module. Covers the builder API, the `vim` option namespace, wiring the built
   editor into a host, and migrating off the old `programs.nvf` module.
+- **repo-permissions** (`.claude/skills/repo-permissions/SKILL.md`) — how write
+  access to this root-owned repo works: the `config` group owns `/etc/nixos` so
+  members edit without sudo, how to check it is set up on the current machine,
+  and the one-time setup steps. Surfaces the gap to the user when the setup is
+  missing (e.g. on a new machine or fresh clone).
