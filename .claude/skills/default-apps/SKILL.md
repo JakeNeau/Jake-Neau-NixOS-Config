@@ -7,14 +7,14 @@ description: How to set a program as the default handler for a file type or URL 
 
 Registering an app as the default handler for a file type or URL scheme is
 **per-OS**, so it belongs in a cross-platform home-manager aspect split with
-`lib.mkMerge` + `pkgs.stdenv.isLinux` / `isDarwin` (see the `nix-config` skill
-for the aspect rules). The two canonical examples in this repo are
+`lib.mkMerge` + `pkgs.stdenv.isLinux` / `isDarwin` (see the `nix-config` skill for
+the aspect rules). Copy the two canonical examples in this repo:
 `modules/programs/sioyek/sioyek.nix` (PDF) and
-`modules/programs/librewolf/librewolf.nix` (browser) — copy their shape.
+`modules/programs/librewolf/librewolf.nix` (browser).
 
 ## Linux — `xdg.mimeApps` (declarative, no gotchas)
 
-Linux has a real declarative option. Set the MIME type to the app's `.desktop`
+Linux has a real declarative option. Point the MIME type at the app's `.desktop`
 file:
 
 ```nix
@@ -28,25 +28,25 @@ file:
 })
 ```
 
-That's it — it's idempotent and writes `~/.config/mimeapps.list`.
+That's it — idempotent, writes `~/.config/mimeapps.list`.
 
 ## macOS — guarded `duti` activation (the part with the trap)
 
-macOS LaunchServices has **no declarative nix-darwin/home-manager option**, so we
-set the handler imperatively from a `home.activation` script using `duti`
+macOS LaunchServices has **no declarative nix-darwin/home-manager option**, so set
+the handler imperatively from a `home.activation` script using `duti`
 (`home.packages = [pkgs.duti];`).
 
-**The trap:** `pdf`, `http`, `https`, `mailto`, and `html` are *protected*
-content types. Any programmatic `duti -s` on them makes macOS pop an
-anti-hijacking confirmation modal:
+**The trap:** `pdf`, `http`, `https`, `mailto`, and `html` are *protected* content
+types. Any programmatic `duti -s` on them makes macOS pop an anti-hijacking
+confirmation modal:
 
 > Do you want all documents with the extension ".pdf" to open with "…", or to
 > keep using "Preview"?
 
 A naive activation runs `duti -s` on **every** rebuild, so the modal reappears
-every rebuild (and if the user clicks "keep using …", it never even sticks).
+every time (and if the user clicks "keep using …", it never even sticks).
 
-**The fix: guard on the current handler and only call `duti -s` when it differs.**
+**The fix: guard on the current handler; only call `duti -s` when it differs.**
 `duti -d <type>` prints the current default's bundle id and works for both UTIs
 **and** URL schemes. With the guard — **and** the app actually registered with
 LaunchServices (see the prerequisite below) — the modal appears at most once (the
@@ -88,17 +88,17 @@ Notes:
   `|| true` (a failed/declined `duti` must not abort activation).
 - The third `duti` arg is the **role**; `all` covers viewer + editor.
 - The guard compares against the desired bundle id. Once the user accepts the
-  modal once, the choice persists in LaunchServices and the guard short-circuits.
+  modal, the choice persists in LaunchServices and the guard short-circuits.
 
 ## macOS prerequisite — the app must be registered with LaunchServices
 
 The guard above only short-circuits if `duti -d` eventually reports *your* bundle
 id. That never happens for a Nix-installed GUI app unless its `.app` is registered
-with LaunchServices — and **it is not, by default.** home-manager links apps into
+with LaunchServices — and **by default it isn't.** home-manager links apps into
 `~/Applications/Home Manager Apps/<app>.app` as a **symlink into `/nix/store`**,
-and macOS LaunchServices refuses to register apps reached through store symlinks.
-So `duti -s <id> com.adobe.pdf all` writes a handler *preference*, but the id never
-resolves to a registered app: the real handler stays on the OS default, `duti -d`
+and LaunchServices refuses to register apps reached through store symlinks. So
+`duti -s <id> com.adobe.pdf all` writes a handler *preference*, but the id never
+resolves to a registered app: the real handler stays the OS default, `duti -d`
 keeps returning that default, the guard's `!= <id>` is **always true**, and the
 modal re-pops on **every** rebuild (accepting it can't help — there is no
 resolvable app to switch to).
@@ -114,15 +114,15 @@ osascript -e 'id of app "Sioyek"'  # error -1728 "Can't get application" → not
 ```
 
 **The fix: `mac-app-util`** (`modules/nix/tools/mac-app-util/`). It replaces the
-store-symlink app links with real `.app` *trampolines* in `~/Applications` —
-copying `CFBundleIdentifier` into the trampoline's Info.plist, so the original id
+store-symlink app links with real `.app` *trampolines* in `~/Applications`,
+copying `CFBundleIdentifier` into the trampoline's Info.plist so the original id
 (`info.sioyek.sioyek`) stays intact and LaunchServices registers it. It's wired
 into `darwin.system-desktop`: the nix-darwin module trampolines system apps, and
 `home-manager.sharedModules` pushes the home-manager module to every user (which
-is what covers home-manager apps like sioyek). Trampolines also make the apps
-show up in Spotlight and Launchpad. Any new macOS host that imports
-`system-desktop` gets this for free; a host that doesn't must import
-`darwin.mac-app-util` itself before a `duti` default can stick.
+covers home-manager apps like sioyek). Trampolines also surface the apps in
+Spotlight and Launchpad. Any macOS host that imports `system-desktop` gets this for
+free; a host that doesn't must import `darwin.mac-app-util` itself before a `duti`
+default can stick.
 
 ## Finding the identifiers you need
 
@@ -143,13 +143,13 @@ the bare scheme (`http`, `https`, `mailto`). Bundle ids seen here:
 ## Validating
 
 This is an activation script, not build-time config, so a dry build only checks
-that the nix evaluates — it won't exercise the `duti` logic. Per `AGENTS.md` /
+that the Nix evaluates — it won't exercise the `duti` logic. Per `AGENTS.md` /
 the `nix-config` skill, **don't** run `switch`/`nr`; the user runs the rebuild
 and confirms the modal stops reappearing.
 
 ## DRY note
 
 The macOS block is near-identical across apps (only the bundle id + type list
-change). If a third app needs a default handler, consider factoring a small
-helper (e.g. a function taking bundle id + list of types that emits the guarded
-activation) rather than copy-pasting a third time.
+change). If a third app needs a default handler, factor a small helper (a function
+taking bundle id + list of types that emits the guarded activation) rather than
+copy-pasting a third time.

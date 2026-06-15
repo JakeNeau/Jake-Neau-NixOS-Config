@@ -8,6 +8,9 @@
   # modification rules through the `karabiner.rules` option and this aspect
   # renders them all into karabiner.json.
 
+  # --------------------------------
+  # System install & first-run setup
+  # --------------------------------
   flake.modules.darwin.karabiner = {config, ...}: {
     homebrew.casks = ["karabiner-elements"];
 
@@ -31,6 +34,9 @@
     '';
   };
 
+  # --------------------------------
+  # Rules collector & karabiner.json
+  # --------------------------------
   flake.modules.homeManager.karabiner = {
     config,
     pkgs,

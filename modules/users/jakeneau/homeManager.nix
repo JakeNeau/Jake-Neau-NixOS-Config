@@ -14,6 +14,9 @@
     ];
 
     config = lib.mkMerge [
+      # --------------------
+      # Cross-platform core
+      # --------------------
       {
         programs.git = {
           enable = true;
@@ -32,7 +35,13 @@
         };
       }
 
+      # ----------------------
+      # Linux/wayland desktop
+      # ----------------------
       (lib.mkIf pkgs.stdenv.isLinux {
+        # ----------
+        # GTK theme
+        # ----------
         # Themes for gtk (most apps)
         gtk = {
           iconTheme = {
@@ -41,6 +50,9 @@
           };
         };
 
+        # ----------
+        # Clipboard
+        # ----------
         services.clipse = {
           enable = true;
           imageDisplay = {
@@ -50,6 +62,9 @@
           };
         };
 
+        # ---------------
+        # Fuzzel launcher
+        # ---------------
         programs.fuzzel = {
           enable = true;
           settings = {

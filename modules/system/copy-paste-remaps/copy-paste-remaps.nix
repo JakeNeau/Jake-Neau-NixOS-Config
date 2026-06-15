@@ -32,6 +32,9 @@
       ];
     };
   in {
+    # -------------------------------
+    # macOS Karabiner ctrl<->cmd swap
+    # -------------------------------
     karabiner.rules = [
       {
         description = "Swap ctrl and cmd for standard shortcuts (outside terminals)";
@@ -76,6 +79,9 @@
       }
     ];
 
+    # ----------------
+    # Ghostty keybinds
+    # ----------------
     programs.ghostty = {
       enable = true;
       # On macOS the app comes from the homebrew cask; only the config is
@@ -90,6 +96,9 @@
       ];
     };
 
+    # ----------------------------
+    # Fish fzf / keybinding fixups
+    # ----------------------------
     # Runs after the plugins' conf.d snippets installed their defaults;
     # fzf_configure_bindings erases its previous bindings before re-installing.
     programs.fish.interactiveShellInit = ''

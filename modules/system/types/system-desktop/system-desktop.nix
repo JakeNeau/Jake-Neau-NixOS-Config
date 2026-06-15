@@ -19,13 +19,9 @@
       ])
       ++ [inputs.self.modules.generic.cli];
 
-    # direnv will load nix configs automatically in project folders
-    programs.direnv = {
-      enable = true;
-      nix-direnv.enable = true;
-    };
-
-    # Set the wireless daemon
+    # ----------
+    # Networking
+    # ----------
     networking.wireless.iwd = {
       enable = true;
       settings = {
@@ -38,19 +34,21 @@
       };
     };
 
-    # Enable networking
     networking.networkmanager = {
       enable = true;
       wifi.backend = "iwd";
     };
 
-    # Bluetooth settings
+    # ---------
+    # Bluetooth
+    # ---------
     hardware.bluetooth.enable = true;
 
-    # Set your time zone.
+    # -------------
+    # Locale & time
+    # -------------
     time.timeZone = "America/Chicago";
 
-    # Select internationalisation properties.
     i18n.defaultLocale = "en_US.UTF-8";
 
     i18n.extraLocaleSettings = {
@@ -65,10 +63,12 @@
       LC_TIME = "en_US.UTF-8";
     };
 
+    # -------
+    # Desktop
+    # -------
     # Compositor: displays the desktop
     programs.niri.enable = true;
 
-    # Enable other desktop portals
     xdg.portal = {
       enable = true;
       extraPortals = [
@@ -77,7 +77,9 @@
       ];
     };
 
-    # Configure keymap
+    # ------
+    # Keymap
+    # ------
     services.xserver.xkb = {
       layout = "us";
       variant = "";
@@ -85,7 +87,9 @@
     };
     console.useXkbConfig = true;
 
-    # Enable CUPS to print documents.
+    # --------
+    # Printing
+    # --------
     services.avahi = {
       enable = true;
       nssmdns4 = true;
@@ -100,7 +104,9 @@
       ];
     };
 
-    # Enable sound with pipewire.
+    # -----
+    # Audio
+    # -----
     services.pulseaudio.enable = false;
     security.rtkit.enable = true;
     services.pipewire = {
@@ -111,7 +117,9 @@
       jack.enable = true;
     };
 
-    # Set users of the wheel group to not need sudo passwords
+    # ----------------
+    # Security & login
+    # ----------------
     security.sudo.wheelNeedsPassword = false;
 
     # Enable polkit for running privledged operations
@@ -133,6 +141,15 @@
     services.gnome.gnome-keyring.enable = true;
     security.pam.services.greetd.enableGnomeKeyring = true;
 
+    # --------
+    # Programs
+    # --------
+    # direnv will load nix configs automatically in project folders
+    programs.direnv = {
+      enable = true;
+      nix-direnv.enable = true;
+    };
+
     # Default version control software
     programs.git = {
       enable = true;
@@ -144,7 +161,9 @@
       };
     };
 
-    # List packages installed in system profile
+    # --------
+    # Packages
+    # --------
     environment.systemPackages = with pkgs; [
       vscode
       audacity # Audio recording program
@@ -191,7 +210,9 @@
       xwayland-satellite # Xwayland compatability for wayland only compositors
     ];
 
+    # -----
     # Fonts
+    # -----
     fonts = {
       packages = with pkgs; [
         google-fonts
@@ -203,7 +224,9 @@
       fontDir.enable = true;
     };
 
-    # Environment varables set on shell init
+    # -----------
+    # Environment
+    # -----------
     environment.variables = {
       NIX_ROOT = "/etc/nixos";
     };

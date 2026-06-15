@@ -8,33 +8,33 @@ description: How write access to this root-owned Nix config repo works, and how 
 This config lives at a **root-owned path** (`/etc/nixos` on NixOS,
 `/etc/nix-darwin` on macOS). To allow editing without `sudo` while keeping the
 tree root-owned — so a freshly added system user gets **no** access until granted
-it — a dedicated **`config` group** owns the tree and has write access via group
+it — a dedicated **`config` group** owns the tree with write access via group
 permissions + ACLs.
 
-- Declared dendritically in `modules/system/config-group/config-group.nix`, both
-  imported into the respective `system-default`:
+- Declared dendritically in `modules/system/config-group/config-group.nix`,
+  imported into each `system-default`:
   - **NixOS:** `flake.modules.nixos.config-group` → `users.groups.config.members`.
   - **macOS:** `flake.modules.darwin.config-group` → `users.knownGroups = ["config"]`
     plus `users.groups.config = { gid = 600; members = ["jake.neau"]; }`. nix-darwin
     only creates/manages a group that is in `knownGroups` and given an explicit gid.
-- Membership is **current users only**, listed explicitly — it is deliberately
-  *not* baked into the user factory, so new users do not auto-gain write access.
-  Note the username differs by platform: `jakeneau` on NixOS, `jake.neau` on macOS.
+- Membership is **current users only**, listed explicitly — deliberately *not*
+  baked into the user factory, so new users don't auto-gain write access. The
+  username differs by platform: `jakeneau` on NixOS, `jake.neau` on macOS.
 
 ## Why this matters to you (the agent)
 
-When the `config` group setup is in place **and** your session has picked up the
-membership, your native `Edit`/`Write` tools work directly on `/etc/nixos`. When
-it is **not** set up (a new machine, a fresh clone, or a user who never ran it),
-every edit fails on permissions and you fall back to clumsy `sudo tee` / `sudo
-perl` editing, which is slow and prone to shell-quoting bugs.
+With the `config` group set up **and** your session carrying the membership, your
+native `Edit`/`Write` tools work directly on the repo. Without it (a new machine, a
+fresh clone, or a user who never ran setup), every edit fails on permissions and
+you fall back to clumsy `sudo tee` / `sudo perl` editing — slow and prone to
+shell-quoting bugs.
 
 So: **check early, and surface the gap to the user** rather than silently
 sudo-editing forever.
 
 ## How to check whether it is set up
 
-Run these (read-only). **NixOS:**
+Read-only. **NixOS:**
 
 ```sh
 getent group config                 # 1. does the group exist on this machine?
@@ -54,10 +54,10 @@ id -nG | grep -qw config && echo member-active || echo member-INACTIVE  # 4. thi
 
 Interpretation:
 
-- **Group missing (1)** or **tree not `config`-owned / no ACL (2,3)** → setup has
-  **not** been done on this machine. Tell the user and offer the steps below. Do
-  not just keep sudo-editing.
-- **Set up but step 4 says `member-INACTIVE`** → the setup is done but this session
+- **Group missing (1)** or **tree not `config`-owned / no ACL (2,3)** → not set up
+  on this machine. Tell the user and offer the steps below; don't keep
+  sudo-editing.
+- **Set up but step 4 says `member-INACTIVE`** → setup is done but this session
   predates the group. On **NixOS** the user must **log out / back in** (and relaunch
   Claude). On **macOS** membership is evaluated dynamically (via `dsmemberutil`), so
   it is usually active immediately — if `id` still omits it but step 3 says "is a
@@ -67,7 +67,7 @@ Interpretation:
 ## How to set it up (hand these to the user)
 
 The declarative group should exist on the system, then the filesystem is adjusted
-once. The agent must **not** run the rebuild (it activates the system and
+once. The agent must **not** run the rebuild (it activates the system, and
 `nr`/`nrr` also push to GitHub) — that is the user's to run.
 
 ### NixOS

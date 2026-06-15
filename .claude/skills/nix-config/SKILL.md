@@ -6,45 +6,41 @@ description: How this Nix configuration is structured and how to work in it. A s
 # How this Nix configuration works
 
 This repository is **one Nix flake** that fully defines Jake's machines across
-platforms — **NixOS** (Linux) and **nix-darwin** (macOS) — with program
-configuration pushed through **home-manager** wherever possible. It is organized
-with the **dendritic pattern** on top of **[flake-parts](https://flake.parts)**,
-following the guide at
+**NixOS** (Linux) and **nix-darwin** (macOS), with program configuration pushed
+through **home-manager** wherever possible. It is organized with the **dendritic
+pattern** on top of **[flake-parts](https://flake.parts)**, following the guide at
 <https://github.com/Doc-Steve/dendritic-design-with-flake-parts>.
 
-> This document describes how the configuration is *meant* to be structured (the
-> repo is migrating to this pattern). When you add or change configuration,
-> follow this structure rather than any older monolithic layout you may still see
-> in the tree.
+> This describes how the configuration is *meant* to be structured (the repo is
+> mid-migration to this pattern). When you add or change configuration, follow this
+> structure, not any older monolithic layout still in the tree.
 
 ## The mental model: bottom-up features
 
-The dendritic pattern flips the usual top-down config on its head.
+The dendritic pattern inverts the usual top-down config.
 
-- **Old way (top-down):** you create a *host*, then hang services, packages, and
-  user settings off it. Cross-platform sharing means copy-paste or ad-hoc
-  conditionals.
-- **This way (bottom-up):** you define a **feature** once — describing what it
-  does in each context (NixOS, Darwin, home-manager) — and then *use* it on any
-  host. Hosts and users are themselves just features that import other features.
+- **Top-down (old):** create a *host*, then hang services, packages, and user
+  settings off it. Cross-platform sharing means copy-paste or ad-hoc conditionals.
+- **Bottom-up (this repo):** define a **feature** once — describing what it does in
+  each context (NixOS, Darwin, home-manager) — then *use* it on any host. Hosts and
+  users are themselves just features that import other features.
 
 So the unit of code is the **feature**, not the host. Adding `syncthing` to a
-machine, or porting a program to macOS, becomes a one-line import or a small new
-block — never a refactor.
+machine, or porting a program to macOS, is a one-line import or a small new block —
+never a refactor.
 
 ### Vocabulary
 
 - **Feature** — a `.nix` file under `modules/`. Every such file is a flake-parts
-  module (a *`flake`-class* module). A feature defines one or more *aspects* and
-  may also set flake-level outputs ("boilerplate").
+  (*`flake`-class*) module. It defines one or more *aspects* and may also set
+  flake-level outputs ("boilerplate").
 - **Aspect** — a module for a specific context, stored at
-  `flake.modules.<class>.<name>`. This is the reusable building block.
+  `flake.modules.<class>.<name>`. The reusable building block.
 - **Module class** — the context an aspect targets: `nixos`, `darwin`,
-  `homeManager`, or `generic` (usable in any class). Imports are **typed by
+  `homeManager`, or `generic` (usable in any class). **Imports are typed by
   class** — you cannot import a `darwin` aspect into a `nixos` one.
-- **Enabling = importing.** There is no `enable = true` on a feature. You turn a
-  feature on by importing its aspect; the aspect's own code enables whatever it
-  configures.
+- **Enabling = importing.** There is no `enable = true` on a feature; you turn it
+  on by importing its aspect, whose own code enables whatever it configures.
 
 A single feature file can define aspects for several classes at once:
 
@@ -66,9 +62,8 @@ A single feature file can define aspects for several classes at once:
 
 ## Repository layout
 
-All features live under `modules/`. Everything in that tree is a feature module
-and is **imported automatically** — there are no `default.nix` files and no
-manual import lists to maintain.
+All features live under `modules/`. Everything in that tree is a feature module,
+**imported automatically** — no `default.nix` files, no manual import lists.
 
 ```
 flake.nix              # auto-generated — do not hand-edit (see below)
@@ -86,24 +81,24 @@ packages/              # local package definitions (live outside modules/)
 ```
 
 The grouping directories (`hosts`, `programs`, …) are **organizational only** —
-Nix doesn't care about them; they just help you find things. Add more
-(`gaming/`, `desktop/`, …) freely.
+Nix ignores them; they just help you find things. Add more (`gaming/`, `desktop/`,
+…) freely.
 
 ### File & directory naming
 
-- A feature is **named by its path**, so naming is documentation. Keep a
-  feature's internal references independent of its location (use relative paths,
-  not hard-coded directory names).
+- A feature is **named by its path**, so naming is documentation. Keep a feature's
+  internal references independent of its location (relative paths, not hard-coded
+  directory names).
 - A small feature is a single `<name>.nix`. When it grows, make a **directory
-  named after the feature** and split it into files — e.g. `nixos.nix`,
-  `darwin.nix`, `generic.nix` (by class) or `flake-parts.nix` (boilerplate).
-  flake-parts merges them all, so splitting is free and aids maintenance.
-- The upstream guide annotates feature directories with bracket tags showing the
-  contexts they cover: **`[N]`**ixOS, **`[D]`**arwin; lowercase **`[n]`/`[d]`**
-  mean home-manager on that platform (e.g. `browser [nd]`, `ssh [ND]`). This is a
-  human convention only — optional, but handy for scanning the tree.
-- Files/dirs whose name starts with `_` are **ignored** by the importer — useful
-  for parking unfinished work or non-feature files.
+  named after the feature** and split it by class — `nixos.nix`, `darwin.nix`,
+  `generic.nix` — or `flake-parts.nix` (boilerplate). flake-parts merges them all,
+  so splitting is free and aids maintenance.
+- The upstream guide tags feature directories with the contexts they cover:
+  **`[N]`**ixOS, **`[D]`**arwin; lowercase **`[n]`/`[d]`** mean home-manager on that
+  platform (e.g. `browser [nd]`, `ssh [ND]`). Human convention only — optional, but
+  handy for scanning the tree.
+- Names starting with `_` are **ignored** by the importer — use them to park
+  unfinished work or non-feature files.
 
 ## How the flake is assembled
 
@@ -182,15 +177,14 @@ When you define `flake.modules.<class>.<name>`:
    aspects. For something shared by NixOS *and* Darwin, define it under the
    `generic` class and import that.
 3. **Never import conditionally.** `imports = lib.mkIf …` breaks Nix evaluation.
-   Make the *imported module's content* conditional instead (below), or
-   restructure so the import is unconditional.
-4. **Import each aspect at most once** along a given hierarchy path — double
-   imports cause surprising merges (especially via `home-manager.sharedModules`).
+   Make the *imported module's content* conditional instead (below), or restructure
+   so the import is unconditional.
+4. **Import each aspect at most once** along a given hierarchy path — double imports
+   cause surprising merges (especially via `home-manager.sharedModules`).
 5. **Merge with `lib.mkMerge`, not `//`.** `//` is a shallow overwrite; module
    values must merge recursively.
-6. **Detect the platform with `pkgs.stdenv.isLinux` / `pkgs.stdenv.isDarwin`**,
-   not hand-rolled flags — most useful inside cross-platform home-manager
-   aspects.
+6. **Detect the platform with `pkgs.stdenv.isLinux` / `pkgs.stdenv.isDarwin`**, not
+   hand-rolled flags — most useful inside cross-platform home-manager aspects.
 
 Conditional content (the condition wraps the *content*, never the import):
 
@@ -205,12 +199,11 @@ flake.modules.homeManager.office = {pkgs, lib, ...}:
 
 ## Common recipes
 
-**Installing a program — always do it under `modules/programs/`, never inline on
-a host or system type.** Define the app as its own feature (one aspect per
-class), then *import* that feature into the relevant system. This keeps every
-app reusable and discoverable in one place; reach for an inline
-`environment.systemPackages` / `home.packages` on a host only when something is
-truly host-specific.
+**Installing a program — always under `modules/programs/`, never inline on a host
+or system type.** Define the app as its own feature (one aspect per class), then
+*import* that feature into the relevant system. This keeps every app reusable and
+discoverable in one place; reach for an inline `environment.systemPackages` /
+`home.packages` only when something is truly host-specific.
 
 **A program/app shared across platforms** — one feature, one aspect per class:
 
@@ -222,10 +215,10 @@ truly host-specific.
 }
 ```
 
-Then add `foo` to the relevant host or system-type's `imports` (e.g. `sioyek`
-is imported into `system-desktop`'s home-manager aspect, so every host using that
-system type gets it). Prefer configuring programs in a `homeManager` aspect —
-this repo is home-manager-first.
+Then add `foo` to the relevant host or system-type's `imports` (e.g. `sioyek` is
+imported into `system-desktop`'s home-manager aspect, so every host using that
+system type gets it). Prefer configuring programs in a `homeManager` aspect — this
+repo is home-manager-first.
 
 **A new host** — a feature that imports a base system type plus the features you
 want, then a one-line boilerplate to expose it:
@@ -244,24 +237,24 @@ want, then a one-line boilerplate to expose it:
 }
 ```
 
-**A new user** — a feature defining the user across classes. Pulling
-home-manager in from the system aspect is the *Multi-Context* pattern; sharing
-common settings via a `homeManager` aspect lets the same user also work as a
-standalone home-manager config. Repetitive users are good candidates for the
-*Factory* pattern. See [`aspects.md`](aspects.md).
+**A new user** — a feature defining the user across classes. Pulling home-manager
+in from the system aspect is the *Multi-Context* pattern; sharing common settings
+via a `homeManager` aspect lets the same user also work as a standalone
+home-manager config. Repetitive users are good candidates for the *Factory*
+pattern. See [`aspects.md`](aspects.md).
 
 ## The aspect design patterns
 
 The guide names eight recurring patterns. Most features are just **Simple**
 (independent aspects per class) or **Inheritance** (a feature that imports and
-extends others). The full catalog with code — Simple, Multi-Context,
-Inheritance, Conditional, Collector, Constants, DRY, Factory — is in
-[`aspects.md`](aspects.md). Read it before building anything non-trivial (a new
-host/system type, parameterized users, shared constants, network interfaces).
+extends others). The full catalog with code — Simple, Multi-Context, Inheritance,
+Conditional, Collector, Constants, DRY, Factory — is in [`aspects.md`](aspects.md).
+Read it before building anything non-trivial (a new host/system type, parameterized
+users, shared constants, network interfaces).
 
 ## Validating changes
 
-Dry-build only — never activate, and never push (see `AGENTS.md`):
+Dry-build only — never activate, never push (see `AGENTS.md`):
 
 ```sh
 nix flake check
@@ -271,17 +264,13 @@ nix run .#write-flake                   # after adding/removing flake inputs
 ```
 
 Always use `--no-link` — the `nixos-rebuild build` / `darwin-rebuild build`
-wrappers try to create a `./result` symlink in this root-owned repo, which
-fails with a spurious `Permission denied` after the build has succeeded.
+wrappers try to create a `./result` symlink in this root-owned repo, which fails
+with a spurious `Permission denied` after the build has succeeded.
 
 Format Nix with **`alejandra`** (2-space indent). Do **not** run `switch`,
-`nix flake update`, or the `nr`/`nrr` shell functions yourself — those rebuild
-the live system and push to GitHub. Secrets go through **sops-nix**, never as
-plaintext in `.nix` files.
-
-**Comments:** keep them short and direct — note the non-obvious *why*, don't
-re-explain what the code already says. No multi-line preambles or restating
-option behavior; a terse line or trailing `# …` is usually enough.
+`nix flake update`, or the `nr`/`nrr` shell functions yourself — those rebuild the
+live system and push to GitHub. Secrets go through **sops-nix**, never as plaintext
+in `.nix` files.
 
 ## See also
 

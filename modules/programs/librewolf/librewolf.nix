@@ -18,6 +18,10 @@
       {
         programs.librewolf = {
           enable = true;
+
+          # --------------
+          # Global prefs
+          # --------------
           settings = {
             "widget.use-xdg-desktop-portal.file-picker" = 1; # Use the xdg portal (yazi) for file uploads/saves
             "privacy.clearOnShutdown.cookies" = false;
@@ -31,11 +35,19 @@
               id = 0;
               name = "default";
               isDefault = true;
+
+              # ---------------
+              # Profile prefs
+              # ---------------
               settings = {
                 "extensions.autoDisableScopes" = 0;
                 "browser.search.defaultenginename" = "Brave";
                 "browser.search.order.1" = "Brave";
               };
+
+              # -----------------
+              # Search engines
+              # -----------------
               search = {
                 force = true;
                 default = "brave";
@@ -164,6 +176,9 @@
                   };
                 };
               };
+              # -------------
+              # Extensions
+              # -------------
               extensions = {
                 force = true;
                 packages = with pkgs.nur.repos.rycee.firefox-addons; [
@@ -177,6 +192,9 @@
                   ublock-origin
                   youtube-shorts-block
                 ];
+                # --------------------
+                # uBlock filter lists
+                # --------------------
                 # Find extension ids in about:debugging under This LibreWolf
                 settings = {
                   "uBlock0@raymondhill.net" = {
@@ -195,6 +213,9 @@
                   };
                 };
               };
+              # ------------
+              # Bookmarks
+              # ------------
               bookmarks = {
                 force = true;
                 settings = [
@@ -223,6 +244,9 @@
               };
             };
           };
+          # -----------
+          # Policies
+          # -----------
           policies = {
             ExtensionSettings = {
               # Bitwarden
@@ -284,6 +308,9 @@
         };
       }
 
+      # ---------------------------------
+      # Default browser (Linux: XDG)
+      # ---------------------------------
       # Linux: register LibreWolf as the default browser via XDG mimeapps.
       (lib.mkIf pkgs.stdenv.isLinux {
         xdg.mimeApps = {
@@ -299,6 +326,9 @@
         };
       })
 
+      # ---------------------------------
+      # Default browser (macOS: duti)
+      # ---------------------------------
       # macOS: LaunchServices has no declarative option, so point the default
       # web/HTML handlers at LibreWolf's bundle id with duti. http/https/html are
       # protected types, so any programmatic `duti -s` pops macOS's anti-hijacking

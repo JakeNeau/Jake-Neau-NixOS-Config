@@ -4,33 +4,54 @@ Guidance for AI agents working in this repository.
 
 ## What this is
 
-A single Nix flake that fully defines Jake Neau's systems across platforms —
-NixOS (Linux) and nix-darwin (macOS). Configuration is dogmatically declarative:
-system setup lives in Nix, and program configuration is pushed through
-home-manager wherever possible so it stays reproducible across machines.
+One Nix flake that fully defines Jake Neau's systems across **NixOS** (Linux) and
+**nix-darwin** (macOS). The config is dogmatically declarative: system setup lives
+in Nix, and program config goes through home-manager wherever possible so it stays
+reproducible across machines.
 
-The flake is organized with the **dendritic pattern** on top of flake-parts:
-every `.nix` under `modules/` is a feature module, auto-imported by
-`import-tree`, and hosts/users are themselves features composed of smaller ones.
-Read `.claude/skills/nix-config/SKILL.md` before adding or changing anything —
-it documents the module classes, the `flake.modules.<class>.<name>` aspects, the
-host/user factories, and the rules for writing them.
+It uses the **dendritic pattern** on flake-parts: every `.nix` under `modules/` is
+a feature module, auto-imported by `import-tree`; hosts and users are themselves
+features composed of smaller ones. **Read `.claude/skills/nix-config/SKILL.md`
+before adding or changing anything** — it covers the module classes, the
+`flake.modules.<class>.<name>` aspects, the host/user factories, and the rules for
+writing them.
 
 ## Conventions
 
-Follow the project's core design principles (from the README):
+Core design principles (from the README):
 
-- **Nix only.** Avoid every package manager except the Nix package manager.
-- **home-manager first.** Any program configuration achievable through
-  home-manager should be done in home-manager, not imperatively or at the system
-  level.
-- **Prefer flakes.** Favor implementations that fully utilize flakes.
-- **Formatting:** format Nix with **`alejandra`** (the formatter this repo uses).
-  Match existing 2-space indentation.
+- **Simple and elegant — above all.** Code here must always be simple and
+  elegant. Prefer the smallest, clearest expression that does the job; reach for
+  the existing aspect/factory/idiom before inventing a new one. Reject cleverness,
+  redundancy, and incidental complexity. When two approaches work, choose the one
+  that reads plainly. This takes precedence over every other convention below.
+- **Nix only.** Use no package manager but Nix.
+- **home-manager first.** Configure programs through home-manager — not
+  imperatively, not at the system level — whenever home-manager can do it.
+- **Prefer flakes.** Favor implementations that fully use flakes.
+- **Formatting.** Format Nix with **`alejandra`**; match the existing 2-space
+  indentation.
+- **Comments.** Keep them short and direct — note the non-obvious *why*, don't
+  restate what the code already says. No multi-line preambles or option-behavior
+  recaps; a terse line or trailing `# …` usually suffices. Put multi-line comments
+  above the code they describe, never below. Same-line comments naming what a
+  package or service does and why it's needed are encouraged, as are section
+  comments grouping a file logically. Fence a section label with dashed rules:
 
-## Validating changes (do this; don't switch)
+  ```nix
+  # ------------
+  # Section name
+  # ------------
+  ```
 
-Prefer dry builds — they check evaluation and build without activating anything:
+## Validating changes (dry-build; don't switch)
+
+**After any modification to this repo, always confirm the configuration still
+builds before considering the work done.** Run the relevant dry-build for the
+host(s) you touched (and `nix flake check`); if a build fails, fix it or surface
+the failure — never leave the repo in a non-building state.
+
+Dry builds check evaluation and build without activating anything:
 
 ```sh
 nix flake check
@@ -39,44 +60,43 @@ nix build .#darwinConfigurations.<host>.system --no-link                        
 nix run .#write-flake                    # regenerate flake.nix after changing inputs
 ```
 
-Always pass `--no-link`: without it (or via `nixos-rebuild build` /
+**Always pass `--no-link`.** Without it (or via `nixos-rebuild build` /
 `darwin-rebuild build`) the build tries to drop a `./result` symlink into this
-root-owned repo and fails with a spurious `Permission denied` after the build
-itself has already succeeded.
+root-owned repo and fails with a spurious `Permission denied` — *after* the build
+itself already succeeded.
 
-`flake.nix` is **auto-generated** by `flake-file` and must not be hand-edited;
-declare inputs via `flake-file.inputs` in the relevant feature and regenerate.
+`flake.nix` is **auto-generated** by `flake-file`; never hand-edit it. Declare
+inputs via `flake-file.inputs` in the relevant feature, then regenerate.
 
 Do **not** run `switch` rebuilds, `nix flake update`, or the `nr`/`nrr` shell
-functions on your own — see below.
+functions yourself — see below.
 
-## Important cautions for agents
+## Important cautions
 
 - **Root-owned repos.** These configs live at root-owned paths (`/etc/nixos` on
-  NixOS, `/etc/nix-darwin` on macOS), so by default editing files requires
-  `sudo` and plain file edits fail on permissions. On NixOS hosts where the
-  `config` group has been set up (see `modules/system/config-group`), members of
-  that group own the tree and can edit `/etc/nixos` directly without `sudo`
-  (owner stays `root`; only `config` members get write). If edits still fail on
-  permissions, surface it rather than silently retrying.
-- **`nr` / `nrr` auto-commit AND push to GitHub.** The fish functions pull,
-  update the flake inputs, verify that every environment in the flake builds,
-  then `git add -A`, commit, and `git push` (sometimes `--force-with-lease`) to
-  the public repo before rebuilding the system. Never invoke them, or replicate
-  their push behavior, unless the user explicitly asks. A rebuild here is
-  system-wide and outward-facing.
-- **Commit message format.** Generation commits use
-  `<host> Generation <N>: <message>`, where `<host>` is the machine running the
-  rebuild and `<N>` is the upcoming system generation number predicted from
+  NixOS, `/etc/nix-darwin` on macOS), so editing normally needs `sudo` and plain
+  edits fail on permissions. Where the `config` group is set up (see
+  `modules/system/config-group`), its members own the tree and edit directly
+  without `sudo` (owner stays `root`; only members get write). If edits still fail
+  on permissions, surface it rather than silently retrying.
+- **`nr` / `nrr` auto-commit AND push to GitHub.** These fish functions pull,
+  update flake inputs, verify every environment in the flake builds, then
+  `git add -A`, commit, and `git push` (sometimes `--force-with-lease`) to the
+  public repo before rebuilding the system. Never invoke them — or replicate their
+  push behavior — unless the user explicitly asks. A rebuild here is system-wide
+  and outward-facing.
+- **Commit message format.** Generation commits are
+  `<host> Generation <N>: <message>`, where `<host>` is the rebuilding machine and
+  `<N>` is the upcoming generation number predicted from
   `/nix/var/nix/profiles/system` (the commit happens just before the rebuild).
-  Running `nr` with no message *amends* the last commit with an updated
-  generation number. Match this convention if asked to commit,
-  but default to letting the user run the rebuild flow.
-- **Secrets.** Secrets are managed with sops-nix + age. Never put plaintext
-  secrets in `.nix` files; add them to `secrets/secrets.yaml` via sops. Never
-  commit `secrets/keys.txt`. Decryption requires that key present locally.
-- **Don't `nix flake update` casually.** It bumps all inputs in `flake.lock` and
-  is normally done as part of the user's deliberate update flow.
+  Running `nr` with no message *amends* the last commit with an updated generation
+  number. Match this convention if asked to commit, but default to letting the user
+  run the rebuild flow.
+- **Secrets.** Managed with sops-nix + age. Never put plaintext secrets in `.nix`
+  files; add them to `secrets/secrets.yaml` via sops. Never commit
+  `secrets/keys.txt`; decryption needs that key present locally.
+- **Don't `nix flake update` casually.** It bumps every input in `flake.lock` and
+  belongs to the user's deliberate update flow.
 
 ## Related docs
 

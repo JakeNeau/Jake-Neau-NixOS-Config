@@ -5,6 +5,9 @@
     home-manager.sharedModules = [inputs.self.modules.homeManager.fastfetch];
   };
 in {
+  # ----------------------
+  # System aspects (push)
+  # ----------------------
   # Fastfetch: the system-info splash shown by the fish greeting on every
   # machine. One aspect for all hosts; hosts with systemConstants.isLaptop
   # (see modules/system/system-constants) get an extra boxed Power section
@@ -12,6 +15,9 @@ in {
   flake.modules.nixos.fastfetch = push-to-users;
   flake.modules.darwin.fastfetch = push-to-users;
 
+  # -----------------------
+  # Home-manager config
+  # -----------------------
   flake.modules.homeManager.fastfetch = {
     config,
     pkgs,
@@ -27,6 +33,9 @@ in {
     programs.fastfetch = {
       enable = true;
       settings = {
+        # ----------------
+        # Logo & display
+        # ----------------
         logo = {
           source = "builtin";
           padding = {
@@ -41,7 +50,13 @@ in {
           color = "blue";
           separator = " │ ";
         };
+        # -----------------------------
+        # Modules (ordered info boxes)
+        # -----------------------------
         modules =
+          # ----------
+          # Hardware
+          # ----------
           [
             "break"
             {
@@ -78,6 +93,9 @@ in {
               format = "└─────────────┴────────────────────────────────────────────────────┘";
             }
           ]
+          # ----------
+          # Software
+          # ----------
           ++ [
             "break"
             {
@@ -130,6 +148,9 @@ in {
               format = "└─────────────┴────────────────────────────────────────────────────┘";
             }
           ]
+          # ---------------------
+          # Power (laptops only)
+          # ---------------------
           ++ lib.optionals config.systemConstants.isLaptop [
             "break"
             {
@@ -151,6 +172,9 @@ in {
               format = "└─────────────┴────────────────────────────────────────────────────┘";
             }
           ]
+          # ------
+          # Time
+          # ------
           ++ [
             "break"
             {

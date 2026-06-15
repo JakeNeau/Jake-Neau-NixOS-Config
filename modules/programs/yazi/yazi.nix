@@ -2,6 +2,9 @@
   # Yazi: a TUI file browser, also wired up as the xdg-desktop-portal file
   # chooser so app file pickers (browser uploads, "save as") use yazi.
 
+  # ------------------------------
+  # NixOS module: package + portal
+  # ------------------------------
   flake.modules.nixos.yazi = {pkgs, ...}: {
     programs.yazi.enable = true;
 
@@ -14,6 +17,9 @@
       defaultApplications."inode/directory" = "yazi.desktop";
     };
 
+    # --------------------------
+    # FileChooser portal routing
+    # --------------------------
     # Route the FileChooser portal to termfilechooser. Set in both `common` and
     # `niri` because niri-portals.conf (from programs.niri) would otherwise
     # shadow the common route. Inert without xdg.portal.enable.
@@ -24,6 +30,9 @@
     };
   };
 
+  # --------------------------------------------
+  # Home-Manager module: termfilechooser wrapper
+  # --------------------------------------------
   flake.modules.homeManager.yazi = {
     pkgs,
     lib,

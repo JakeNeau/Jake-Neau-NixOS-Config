@@ -1,16 +1,14 @@
 # Aspect design patterns
 
 Reference for the eight recurring patterns from the dendritic guide
-(<https://github.com/Doc-Steve/dendritic-design-with-flake-parts>). Each is a way
-to shape `flake.modules.<class>.<name>` aspects. They are suggestions, not rules,
-and a single feature often combines several. See [`SKILL.md`](SKILL.md) for the
-mental model and the core rules these all obey.
+(<https://github.com/Doc-Steve/dendritic-design-with-flake-parts>) — ways to shape
+`flake.modules.<class>.<name>` aspects. They are suggestions, not rules, and a
+single feature often combines several. See [`SKILL.md`](SKILL.md) for the mental
+model and the core rules these all obey.
 
-Every section below follows the same shape:
-
-- **What it is** — the structure of the aspect.
-- **Why use it** — the problem it solves.
-- **Use it over others when** — how to pick it against the neighbouring patterns.
+Each section gives **What it is** (the aspect's structure), **Why use it** (the
+problem it solves), and **Use it over others when** (how to pick it against
+neighbouring patterns).
 
 | Pattern | Reach for it when… |
 | --- | --- |
@@ -38,17 +36,17 @@ Quick decision guide:
 
 ## Simple
 
-**What it is:** an independent `class` module per context, defining configuration
-directly. Independent classes can live in one file (handy for sharing partial
-config) or be split into `nixos.nix` / `darwin.nix` / etc.
+**What it is:** an independent `class` module per context, configuring directly.
+Independent classes can share one file (handy for sharing partial config) or split
+into `nixos.nix` / `darwin.nix` / etc.
 
-**Why use it:** it is the lowest-ceremony way to turn a feature on — the aspect's
-own body does the enabling, and there is nothing to wire up beyond importing it.
+**Why use it:** the lowest-ceremony way to turn a feature on — the aspect's body
+does the enabling, with nothing to wire up beyond importing it.
 
-**Use it over others when:** the feature stands alone. It neither reaches into a
-nested context (that's *Multi-Context*), builds on another feature (*Inheritance*),
-nor varies by parameter (*Factory*). Most features are Simple — start here and
-escalate only when a real relationship appears.
+**Use it over others when:** the feature stands alone. It doesn't reach into a
+nested context (*Multi-Context*), build on another feature (*Inheritance*), or vary
+by parameter (*Factory*). Most features are Simple — start here, escalate only when
+a real relationship appears.
 
 ```nix
 {
@@ -80,8 +78,8 @@ halves travel together and turn on with a single import.
 
 **Use it over others when:** you must configure two *contexts at once* from one
 feature. If the home-manager part is genuinely standalone, leave it a Simple
-`homeManager` aspect instead; reach for Multi-Context only when a system aspect
-owns and must activate the nested config.
+`homeManager` aspect; reach for Multi-Context only when a system aspect owns and
+must activate the nested config.
 
 ```nix
 {inputs, ...}: {
@@ -96,13 +94,13 @@ owns and must activate the nested config.
 }
 ```
 
-The auxiliary `homeManager.gnome` starts "private" but is a normal named aspect,
-so it can also be reused directly as a standalone home-manager feature later.
+The auxiliary `homeManager.gnome` starts "private" but is a normal named aspect, so
+it can also be reused directly as a standalone home-manager feature later.
 
 ## Inheritance
 
-**What it is:** an aspect that `imports` one or more *parent* aspects in each
-class and layers its own additions on top. This is how layered "system types" and
+**What it is:** an aspect that `imports` one or more *parent* aspects in each class
+and layers its own additions on top. This is how layered "system types" and
 composed hosts/users are built.
 
 **Why use it:** it lets you compose features instead of copy-pasting them — a
@@ -140,13 +138,13 @@ you'd be extending is really the same template stamped out with different values
 
 ## Conditional
 
-**What it is:** a single aspect whose body is built with `lib.mkMerge`, gating
-parts with `lib.mkIf` — most often on the platform, inside a cross-platform
-`homeManager` aspect. **Imports stay unconditional; only content is conditional.**
+**What it is:** a single aspect whose body is built with `lib.mkMerge`, gating parts
+with `lib.mkIf` — most often on the platform, inside a cross-platform `homeManager`
+aspect. **Imports stay unconditional; only content is conditional.**
 
-**Why use it:** one feature can serve every context while still adapting the
-details (a different package name per OS) — without splitting into near-duplicate
-aspects or breaking evaluation with a conditional import.
+**Why use it:** one feature can serve every context while still adapting the details
+(a different package name per OS) — without splitting into near-duplicate aspects or
+breaking evaluation with a conditional import.
 
 **Use it over others when:** the variation is *within* one aspect and switches on a
 runtime-detectable condition (`pkgs.stdenv.isLinux/isDarwin`). If the contexts are
@@ -168,14 +166,14 @@ flake.modules.homeManager.office = {pkgs, lib, ...}:
 
 ## Collector
 
-**What it is:** a base aspect (the *collector*) plus other features that each add
-to that *same* named aspect; flake-parts merges the contributions. This is the one
-place it's fine for a feature to define an aspect named after a *different*
-feature — keep that contribution in a file named after the collector.
+**What it is:** a base aspect (the *collector*) plus other features that each add to
+that *same* named aspect; flake-parts merges the contributions. This is the one
+place it's fine for a feature to define an aspect named after a *different* feature
+— keep that contribution in a file named after the collector.
 
 **Why use it:** it keeps each contributor's data next to the contributor (a host
 declares its own syncthing device id), instead of forcing one central file to know
-about everything that feeds it.
+everything that feeds it.
 
 **Use it over others when:** the final config is the *sum of many features'
 contributions* and you want data to live with its owner. This is the inverse of
@@ -205,18 +203,17 @@ rather than accumulated config.
 
 **What it is:** a `generic` aspect that declares an option and sets it, imported
 high in the hierarchy (e.g. into a default system type) so the value is available
-everywhere. Read it back like any other config option. Replaces older
-`specialArgs` plumbing.
+everywhere. Read it back like any other config option. Replaces older `specialArgs`
+plumbing.
 
 **Why use it:** it shares plain values (an admin email, a domain) across features
-and across classes through the normal module system, so there's one definition and
+and classes through the normal module system, so there's one definition and
 type-checked reads instead of threaded arguments.
 
-**Use it over others when:** the shared thing is *data*, not config that
-accumulates (that's Collector) and not a template (that's Factory). If the
-"constant" is actually a *function*, it becomes a *library* aspect — the repo keeps
-such helpers in `flake.lib`. For a value used in just one file, a plain `let … in`
-is lighter than a Constants aspect.
+**Use it over others when:** the shared thing is *data*, not config that accumulates
+(that's Collector) and not a template (that's Factory). If the "constant" is
+actually a *function*, it becomes a *library* aspect — the repo keeps such helpers
+in `flake.lib`. For a value used in just one file, a plain `let … in` is lighter.
 
 ```nix
 # define
@@ -257,13 +254,13 @@ merged into an "attribute set of submodules" option (e.g.
 `networking.interfaces.<name>…`) with `lib.mkMerge`.
 
 **Why use it:** Simple can't help when the value you want to reuse lives *inside* a
-per-instance submodule — there's no top-level option to share. A custom-class
-aspect gives that chunk a name so several instances can pull it in.
+per-instance submodule — there's no top-level option to share. A custom-class aspect
+gives that chunk a name so several instances can pull it in.
 
 **Use it over others when:** you're factoring out a repeated fragment *within*
-attrs-of-submodule options and the fragment itself benefits from being extended.
-DRY supports inheritance but not parameters; if each instance differs by an
-argument rather than a fixed shared chunk, use **Factory** instead.
+attrs-of-submodule options and the fragment itself benefits from being extended. DRY
+supports inheritance but not parameters; if each instance differs by an argument
+rather than a fixed shared chunk, use **Factory** instead.
 
 ```nix
 # define a reusable chunk under a new class
@@ -290,9 +287,9 @@ networking.interfaces."enp86s0" =
 returns named aspects across classes. Call it to mint features, then merge
 per-instance customizations with `lib.mkMerge`.
 
-**Why use it:** when many features follow the same template (every user, every
-CIFS mount), a factory captures the shape once so each instance is a call with
-arguments rather than a hand-copied block.
+**Why use it:** when many features follow the same template (every user, every CIFS
+mount), a factory captures the shape once so each instance is a call with arguments
+rather than a hand-copied block.
 
 **Use it over others when:** instances differ by *parameters* and share a template.
 Factory supports parameters but not inheritance — the mirror image of DRY. If

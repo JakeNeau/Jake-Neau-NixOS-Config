@@ -16,6 +16,9 @@
   #
   # Related: ctrl-v/alt-c keybind fixups come from modules/system/copy-paste-remaps.
 
+  # -----------------------------
+  # NixOS [N]: login shell + bash
+  # -----------------------------
   flake.modules.nixos.fish = {pkgs, ...}: {
     # Registers fish in /etc/shells (required for it to be a login shell) and
     # wires vendor completions/config for fish plugin packages.
@@ -35,6 +38,9 @@
     };
   };
 
+  # ------------------------------
+  # macOS [D]: zsh execs into fish
+  # ------------------------------
   flake.modules.darwin.fish = {pkgs, ...}: {
     # Installs fish system-wide, registers it in /etc/shells, and sets up the
     # nix environment + vendor plugin loading for fish sessions.
@@ -51,6 +57,9 @@
     '';
   };
 
+  # ----------------------------------------------------
+  # Both [nd]: aliases, functions, plugins (home-manager)
+  # ----------------------------------------------------
   flake.modules.homeManager.fish = {
     pkgs,
     lib,
@@ -80,6 +89,9 @@
   in
     lib.mkMerge [
       {
+        # -------
+        # Plugins
+        # -------
         # Plugins are picked up from the user profile through fish's vendor
         # dirs (NIX_PROFILES) on both platforms.
         home.packages = with pkgs.fishPlugins; [
@@ -106,6 +118,9 @@
           z # Jump to previous directories
         ];
 
+        # -----------------------
+        # Aliases & shell startup
+        # -----------------------
         programs.fish = {
           enable = true;
           shellAliases = {
@@ -123,6 +138,9 @@
           '';
         };
 
+        # --------------------
+        # Autoloaded functions
+        # --------------------
         xdg.configFile = functionFiles [
           "g"
           "h"
@@ -136,6 +154,9 @@
         ];
       }
 
+      # --------------------------
+      # Program-conditional extras
+      # --------------------------
       # eza-backed listing commands, only where eza (programs/cli-tools) is
       # actually installed.
       (lib.mkIf config.programs.eza.enable {
@@ -159,6 +180,9 @@
         ];
       })
 
+      # ----------------------------
+      # Per-platform power shortcuts
+      # ----------------------------
       # systemd power shortcuts.
       (lib.mkIf pkgs.stdenv.isLinux {
         programs.fish.shellAliases = {

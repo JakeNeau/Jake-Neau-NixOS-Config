@@ -12,7 +12,9 @@
 
     networking.hostName = "redwood";
 
-    # Bootloader.
+    # ----
+    # Boot
+    # ----
     boot.loader = {
       efi.canTouchEfiVariables = true;
       grub = {
@@ -59,6 +61,9 @@
 
     boot.initrd.luks.devices."luks-014e6aef-d36f-4b5b-9b48-447d6bc40b95".device = "/dev/disk/by-uuid/014e6aef-d36f-4b5b-9b48-447d6bc40b95";
 
+    # ---
+    # GPU
+    # ---
     # Configure hardware settings for AMD GPUs
     hardware.graphics = {
       enable = true;
@@ -71,6 +76,9 @@
     };
     nixpkgs.config.rocmSupport = true;
 
+    # -----
+    # Audio
+    # -----
     # Replicate audio output to multiple sinks (Focusrite + FiiO).
     services.pipewire.extraConfig.pipewire = {
       "91-null-sinks" = {
@@ -121,6 +129,9 @@
       '';
     };
 
+    # --------------
+    # Steam / gaming
+    # --------------
     # PC game platform
     programs.steam = {
       enable = true;
@@ -133,17 +144,26 @@
       ];
     };
 
+    # -------
+    # OpenRGB
+    # -------
     # RGB control software
     services.hardware.openrgb = {
       enable = true;
       startupProfile = "orange";
     };
 
+    # -----------
+    # Environment
+    # -----------
     # Desktop-specific environment variables (RUSTICL for the AMD GPU).
     environment.variables = {
       RUSTICL_ENABLE = "radeonsi";
     };
 
+    # ----------------
+    # Minecraft server
+    # ----------------
     # A declaratively configured minecraft server
     services.minecraft-servers = {
       enable = true;
@@ -159,6 +179,9 @@
       };
     };
 
+    # -------------
+    # State version
+    # -------------
     # The first system version installed.
     # Do not change unless you know what you are doing, things will break.
     system.stateVersion = "24.11";

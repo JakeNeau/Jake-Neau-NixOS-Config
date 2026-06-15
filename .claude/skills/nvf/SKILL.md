@@ -13,8 +13,8 @@ self-contained Neovim *package*.
 **This repo uses — and this skill documents — the standalone builder.** Jake
 intends to configure Neovim as its own flake, so prefer `nvf.lib.neovimConfiguration`
 over the `programs.nvf` NixOS/home-manager modules. (`configuration.nix` still
-carries the old `programs.nvf` module config; treat that as the thing being
-migrated, not the pattern to copy. See *Migrating* below.)
+carries old `programs.nvf` module config; treat that as the thing being migrated,
+not the pattern to copy — see *Migrating* below.)
 
 ## Why "its own flake"
 
@@ -22,11 +22,11 @@ The builder turns your Neovim config into an ordinary derivation, which means:
 
 - **Portable & distro-agnostic.** The same package runs on NixOS, nix-darwin, or
   any machine with Nix — `nix run` it anywhere, no system module required.
-- **Decoupled from system rebuilds.** Iterate on the editor with `nix build` /
-  `nix run` without a `darwin-rebuild` / `nixos-rebuild` cycle.
+- **Decoupled from system rebuilds.** Iterate with `nix build` / `nix run`, no
+  `darwin-rebuild` / `nixos-rebuild` cycle.
 - **Shareable.** A public flake output lets others (or other repos) consume your
-  exact editor with one line.
-- **Composable.** The resulting package drops into `environment.systemPackages`,
+  exact editor in one line.
+- **Composable.** The package drops into `environment.systemPackages`,
   `home.packages`, or any other package list when you do want it on a host.
 
 ## The builder: `nvf.lib.neovimConfiguration`
@@ -101,8 +101,8 @@ The `modules` list can be inline attrsets or files; splitting `config.vim` into 
 
 ## Writing config: the `vim` namespace
 
-Every option lives under **`vim`** (write it as `config.vim` inside a module).
-A module file looks like:
+Every option lives under **`vim`** (write it as `config.vim` inside a module). A
+module file looks like:
 
 ```nix
 # config.nix
@@ -156,13 +156,13 @@ A module file looks like:
 Useful top-level categories under `vim`: `theme`, `statusline`, `lsp`,
 `languages` (per-language LSP/treesitter/format), `autocomplete`, `telescope`,
 `filetree`, `git`, `debugger`, `formatter`, `keymaps`, `options`, `globals`,
-`extraPlugins`, `luaConfigRC`. The full, authoritative list is the
+`extraPlugins`, `luaConfigRC`. The authoritative list is the
 [options reference](https://nvf.notashelf.dev/options.html) — search it for the
 exact path before inventing config.
 
 ## Consuming the built editor
 
-The `.neovim` package is just a derivation, so install it like any other:
+`.neovim` is just a derivation, so install it like any other:
 
 ```nix
 # NixOS / nix-darwin system module
@@ -178,12 +178,12 @@ home-manager equivalent) — nvf does not own that.
 
 ## Fitting it into this dendritic repo
 
-This repo is a flake-parts / dendritic config (see the **nix-config** skill).
-There are two clean ways to bring the standalone editor in:
+This repo is a flake-parts / dendritic config (see the **nix-config** skill). Two
+clean ways to bring the standalone editor in:
 
 1. **Separate flake input (most "its own flake").** Keep the Neovim flake above
-   in its own repo (or subdir) and add it to a feature's `flake-file.inputs`,
-   then `nix run .#write-flake`. A program feature adds the package per class:
+   in its own repo (or subdir), add it to a feature's `flake-file.inputs`, then
+   `nix run .#write-flake`. A program feature adds the package per class:
 
    ```nix
    # modules/programs/neovim/neovim.nix
@@ -199,9 +199,9 @@ There are two clean ways to bring the standalone editor in:
    }
    ```
 
-2. **Build in-tree from the existing `nvf` input.** This repo already has
-   `nvf` as a flake input, so a feature can call the builder directly and add the
-   result to home-manager (home-manager-first is the repo default):
+2. **Build in-tree from the existing `nvf` input.** This repo already has `nvf` as
+   a flake input, so a feature can call the builder directly and add the result to
+   home-manager (home-manager-first is the repo default):
 
    ```nix
    # modules/programs/neovim/neovim.nix
