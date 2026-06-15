@@ -279,6 +279,10 @@ Format Nix with **`alejandra`** (2-space indent). Do **not** run `switch`,
 the live system and push to GitHub. Secrets go through **sops-nix**, never as
 plaintext in `.nix` files.
 
+**Comments:** keep them short and direct — note the non-obvious *why*, don't
+re-explain what the code already says. No multi-line preambles or restating
+option behavior; a terse line or trailing `# …` is usually enough.
+
 ## See also
 
 - [`aspects.md`](aspects.md) — the eight aspect design patterns, with code.

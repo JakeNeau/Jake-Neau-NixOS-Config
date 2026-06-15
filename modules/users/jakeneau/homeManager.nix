@@ -52,6 +52,7 @@
         programs.librewolf = {
           enable = true;
           settings = {
+            "widget.use-xdg-desktop-portal.file-picker" = 1; # Use the xdg portal (yazi) for file uploads/saves
             "privacy.clearOnShutdown.cookies" = false;
             "privacy.clearOnShutdown_v2.cookiesAndStorage" = false;
             "privacy.resistFingerprinting.reduceTimerPrecision.jitter" = false; # Needed to make claude not bug out

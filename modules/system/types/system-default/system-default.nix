@@ -9,6 +9,7 @@
       secrets
       nur
       config-group
+      yazi
     ];
   };
 
@@ -24,6 +25,7 @@
     imports =
       (with inputs.self.modules.homeManager; [
         system-minimal
+        yazi
       ])
       ++ [
         # The systemConstants option declarations; the values are pushed in

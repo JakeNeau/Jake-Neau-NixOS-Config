@@ -144,11 +144,6 @@
       };
     };
 
-    # A TUI file browser
-    programs.yazi = {
-      enable = true;
-    };
-
     # List packages installed in system profile
     environment.systemPackages = with pkgs; [
       vscode
@@ -195,16 +190,7 @@
       wl-clipboard # Clipboard manager backend
       xournalpp # App for signing PDFs
       xwayland-satellite # Xwayland compatability for wayland only compositors
-      yaziPlugins.gvfs # Mount devices to a VFS in yazi
     ];
-
-    # Set default applications
-    xdg.mime = {
-      enable = true;
-      defaultApplications = {
-        "inode/directory" = "yazi.desktop";
-      };
-    };
 
     # Fonts
     fonts = {
