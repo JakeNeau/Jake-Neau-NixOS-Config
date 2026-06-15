@@ -205,6 +205,13 @@ flake.modules.homeManager.office = {pkgs, lib, ...}:
 
 ## Common recipes
 
+**Installing a program — always do it under `modules/programs/`, never inline on
+a host or system type.** Define the app as its own feature (one aspect per
+class), then *import* that feature into the relevant system. This keeps every
+app reusable and discoverable in one place; reach for an inline
+`environment.systemPackages` / `home.packages` on a host only when something is
+truly host-specific.
+
 **A program/app shared across platforms** — one feature, one aspect per class:
 
 ```nix
@@ -215,8 +222,10 @@ flake.modules.homeManager.office = {pkgs, lib, ...}:
 }
 ```
 
-Then add `foo` to a host or system-type's `imports`. Prefer configuring programs
-in a `homeManager` aspect — this repo is home-manager-first.
+Then add `foo` to the relevant host or system-type's `imports` (e.g. `sioyek`
+is imported into `system-desktop`'s home-manager aspect, so every host using that
+system type gets it). Prefer configuring programs in a `homeManager` aspect —
+this repo is home-manager-first.
 
 **A new host** — a feature that imports a base system type plus the features you
 want, then a one-line boilerplate to expose it:

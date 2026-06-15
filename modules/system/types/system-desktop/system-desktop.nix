@@ -246,6 +246,7 @@
       fish
       ghostty
       karabiner
+      sioyek
     ];
   };
 }
