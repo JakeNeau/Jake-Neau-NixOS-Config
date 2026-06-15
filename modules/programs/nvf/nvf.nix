@@ -463,6 +463,8 @@
           enable = true;
           gitStatus.enable = true;
           setupOpts = {
+            # Show dotfiles / hidden files in the browser by default.
+            view_options.show_hidden = true;
             keymaps = {
               "<C-h>" = false;
               "<C-l>" = false;
