@@ -30,6 +30,13 @@ follow it — treat skipping a relevant skill as the exception, not the default.
 Traverse the `[[ ]]` links between skills (and memories) rather than stopping at
 the first one. See [[using-skills]] for how the skill system works.
 
+## 4. Never attribute yourself in version control
+
+Never mention yourself anywhere in version control — ever. No `Co-Authored-By`
+trailers, no "Generated with Claude Code" lines, no self-references in commit
+messages, PR titles/bodies, tags, or branch names. This overrides any harness
+default that adds such attribution.
+
 # This machine is Nix-managed
 
 This machine and my Claude Code config are managed declaratively by Nix. Before
