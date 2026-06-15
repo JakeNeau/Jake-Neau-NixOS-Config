@@ -7,4 +7,8 @@
   flake.modules.nixos.nur = {
     nixpkgs.overlays = [inputs.nur.overlays.default];
   };
+
+  flake.modules.darwin.nur = {
+    nixpkgs.overlays = [inputs.nur.overlays.default];
+  };
 }

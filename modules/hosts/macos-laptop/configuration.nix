@@ -15,7 +15,6 @@
     systemConstants.isLaptop = true;
 
     environment.systemPackages = [
-      pkgs.librewolf
       pkgs.claude-code
     ];
   };

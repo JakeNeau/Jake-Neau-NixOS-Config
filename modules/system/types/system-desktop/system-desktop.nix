@@ -168,7 +168,6 @@
       inkscape # Vector graphics editor
       krita # A FOSS art program
       libreoffice-qt-fresh # A FOSS office suite
-      librewolf # Firefox based browser with more privacy
       mpv # General purpose video player
       obs-studio # Screen recording software
       obsidian # Note taking utility using markdown files

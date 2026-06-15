@@ -18,6 +18,7 @@
       system-minimal
       system-constants
       home-manager
+      nur
     ];
   };
 
