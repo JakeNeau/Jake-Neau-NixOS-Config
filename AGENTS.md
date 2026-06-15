@@ -53,9 +53,12 @@ functions on your own — see below.
 ## Important cautions for agents
 
 - **Root-owned repos.** These configs live at root-owned paths (`/etc/nixos` on
-  NixOS, `/etc/nix-darwin` on macOS). Editing files therefore requires `sudo`;
-  plain file edits will fail on permissions. Surface this rather than silently
-  retrying.
+  NixOS, `/etc/nix-darwin` on macOS), so by default editing files requires
+  `sudo` and plain file edits fail on permissions. On NixOS hosts where the
+  `config` group has been set up (see `modules/system/config-group`), members of
+  that group own the tree and can edit `/etc/nixos` directly without `sudo`
+  (owner stays `root`; only `config` members get write). If edits still fail on
+  permissions, surface it rather than silently retrying.
 - **`nr` / `nrr` auto-commit AND push to GitHub.** The fish functions pull,
   update the flake inputs, verify that every environment in the flake builds,
   then `git add -A`, commit, and `git push` (sometimes `--force-with-lease`) to

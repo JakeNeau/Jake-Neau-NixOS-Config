@@ -8,6 +8,7 @@
       home-manager
       secrets
       nur
+      config-group
     ];
   };
 
