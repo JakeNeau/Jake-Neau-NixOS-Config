@@ -1,0 +1,200 @@
+{
+  # Claude Code: Anthropic's terminal coding assistant.
+  #
+  # Cross-platform [nd]: nixpkgs builds claude-code on both Linux and macOS, so
+  # a single home-manager aspect installs it for the user everywhere it's
+  # imported. The nvf editor integration (claudecode.nvim,
+  # modules/programs/nvf) spawns this same `claude` CLI.
+  #
+  # Configuration lives in the user's home folder at its upstream default
+  # (~/.claude) — `configDir` is left untouched so the existing config, memory
+  # and project history keep working and no CLAUDE_CONFIG_DIR is exported.
+  #
+  # The extra config (agents/commands/hooks/rules/skills/context) is authored
+  # as plain files in ./config and inlined declaratively: each file is read
+  # into a string and handed to the module's *content* options (`agents`,
+  # `commands`, …). We deliberately avoid the `agentsDir`/`commandsDir`/… "Dir"
+  # options because those symlink a whole source directory into ~/.claude; here
+  # home-manager instead materialises each file from its text, so the config is
+  # shared across machines through the flake rather than via a symlink farm.
+  flake.modules.homeManager.claude-code = {
+    pkgs,
+    lib,
+    ...
+  }: let
+    # Source tree for the declarative config (see ./config/README.md).
+    configSrc = ./config;
+
+    # Markdown folders (agents, commands, rules): map each `<name>.md` to
+    # { <name> = <file contents> }. `.gitkeep` and any non-markdown file are
+    # ignored, so an otherwise-empty folder yields {} (the option default).
+    readMarkdown = dir:
+      lib.mapAttrs' (
+        name: _:
+          lib.nameValuePair (lib.removeSuffix ".md" name) (builtins.readFile (dir + "/${name}"))
+      ) (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (builtins.readDir dir));
+
+    # Hooks keep their full filename (the module writes hooks/<name> verbatim
+    # and marks it executable), so map filename -> contents and skip .gitkeep.
+    readHooks = dir:
+      lib.mapAttrs (
+        name: _: builtins.readFile (dir + "/${name}")
+      ) (lib.filterAttrs (name: type: type == "regular" && name != ".gitkeep") (builtins.readDir dir));
+
+    # Each subdirectory of skills/ is one skill; inline its SKILL.md as a
+    # string (the module writes skills/<name>/SKILL.md). This single-file form
+    # is the trade-off for not symlinking: a skill that ships supporting files
+    # alongside SKILL.md would need the directory form instead.
+    readSkills = dir:
+      lib.mapAttrs (
+        name: _: builtins.readFile (dir + "/${name}/SKILL.md")
+      ) (lib.filterAttrs (_: type: type == "directory") (builtins.readDir dir));
+
+    # Global context (CLAUDE.md). Empty file -> "" -> nothing is written.
+    context = builtins.readFile (configSrc + "/CLAUDE.md");
+
+    # LSP servers mirroring every language nvf configures an LSP for
+    # (modules/programs/nvf). Commands are pinned to absolute store paths so
+    # the `claude` process always resolves them regardless of PATH.
+    lspServers = {
+      bash = {
+        command = "${pkgs.bash-language-server}/bin/bash-language-server";
+        args = ["start"];
+        extensionToLanguage = {
+          ".sh" = "shellscript";
+          ".bash" = "shellscript";
+        };
+      };
+      clang = {
+        command = "${pkgs.clang-tools}/bin/clangd";
+        args = [];
+        extensionToLanguage = {
+          ".c" = "c";
+          ".h" = "c";
+          ".cc" = "cpp";
+          ".cpp" = "cpp";
+          ".hpp" = "cpp";
+        };
+      };
+      css = {
+        command = "${pkgs.vscode-langservers-extracted}/bin/vscode-css-language-server";
+        args = ["--stdio"];
+        extensionToLanguage = {
+          ".css" = "css";
+          ".scss" = "scss";
+          ".less" = "less";
+        };
+      };
+      dart = {
+        command = "${pkgs.dart}/bin/dart";
+        args = ["language-server"];
+        extensionToLanguage = {".dart" = "dart";};
+      };
+      go = {
+        command = "${pkgs.gopls}/bin/gopls";
+        args = [];
+        extensionToLanguage = {".go" = "go";};
+      };
+      html = {
+        command = "${pkgs.vscode-langservers-extracted}/bin/vscode-html-language-server";
+        args = ["--stdio"];
+        extensionToLanguage = {".html" = "html";};
+      };
+      java = {
+        command = "${pkgs.jdt-language-server}/bin/jdtls";
+        args = [];
+        extensionToLanguage = {".java" = "java";};
+      };
+      json = {
+        command = "${pkgs.vscode-langservers-extracted}/bin/vscode-json-language-server";
+        args = ["--stdio"];
+        extensionToLanguage = {
+          ".json" = "json";
+          ".jsonc" = "jsonc";
+        };
+      };
+      lua = {
+        command = "${pkgs.lua-language-server}/bin/lua-language-server";
+        args = [];
+        extensionToLanguage = {".lua" = "lua";};
+      };
+      markdown = {
+        command = "${pkgs.marksman}/bin/marksman";
+        args = ["server"];
+        extensionToLanguage = {
+          ".md" = "markdown";
+          ".markdown" = "markdown";
+        };
+      };
+      nix = {
+        command = "${pkgs.nil}/bin/nil";
+        args = [];
+        extensionToLanguage = {".nix" = "nix";};
+      };
+      python = {
+        command = "${pkgs.pyright}/bin/pyright-langserver";
+        args = ["--stdio"];
+        extensionToLanguage = {".py" = "python";};
+      };
+      rust = {
+        command = "${pkgs.rust-analyzer}/bin/rust-analyzer";
+        args = [];
+        extensionToLanguage = {".rs" = "rust";};
+      };
+      svelte = {
+        command = "${pkgs.svelte-language-server}/bin/svelteserver";
+        args = ["--stdio"];
+        extensionToLanguage = {".svelte" = "svelte";};
+      };
+      toml = {
+        command = "${pkgs.taplo}/bin/taplo";
+        args = ["lsp" "stdio"];
+        extensionToLanguage = {".toml" = "toml";};
+      };
+      typescript = {
+        command = "${pkgs.typescript-language-server}/bin/typescript-language-server";
+        args = ["--stdio"];
+        extensionToLanguage = {
+          ".ts" = "typescript";
+          ".tsx" = "typescriptreact";
+          ".js" = "javascript";
+          ".jsx" = "javascriptreact";
+          ".mts" = "typescript";
+          ".cts" = "typescript";
+        };
+      };
+      yaml = {
+        command = "${pkgs.yaml-language-server}/bin/yaml-language-server";
+        args = ["--stdio"];
+        extensionToLanguage = {
+          ".yaml" = "yaml";
+          ".yml" = "yaml";
+        };
+      };
+    };
+  in {
+    programs.claude-code = {
+      enable = true;
+
+      # Pull MCP servers declared in `programs.mcp.servers` into Claude Code's
+      # config. No-op until that module is enabled with servers; wired here so
+      # adding one elsewhere is automatically picked up.
+      enableMcpIntegration = true;
+
+      inherit context lspServers;
+
+      # NOTE: settings.json is deliberately NOT managed here. The module would
+      # write it as a read-only Nix-store symlink, but Claude Code mutates that
+      # file at runtime (e.g. changing effort level or theme persists to it), so
+      # managing it declaratively would freeze those knobs and require a rebuild
+      # to change. It is left as a normal mutable file in ~/.claude.
+
+      # Declarative config inlined from ./config (see helpers above).
+      agents = readMarkdown (configSrc + "/agents");
+      commands = readMarkdown (configSrc + "/commands");
+      rules = readMarkdown (configSrc + "/rules");
+      hooks = readHooks (configSrc + "/hooks");
+      skills = readSkills (configSrc + "/skills");
+    };
+  };
+}

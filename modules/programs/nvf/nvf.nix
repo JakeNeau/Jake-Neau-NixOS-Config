@@ -52,6 +52,12 @@
         # Set leader key for buffer-local mappings
         globals.maplocalleader = "\\";
 
+        # vim-suda: transparently read/write root-owned files. smart_edit makes
+        # an unwritable buffer save through sudo automatically (no :SudaWrite).
+        # Read at plugin-load time, so it must be set here, before the plugin
+        # sources (same early-globals path as mapleader above).
+        globals.suda_smart_edit = 1;
+
         # Pressing escape clears all highlighted search results
         hideSearchHighlight = true;
 
@@ -211,6 +217,17 @@
               ];
             };
           };
+        };
+
+        # ------------------------------
+        # Eagerly-loaded extra plugins
+        # ------------------------------
+        # vim-suda is a vimscript plugin with no setup() call; its smart_edit
+        # hook installs a BufEnter autocmd at load time, so it cannot be lazy
+        # loaded (that would suppress the very event it relies on). Behaviour
+        # is driven entirely by globals.suda_smart_edit above.
+        extraPlugins = {
+          vim-suda.package = pkgs.vimPlugins.vim-suda;
         };
 
         # ------------------

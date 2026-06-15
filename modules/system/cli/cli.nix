@@ -3,7 +3,6 @@
   # hosts. Linux/Wayland-specific terminal utilities stay in system-desktop.
   flake.modules.generic.cli = {pkgs, ...}: {
     environment.systemPackages = with pkgs; [
-      claude-code # A terminal coding assistant
       bottom # A TUI system monitor
       eza # A better version of ls written in rust
       ffmpeg # Video codec

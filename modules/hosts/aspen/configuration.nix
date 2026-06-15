@@ -1,6 +1,6 @@
 {inputs, ...}: {
   # Jake's personal MacBook ("aspen", formerly "Jakes-MacBook-Air").
-  flake.modules.darwin.aspen = {pkgs, ...}: {
+  flake.modules.darwin.aspen = {...}: {
     imports =
       (with inputs.self.modules.darwin; [
         system-desktop
@@ -13,9 +13,5 @@
 
     # Host facts features branch on (e.g. fastfetch's Power box).
     systemConstants.isLaptop = true;
-
-    environment.systemPackages = [
-      pkgs.claude-code
-    ];
   };
 }

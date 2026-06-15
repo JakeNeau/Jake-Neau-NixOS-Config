@@ -249,6 +249,7 @@
     imports = with inputs.self.modules.homeManager; [
       system-default
       nvf
+      claude-code
       cli-tools
       caps-dual-role
       copy-paste-remaps
