@@ -254,7 +254,7 @@ users, shared constants, network interfaces).
 
 ## Validating changes
 
-Dry-build only — never activate, never push (see `AGENTS.md`):
+Dry-build only — never activate, never push (see `CLAUDE.md`):
 
 ```sh
 nix flake check
@@ -275,7 +275,7 @@ in `.nix` files.
 ## See also
 
 - [`aspects.md`](aspects.md) — the eight aspect design patterns, with code.
-- `AGENTS.md` — repo-wide cautions (root-owned paths, rebuild/push flow, secrets).
+- `CLAUDE.md` — repo-wide cautions (root-owned paths, rebuild/push flow, secrets).
 - Upstream guide: <https://github.com/Doc-Steve/dendritic-design-with-flake-parts>
 - Dendritic pattern origin: <https://github.com/mightyiam/dendritic>
 

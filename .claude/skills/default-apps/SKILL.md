@@ -143,7 +143,7 @@ the bare scheme (`http`, `https`, `mailto`). Bundle ids seen here:
 ## Validating
 
 This is an activation script, not build-time config, so a dry build only checks
-that the Nix evaluates — it won't exercise the `duti` logic. Per `AGENTS.md` /
+that the Nix evaluates — it won't exercise the `duti` logic. Per `CLAUDE.md` /
 the `nix-config` skill, **don't** run `switch`/`nr`; the user runs the rebuild
 and confirms the modal stops reappearing.
 

@@ -1,4 +1,4 @@
-# AGENTS.md
+# CLAUDE.md
 
 Guidance for AI agents working in this repository.
 
@@ -32,20 +32,6 @@ Core design principles (from the README):
 - **Prefer flakes.** Favor implementations that fully use flakes.
 - **Formatting.** Format Nix with **`alejandra`**; match the existing 2-space
   indentation.
-- **Comments.** Keep them short and direct — note the non-obvious _why_, don't
-  restate what the code already says. No multi-line preambles or option-behavior
-  recaps; a terse line or trailing `# …` usually suffices. Put multi-line
-  comments above the code they describe, never below. Same-line comments naming
-  what a package or service does and why it's needed are encouraged, as are
-  section comments grouping a file logically. Fence a section label with dashed
-  rules:
-
-  ```nix
-  # ------------
-  # Section name
-  # ------------
-  ```
-
 ## Validating changes (dry-build; don't switch)
 
 **After any modification to this repo, always confirm the configuration still

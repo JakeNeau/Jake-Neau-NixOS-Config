@@ -65,7 +65,7 @@ are placed at `flake.modules.<class>.<name>` (classes: `nixos`, `darwin`,
 ## Go deeper
 
 When working inside the repo, the **nix-config** skill is the full guide to the
-dendritic flake (aspects, design patterns, recipes), and `AGENTS.md` holds the
+dendritic flake (aspects, design patterns, recipes), and `CLAUDE.md` holds the
 complete conventions and cautions.
 
 ## Related skills

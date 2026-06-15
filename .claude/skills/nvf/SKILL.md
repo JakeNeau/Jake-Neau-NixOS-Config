@@ -240,7 +240,7 @@ module used to be enabled.
 
 ## Validating
 
-The package is a normal derivation — dry-build it, never `switch` (see `AGENTS.md`):
+The package is a normal derivation — dry-build it, never `switch` (see `CLAUDE.md`):
 
 ```sh
 nix build .#neovim          # or .#default — builds the editor

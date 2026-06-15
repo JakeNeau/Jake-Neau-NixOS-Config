@@ -7,7 +7,8 @@ description: How to author a Claude Code skill (SKILL.md) so it is clear, discov
 
 Read this **before** creating or editing any skill. It covers how to write a good
 one; for *where* skills live and the edit → `git add` → rebuild flow, see
-[[claude-code-config]].
+[[claude-code-config]], and for how skills are discovered and how the `[[ ]]`
+graph is used at run time, see [[using-skills]].
 
 ## Anatomy
 
@@ -42,27 +43,20 @@ the model decide to open the skill. Write it to:
 - **Assume no prior context** — spell out absolute paths; the reader may be a
   fresh session in an unrelated project.
 
-## Link skills into a graph with `[[ ]]`
+## Link your skill into the graph
 
-Skills form a graph the model can traverse. This uses the same convention as the
-memory system, so skills and memories link identically.
+Skills link to each other with `[[name]]` tokens — see [[using-skills]] for how
+that graph works and why it is traversed at run time. When authoring:
 
-- **Link token:** `[[skill-name]]`, where `skill-name` is the target skill's
-  `name:` (= its folder). Use it inline ("see [[machine-layout]]").
-- **`## Related skills` trailer:** end every skill with a short section listing
-  its outgoing links, one per line: `- [[name]] — one-line reason to follow it`.
+- **Link inline** where one skill references another ("see [[machine-layout]]").
+  `name` is the target skill's `name:` (= its folder).
+- **End with a `## Related skills` trailer:** a short section listing outgoing
+  links, one per line — `- [[name]] — one-line reason to follow it`.
 - **Link liberally and bidirectionally:** if A → B helps, B usually should point
   back to A, so the graph is navigable from any node.
-
-## Create empty links to future skills — liberally
-
-Don't link only skills that exist. **Proactively add `[[ ]]` links to skills that
-*would be useful to have* but don't exist yet**, and be generous about it. A
-`[[name]]` pointing at a missing skill is not an error — it is a free, meaningful
-marker that flags where the graph should grow. These dangling links cost nothing,
-sketch the intended shape of the knowledge graph, and become a ready-made backlog
-of skills worth writing. When you hit one (or notice a concept no skill covers),
-that is your cue to create the skill there and link it in.
+- **Add links to skills that don't exist yet.** A `[[name]]` pointing at a
+  missing skill is a deliberate marker of where the graph should grow, not an
+  error — and your cue to write that skill next (see [[using-skills]]).
 
 ## Finish checklist
 
@@ -75,5 +69,6 @@ that is your cue to create the skill there and link it in.
 
 ## Related skills
 
+- [[using-skills]] — how skills are discovered and how the graph is traversed
 - [[claude-code-config]] — where skills live and how to ship them via the flake
 - [[machine-layout]] — the Nix machine context these skills run on
