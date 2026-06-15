@@ -19,6 +19,7 @@
       system-constants
       home-manager
       nur
+      config-group
     ];
   };
 
