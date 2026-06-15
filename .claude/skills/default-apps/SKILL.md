@@ -1,6 +1,6 @@
 ---
 name: default-apps
-description: How to set a program as the default handler for a file type or URL scheme across NixOS and macOS in this repo. Linux uses home-manager's xdg.mimeApps; macOS has no declarative LaunchServices option, so a home.activation script drives `duti` — and MUST guard on the current handler, because macOS pops an anti-hijacking confirmation modal on every programmatic change to a protected type (pdf, http, https, mailto, html). Use when making an app the default for an extension/MIME type/scheme, or when a rebuild keeps popping a "Do you want all documents … to open with …?" modal.
+description: How to set a program as the default handler for a file type or URL scheme across NixOS and macOS in this repo. Linux uses home-manager's xdg.mimeApps; macOS has no declarative LaunchServices option, so a home.activation script drives `duti` — and MUST guard on the current handler, because macOS pops an anti-hijacking confirmation modal on every programmatic change to a protected type (pdf, http, https, mailto, html). The guard only sticks once the target app is registered with LaunchServices: Nix GUI apps reach `~/Applications` as nix-store symlinks that macOS refuses to register, so they need mac-app-util trampolines — without them `duti -s` writes an orphaned preference that never resolves, the guard never matches, and the modal re-pops on every rebuild. Use when making an app the default for an extension/MIME type/scheme, or when a rebuild keeps popping a "Do you want all documents … to open with …?" modal.
 ---
 
 # Setting default programs (NixOS + macOS)
@@ -48,8 +48,10 @@ every rebuild (and if the user clicks "keep using …", it never even sticks).
 
 **The fix: guard on the current handler and only call `duti -s` when it differs.**
 `duti -d <type>` prints the current default's bundle id and works for both UTIs
-**and** URL schemes. With the guard, the modal appears at most once (the first
-switch); afterwards every rebuild sees the handler already set and skips the call.
+**and** URL schemes. With the guard — **and** the app actually registered with
+LaunchServices (see the prerequisite below) — the modal appears at most once (the
+first switch); afterwards every rebuild sees the handler already set and skips the
+call.
 
 Single type (PDF):
 
@@ -87,6 +89,40 @@ Notes:
 - The third `duti` arg is the **role**; `all` covers viewer + editor.
 - The guard compares against the desired bundle id. Once the user accepts the
   modal once, the choice persists in LaunchServices and the guard short-circuits.
+
+## macOS prerequisite — the app must be registered with LaunchServices
+
+The guard above only short-circuits if `duti -d` eventually reports *your* bundle
+id. That never happens for a Nix-installed GUI app unless its `.app` is registered
+with LaunchServices — and **it is not, by default.** home-manager links apps into
+`~/Applications/Home Manager Apps/<app>.app` as a **symlink into `/nix/store`**,
+and macOS LaunchServices refuses to register apps reached through store symlinks.
+So `duti -s <id> com.adobe.pdf all` writes a handler *preference*, but the id never
+resolves to a registered app: the real handler stays on the OS default, `duti -d`
+keeps returning that default, the guard's `!= <id>` is **always true**, and the
+modal re-pops on **every** rebuild (accepting it can't help — there is no
+resolvable app to switch to).
+
+Diagnose it on the machine (all read-only):
+
+```sh
+duti -d com.adobe.pdf            # returns the OS default (e.g. com.apple.Preview), NOT your id
+osascript -e 'id of app "Sioyek"'  # error -1728 "Can't get application" → not registered by name
+# the modal names the raw bundle id ("…open with info.sioyek.sioyek") instead of the app's display name
+# lsregister -dump shows only an orphaned "handlerpref … all roles: <id>", no app bundle for <id>:
+/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -dump | grep -iB2 -A4 <app>
+```
+
+**The fix: `mac-app-util`** (`modules/nix/tools/mac-app-util/`). It replaces the
+store-symlink app links with real `.app` *trampolines* in `~/Applications` —
+copying `CFBundleIdentifier` into the trampoline's Info.plist, so the original id
+(`info.sioyek.sioyek`) stays intact and LaunchServices registers it. It's wired
+into `darwin.system-desktop`: the nix-darwin module trampolines system apps, and
+`home-manager.sharedModules` pushes the home-manager module to every user (which
+is what covers home-manager apps like sioyek). Trampolines also make the apps
+show up in Spotlight and Launchpad. Any new macOS host that imports
+`system-desktop` gets this for free; a host that doesn't must import
+`darwin.mac-app-util` itself before a `duti` default can stick.
 
 ## Finding the identifiers you need
 

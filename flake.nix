@@ -11,6 +11,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     import-tree.url = "github:vic/import-tree";
+    mac-app-util.url = "github:hraban/mac-app-util";
     minegrub-theme.url = "github:Lxtharia/minegrub-theme";
     nix-darwin = {
       url = "github:nix-darwin/nix-darwin/master";

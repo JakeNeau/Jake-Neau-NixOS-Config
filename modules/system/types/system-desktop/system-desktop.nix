@@ -217,6 +217,7 @@
       ghostty
       homebrew
       karabiner
+      mac-app-util
     ];
   };
 
