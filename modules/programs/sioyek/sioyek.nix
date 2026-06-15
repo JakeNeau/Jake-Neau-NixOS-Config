@@ -37,12 +37,18 @@
       })
 
       # macOS: LaunchServices has no declarative option, so set the default PDF
-      # handler to sioyek's bundle id with duti on each activation (idempotent).
+      # handler to sioyek's bundle id with duti. `com.adobe.pdf` is a protected
+      # content type, so any programmatic `duti -s` pops macOS's anti-hijacking
+      # confirmation modal. Guard on the current handler so we only call duti
+      # when it isn't already sioyek -- the modal then appears at most once (on
+      # first switch), not on every rebuild.
       (lib.mkIf pkgs.stdenv.isDarwin {
         home.packages = [pkgs.duti];
         home.activation.sioyekDefaultPdf =
           lib.hm.dag.entryAfter ["writeBoundary"] ''
-            $DRY_RUN_CMD ${lib.getExe pkgs.duti} -s info.sioyek.sioyek com.adobe.pdf all || true
+            if [ "$(${lib.getExe pkgs.duti} -d com.adobe.pdf 2>/dev/null)" != "info.sioyek.sioyek" ]; then
+              $DRY_RUN_CMD ${lib.getExe pkgs.duti} -s info.sioyek.sioyek com.adobe.pdf all || true
+            fi
           '';
       })
     ];

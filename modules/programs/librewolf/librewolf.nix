@@ -300,13 +300,19 @@
       })
 
       # macOS: LaunchServices has no declarative option, so point the default
-      # web/HTML handlers at LibreWolf's bundle id with duti on each activation.
+      # web/HTML handlers at LibreWolf's bundle id with duti. http/https/html are
+      # protected types, so any programmatic `duti -s` pops macOS's anti-hijacking
+      # confirmation modal. Guard on the current handler so we only call duti when
+      # it isn't already LibreWolf -- the modal then appears at most once per type
+      # (on first switch), not on every rebuild.
       (lib.mkIf pkgs.stdenv.isDarwin {
         home.packages = [pkgs.duti];
         home.activation.librewolfDefaultBrowser = lib.hm.dag.entryAfter ["writeBoundary"] ''
-          $DRY_RUN_CMD ${lib.getExe pkgs.duti} -s org.mozilla.librewolf http all || true
-          $DRY_RUN_CMD ${lib.getExe pkgs.duti} -s org.mozilla.librewolf https all || true
-          $DRY_RUN_CMD ${lib.getExe pkgs.duti} -s org.mozilla.librewolf public.html all || true
+          for type in http https public.html; do
+            if [ "$(${lib.getExe pkgs.duti} -d "$type" 2>/dev/null)" != "org.mozilla.librewolf" ]; then
+              $DRY_RUN_CMD ${lib.getExe pkgs.duti} -s org.mozilla.librewolf "$type" all || true
+            fi
+          done
         '';
       })
     ];
