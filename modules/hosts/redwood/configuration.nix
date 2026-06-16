@@ -5,6 +5,7 @@
     imports = with inputs.self.modules.nixos; [
       system-desktop
       fastfetch
+      local-ai
       minegrub
       nix-minecraft
       jakeneau

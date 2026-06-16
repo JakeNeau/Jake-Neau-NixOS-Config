@@ -11,8 +11,14 @@
   flake.modules.homeManager.nvf = {
     pkgs,
     lib,
+    config,
     ...
-  }: {
+  }: let
+    # Local AI features (the <leader>ak hover and llama.vim autocomplete) only
+    # exist on hosts that run the llama-server stack. The fact is forwarded from
+    # the system level via systemConstants (see modules/system/types/local-ai).
+    localAi = config.systemConstants.localAi;
+  in {
     imports = [inputs.nvf.homeManagerModules.default];
 
     programs.nvf = {
@@ -57,6 +63,25 @@
         # Read at plugin-load time, so it must be set here, before the plugin
         # sources (same early-globals path as mapleader above).
         globals.suda_smart_edit = 1;
+
+        # llama.vim FIM autocomplete (local-ai hosts only). Point it at the
+        # local FIM server's /infill port. llama.vim's defaults grab insert
+        # <Tab>/<S-Tab> (clashing with nvim-cmp) and even normal-mode <Tab>/<Esc>
+        # for its instruct feature, so move FIM-accept onto a free chord (<C-l>)
+        # and disable everything we don't use ("" disables a keymap).
+        globals.llama_config = lib.mkIf localAi {
+          endpoint_fim = "http://127.0.0.1:8012/infill";
+          keymap_fim_trigger = "<C-g>";
+          keymap_fim_accept_full = "<C-l>";
+          keymap_fim_accept_line = "";
+          keymap_fim_accept_word = "";
+          keymap_inst_trigger = "";
+          keymap_inst_rerun = "";
+          keymap_inst_continue = "";
+          keymap_inst_accept = "";
+          keymap_inst_cancel = "";
+          keymap_debug_toggle = "";
+        };
 
         # Pressing escape clears all highlighted search results
         hideSearchHighlight = true;
@@ -222,6 +247,14 @@
                   desc = "Deny diff";
                 }
               ];
+            };
+
+            # llama.vim: inline FIM autocomplete from the local llama-server
+            # (local-ai hosts only). Ghost text only matters while typing, so
+            # load on first InsertEnter; configured via globals.llama_config.
+            "llama.vim" = lib.mkIf localAi {
+              package = pkgs.vimPlugins.llama-vim;
+              event = ["InsertEnter"];
             };
           };
         };
@@ -544,93 +577,150 @@
         # ---------------
         # Other keymaps
         # ---------------
-        keymaps = [
-          # Window navigation, normal mode. Terminal-mode variants below break
-          # out of the terminal first (<C-\><C-n>) so the same chord escapes
-          # the Claude Code terminal and lands in a code window in one press.
-          {
-            key = "<C-h>";
-            mode = "n";
-            action = "<C-w>h";
-            desc = "Focus window left";
-          }
-          {
-            key = "<C-j>";
-            mode = "n";
-            action = "<C-w>j";
-            desc = "Focus window below";
-          }
-          {
-            key = "<C-k>";
-            mode = "n";
-            action = "<C-w>k";
-            desc = "Focus window above";
-          }
-          {
-            key = "<C-l>";
-            mode = "n";
-            action = "<C-w>l";
-            desc = "Focus window right";
-          }
-          {
-            key = "<C-h>";
-            mode = "t";
-            action = "<C-\\><C-n><C-w>h";
-            desc = "Focus window left";
-          }
-          {
-            key = "<C-j>";
-            mode = "t";
-            action = "<C-\\><C-n><C-w>j";
-            desc = "Focus window below";
-          }
-          {
-            key = "<C-k>";
-            mode = "t";
-            action = "<C-\\><C-n><C-w>k";
-            desc = "Focus window above";
-          }
-          {
-            key = "<C-l>";
-            mode = "t";
-            action = "<C-\\><C-n><C-w>l";
-            desc = "Focus window right";
-          }
-          {
-            key = "-";
-            mode = "n";
-            action = "<cmd>Oil<cr>";
-            desc = "Open oil (parent directory)";
-          }
-          # Cycle buffers (shadows the default screen-top/bottom motions).
-          {
-            key = "<S-l>";
-            mode = "n";
-            action = "<cmd>bnext<cr>";
-            desc = "Next buffer";
-          }
-          {
-            key = "<S-h>";
-            mode = "n";
-            action = "<cmd>bprevious<cr>";
-            desc = "Previous buffer";
-          }
-          {
-            # Recommended by the which-key README: show only the keymaps
-            # local to the current buffer (e.g. oil's browser mappings).
-            key = "<leader>?";
-            mode = "n";
-            lua = true;
-            action = ''function() require("which-key").show({ global = false }) end'';
-            desc = "Buffer local keymaps (which-key)";
-          }
-          {
-            key = "<A-v>";
-            mode = ["n" "x"];
-            action = "<C-v>";
-            desc = "Visual block mode (ctrl+v is paste in ghostty)";
-          }
-        ];
+        keymaps =
+          [
+            # Window navigation, normal mode. Terminal-mode variants below break
+            # out of the terminal first (<C-\><C-n>) so the same chord escapes
+            # the Claude Code terminal and lands in a code window in one press.
+            {
+              key = "<C-h>";
+              mode = "n";
+              action = "<C-w>h";
+              desc = "Focus window left";
+            }
+            {
+              key = "<C-j>";
+              mode = "n";
+              action = "<C-w>j";
+              desc = "Focus window below";
+            }
+            {
+              key = "<C-k>";
+              mode = "n";
+              action = "<C-w>k";
+              desc = "Focus window above";
+            }
+            {
+              key = "<C-l>";
+              mode = "n";
+              action = "<C-w>l";
+              desc = "Focus window right";
+            }
+            {
+              key = "<C-h>";
+              mode = "t";
+              action = "<C-\\><C-n><C-w>h";
+              desc = "Focus window left";
+            }
+            {
+              key = "<C-j>";
+              mode = "t";
+              action = "<C-\\><C-n><C-w>j";
+              desc = "Focus window below";
+            }
+            {
+              key = "<C-k>";
+              mode = "t";
+              action = "<C-\\><C-n><C-w>k";
+              desc = "Focus window above";
+            }
+            {
+              key = "<C-l>";
+              mode = "t";
+              action = "<C-\\><C-n><C-w>l";
+              desc = "Focus window right";
+            }
+            {
+              key = "-";
+              mode = "n";
+              action = "<cmd>Oil<cr>";
+              desc = "Open oil (parent directory)";
+            }
+            # Cycle buffers (shadows the default screen-top/bottom motions).
+            {
+              key = "<S-l>";
+              mode = "n";
+              action = "<cmd>bnext<cr>";
+              desc = "Next buffer";
+            }
+            {
+              key = "<S-h>";
+              mode = "n";
+              action = "<cmd>bprevious<cr>";
+              desc = "Previous buffer";
+            }
+            {
+              # Recommended by the which-key README: show only the keymaps
+              # local to the current buffer (e.g. oil's browser mappings).
+              key = "<leader>?";
+              mode = "n";
+              lua = true;
+              action = ''function() require("which-key").show({ global = false }) end'';
+              desc = "Buffer local keymaps (which-key)";
+            }
+            {
+              key = "<A-v>";
+              mode = ["n" "x"];
+              action = "<C-v>";
+              desc = "Visual block mode (ctrl+v is paste in ghostty)";
+            }
+          ]
+          # Local AI: AI "explain this symbol" hover (see luaConfigRC below). Lives
+          # in the existing <leader>a "AI/Claude Code" which-key group.
+          ++ lib.optionals localAi [
+            {
+              key = "<leader>ak";
+              mode = "n";
+              lua = true;
+              action = ''function() require("llama_explain").explain() end'';
+              desc = "Explain symbol (local AI)";
+            }
+          ];
+
+        # <leader>ak hover: ask the local instruct server for a one-line
+        # explanation of the symbol under the cursor, shown in the same float
+        # style as the LSP `K` hover. Async (vim.system) so it never blocks;
+        # exposed as the llama_explain module the keymap above requires.
+        luaConfigRC.llamaExplain = lib.mkIf localAi ''
+          local M = {}
+          function M.explain()
+            local word = vim.fn.expand("<cword>")
+            if word == "" then
+              vim.notify("No symbol under cursor", vim.log.levels.WARN)
+              return
+            end
+            local row = vim.fn.line(".")
+            local ctx = table.concat(vim.fn.getline(math.max(1, row - 8), row + 8), "\n")
+            local body = vim.json.encode({
+              messages = {
+                { role = "system", content = "You are a terse code explainer. Reply in 1-2 sentences. No preamble, no code fences." },
+                { role = "user", content = "Explain `" .. word .. "` in this " .. vim.bo.filetype .. " code:\n" .. ctx },
+              },
+              temperature = 0.2,
+              max_tokens = 160,
+              stream = false,
+            })
+            vim.lsp.util.open_floating_preview({ "Explaining " .. word .. "..." }, "markdown", { border = "rounded" })
+            vim.system(
+              { "curl", "-sS", "--max-time", "30", "http://127.0.0.1:8011/v1/chat/completions",
+                "-H", "Content-Type: application/json", "-d", body },
+              { text = true },
+              function(out)
+                local ok, decoded = pcall(vim.json.decode, out.stdout or "")
+                local msg
+                if ok and decoded.choices and decoded.choices[1] then
+                  msg = decoded.choices[1].message.content
+                else
+                  msg = "llama-server unreachable (is the local-ai service up on :8011?)"
+                end
+                vim.schedule(function()
+                  vim.lsp.util.open_floating_preview(vim.split(vim.trim(msg), "\n"), "markdown", { border = "rounded" })
+                end)
+              end
+            )
+          end
+          package.loaded["llama_explain"] = M
+        '';
       };
     };
   };

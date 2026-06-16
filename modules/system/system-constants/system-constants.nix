@@ -23,6 +23,11 @@ in {
         default = false;
         description = "Whether this host is battery powered (laptop hardware).";
       };
+      localAi = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Whether this host runs the local-ai stack (llama-server).";
+      };
     };
   };
 
