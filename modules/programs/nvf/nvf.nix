@@ -673,36 +673,52 @@
               desc = "Visual block mode (ctrl+v is paste in ghostty)";
             }
           ]
-          # Local AI: AI "explain this symbol" hover (see luaConfigRC below). Lives
-          # in the existing <leader>a "AI/Claude Code" which-key group.
+          # Local AI: AI "explain this" hover (see luaConfigRC below). Explains the
+          # symbol under the cursor in normal mode, or the selection in visual
+          # mode. Lives in the existing <leader>a "AI/Claude Code" which-key group.
           ++ lib.optionals localAi [
             {
               key = "<leader>ak";
-              mode = "n";
+              mode = ["n" "x"];
               lua = true;
               action = ''function() require("llama_explain").explain() end'';
-              desc = "Explain symbol (local AI)";
+              desc = "Explain symbol/selection (local AI)";
             }
           ];
 
         # <leader>ak hover: ask the local instruct server for a one-line
-        # explanation of the symbol under the cursor, shown in the same float
-        # style as the LSP `K` hover. Async (vim.system) so it never blocks;
-        # exposed as the llama_explain module the keymap above requires.
+        # explanation, shown in the same float style as the LSP `K` hover. In
+        # normal mode it explains the symbol under the cursor (with surrounding
+        # lines as context); in visual mode it explains the highlighted region.
+        # Async (vim.system) so it never blocks; exposed as the llama_explain
+        # module the keymap above requires.
         luaConfigRC.llamaExplain = lib.mkIf localAi ''
           local M = {}
           function M.explain()
-            local word = vim.fn.expand("<cword>")
-            if word == "" then
-              vim.notify("No symbol under cursor", vim.log.levels.WARN)
-              return
+            local mode = vim.fn.mode()
+            local visual = mode == "v" or mode == "V" or mode == "\22"
+            local label, prompt
+            if visual then
+              local region = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = mode })
+              -- Leave visual mode so the highlight doesn't linger behind the float.
+              vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "nx", false)
+              label = "selection"
+              prompt = "Explain this " .. vim.bo.filetype .. " code:\n" .. table.concat(region, "\n")
+            else
+              local word = vim.fn.expand("<cword>")
+              if word == "" then
+                vim.notify("No symbol under cursor", vim.log.levels.WARN)
+                return
+              end
+              local row = vim.fn.line(".")
+              local ctx = table.concat(vim.fn.getline(math.max(1, row - 8), row + 8), "\n")
+              label = word
+              prompt = "Explain `" .. word .. "` in this " .. vim.bo.filetype .. " code:\n" .. ctx
             end
-            local row = vim.fn.line(".")
-            local ctx = table.concat(vim.fn.getline(math.max(1, row - 8), row + 8), "\n")
             local body = vim.json.encode({
               messages = {
                 { role = "system", content = "You are a terse code explainer. Reply in 1-2 sentences. No preamble, no code fences." },
-                { role = "user", content = "Explain `" .. word .. "` in this " .. vim.bo.filetype .. " code:\n" .. ctx },
+                { role = "user", content = prompt },
               },
               temperature = 0.2,
               max_tokens = 160,
@@ -711,7 +727,7 @@
             -- Replies come back as one long line; max_width forces the float to
             -- wrap (it also sets wrap_at) instead of stretching across the screen.
             local float = { border = "rounded", max_width = 60 }
-            vim.lsp.util.open_floating_preview({ "Explaining " .. word .. "..." }, "markdown", float)
+            vim.lsp.util.open_floating_preview({ "Explaining " .. label .. "..." }, "markdown", float)
             vim.system(
               { "curl", "-sS", "--max-time", "30", "http://127.0.0.1:8011/v1/chat/completions",
                 "-H", "Content-Type: application/json", "-d", body },
