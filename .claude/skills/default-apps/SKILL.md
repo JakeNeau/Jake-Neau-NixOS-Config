@@ -7,7 +7,7 @@ description: How to set a program as the default handler for a file type or URL 
 
 Registering an app as the default handler for a file type or URL scheme is
 **per-OS**, so it belongs in a cross-platform home-manager aspect split with
-`lib.mkMerge` + `pkgs.stdenv.isLinux` / `isDarwin` (see the `nix-config` skill for
+`lib.mkMerge` + `pkgs.stdenv.isLinux` / `isDarwin` (see [[nix-config]] for
 the aspect rules). Copy the two canonical examples in this repo:
 `modules/programs/sioyek/sioyek.nix` (PDF) and
 `modules/programs/librewolf/librewolf.nix` (browser).
@@ -144,7 +144,7 @@ the bare scheme (`http`, `https`, `mailto`). Bundle ids seen here:
 
 This is an activation script, not build-time config, so a dry build only checks
 that the Nix evaluates — it won't exercise the `duti` logic. Per `CLAUDE.md` /
-the `nix-config` skill, **don't** run `switch`/`nr`; the user runs the rebuild
+[[nix-config]], **don't** run `switch`/`nr`; the user runs the rebuild
 and confirms the modal stops reappearing.
 
 ## DRY note
@@ -153,3 +153,8 @@ The macOS block is near-identical across apps (only the bundle id + type list
 change). If a third app needs a default handler, factor a small helper (a function
 taking bundle id + list of types that emits the guarded activation) rather than
 copy-pasting a third time.
+
+## Related skills
+
+- [[nix-config]] — the aspect rules (`lib.mkMerge` + `isLinux`/`isDarwin`) this builds on
+- [[machine-layout]] — NixOS vs macOS context for per-OS handlers

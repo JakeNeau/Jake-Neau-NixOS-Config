@@ -59,3 +59,8 @@ Skills specific to this nix-darwin repo live under `.claude/skills/`:
   members edit without sudo, how to check it is set up on the current machine,
   and the one-time setup steps. Surfaces the gap to the user when the setup is
   missing (e.g. on a new machine or fresh clone).
+- **default-apps** (`.claude/skills/default-apps/SKILL.md`) — how to set the
+  default handler for a file type or URL scheme across NixOS and macOS: Linux's
+  declarative `xdg.mimeApps`, and macOS's guarded `duti` activation plus the
+  `mac-app-util` trampolines that let the guard stick. Covers the anti-hijacking
+  modal trap and how to find the bundle ids / UTIs you need.

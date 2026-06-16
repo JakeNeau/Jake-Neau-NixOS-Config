@@ -272,7 +272,7 @@ Format Nix with **`alejandra`** (2-space indent). Do **not** run `switch`,
 live system and push to GitHub. Secrets go through **sops-nix**, never as plaintext
 in `.nix` files.
 
-## See also
+## References
 
 - [`aspects.md`](aspects.md) — the eight aspect design patterns, with code.
 - `CLAUDE.md` — repo-wide cautions (root-owned paths, rebuild/push flow, secrets).
@@ -281,3 +281,10 @@ in `.nix` files.
 
 [`vic/import-tree`]: https://github.com/vic/import-tree
 [`vic/flake-file`]: https://github.com/vic/flake-file
+
+## Related skills
+
+- [[machine-layout]] — where this repo lives per machine and how changes are applied
+- [[repo-permissions]] — editing this root-owned repo without sudo (the `config` group)
+- [[nvf]] — Neovim built as its own flake, wired in as a feature
+- [[default-apps]] — setting default file/URL handlers via a cross-platform aspect
