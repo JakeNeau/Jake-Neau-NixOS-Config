@@ -22,6 +22,7 @@ in {
     config,
     pkgs,
     lib,
+    osConfig ? {},
     ...
   }: let
     # Filesystem birth time of /: GNU stat on Linux, BSD stat on macOS.
@@ -29,6 +30,20 @@ in {
       if pkgs.stdenv.isDarwin
       then "stat -f %B /"
       else "stat -c %W /";
+    # PC line value: bold hostname, em dash, then the hardware model. osConfig
+    # is absent for standalone home-manager, so fall back to just the model.
+    hostName =
+      (
+        if osConfig == null
+        then {}
+        else osConfig
+      )
+      .networking.hostName
+      or "";
+    pcFormat =
+      if hostName == ""
+      then "{name}"
+      else "{#1}${hostName}{#} — {name}";
   in {
     programs.fastfetch = {
       enable = true;
@@ -65,6 +80,7 @@ in {
             }
             {
               type = "host";
+              format = pcFormat;
               key = " PC         ";
               keyColor = "green";
             }
