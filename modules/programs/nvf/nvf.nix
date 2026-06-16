@@ -707,7 +707,10 @@
               max_tokens = 160,
               stream = false,
             })
-            vim.lsp.util.open_floating_preview({ "Explaining " .. word .. "..." }, "markdown", { border = "rounded" })
+            -- Replies come back as one long line; max_width forces the float to
+            -- wrap (it also sets wrap_at) instead of stretching across the screen.
+            local float = { border = "rounded", max_width = 60 }
+            vim.lsp.util.open_floating_preview({ "Explaining " .. word .. "..." }, "markdown", float)
             vim.system(
               { "curl", "-sS", "--max-time", "30", "http://127.0.0.1:8011/v1/chat/completions",
                 "-H", "Content-Type: application/json", "-d", body },
@@ -721,7 +724,7 @@
                   msg = "llama-server unreachable (is the local-ai service up on :8011?)"
                 end
                 vim.schedule(function()
-                  vim.lsp.util.open_floating_preview(vim.split(vim.trim(msg), "\n"), "markdown", { border = "rounded" })
+                  vim.lsp.util.open_floating_preview(vim.split(vim.trim(msg), "\n"), "markdown", float)
                 end)
               end
             )
