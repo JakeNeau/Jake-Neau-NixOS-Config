@@ -403,18 +403,19 @@
           enable = true;
           formatOnSave = true;
 
+          # Code action on <leader>ca (nvf's default is <leader>la).
+          mappings.codeAction = "<leader>ca";
+
           # Pretty icons next to completion items
           lspkind.enable = true;
 
           # Enhanced LSP UI
           lspsaga = {
             enable = true;
-            # mappings = {
-            #   codeAction = "<leader>ca";
-            #   definiton = "gd";
-            #   hover = "K";
-            #   rename = "<leader>rn";
-            # };
+            # Kill the code-action lightbulb lspsaga otherwise draws on every
+            # actionable line — both in the sign column and as end-of-line
+            # virtual text.
+            setupOpts.lightbulb.enable = false;
           };
 
           # Inline Errors
