@@ -13,19 +13,19 @@
   # than Ollama). Models are shared by both platforms, so build them from pkgs.
   mkArgs = pkgs: let
     hover = pkgs.fetchurl {
-      name = "qwen2.5-coder-7b-instruct-q4_k_m.gguf";
-      url = "https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf";
-      hash = "sha256-FmT8yrc0Z0pQdjSQqMaTG3Dj8vjsEAMbVIBtMOX5VrY=";
+      name = "qwen2.5-coder-32b-instruct-q4_k_m.gguf";
+      url = "https://huggingface.co/bartowski/Qwen2.5-Coder-32B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf";
+      hash = "sha256-ji/Xj/VefN9Xf9ole6wndv631z2SJhPK81RoBzgH6BU=";
     };
     fim = pkgs.fetchurl {
-      name = "qwen2.5-coder-1.5b-q8_0.gguf";
-      url = "https://huggingface.co/ggml-org/Qwen2.5-Coder-1.5B-Q8_0-GGUF/resolve/main/qwen2.5-coder-1.5b-q8_0.gguf";
-      hash = "sha256-KYcclNFXJ6biQ/eaNxE9SuYlpiFbXoAL9Bojry2jKDI=";
+      name = "qwen2.5-coder-3b-q8_0.gguf";
+      url = "https://huggingface.co/ggml-org/Qwen2.5-Coder-3B-Q8_0-GGUF/resolve/main/qwen2.5-coder-3b-q8_0.gguf";
+      hash = "sha256-pSKpBuKZ7TTbc4uWJrLNDankRsFGdEaKIvwurj29NE0=";
     };
     bin = "${pkgs.llama-cpp}/bin/llama-server";
   in {
     # instruct/chat model for the hover summary (/v1/chat/completions)
-    hover = [bin "-m" "${hover}" "--port" (toString ports.hover) "-c" "8192" "-ngl" "99"];
+    hover = [bin "-m" "${hover}" "--port" (toString ports.hover) "-c" "16384" "-ngl" "99"];
     # FIM model with llama.vim's recommended low-latency flags (/infill)
     fim = [bin "-m" "${fim}" "--port" (toString ports.fim) "--ctx-size" "0" "-ub" "1024" "-b" "1024" "--cache-reuse" "256" "-ngl" "99"];
   };

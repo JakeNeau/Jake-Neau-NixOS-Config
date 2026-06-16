@@ -696,9 +696,12 @@
 
         # Local AI hovers, shown in the same float style as the LSP `K` hover.
         # `explain` summarizes the code; `ask` answers a typed question about it.
-        # Both target the visual selection, else the symbol under the cursor.
-        # Async (vim.system) so they never block; exposed as the llama_explain
-        # module the keymaps above require.
+        # Both target the visual selection, else the symbol under the cursor, and
+        # feed the model the whole file plus the LSP-resolved definition of the
+        # symbol (which may live in another file) so its answers aren't blind to
+        # the rest of the code. The HTTP call is async (vim.system) so it never
+        # blocks; the one short definition lookup is sync. Exposed as the
+        # llama_explain module the keymaps above require.
         luaConfigRC.llamaExplain = lib.mkIf localAi ''
           local M = {}
 
@@ -713,7 +716,7 @@
                 { role = "user", content = user },
               },
               temperature = 0.2,
-              max_tokens = 160,
+              max_tokens = 512,
               stream = false,
             })
             local float = { border = "rounded", max_width = 60 }
@@ -745,42 +748,110 @@
             return table.concat(region, "\n")
           end
 
-          local explainer = "You are a terse code explainer. Reply in 1-2 sentences. No preamble, no code fences."
-
-          -- <leader>ak: explain the selection (why) or the symbol under the cursor (what).
-          function M.explain()
-            local sel = selection()
-            if sel then
-              chat(explainer,
-                "Explain WHY this " .. vim.bo.filetype .. " code does what it does — its purpose and reasoning, not a line-by-line description of what it does:\n" .. sel,
-                "Explaining selection...")
-              return
-            end
-            local word = vim.fn.expand("<cword>")
-            if word == "" then
-              vim.notify("No symbol under cursor", vim.log.levels.WARN)
-              return
-            end
-            local row = vim.fn.line(".")
-            local ctx = table.concat(vim.fn.getline(math.max(1, row - 8), row + 8), "\n")
-            chat(explainer,
-              "Explain `" .. word .. "` in this " .. vim.bo.filetype .. " code:\n" .. ctx,
-              "Explaining " .. word .. "...")
+          -- Resolve one LSP definition location to a labeled snippet. The target
+          -- may be in another file and not yet loaded, so bufadd/bufload it.
+          local function read_def(word, uri, range)
+            local path = vim.uri_to_fname(uri)
+            local bufnr = vim.fn.bufadd(path)
+            vim.fn.bufload(bufnr)
+            local from = range.start.line
+            local src = table.concat(vim.api.nvim_buf_get_lines(bufnr, from, from + 30, false), "\n")
+            local rel = vim.fn.fnamemodify(path, ":.")
+            return path .. ":" .. from, "### `" .. word .. "` (" .. rel .. ":" .. (from + 1) .. ")\n" .. src
           end
 
-          -- <leader>aq: prompt for a free-form question about the selection
-          -- (visual) or the symbol under the cursor (normal); answer renders in
-          -- the same float.
-          function M.ask()
-            local code = selection() or vim.fn.expand("<cword>")
-            if code == "" then
-              vim.notify("No symbol under cursor", vim.log.levels.WARN)
-              return
+          -- Ask the running language server where the symbol under the cursor is
+          -- defined and return its source (deduped), or nil. This is the
+          -- "open other files for context" piece — reuse the LSP, don't grep.
+          local function definitions(word, pos)
+            if vim.tbl_isempty(vim.lsp.get_clients({ bufnr = 0 })) then return nil end
+            local params = {
+              textDocument = { uri = vim.uri_from_bufnr(0) },
+              position = { line = pos[1] - 1, character = pos[2] },
+            }
+            local res = vim.lsp.buf_request_sync(0, "textDocument/definition", params, 200)
+            if not res then return nil end
+            local out, seen = {}, {}
+            for _, r in pairs(res) do
+              local result = r.result or {}
+              -- a single Location/LocationLink, or a list of them
+              if result.uri or result.targetUri then result = { result } end
+              for _, loc in ipairs(result) do
+                local uri = loc.uri or loc.targetUri
+                local range = loc.range or loc.targetSelectionRange or loc.targetRange
+                if uri and range then
+                  local key, snippet = read_def(word, uri, range)
+                  if not seen[key] then
+                    seen[key] = true
+                    out[#out + 1] = snippet
+                  end
+                end
+              end
             end
+            return #out > 0 and table.concat(out, "\n\n") or nil
+          end
+
+          -- The whole buffer, so the model can see beyond the snippet. Bounded to
+          -- ~±100 lines around the cursor for big files so we don't blow the
+          -- server's context window.
+          local function file_context()
+            local n = vim.api.nvim_buf_line_count(0)
+            local from, to = 0, n
+            if n > 400 then
+              local row = vim.api.nvim_win_get_cursor(0)[1]
+              from, to = math.max(0, row - 100), math.min(n, row + 100)
+            end
+            local path = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":.")
+            return path, table.concat(vim.api.nvim_buf_get_lines(0, from, to, false), "\n")
+          end
+
+          -- Build the context block both commands share: the focus (selection,
+          -- else the word under the cursor with nearby lines), the whole file,
+          -- and the symbol's definition. Returns (blob, label), or nil if there's
+          -- nothing under the cursor. Runs the definition lookup before
+          -- selection() drops us out of visual mode.
+          local function gather()
+            local pos = vim.api.nvim_win_get_cursor(0)
+            local word = vim.fn.expand("<cword>")
+            local defs = word ~= "" and definitions(word, pos) or nil
+            local sel = selection()
+            local focus, label
+            if sel and sel ~= "" then
+              focus, label = sel, "selection"
+            elseif word ~= "" then
+              local near = table.concat(vim.fn.getline(math.max(1, pos[1] - 8), pos[1] + 8), "\n")
+              focus, label = "`" .. word .. "`\n" .. near, word
+            else
+              return nil
+            end
+            local path, file = file_context()
+            local blob = "Focus on this " .. vim.bo.filetype .. " code:\n" .. focus
+              .. "\n\nFull file (" .. path .. "):\n" .. file
+              .. "\n\nDefinition of the symbol under the cursor:\n" .. (defs or "(none found)")
+            return blob, label
+          end
+
+          local explainer = "You are a code explainer. Be concise. No preamble, no code fences."
+
+          -- <leader>ak: explain the focus — its purpose and reasoning (why), not
+          -- a line-by-line description.
+          function M.explain()
+            local blob, label = gather()
+            if not blob then vim.notify("No symbol under cursor", vim.log.levels.WARN) return end
+            chat(explainer,
+              "Explain WHY the focused code does what it does — its purpose and reasoning, not a line-by-line description.\n\n" .. blob,
+              "Explaining " .. label .. "...")
+          end
+
+          -- <leader>aq: prompt for a free-form question about the focus; answer
+          -- renders in the same float.
+          function M.ask()
+            local blob, label = gather()
+            if not blob then vim.notify("No symbol under cursor", vim.log.levels.WARN) return end
             vim.ui.input({ prompt = "Ask about this code: " }, function(question)
               if not question or question == "" then return end
-              chat("You are a terse code assistant. Answer the question in 1-2 sentences. No preamble, no code fences.",
-                question .. "\n\nRelevant " .. vim.bo.filetype .. " code:\n" .. code,
+              chat("You are a code assistant. Answer the question concisely. No preamble, no code fences.",
+                question .. "\n\n" .. blob,
                 "Asking...")
             end)
           end
