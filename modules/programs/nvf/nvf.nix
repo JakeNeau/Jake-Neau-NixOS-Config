@@ -673,9 +673,10 @@
               desc = "Visual block mode (ctrl+v is paste in ghostty)";
             }
           ]
-          # Local AI: AI "explain this" hover (see luaConfigRC below). Explains the
-          # symbol under the cursor in normal mode, or the selection in visual
-          # mode. Lives in the existing <leader>a "AI/Claude Code" which-key group.
+          # Local AI hovers (see luaConfigRC below). Both target the symbol under
+          # the cursor in normal mode, or the selection in visual mode: <leader>ak
+          # explains it, <leader>aq prompts for a free-form question about it. Live
+          # in the existing <leader>a "AI/Claude Code" which-key group.
           ++ lib.optionals localAi [
             {
               key = "<leader>ak";
@@ -684,68 +685,106 @@
               action = ''function() require("llama_explain").explain() end'';
               desc = "Explain symbol/selection (local AI)";
             }
+            {
+              key = "<leader>aq";
+              mode = ["n" "x"];
+              lua = true;
+              action = ''function() require("llama_explain").ask() end'';
+              desc = "Ask about symbol/selection (local AI)";
+            }
           ];
 
-        # <leader>ak hover: ask the local instruct server for a one-line
-        # explanation, shown in the same float style as the LSP `K` hover. In
-        # normal mode it explains the symbol under the cursor (with surrounding
-        # lines as context); in visual mode it explains the highlighted region.
-        # Async (vim.system) so it never blocks; exposed as the llama_explain
-        # module the keymap above requires.
+        # Local AI hovers, shown in the same float style as the LSP `K` hover.
+        # `explain` summarizes the code; `ask` answers a typed question about it.
+        # Both target the visual selection, else the symbol under the cursor.
+        # Async (vim.system) so they never block; exposed as the llama_explain
+        # module the keymaps above require.
         luaConfigRC.llamaExplain = lib.mkIf localAi ''
           local M = {}
-          function M.explain()
-            local mode = vim.fn.mode()
-            local visual = mode == "v" or mode == "V" or mode == "\22"
-            local label, prompt
-            if visual then
-              local region = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = mode })
-              -- Leave visual mode so the highlight doesn't linger behind the float.
-              vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "nx", false)
-              label = "selection"
-              prompt = "Explain WHY this " .. vim.bo.filetype .. " code does what it does — its purpose and reasoning, not a line-by-line description of what it does:\n" .. table.concat(region, "\n")
-            else
-              local word = vim.fn.expand("<cword>")
-              if word == "" then
-                vim.notify("No symbol under cursor", vim.log.levels.WARN)
-                return
-              end
-              local row = vim.fn.line(".")
-              local ctx = table.concat(vim.fn.getline(math.max(1, row - 8), row + 8), "\n")
-              label = word
-              prompt = "Explain `" .. word .. "` in this " .. vim.bo.filetype .. " code:\n" .. ctx
-            end
+
+          -- POST a chat completion to the local instruct server and render the
+          -- reply in a float. Replies come back as one long line; max_width
+          -- forces the float to wrap (it also sets wrap_at) instead of
+          -- stretching across the screen.
+          local function chat(system, user, placeholder)
             local body = vim.json.encode({
               messages = {
-                { role = "system", content = "You are a terse code explainer. Reply in 1-2 sentences. No preamble, no code fences." },
-                { role = "user", content = prompt },
+                { role = "system", content = system },
+                { role = "user", content = user },
               },
               temperature = 0.2,
               max_tokens = 160,
               stream = false,
             })
-            -- Replies come back as one long line; max_width forces the float to
-            -- wrap (it also sets wrap_at) instead of stretching across the screen.
             local float = { border = "rounded", max_width = 60 }
-            vim.lsp.util.open_floating_preview({ "Explaining " .. label .. "..." }, "markdown", float)
+            vim.lsp.util.open_floating_preview({ placeholder }, "markdown", float)
             vim.system(
               { "curl", "-sS", "--max-time", "30", "http://127.0.0.1:8011/v1/chat/completions",
                 "-H", "Content-Type: application/json", "-d", body },
               { text = true },
               function(out)
                 local ok, decoded = pcall(vim.json.decode, out.stdout or "")
-                local msg
-                if ok and decoded.choices and decoded.choices[1] then
-                  msg = decoded.choices[1].message.content
-                else
-                  msg = "llama-server unreachable (is the local-ai service up on :8011?)"
-                end
+                local msg = (ok and decoded.choices and decoded.choices[1])
+                  and decoded.choices[1].message.content
+                  or "llama-server unreachable (is the local-ai service up on :8011?)"
                 vim.schedule(function()
                   vim.lsp.util.open_floating_preview(vim.split(vim.trim(msg), "\n"), "markdown", float)
                 end)
               end
             )
           end
+
+          -- In a visual mode, return the highlighted text (captured before we
+          -- leave visual mode so the marks are still live); else nil.
+          local function selection()
+            local mode = vim.fn.mode()
+            if mode ~= "v" and mode ~= "V" and mode ~= "\22" then return nil end
+            local region = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = mode })
+            -- Leave visual mode so the highlight doesn't linger behind the float.
+            vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "nx", false)
+            return table.concat(region, "\n")
+          end
+
+          local explainer = "You are a terse code explainer. Reply in 1-2 sentences. No preamble, no code fences."
+
+          -- <leader>ak: explain the selection (why) or the symbol under the cursor (what).
+          function M.explain()
+            local sel = selection()
+            if sel then
+              chat(explainer,
+                "Explain WHY this " .. vim.bo.filetype .. " code does what it does — its purpose and reasoning, not a line-by-line description of what it does:\n" .. sel,
+                "Explaining selection...")
+              return
+            end
+            local word = vim.fn.expand("<cword>")
+            if word == "" then
+              vim.notify("No symbol under cursor", vim.log.levels.WARN)
+              return
+            end
+            local row = vim.fn.line(".")
+            local ctx = table.concat(vim.fn.getline(math.max(1, row - 8), row + 8), "\n")
+            chat(explainer,
+              "Explain `" .. word .. "` in this " .. vim.bo.filetype .. " code:\n" .. ctx,
+              "Explaining " .. word .. "...")
+          end
+
+          -- <leader>aq: prompt for a free-form question about the selection
+          -- (visual) or the symbol under the cursor (normal); answer renders in
+          -- the same float.
+          function M.ask()
+            local code = selection() or vim.fn.expand("<cword>")
+            if code == "" then
+              vim.notify("No symbol under cursor", vim.log.levels.WARN)
+              return
+            end
+            vim.ui.input({ prompt = "Ask about this code: " }, function(question)
+              if not question or question == "" then return end
+              chat("You are a terse code assistant. Answer the question in 1-2 sentences. No preamble, no code fences.",
+                question .. "\n\nRelevant " .. vim.bo.filetype .. " code:\n" .. code,
+                "Asking...")
+            end)
+          end
+
           package.loaded["llama_explain"] = M
         '';
       };
