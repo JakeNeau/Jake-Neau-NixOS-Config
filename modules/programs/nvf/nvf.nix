@@ -439,6 +439,20 @@
             scrollDocsDown = "<C-f>";
             complete = "<C-Space>";
           };
+
+          # Don't preselect a candidate, and make <CR> confirm only one you
+          # actually picked (Tab/S-Tab). nvf otherwise hardcodes a preselected
+          # item + confirm({select = true}), so Enter swallows newlines into
+          # whatever the menu happened to be showing.
+          setupOpts = {
+            completion.completeopt = "menu,menuone,noselect";
+            mapping."<CR>" =
+              lib.mkForce (lib.generators.mkLuaInline "cmp.mapping.confirm({ select = false })");
+            # Explicit accept: <C-y> confirms the highlighted (or first) item,
+            # for when you want to commit without reaching for Tab.
+            mapping."<C-y>" =
+              lib.generators.mkLuaInline "cmp.mapping.confirm({ select = true })";
+          };
         };
 
         # ---------------------------------
@@ -524,35 +538,75 @@
         # Other keymaps
         # ---------------
         keymaps = [
+          # Window navigation, normal mode. Terminal-mode variants below break
+          # out of the terminal first (<C-\><C-n>) so the same chord escapes
+          # the Claude Code terminal and lands in a code window in one press.
           {
             key = "<C-h>";
             mode = "n";
             action = "<C-w>h";
-            desc = "Move right one window";
+            desc = "Focus window left";
           }
           {
             key = "<C-j>";
             mode = "n";
             action = "<C-w>j";
-            desc = "Move down one window";
+            desc = "Focus window below";
           }
           {
             key = "<C-k>";
             mode = "n";
             action = "<C-w>k";
-            desc = "Move up one window";
+            desc = "Focus window above";
           }
           {
             key = "<C-l>";
             mode = "n";
             action = "<C-w>l";
-            desc = "Move left one window";
+            desc = "Focus window right";
+          }
+          {
+            key = "<C-h>";
+            mode = "t";
+            action = "<C-\\><C-n><C-w>h";
+            desc = "Focus window left";
+          }
+          {
+            key = "<C-j>";
+            mode = "t";
+            action = "<C-\\><C-n><C-w>j";
+            desc = "Focus window below";
+          }
+          {
+            key = "<C-k>";
+            mode = "t";
+            action = "<C-\\><C-n><C-w>k";
+            desc = "Focus window above";
+          }
+          {
+            key = "<C-l>";
+            mode = "t";
+            action = "<C-\\><C-n><C-w>l";
+            desc = "Focus window right";
           }
           {
             key = "-";
             mode = "n";
             action = "<cmd>Oil<cr>";
             desc = "Open oil (parent directory)";
+          }
+          # Cycle buffers (shadows the default screen-top/bottom motions).
+          {
+            key = "<S-l>";
+            mode = "n";
+            action = "<cmd>bnext<cr>";
+            desc = "Next buffer";
+          }
+          {
+            key = "<S-h>";
+            mode = "n";
+            action = "<cmd>bprevious<cr>";
+            desc = "Previous buffer";
           }
           {
             # Recommended by the which-key README: show only the keymaps
