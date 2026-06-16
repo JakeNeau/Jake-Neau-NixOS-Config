@@ -80,26 +80,33 @@
         # Colorscheme
         # ----------------
         # On NixOS, stylix themes nvf automatically (gruvbox-material-dark-hard).
-        # The macs have no stylix, so to get an identical look there, enable the
-        # self-contained base16 theme below. Left disabled until the exact nvf
-        # theme option + palette are confirmed on a machine that can build
-        # (verify hexes against
-        # ${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-hard.yaml).
-        #
-        # theme = {
-        #   enable = true;
-        #   name = "base16";
-        #   base16-colors = {
-        #     base00 = "#1d2021"; base01 = "#3c3836";
-        #     base02 = "#504945"; base03 = "#665c54";
-        #     base04 = "#bdae93"; base05 = "#d4be98";
-        #     base06 = "#ebdbb2"; base07 = "#fbf1c7";
-        #     base08 = "#ea6962"; base09 = "#e78a4e";
-        #     base0A = "#d8a657"; base0B = "#a9b665";
-        #     base0C = "#89b482"; base0D = "#7daea3";
-        #     base0E = "#d3869b"; base0F = "#bd6f3e";
-        #   };
-        # };
+        # The macs have no stylix, so without a colorscheme treesitter has no
+        # palette behind it and code looks washed out. Enable the same scheme
+        # as a self-contained base16 theme — but only on Darwin, so it never
+        # overrides stylix on NixOS. Palette copied verbatim from
+        # ${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-hard.yaml.
+        theme = lib.mkIf pkgs.stdenv.isDarwin {
+          enable = true;
+          name = "base16";
+          base16-colors = {
+            base00 = "#202020";
+            base01 = "#2a2827";
+            base02 = "#504945";
+            base03 = "#5a524c";
+            base04 = "#bdae93";
+            base05 = "#ddc7a1";
+            base06 = "#ebdbb2";
+            base07 = "#fbf1c7";
+            base08 = "#ea6962";
+            base09 = "#e78a4e";
+            base0A = "#d8a657";
+            base0B = "#a9b665";
+            base0C = "#89b482";
+            base0D = "#7daea3";
+            base0E = "#d3869b";
+            base0F = "#bd6f3e";
+          };
+        };
 
         # ----------------
         # Global Options
