@@ -40,9 +40,14 @@ default that adds such attribution.
 ## 5. Explain each change before editing
 
 Before making a file edit, state what you're changing, where (the file and the
-exact spot), and why it's correct there — then wait for my go-ahead before
-applying it. Work one change at a time so each can be reviewed and queried in
-isolation before it lands.
+exact spot), and why it's correct there. Work one change at a time so each can be
+reviewed and queried in isolation before it lands.
+
+## 6. Prove every change is correct
+
+For every code change, walk the diff line by line and prove each line is correct
+before calling it done — trace the data flow, edge cases, and types; don't trust
+that it merely looks right.
 
 # This machine is Nix-managed
 
