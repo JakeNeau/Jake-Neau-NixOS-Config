@@ -680,17 +680,31 @@
           ++ lib.optionals localAi [
             {
               key = "<leader>ak";
-              mode = ["n" "x"];
+              mode = ["n"];
               lua = true;
               action = ''function() require("llama_explain").explain() end'';
-              desc = "Explain symbol/selection (local AI)";
+              desc = "Explain symbol (local AI)";
+            }
+            {
+              key = "<leader>ak";
+              mode = ["x"];
+              lua = true;
+              action = ''function() require("llama_explain").explain_visual() end'';
+              desc = "Explain selection (local AI)";
             }
             {
               key = "<leader>aq";
-              mode = ["n" "x"];
+              mode = ["n"];
               lua = true;
               action = ''function() require("llama_explain").ask() end'';
-              desc = "Ask about symbol/selection (local AI)";
+              desc = "Ask about symbol (local AI)";
+            }
+            {
+              key = "<leader>aq";
+              mode = ["x"];
+              lua = true;
+              action = ''function() require("llama_explain").ask_visual() end'';
+              desc = "Ask about selection (local AI)";
             }
           ];
 
@@ -737,11 +751,10 @@
             )
           end
 
-          -- In a visual mode, return the highlighted text (captured before we
-          -- leave visual mode so the marks are still live); else nil.
+          -- Capture the highlighted text. Called only from the visual-mode maps,
+          -- so the marks are live; reads `mode` only for getregion's type.
           local function selection()
             local mode = vim.fn.mode()
-            if mode ~= "v" and mode ~= "V" and mode ~= "\22" then return nil end
             local region = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = mode })
             -- Leave visual mode so the highlight doesn't linger behind the float.
             vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "nx", false)
@@ -805,16 +818,15 @@
             return path, table.concat(vim.api.nvim_buf_get_lines(0, from, to, false), "\n")
           end
 
-          -- Build the context block both commands share: the focus (selection,
-          -- else the word under the cursor with nearby lines), the whole file,
-          -- and the symbol's definition. Returns (blob, label), or nil if there's
-          -- nothing under the cursor. Runs the definition lookup before
-          -- selection() drops us out of visual mode.
-          local function gather()
+          -- Build the context block both commands share: the focus (the given
+          -- selection, else the word under the cursor with nearby lines), the
+          -- whole file, and the symbol's definition. `sel` is the visual
+          -- selection (visual maps) or nil (normal maps). Returns (blob, label),
+          -- or nil if there's nothing to focus on.
+          local function gather(sel)
             local pos = vim.api.nvim_win_get_cursor(0)
             local word = vim.fn.expand("<cword>")
             local defs = word ~= "" and definitions(word, pos) or nil
-            local sel = selection()
             local focus, label
             if sel and sel ~= "" then
               focus, label = sel, "selection"
@@ -835,8 +847,8 @@
 
           -- <leader>ak: explain the focus — its purpose and reasoning (why), not
           -- a line-by-line description.
-          function M.explain()
-            local blob, label = gather()
+          function M.explain(sel)
+            local blob, label = gather(sel)
             if not blob then vim.notify("No symbol under cursor", vim.log.levels.WARN) return end
             chat(explainer,
               "Explain WHY the focused code does what it does — its purpose and reasoning, not a line-by-line description.\n\n" .. blob,
@@ -845,8 +857,8 @@
 
           -- <leader>aq: prompt for a free-form question about the focus; answer
           -- renders in the same float.
-          function M.ask()
-            local blob, label = gather()
+          function M.ask(sel)
+            local blob, label = gather(sel)
             if not blob then vim.notify("No symbol under cursor", vim.log.levels.WARN) return end
             vim.ui.input({ prompt = "Ask about this code: " }, function(question)
               if not question or question == "" then return end
@@ -855,6 +867,11 @@
                 "Asking...")
             end)
           end
+
+          -- Visual-mode entry points: capture the selection (while still in
+          -- visual mode) and hand it to the normal command.
+          function M.explain_visual() M.explain(selection()) end
+          function M.ask_visual() M.ask(selection()) end
 
           package.loaded["llama_explain"] = M
         '';
