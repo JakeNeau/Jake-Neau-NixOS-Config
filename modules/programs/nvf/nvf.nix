@@ -81,7 +81,14 @@
           keymap_inst_accept = "";
           keymap_inst_cancel = "";
           keymap_debug_toggle = "";
+          show_info = 0; # no inline inference-stats line after the suggestion
         };
+
+        # llama.vim hardcodes its FIM ghost text to orange (highlight default
+        # llama_hl_fim_hint guifg=#ff772f). Override it to the muted Comment
+        # color so the suggestion reads as conventional gray ghost text;
+        # linking to Comment tracks the theme on both NixOS (stylix) and Darwin.
+        highlight.llama_hl_fim_hint = lib.mkIf localAi {link = "Comment";};
 
         # Pressing escape clears all highlighted search results
         hideSearchHighlight = true;
