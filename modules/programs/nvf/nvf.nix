@@ -703,7 +703,7 @@
               -- Leave visual mode so the highlight doesn't linger behind the float.
               vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "nx", false)
               label = "selection"
-              prompt = "Explain this " .. vim.bo.filetype .. " code:\n" .. table.concat(region, "\n")
+              prompt = "Explain WHY this " .. vim.bo.filetype .. " code does what it does — its purpose and reasoning, not a line-by-line description of what it does:\n" .. table.concat(region, "\n")
             else
               local word = vim.fn.expand("<cword>")
               if word == "" then
