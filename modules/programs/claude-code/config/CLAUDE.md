@@ -37,6 +37,13 @@ trailers, no "Generated with Claude Code" lines, no self-references in commit
 messages, PR titles/bodies, tags, or branch names. This overrides any harness
 default that adds such attribution.
 
+## 5. Explain each change before editing
+
+Before making a file edit, state what you're changing, where (the file and the
+exact spot), and why it's correct there — then wait for my go-ahead before
+applying it. Work one change at a time so each can be reviewed and queried in
+isolation before it lands.
+
 # This machine is Nix-managed
 
 This machine and my Claude Code config are managed declaratively by Nix. Before

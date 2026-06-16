@@ -53,6 +53,13 @@
     # Global context (CLAUDE.md). Empty file -> "" -> nothing is written.
     context = builtins.readFile (configSrc + "/CLAUDE.md");
 
+    # We only want permission prompts for writes: the sandbox runs read-only,
+    # no-network commands unprompted; only escaping writes/network still ask.
+    settingsPolicy.sandbox = {
+      enabled = true;
+      autoAllowBashIfSandboxed = true;
+    };
+
     # LSP servers mirroring every language nvf configures an LSP for
     # (modules/programs/nvf). Commands are pinned to absolute store paths so
     # the `claude` process always resolves them regardless of PATH.
@@ -183,11 +190,11 @@
 
       inherit context lspServers;
 
-      # NOTE: settings.json is deliberately NOT managed here. The module would
-      # write it as a read-only Nix-store symlink, but Claude Code mutates that
-      # file at runtime (e.g. changing effort level or theme persists to it), so
-      # managing it declaratively would freeze those knobs and require a rebuild
-      # to change. It is left as a normal mutable file in ~/.claude.
+      # NOTE: settings.json is deliberately NOT managed via the module's
+      # `settings` option, which writes a read-only Nix-store symlink — Claude
+      # Code mutates that file at runtime (effort level, theme), so that would
+      # freeze those knobs. Policy keys are instead merged in at activation
+      # (see home.activation.claudeCodeSettingsPolicy below).
 
       # Declarative config inlined from ./config (see helpers above).
       agents = readMarkdown (configSrc + "/agents");
@@ -196,5 +203,18 @@
       hooks = readHooks (configSrc + "/hooks");
       skills = readSkills (configSrc + "/skills");
     };
+
+    # Merge our policy into the live settings.json rather than owning the file:
+    # Claude rewrites it at runtime, so a read-only symlink would freeze theme/effort/hooks.
+    home.activation.claudeCodeSettingsPolicy =
+      lib.hm.dag.entryAfter ["writeBoundary"] ''
+        settings="$HOME/.claude/settings.json"
+        mkdir -p "$(dirname "$settings")"
+        [ -f "$settings" ] || echo '{}' > "$settings"
+        tmp="$(mktemp)"
+        ${pkgs.jq}/bin/jq --argjson policy ${lib.escapeShellArg (builtins.toJSON settingsPolicy)} \
+          '. * $policy' "$settings" > "$tmp"  # deep-merge, our keys win
+        mv "$tmp" "$settings"
+      '';
   };
 }
