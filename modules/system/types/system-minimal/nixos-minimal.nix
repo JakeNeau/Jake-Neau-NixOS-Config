@@ -4,8 +4,12 @@
     imports = [inputs.self.modules.generic.system-minimal];
 
     nixpkgs.config.allowUnfree = true;
-    # todoist-electron pins an electron flagged insecure upstream.
-    nixpkgs.config.permittedInsecurePackages = ["electron-39.8.10"];
+    nixpkgs.config.permittedInsecurePackages = [
+      "electron-39.8.10" # todoist-electron pins an electron flagged insecure upstream.
+      # TODO: temporary — drop once nixpkgs ships a non-EOL librewolf.
+      "librewolf-151.0.2-1"
+      "librewolf-unwrapped-151.0.2-1"
+    ];
 
     # Stamp each generation with the git commit it was built from
     # (dirtyRev when the tree has uncommitted changes).

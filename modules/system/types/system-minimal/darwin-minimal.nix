@@ -4,6 +4,11 @@
     imports = [inputs.self.modules.generic.system-minimal];
 
     nixpkgs.config.allowUnfree = true;
+    # TODO: temporary — drop once nixpkgs ships a non-EOL librewolf.
+    nixpkgs.config.permittedInsecurePackages = [
+      "librewolf-151.0.2-1"
+      "librewolf-unwrapped-151.0.2-1"
+    ];
 
     # Stamp each generation with the git commit it was built from
     # (dirtyRev when the tree has uncommitted changes).
