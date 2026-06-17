@@ -18,12 +18,12 @@
       {
         programs.sioyek = {
           enable = true;
-          # Page up/down rebound to vim-style Ctrl+K / Ctrl+J. These are added
-          # on top of the built-in <pageup>/<pagedown> keys (sioyek has no clean
-          # per-key unbind), so the original keys keep working too.
+          # Next/previous page bound to vim-style Ctrl+J / Ctrl+K. Sioyek has no
+          # clean per-key unbind, so these layer on top of any built-in keys for
+          # these commands, which keep working too.
           bindings = {
-            "screen_down" = "<C-j>";
-            "screen_up" = "<C-k>";
+            "next_page" = "<C-j>";
+            "previous_page" = "<C-k>";
           };
         };
       }
