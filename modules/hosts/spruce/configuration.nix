@@ -5,7 +5,6 @@
     imports = with inputs.self.modules.nixos; [
       system-desktop
       fastfetch
-      local-ai
       jakeneau
     ];
 
