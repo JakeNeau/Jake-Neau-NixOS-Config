@@ -35,6 +35,9 @@ in the repo instead.
   (see [[configuring-lsp-servers]]).
 - **MCP servers** → `programs.mcp.servers`, pulled in via `enableMcpIntegration`
   (see [[configuring-mcp-servers]]).
+- **Plugins** → an `enabledPlugins` entry in the `settingsPolicy` attrset in
+  `claude-code.nix`, plus a one-time `claude plugin install` per machine
+  (see [[configuring-plugins]]).
 
 **Hooks caveat:** a hook file alone does **not** fire — the module ships the
 script, but you must register it in `settings.json` separately. See
@@ -52,9 +55,10 @@ Each config type has its own best-practices skill. Read the relevant one first:
 - [[writing-claude-md]] — the global `CLAUDE.md` and memory
 - [[configuring-lsp-servers]] — language servers (Nix attrset)
 - [[configuring-mcp-servers]] — MCP servers (Nix attrset)
+- [[configuring-plugins]] — marketplace plugins (settingsPolicy attrset + per-machine install)
 
-Not yet wired here (upstream supports them — future skills):
-[[configuring-output-styles]], [[configuring-plugins]].
+Not yet wired here (upstream supports it — future skill):
+[[configuring-output-styles]].
 
 ## Not managed by Nix — edit live, no rebuild
 

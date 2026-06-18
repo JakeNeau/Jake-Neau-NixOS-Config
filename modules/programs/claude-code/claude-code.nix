@@ -60,6 +60,15 @@
       autoAllowBashIfSandboxed = true;
     };
 
+    # Force-enable plugins. Claude Code never auto-fetches plugins from settings
+    # alone, so each machine's cache is populated once via `claude plugin install
+    # <plugin>@claude-plugins-official`; these entries just keep them enabled
+    # across rebuilds and machines.
+    settingsPolicy.enabledPlugins."superpowers@claude-plugins-official" = true; # skills
+    settingsPolicy.enabledPlugins."security-guidance@claude-plugins-official" = true; # in-session vuln review
+    settingsPolicy.enabledPlugins."code-simplifier@claude-plugins-official" = true; # code-clarity refactor agent
+    settingsPolicy.enabledPlugins."claude-md-management@claude-plugins-official" = true; # CLAUDE.md audit/maintenance
+
     # LSP servers mirroring every language nvf configures an LSP for
     # (modules/programs/nvf). Commands are pinned to absolute store paths so
     # the `claude` process always resolves them regardless of PATH.
