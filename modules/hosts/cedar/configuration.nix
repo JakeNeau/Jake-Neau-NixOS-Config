@@ -19,13 +19,6 @@
     # Kubernetes CLI tools — only on this work laptop for now.
     home-manager.users."jake.neau".imports = [inputs.self.modules.homeManager.kubernetes];
 
-    # macOS keyboard behavior
-    system.defaults.NSGlobalDomain = {
-      InitialKeyRepeat = 15; # delay before repeating a key when holding it down (lower = shorter)
-      KeyRepeat = 8; # repeat speed of holding down a key once going (lower = faster)
-      ApplePressAndHoldEnabled = false; # turn off accent menu when holding down keys
-    };
-
     # direnv will load nix configs automatically in project folders
     programs.direnv = {
       enable = true;
