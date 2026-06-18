@@ -1,6 +1,6 @@
 ---
 name: writing-skills
-description: How to author a Claude Code skill (SKILL.md) so it is clear, discoverable, and well-connected — frontmatter format, best practices for understandability, and the [[skill-name]] convention that links related skills into a traversable graph. Read before creating or editing any skill. Also use when you notice an important concept that no skill covers (a gap in the graph) and want to capture it as a new skill.
+description: How to author a Claude Code skill (SKILL.md) so it is clear, discoverable, and well-connected — frontmatter format, best practices for understandability, and the [[name]] convention that links skills, agents, and memories into a traversable graph. Read before creating or editing any skill. Also use when you notice an important concept that no skill covers (a gap in the graph) and want to capture it as a new skill.
 ---
 
 # Writing skills
@@ -45,15 +45,22 @@ the model decide to open the skill. Write it to:
 
 ## Link your skill into the graph
 
-Skills link to each other with `[[name]]` tokens — see [[using-skills]] for how
-that graph works and why it is traversed at run time. When authoring:
+Skills link to each other — and to agents and memories — with `[[name]]` tokens;
+see [[using-skills]] for how that graph works and why it is traversed at run time.
+When authoring:
 
 - **Link inline** where one skill references another ("see [[machine-layout]]").
   `name` is the target skill's `name:` (= its folder).
+- **Link to agents too.** An agent is a valid target by its `name:` slug — a global
+  agent (`config/agents/`, e.g. [[code-reviewer]]) from a global skill, or a
+  project-local agent (`.claude/agents/`) from a local skill.
 - **End with a `## Related skills` trailer:** a short section listing outgoing
   links, one per line — `- [[name]] — one-line reason to follow it`.
 - **Link liberally and bidirectionally:** if A → B helps, B usually should point
-  back to A, so the graph is navigable from any node.
+  back to A, so the graph is navigable from any node — within a layer.
+- **Stay within your layer.** Link global↔global and local↔local only — each layer
+  spans its skills *and* agents; never a project-local skill → global skill/agent or
+  vice versa. `CLAUDE.md` bridges the layers (see [[using-skills]]).
 - **Add links to skills that don't exist yet.** A `[[name]]` pointing at a
   missing skill is a deliberate marker of where the graph should grow, not an
   error — and your cue to write that skill next (see [[using-skills]]).

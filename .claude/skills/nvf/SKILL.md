@@ -261,4 +261,3 @@ Format Nix with **`alejandra`** (2-space indent), matching the rest of the repo.
 ## Related skills
 
 - [[nix-config]] — features/aspects/flake wiring this fits into
-- [[configuring-lsp-servers]] — mirror the editor's LSP servers into Claude Code

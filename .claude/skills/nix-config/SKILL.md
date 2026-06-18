@@ -284,7 +284,6 @@ in `.nix` files.
 
 ## Related skills
 
-- [[machine-layout]] — where this repo lives per machine and how changes are applied
 - [[repo-permissions]] — editing this root-owned repo without sudo (the `config` group)
 - [[nvf]] — Neovim built as its own flake, wired in as a feature
 - [[default-apps]] — setting default file/URL handlers via a cross-platform aspect

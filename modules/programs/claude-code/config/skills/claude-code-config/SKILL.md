@@ -44,7 +44,7 @@ script, but you must register it in `settings.json` separately. See
 
 Each config type has its own best-practices skill. Read the relevant one first:
 
-- [[writing-agents]] — subagents (`config/agents/`)
+- [[writing-agents]] — subagents (`config/agents/`); e.g. [[code-reviewer]], [[web-researcher]]
 - [[writing-commands]] — slash commands (`config/commands/`)
 - [[writing-rules]] — auto-loaded rules / memory (`config/rules/`)
 - [[writing-hooks]] — event hooks (`config/hooks/` + settings.json registration)

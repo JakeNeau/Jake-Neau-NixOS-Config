@@ -204,6 +204,14 @@
       skills = readSkills (configSrc + "/skills");
     };
 
+    # MCP servers (flow into Claude via enableMcpIntegration above). mcp-nixos:
+    # live search of nixpkgs packages and NixOS/home-manager/nix-darwin options,
+    # so Claude looks them up instead of guessing. No credentials needed.
+    programs.mcp = {
+      enable = true;
+      servers.nixos.command = lib.getExe pkgs.mcp-nixos;
+    };
+
     # Merge our policy into the live settings.json rather than owning the file:
     # Claude rewrites it at runtime, so a read-only symlink would freeze theme/effort/hooks.
     home.activation.claudeCodeSettingsPolicy =

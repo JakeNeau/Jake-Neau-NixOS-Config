@@ -47,6 +47,16 @@ trusting a snapshot, since fields change.
   good output; don't assume the agent shares the main session's context.
 - Organize many agents into subdirectories — folders don't change the agent name.
 
+## Worked examples
+
+This config already ships a family of agents — read them as templates for the shape
+above. [[code-writer]] is the orchestrator that turns a task into proven code; it
+leans on the code-verification family — [[code-reviewer]] (the capstone),
+[[test-writer]], [[test-verifier]], [[codebase-investigator]], [[comment-writer]],
+and [[comment-simplifier]] — plus [[plan-verifier]] to vet its spec and the
+standalone [[web-researcher]]. Each is a single-responsibility prompt with a
+least-privilege tool set.
+
 ## Reference
 
 Official docs (authoritative field list and behavior):

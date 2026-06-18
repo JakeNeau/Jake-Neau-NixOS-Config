@@ -135,4 +135,3 @@ existing gid-600 group (it reads the existing gid and only creates when missing)
 ## Related skills
 
 - [[nix-config]] — repo structure and the `config-group` feature module
-- [[machine-layout]] — the Nix-managed machine context and where the repo lives

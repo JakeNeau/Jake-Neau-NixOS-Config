@@ -42,7 +42,7 @@ go = {
 - **Map all extensions** a language uses, not just the canonical one.
 - **Pin absolute store paths** — never bare binary names.
 - **Mirror the editor.** Keep this list in parity with the languages nvf
-  configures (`modules/programs/nvf`, see [[nvf]]) so Claude and the editor agree.
+  configures (`modules/programs/nvf`) so Claude and the editor agree.
 
 ## Reference
 
@@ -52,5 +52,4 @@ https://code.claude.com/docs/en/plugins-reference
 ## Related skills
 
 - [[claude-code-config]] — the declarative edit/ship workflow
-- [[nvf]] — the editor's LSP setup to mirror
 - [[machine-layout]] — where `claude-code.nix` lives and how rebuilds apply

@@ -55,5 +55,5 @@ https://code.claude.com/docs/en/slash-commands
 ## Related skills
 
 - [[claude-code-config]] — the declarative edit/ship workflow
-- [[writing-agents]] — delegate heavier work to a subagent
+- [[writing-agents]] — delegate heavier work to a subagent (e.g. [[code-reviewer]])
 - [[writing-hooks]] — run automation on events instead of on demand

@@ -1,6 +1,6 @@
 ---
 name: using-skills
-description: How Claude Code skills work and how to get the most from them — what a skill is, how discovery works (the always-in-context description vs the on-demand body), why to reach for skills proactively, the [[skill-name]] graph you traverse at use time, and when to grow the graph by writing a new skill. Use when deciding whether to consult a skill, when following links between skills/memories, when you spot a concept no skill covers, or to understand the skill system itself; to author a skill, see [[writing-skills]].
+description: How Claude Code skills work and how to get the most from them — what a skill is, how discovery works (the always-in-context description vs the on-demand body), why to reach for skills proactively, the [[ ]] graph of skills, agents, and memories you traverse at use time, and when to grow the graph by writing a new skill. Use when deciding whether to consult a skill, when following links between skills, agents, and memories, when you spot a concept no skill covers, or to understand the skill system itself; to author a skill, see [[writing-skills]].
 ---
 
 # Using skills
@@ -18,9 +18,10 @@ when a task matches a skill, open it and follow it before acting.
 
 ## The `[[ ]]` graph — traverse it aggressively
 
-Skills and memories form a graph linked with `[[name]]` tokens, where `name` is
-the target's `name:` slug. This is the same convention the memory system uses, so
-skills and memories link identically. **Lean on this graph as your primary way to
+Skills, agents, and memories form a graph linked with `[[name]]` tokens, where
+`name` is the target's `name:` slug — a skill, an agent (in `config/agents/`, e.g.
+`[[code-reviewer]]`), or a memory. This is the same convention the memory system
+uses, so all three link identically. **Lean on this graph as your primary way to
 find related guidance.**
 
 - **Chase links eagerly, at use time.** When a skill or memory you are reading
@@ -31,6 +32,22 @@ find related guidance.**
 - **Expect dangling links.** A `[[name]]` may point at a skill that does not
   exist yet; that is a deliberate marker of where the graph should grow, not an
   error.
+
+## Two layers — keep links within one
+
+The graph splits into two layers, and `[[ ]]` edges must stay inside one:
+
+- **Global** — `config/skills/` + `config/agents/`, shipped to every machine by the
+  Nix flake (`~/.claude/{skills,agents}`). Available in any repo.
+- **Project-local** — a repo's own `.claude/skills/` + `.claude/agents/`; exists
+  only in that repo.
+
+A global skill that links a project-local one breaks in every *other* repo (the
+target isn't there); a local skill that links outward couples the repo to
+machine-wide config. So link **within a layer** only — and each layer spans both its
+skills and its agents: a global skill may link a global agent, a project-local skill
+may link a project-local agent, and neither links across. `CLAUDE.md` (global and
+per-project) is the bridge between layers, not cross-layer `[[ ]]` edges.
 
 ## Grow the graph — write skills aggressively
 

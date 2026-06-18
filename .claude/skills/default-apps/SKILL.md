@@ -157,4 +157,3 @@ copy-pasting a third time.
 ## Related skills
 
 - [[nix-config]] — the aspect rules (`lib.mkMerge` + `isLinux`/`isDarwin`) this builds on
-- [[machine-layout]] — NixOS vs macOS context for per-OS handlers
