@@ -182,11 +182,8 @@
       freecad # An open source parametric 3D modeling program
       fuzzel # Super fast application launcher
       gnucash # Double-entry accounting software
-      hunspell # Spell check needed for LibreOffice
-      hunspellDicts.en_US # US English dictionary for Hunspell
       inkscape # Vector graphics editor
       krita # A FOSS art program
-      libreoffice-qt-fresh # A FOSS office suite
       mpv # General purpose video player
       obs-studio # Screen recording software
       obsidian # Note taking utility using markdown files
@@ -256,6 +253,7 @@
       fish
       ghostty
       karabiner
+      libreoffice
       sioyek
     ];
   };
