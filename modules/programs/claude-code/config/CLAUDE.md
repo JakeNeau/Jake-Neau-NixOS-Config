@@ -29,6 +29,8 @@ Lean heavily on skills. Before acting on a task, check whether a skill matches a
 follow it — treat skipping a relevant skill as the exception, not the default.
 Traverse the `[[ ]]` links between skills, agents, and memories rather than
 stopping at the first one. See [[using-skills]] for how the skill system works.
+Where the Superpowers plugin overlaps my own skills or agents, the
+**superpowers-precedence** rule says which wins — follow it.
 
 ## 4. Never attribute yourself in version control
 
@@ -51,18 +53,20 @@ that it merely looks right.
 
 ## 7. Delegate non-trivial code to the code-writer agent
 
-For any non-trivial code change — spanning multiple files or functions,
-introducing a new pattern or dependency, or where the right approach isn't obvious
-— hand the work to the [[code-writer]] subagent rather than writing it freehand. It
-investigates the codebase, drafts and verifies a full spec, then implements it —
-documenting with comment-writer, testing with test-writer, and proving it correct
-with code-reviewer — looping until the review is clean. A small, obvious edit you
-may still make directly, explaining and proving it as above.
+Non-trivial code follows the Superpowers development flow (see the
+**superpowers-precedence** rule). Settle the design with me first —
+`superpowers:brainstorming`, captured as a [[specs]] file — then hand that approved
+design to the [[code-writer]] subagent rather than writing it freehand. It runs the
+flow's headless middle: planning the work (verified by plan-verifier), implementing
+test-first with test-writer/test-verifier, documenting with comment-writer, and
+proving it correct with code-reviewer — looping until the review is clean. You handle
+the interactive ends — the design, and finishing the branch; a small, obvious edit
+you may still make directly, explaining and proving it as above.
 
 It runs headless and sees none of this conversation, so you own what it can't:
 settle unclear intent with me first, pass the full task context when you hand off,
 and relay any questions it returns — re-invoking it with the answers and the
-findings it sent back. In plan mode, ask it for the verified spec only, present
+findings it sent back. In plan mode, ask it for the verified plan only, present
 that, and have it implement after approval.
 
 ## 8. Reach for the internet liberally

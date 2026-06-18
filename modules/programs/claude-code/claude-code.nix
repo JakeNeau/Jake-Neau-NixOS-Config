@@ -66,7 +66,7 @@
     # across rebuilds and machines.
     settingsPolicy.enabledPlugins."superpowers@claude-plugins-official" = true; # skills
     settingsPolicy.enabledPlugins."security-guidance@claude-plugins-official" = true; # in-session vuln review
-    settingsPolicy.enabledPlugins."code-simplifier@claude-plugins-official" = true; # code-clarity refactor agent
+    settingsPolicy.enabledPlugins."code-simplifier@claude-plugins-official" = false; # disabled: JS/TS-flavored, redundant with comment-simplifier + code-reviewer, fires proactively
     settingsPolicy.enabledPlugins."claude-md-management@claude-plugins-official" = true; # CLAUDE.md audit/maintenance
 
     # LSP servers mirroring every language nvf configures an LSP for

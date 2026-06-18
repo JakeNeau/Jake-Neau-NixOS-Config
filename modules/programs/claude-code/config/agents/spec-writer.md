@@ -78,7 +78,10 @@ first.
 # Write the spec
 # ------------
 
-Capture the decision as a spec in the `specs/` directory, following [[specs]]:
+Capture the decision as a spec in the `specs/` directory, following [[specs]]. This
+embodies `superpowers:brainstorming` for this repo, but the artifact lives here in
+`specs/` in the format below — **never** `docs/superpowers/` (see the
+superpowers-precedence rule):
 
 - **One spec, one short-named markdown file** (kebab-case, no number prefix); a
   subfolder of sub-specs when the spec is large.

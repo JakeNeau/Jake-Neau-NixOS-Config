@@ -30,6 +30,13 @@ the model decide to open the skill. Write it to:
 2. End with a concrete **"Use when…"** clause naming the situations, tasks, and
    keywords that should surface it.
 
+**This deliberately contradicts `superpowers:writing-skills`.** That plugin skill
+says a description must state *only* triggering conditions and never summarize the
+workflow, and applies TDD to skill authoring. Here the opposite holds: the
+description summarizes what the skill is *and* its workflow, because that is what
+powers discovery and the `[[ ]]` graph — and skills here aren't test-driven. When
+both surface, follow this skill (see the superpowers-precedence rule).
+
 ## Best practices for an understandable body
 
 - **Lead with the key principle or rule** — don't bury it under setup.
