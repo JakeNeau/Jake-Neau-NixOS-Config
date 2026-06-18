@@ -16,6 +16,9 @@
     # Host facts features branch on (e.g. fastfetch's Power box).
     systemConstants.isLaptop = true;
 
+    # Kubernetes CLI tools — only on this work laptop for now.
+    home-manager.users."jake.neau".imports = [inputs.self.modules.homeManager.kubernetes];
+
     # macOS keyboard behavior
     system.defaults.NSGlobalDomain = {
       InitialKeyRepeat = 15; # delay before repeating a key when holding it down (lower = shorter)
