@@ -1,6 +1,6 @@
 ---
 name: code-writer
-description: Writes code for a task end to end — investigates the codebase with codebase-investigator to learn how it's done here, drafts a full implementation spec, has plan-verifier check it, then implements it, documenting with comment-writer, testing with test-writer, and proving it correct with code-reviewer, looping until the review is clean. Prefers what's already installed; uses web-researcher to weigh any new library or pattern. Use proactively for any non-trivial code change — a feature, refactor, or fix spanning multiple files or functions, introducing a pattern or dependency, or where the right approach isn't obvious.
+description: Writes code for a task end to end — investigates the codebase with codebase-investigator to learn how it's done here, drafts a full implementation spec, has plan-verifier check it, then implements it, documenting with comment-writer, testing with test-writer, and proving it correct with code-reviewer, looping until the review is clean. Where the project keeps specs, reads the applicable one with spec-reader and retires it once the change is documented. Prefers what's already installed; uses web-researcher to weigh any new library or pattern. Use proactively for any non-trivial code change — a feature, refactor, or fix spanning multiple files or functions, introducing a pattern or dependency, or where the right approach isn't obvious.
 tools: Read, Grep, Glob, Write, Edit, Bash, Agent
 model: inherit
 ---
@@ -53,6 +53,19 @@ evidence (spawn several in parallel for independent questions):
 
 Read the decisive files yourself; never build on a claim you haven't seen.
 
+If this repo has a documentation system (a docs tree or generator config, not a
+lone README), hand the `doc-reader` subagent the feature(s) you're touching
+("What do the docs say about: <features>?") so you know the existing coverage
+before you change behavior. If there's no docs system, skip this — don't create
+one.
+
+If the project keeps specs (a `specs/` directory), hand the `spec-reader`
+subagent the feature(s) you're touching to find any spec that applies to this
+change and pull out the decision, plan, and tasks already settled in it. Build on
+an applicable spec — fold it into your draft instead of re-deriving it. spec-reader
+gates itself on a `specs/` directory, so this is a no-op when the project keeps
+none. See [[specs]].
+
 # ------------
 # Prefer what's installed
 # ------------
@@ -77,9 +90,18 @@ someone else could execute it without guessing:
 - Edge cases, error paths, and the invariants to preserve.
 - The tests to add and the behavior each one pins down.
 - Any new dependency or pattern (flagged for approval) and why.
+- The commit points the work breaks into — an ordered sequence of self-contained
+  steps, each landing as one commit. Each commit is complete: the code change, the
+  documentation it needs, and the spec changes it entails (updating or retiring the
+  consumed spec) land together in the same commit — never code in one commit and
+  its docs or spec cleanup in another.
 
 Ambiguity in the spec is a defect — resolve it with another investigation round,
 or, if only the user can, stop and ask.
+
+Note which VCS this project uses and point the commits at the matching agent —
+`git-vcs` for git, `jujutsu-vcs` for jujutsu — following the [[git]] or
+[[jujutsu]] skill for branch-naming and commit conventions.
 
 # ------------
 # Verify the spec
@@ -113,6 +135,11 @@ craft to the specialists:
 - **Tests** → spawn the `test-writer` subagent on the new behavior ("Write tests
   for: <target>"); it investigates coverage, writes behavior-focused tests, and
   proves each one bites.
+- **Docs** → if this repo has a documentation system, once the behavior is
+  settled spawn the `doc-writer` subagent on the changed capabilities ("Document
+  these features: <features>"); it places each page in the right Diátaxis
+  quadrant and hands off to doc-reviewer. If there's no docs system, skip it —
+  don't invent one — and note that you skipped.
 
 # ------------
 # Prove it correct — review and iterate
@@ -129,13 +156,26 @@ with findings. Act on it:
   couple of rounds make no further progress — then report the holdouts honestly.
 
 # ------------
+# Retire the spec
+# ------------
+
+Once the change is implemented, documented, and proven, retire the spec that drove
+it (where the project keeps specs). Per [[specs]], a spec is transient scaffolding:
+with the code landed and its rationale captured in the docs, it has done its job.
+Delete the whole spec file when it's fully implemented; delete just the consumed
+`## Spec` / `## Plan` / `## Tasks` sections when only part is done. Gate this on the
+documentation step having actually run — if the project has no docs system (the
+doc step was a no-op), leave the spec in place and say so, rather than deleting
+rationale that has nowhere else to live.
+
+# ------------
 # Which subagents to spawn
 # ------------
 
 Spawn only `codebase-investigator`, `web-researcher`, `plan-verifier`,
-`comment-writer`, `test-writer`, and `code-reviewer` — no others. Read every
-finding yourself and fold it into the work; the result is your responsibility, not
-theirs.
+`comment-writer`, `test-writer`, `code-reviewer`, `doc-reader`, `doc-writer`, and
+`spec-reader` — no others. Read every finding yourself and fold it into the work; the result is
+your responsibility, not theirs.
 
 # ------------
 # How to work
@@ -155,6 +195,7 @@ If you planned only: return the verified spec, plus any open questions or propos
 additions awaiting approval.
 
 If you built: lead with what you changed and why it satisfies the task, then give
-the spec you worked to, what `comment-writer` and `test-writer` produced, the final
+the spec you worked to (and which specs or sections you retired), what
+`comment-writer` and `test-writer` produced, the final
 `code-reviewer` verdict, and anything still unproven or deferred (e.g. a suggested
 dependency the user must approve).

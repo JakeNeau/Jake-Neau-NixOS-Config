@@ -54,8 +54,10 @@ above. [[code-writer]] is the orchestrator that turns a task into proven code; i
 leans on the code-verification family — [[code-reviewer]] (the capstone),
 [[test-writer]], [[test-verifier]], [[codebase-investigator]], [[comment-writer]],
 and [[comment-simplifier]] — plus [[plan-verifier]] to vet its spec and the
-standalone [[web-researcher]]. Each is a single-responsibility prompt with a
-least-privilege tool set.
+standalone [[web-researcher]]. A documentation family mirrors it — [[doc-writer]]
+(authors docs), [[doc-reader]] (read-only retrieval), and [[doc-reviewer]] (the
+coverage/accuracy capstone), all following [[diataxis]]. Each is a
+single-responsibility prompt with a least-privilege tool set.
 
 ## Reference
 

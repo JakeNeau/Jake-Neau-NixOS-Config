@@ -74,6 +74,14 @@ is worth researching properly — comparing options, settling a choice, or verif
 a fact — hand it to the [[web-researcher]] subagent, which maps the options and
 corroborates across authoritative sources; then decide from what it finds.
 
+## 9. Documentation is first-class
+
+Treat documentation as part of the work, not an afterthought — clear docs are
+what let both people and future agents understand a project. When you write or
+organize documentation, structure it with the Diátaxis architecture (tutorials,
+how-to guides, reference, explanation) and keep those kinds separate; see
+[[diataxis]].
+
 # This machine is Nix-managed
 
 This machine and my Claude Code config are managed declaratively by Nix. Before
