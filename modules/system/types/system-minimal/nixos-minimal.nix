@@ -4,9 +4,10 @@
     imports = [inputs.self.modules.generic.system-minimal];
 
     nixpkgs.config.allowUnfree = true;
+    # LibreWolf is flagged insecure because it lacks an active nixpkgs
+    # committer, not for a CVE — a version bump won't clear this.
     nixpkgs.config.permittedInsecurePackages = [
-      "electron-39.8.10" # todoist-electron pins an electron flagged insecure upstream.
-      # TODO: temporary — drop once nixpkgs ships a non-EOL librewolf.
+      "electron-39.8.10" # bitwarden-desktop pins an EOL electron upstream.
       "librewolf-151.0.2-1"
       "librewolf-unwrapped-151.0.2-1"
     ];

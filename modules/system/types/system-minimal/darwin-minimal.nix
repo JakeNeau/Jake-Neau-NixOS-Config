@@ -4,7 +4,8 @@
     imports = [inputs.self.modules.generic.system-minimal];
 
     nixpkgs.config.allowUnfree = true;
-    # TODO: temporary — drop once nixpkgs ships a non-EOL librewolf.
+    # LibreWolf is flagged insecure because it lacks an active nixpkgs
+    # committer, not for a CVE — a version bump won't clear this.
     nixpkgs.config.permittedInsecurePackages = [
       "librewolf-151.0.2-1"
       "librewolf-unwrapped-151.0.2-1"
