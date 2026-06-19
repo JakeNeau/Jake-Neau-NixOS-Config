@@ -12,7 +12,7 @@ a working hook in this repo is **two steps** — and the second is easy to forge
 
 1. **Ship the script (declarative).** `config/hooks/<name>` →
    `~/.claude/hooks/<name>`, written verbatim and marked executable. See
-   [[claude-code-config]] for the edit → `git add` → rebuild flow.
+   [[skill:claude-code-config]] for the edit → `git add` → rebuild flow.
 2. **Register it (runtime).** The Nix module **does not** wire the script into
    `settings.json`, so on its own **the hook never fires**. You must register it
    in the runtime-mutable `~/.claude/settings.json` under `hooks.<Event>` with a
@@ -55,7 +55,7 @@ https://code.claude.com/docs/en/hooks
 
 ## Related skills
 
-- [[claude-code-config]] — shipping the script declaratively
+- [[skill:claude-code-config]] — shipping the script declaratively
 - the built-in `update-config` skill — registering the hook in settings.json
-- [[writing-commands]] — for on-demand automation instead of event-driven
-- [[machine-layout]] — the Nix machine these ship from
+- [[skill:writing-commands]] — for on-demand automation instead of event-driven
+- [[skill:machine-layout]] — the Nix machine these ship from

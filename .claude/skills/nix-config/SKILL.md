@@ -284,6 +284,6 @@ in `.nix` files.
 
 ## Related skills
 
-- [[repo-permissions]] — editing this root-owned repo without sudo (the `config` group)
-- [[nvf]] — Neovim built as its own flake, wired in as a feature
-- [[default-apps]] — setting default file/URL handlers via a cross-platform aspect
+- [[skill:repo-permissions]] — editing this root-owned repo without sudo (the `config` group)
+- [[skill:nvf]] — Neovim built as its own flake, wired in as a feature
+- [[skill:default-apps]] — setting default file/URL handlers via a cross-platform aspect

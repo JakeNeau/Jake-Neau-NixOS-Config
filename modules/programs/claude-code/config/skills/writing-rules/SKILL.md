@@ -6,7 +6,7 @@ description: How to author a Claude Code rule in this repo — a markdown file u
 # Writing rules
 
 A rule is a markdown file that is **auto-loaded as memory** — Claude follows it
-without being asked. Author one as a file; see [[claude-code-config]] for the
+without being asked. Author one as a file; see [[skill:claude-code-config]] for the
 edit → `git add` → rebuild flow.
 
 ## Where it goes
@@ -43,9 +43,9 @@ Always co-locate tests and mock the network layer.
 ## Rule vs CLAUDE.md vs skill
 
 - Small, always-on instruction / convention → **rule** (this skill).
-- Brief global orientation or a pointer → **CLAUDE.md** ([[writing-claude-md]]).
+- Brief global orientation or a pointer → **CLAUDE.md** ([[skill:writing-claude-md]]).
 - Large, on-demand procedure loaded only when relevant → **skill**
-  ([[writing-skills]]).
+  ([[skill:writing-skills]]).
 
 ## Reference
 
@@ -54,6 +54,6 @@ https://code.claude.com/docs/en/memory
 
 ## Related skills
 
-- [[writing-claude-md]] — the global context file and memory hierarchy
-- [[writing-skills]] — for on-demand procedures instead of always-on rules
-- [[claude-code-config]] — the declarative edit/ship workflow
+- [[skill:writing-claude-md]] — the global context file and memory hierarchy
+- [[skill:writing-skills]] — for on-demand procedures instead of always-on rules
+- [[skill:claude-code-config]] — the declarative edit/ship workflow

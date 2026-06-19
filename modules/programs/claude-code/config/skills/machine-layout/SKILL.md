@@ -70,5 +70,5 @@ complete conventions and cautions.
 
 ## Related skills
 
-- [[claude-code-config]] — editing Claude Code's own config in this repo
-- [[writing-skills]] — authoring skills that ship from this repo
+- [[skill:claude-code-config]] — editing Claude Code's own config in this repo
+- [[skill:writing-skills]] — authoring skills that ship from this repo

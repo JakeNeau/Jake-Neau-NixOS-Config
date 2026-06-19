@@ -47,7 +47,7 @@ and other plugin keys are preserved.
    };
    ```
 
-3. **`git add`** the file, then let the user rebuild (see [[claude-code-config]]).
+3. **`git add`** the file, then let the user rebuild (see [[skill:claude-code-config]]).
 
 4. **Populate the cache — once per machine.** Needs network and writes under
    `~/.claude`, so it fails sandboxed (`EPERM`); run it with the sandbox disabled:
@@ -80,6 +80,6 @@ and other plugin keys are preserved.
 
 ## Related skills
 
-- [[claude-code-config]] — the declarative edit/ship workflow and where config lives
-- [[configuring-mcp-servers]] — sibling Nix-attrset config (a plugin can bundle MCP servers)
-- [[machine-layout]] — the Nix machine context and rebuild flow
+- [[skill:claude-code-config]] — the declarative edit/ship workflow and where config lives
+- [[skill:configuring-mcp-servers]] — sibling Nix-attrset config (a plugin can bundle MCP servers)
+- [[skill:machine-layout]] — the Nix machine context and rebuild flow

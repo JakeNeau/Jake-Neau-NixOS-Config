@@ -12,7 +12,7 @@ one is the most expensive piece of config because it loads in **every** session.
 
 `config/CLAUDE.md` → `~/.claude/CLAUDE.md`. **Keep it a minimal pointer.** Detail
 belongs in skills (on-demand) or rules (scoped) — not in the always-on global
-file. See [[claude-code-config]] for the edit → `git add` → rebuild flow.
+file. See [[skill:claude-code-config]] for the edit → `git add` → rebuild flow.
 
 ## Memory hierarchy (load order, all concatenated — not overridden)
 
@@ -33,8 +33,8 @@ triggers an approval prompt.
 - **Be specific and structured** — headings + bullets, concrete instructions.
 - **Choose the right home for content:**
   - global pointer / brief orientation → CLAUDE.md (here)
-  - always-on or file-scoped instruction → rule ([[writing-rules]])
-  - large procedure loaded on demand → skill ([[writing-skills]])
+  - always-on or file-scoped instruction → rule ([[skill:writing-rules]])
+  - large procedure loaded on demand → skill ([[skill:writing-skills]])
 
 ## Reference
 
@@ -43,6 +43,6 @@ https://code.claude.com/docs/en/memory
 
 ## Related skills
 
-- [[writing-rules]] — scoped / always-on instructions
-- [[writing-skills]] — on-demand procedures
-- [[claude-code-config]] — the declarative edit/ship workflow
+- [[skill:writing-rules]] — scoped / always-on instructions
+- [[skill:writing-skills]] — on-demand procedures
+- [[skill:claude-code-config]] — the declarative edit/ship workflow

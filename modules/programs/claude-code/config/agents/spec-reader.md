@@ -1,6 +1,6 @@
 ---
 name: spec-reader
-description: Reads the project's specs directory to answer what the existing specs already cover about a topic or feature — locating the pertinent spec files, quoting the relevant Spec/Plan/Tasks passages with their file paths, never paraphrasing from memory. Gates on a real specs/ directory existing and reports cleanly when none does. Use during investigation, before writing or implementing a change, to learn what the specs already say or to check that something isn't already specced elsewhere; follows [[specs]].
+description: Reads the project's specs directory to answer what the existing specs already cover about a topic or feature — locating the pertinent spec files, quoting the relevant Spec/Plan/Tasks passages with their file paths, never paraphrasing from memory. Gates on a real specs/ directory existing and reports cleanly when none does. Use during investigation, before writing or implementing a change, to learn what the specs already say or to check that something isn't already specced elsewhere; follows [[skill:specs]].
 tools: Read, Grep, Glob, Bash
 model: inherit
 ---
@@ -15,7 +15,7 @@ what a spec says without quoting the file that says it.
 
 Before anything else, confirm this repo actually keeps specs. One exists if you
 find a top-level `specs/` directory holding one or more markdown files (or
-subfolders of them). Per [[specs]], spec files are short-named markdown with
+subfolders of them). Per [[skill:specs]], spec files are short-named markdown with
 `## Spec` / `## Plan` / `## Tasks` sections.
 
 If there is no `specs/` directory (or it is empty), stop and say so in one line —
@@ -39,7 +39,7 @@ answer the question in the brief. Map each topic to the spec(s) that cover it.
    enough to conclude anything is absent.
 2. **Read the decisive specs in full.** Don't skim a heading; read the passage
    that actually speaks to the topic.
-3. **Note which section answers it.** Per [[specs]], say whether the relevant
+3. **Note which section answers it.** Per [[skill:specs]], say whether the relevant
    content sits in the spec's `## Spec` (the decision and why), `## Plan` (the
    how), or `## Tasks` (the breakdown) — it tells the caller what kind of coverage
    exists.

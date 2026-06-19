@@ -14,7 +14,7 @@ go-to-definition, hover, find-references. Unlike agents/commands/skills, this is
 Add an entry to the `lspServers` attrset in
 `modules/programs/claude-code/claude-code.nix`. The module serializes it to
 `~/.claude/.lsp.json` on rebuild. Same workflow otherwise: edit → `git add` →
-rebuild (see [[claude-code-config]]).
+rebuild (see [[skill:claude-code-config]]).
 
 ## Schema
 
@@ -51,5 +51,5 @@ https://code.claude.com/docs/en/plugins-reference
 
 ## Related skills
 
-- [[claude-code-config]] — the declarative edit/ship workflow
-- [[machine-layout]] — where `claude-code.nix` lives and how rebuilds apply
+- [[skill:claude-code-config]] — the declarative edit/ship workflow
+- [[skill:machine-layout]] — where `claude-code.nix` lives and how rebuilds apply

@@ -1,6 +1,6 @@
 ---
 name: git
-description: How to work with the git version control system in any project — inspecting the current changes, deriving a concise, descriptive branch name and creating the branch, and writing clear commit messages that follow these projects' conventions (imperative subject, one logical change per commit, never self-attributed). Use when naming or creating a git branch, staging or committing changes, or choosing a commit message — and whenever a project is tracked by git (a `.git` directory) rather than jujutsu. See [[jujutsu]] for the jj equivalent and [[git-vcs]] for the agent that does this for you.
+description: How to work with the git version control system in any project — inspecting the current changes, deriving a concise, descriptive branch name and creating the branch, and writing clear commit messages that follow these projects' conventions (imperative subject, one logical change per commit, never self-attributed). Use when naming or creating a git branch, staging or committing changes, or choosing a commit message — and whenever a project is tracked by git (a `.git` directory) rather than jujutsu. See [[skill:jujutsu]] for the jj equivalent and [[agent:git-vcs]] for the agent that does this for you.
 ---
 
 # Working with git
@@ -13,7 +13,7 @@ and hyphenated; never reference yourself.
 
 `git rev-parse --is-inside-work-tree` (or a `.git` directory) confirms git. If a
 `.jj` directory is also present the repo is colocated and jujutsu drives it —
-prefer [[jujutsu]] instead.
+prefer [[skill:jujutsu]] instead.
 
 ## Inspect the current changes
 
@@ -49,11 +49,10 @@ say so rather than spawning another.
 In `/etc/nixos` and `/etc/nix-darwin`, generation commits use the format
 `<host> Generation <N>: <message>` and are made by the `nr` / `nrr` rebuild flow,
 which also pushes. **Don't commit or push here yourself** — let the user run the
-rebuild. See [[machine-layout]] and [[repo-permissions]].
+rebuild. See [[skill:machine-layout]].
 
 ## Related skills
 
-- [[jujutsu]] — the jujutsu (jj) equivalent of this skill
-- [[git-vcs]] — the agent that inspects changes and names/creates a branch for you
-- [[repo-permissions]] — write access to the root-owned Nix config repo
-- [[machine-layout]] — the Nix machine these projects live on
+- [[skill:jujutsu]] — the jujutsu (jj) equivalent of this skill
+- [[agent:git-vcs]] — the agent that inspects changes and names/creates a branch for you
+- [[skill:machine-layout]] — the Nix machine these projects live on

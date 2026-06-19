@@ -61,9 +61,9 @@ Official site: https://diataxis.fr
 
 ## Related skills
 
-- [[doc-writer]] / [[doc-reader]] / [[doc-reviewer]] — the agents that write,
+- [[agent:doc-writer]] / [[agent:doc-reader]] / [[agent:doc-reviewer]] — the agents that write,
   read, and review docs in this architecture.
-- [[specs]] — the transient pre-implementation working documents whose durable
+- [[skill:specs]] — the transient pre-implementation working documents whose durable
   rationale graduates into these docs once a feature ships.
-- [[documentation-tooling]] — (future) choosing a generator to publish Diátaxis
+- [[skill:documentation-tooling]] — (future) choosing a generator to publish Diátaxis
   docs (MkDocs, mdBook, Zola)

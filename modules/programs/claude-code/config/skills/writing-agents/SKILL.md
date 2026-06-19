@@ -7,7 +7,7 @@ description: How to author a Claude Code subagent in this repo — a markdown fi
 
 A subagent is a focused assistant with its own system prompt, tool set, and
 (optionally) model, that Claude can delegate a task to. Author one as a markdown
-file; see [[claude-code-config]] for the edit → `git add` → rebuild flow.
+file; see [[skill:claude-code-config]] for the edit → `git add` → rebuild flow.
 
 ## Where it goes
 
@@ -50,13 +50,13 @@ trusting a snapshot, since fields change.
 ## Worked examples
 
 This config already ships a family of agents — read them as templates for the shape
-above. [[code-writer]] is the orchestrator that turns a task into proven code; it
-leans on the code-verification family — [[code-reviewer]] (the capstone),
-[[test-writer]], [[test-verifier]], [[codebase-investigator]], [[comment-writer]],
-and [[comment-simplifier]] — plus [[plan-verifier]] to vet its spec and the
-standalone [[web-researcher]]. A documentation family mirrors it — [[doc-writer]]
-(authors docs), [[doc-reader]] (read-only retrieval), and [[doc-reviewer]] (the
-coverage/accuracy capstone), all following [[diataxis]]. Each is a
+above. [[agent:code-writer]] is the orchestrator that turns a task into proven code; it
+leans on the code-verification family — [[agent:code-reviewer]] (the capstone),
+[[agent:test-writer]], [[agent:test-verifier]], [[agent:codebase-investigator]], [[agent:comment-writer]],
+and [[agent:comment-simplifier]] — plus [[agent:plan-verifier]] to vet its spec and the
+standalone [[agent:web-researcher]]. A documentation family mirrors it — [[agent:doc-writer]]
+(authors docs), [[agent:doc-reader]] (read-only retrieval), and [[agent:doc-reviewer]] (the
+coverage/accuracy capstone), all following [[skill:diataxis]]. Each is a
 single-responsibility prompt with a least-privilege tool set.
 
 ## Reference
@@ -66,7 +66,7 @@ https://code.claude.com/docs/en/sub-agents
 
 ## Related skills
 
-- [[claude-code-config]] — the declarative edit/ship workflow
-- [[writing-commands]] — slash commands often pair with agents
-- [[writing-skills]] — when a reusable *procedure* fits a skill better
-- [[machine-layout]] — the Nix machine these ship from
+- [[skill:claude-code-config]] — the declarative edit/ship workflow
+- [[skill:writing-commands]] — slash commands often pair with agents
+- [[skill:writing-skills]] — when a reusable *procedure* fits a skill better
+- [[skill:machine-layout]] — the Nix machine these ship from

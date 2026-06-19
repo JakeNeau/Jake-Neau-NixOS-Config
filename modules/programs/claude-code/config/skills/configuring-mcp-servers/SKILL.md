@@ -15,7 +15,7 @@ a file under `config/` — it is a **Nix attrset**.
 **`programs.mcp.servers`** flows automatically into Claude's `~/.claude/.mcp.json`
 on rebuild. There is **no `programs.mcp` module in this repo yet**, so the first
 server also means enabling that home-manager module. Workflow otherwise: edit →
-`git add` → rebuild (see [[claude-code-config]]).
+`git add` → rebuild (see [[skill:claude-code-config]]).
 
 ## Schema (home-manager `programs.mcp.servers.<name>`)
 
@@ -41,8 +41,8 @@ programs.mcp.servers.context7 = {
 - **Least privilege:** enable only servers you need — each one spends context on
   its tool schemas at session start.
 - **Never put secrets in plaintext `.nix`.** Use sops-nix and reference the
-  decrypted file via `env.<VAR>.file` (see secrets in [[machine-layout]] and
-  [[configuring-sops-secrets]]).
+  decrypted file via `env.<VAR>.file` (see secrets in [[skill:machine-layout]] and
+  [[skill:configuring-sops-secrets]]).
 - **Vet third-party servers** before adding them; they run with your access.
 - Give servers clear, stable names.
 
@@ -53,6 +53,6 @@ https://code.claude.com/docs/en/mcp
 
 ## Related skills
 
-- [[claude-code-config]] — the declarative edit/ship workflow
-- [[machine-layout]] — secrets (sops-nix) and where the Nix modules live
-- [[configuring-sops-secrets]] — handling MCP credentials (future skill)
+- [[skill:claude-code-config]] — the declarative edit/ship workflow
+- [[skill:machine-layout]] — secrets (sops-nix) and where the Nix modules live
+- [[skill:configuring-sops-secrets]] — handling MCP credentials (future skill)

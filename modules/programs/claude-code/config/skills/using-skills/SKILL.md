@@ -1,6 +1,6 @@
 ---
 name: using-skills
-description: How Claude Code skills work and how to get the most from them — what a skill is, how discovery works (the always-in-context description vs the on-demand body), why to reach for skills proactively, the [[ ]] graph of skills, agents, and memories you traverse at use time, and when to grow the graph by writing a new skill. Use when deciding whether to consult a skill, when following links between skills, agents, and memories, when you spot a concept no skill covers, or to understand the skill system itself; to author a skill, see [[writing-skills]].
+description: How Claude Code skills work and how to get the most from them — what a skill is, how discovery works (the always-in-context description vs the on-demand body), why to reach for skills proactively, the [[ ]] graph of skills, agents, and memories you traverse at use time, and when to grow the graph by writing a new skill. Use when deciding whether to consult a skill, when following links between skills, agents, and memories, when you spot a concept no skill covers, or to understand the skill system itself; to author a skill, see [[skill:writing-skills]].
 ---
 
 # Using skills
@@ -16,38 +16,49 @@ when a task matches a skill, open it and follow it before acting.
   by default and detailed on demand, so reach for one whenever it is relevant
   rather than guessing from the description alone.
 
-## The `[[ ]]` graph — traverse it aggressively
+## The `[[type:name]]` graph — traverse it aggressively
 
-Skills, agents, and memories form a graph linked with `[[name]]` tokens, where
-`name` is the target's `name:` slug — a skill, an agent (in `config/agents/`, e.g.
-`[[code-reviewer]]`), or a memory. This is the same convention the memory system
-uses, so all three link identically. **Lean on this graph as your primary way to
-find related guidance.**
+Skills, agents, memories, and the other config kinds form a graph linked with
+`[[type:name]]` tokens: `type` says *what the target is* and `name` is its `name:`
+slug (e.g. `[[skill:writing-skills]]`, `[[agent:code-reviewer]]`). The type is
+**mandatory** — it tells you what to *do* with the link right at the link site:
+read a skill, dispatch an agent, recall a memory. The memory system uses the same
+convention, so every node links identically. **Lean on this graph as your primary
+way to find related guidance.**
 
-- **Chase links eagerly, at use time.** When a skill or memory you are reading
-  links to `[[another]]`, follow it whenever it could be relevant — and keep
-  going, several hops deep, rather than stopping at the first skill. Treat the
-  links as a map to traverse, not a footnote. A few extra reads are cheap next to
-  missing guidance that was one hop away.
-- **Expect dangling links.** A `[[name]]` may point at a skill that does not
-  exist yet; that is a deliberate marker of where the graph should grow, not an
-  error.
+`type` is one value from a closed vocabulary, split by which layer it may appear in:
+
+| Type | Where it may appear |
+|---|---|
+| `skill`, `agent`, `memory`, `rule`, `command`, `hook`, `mcp` | either layer |
+| `spec`, `doc` | project-local only — these have no global instances |
+
+- **Always type the link.** Never write a bare `[[name]]`; the type is what makes
+  the edge unambiguous and checkable.
+- **Chase links eagerly, at use time.** When something you are reading links to
+  `[[skill:another]]`, follow it whenever it could be relevant — several hops deep,
+  not just the first. The links are a map to traverse, not a footnote: a few extra
+  reads are cheap next to guidance that was one hop away.
+- **Dangling links still carry a type.** `[[skill:foo]]` may point at a skill that
+  does not exist yet — a deliberate marker of where the graph should grow, declaring
+  intent (`skill:` vs `agent:`) before the target exists. Not an error.
 
 ## Two layers — keep links within one
 
-The graph splits into two layers, and `[[ ]]` edges must stay inside one:
+The graph splits into two layers, and `[[type:name]]` edges must stay inside one:
 
-- **Global** — `config/skills/` + `config/agents/`, shipped to every machine by the
-  Nix flake (`~/.claude/{skills,agents}`). Available in any repo.
-- **Project-local** — a repo's own `.claude/skills/` + `.claude/agents/`; exists
-  only in that repo.
+- **Global** — `config/skills/` + `config/agents/` (and the global rules, commands,
+  hooks, MCP servers), shipped to every machine by the Nix flake. Available in any repo.
+- **Project-local** — a repo's own `.claude/skills/` + `.claude/agents/` (plus its
+  specs and docs); exists only in that repo.
 
 A global skill that links a project-local one breaks in every *other* repo (the
 target isn't there); a local skill that links outward couples the repo to
-machine-wide config. So link **within a layer** only — and each layer spans both its
-skills and its agents: a global skill may link a global agent, a project-local skill
-may link a project-local agent, and neither links across. `CLAUDE.md` (global and
-per-project) is the bridge between layers, not cross-layer `[[ ]]` edges.
+machine-wide config. So link **within a layer** only — each layer spans all its own
+config kinds, and neither links across. The `spec` and `doc` types have no global
+instances, so a `[[spec:…]]` or `[[doc:…]]` edge is inherently local-only — emitting
+one from a global skill is wrong by construction. `CLAUDE.md` (global and per-project)
+is the bridge between layers, not cross-layer `[[type:name]]` edges.
 
 ## Grow the graph — write skills aggressively
 
@@ -56,9 +67,9 @@ does not exist yet — that is your cue to **create the skill**. Be eager about 
 capturing knowledge as a linked skill is almost always worth it. Do not hold back
 for fear of the tree getting large; over-growth is pruned separately, so the
 right default is to add, link, and move on. For how to author one well, see
-[[writing-skills]].
+[[skill:writing-skills]].
 
 ## Related skills
 
-- [[writing-skills]] — how to author a skill (anatomy, frontmatter, linking)
-- [[claude-code-config]] — where skills live and how they ship via the Nix flake
+- [[skill:writing-skills]] — how to author a skill (anatomy, frontmatter, linking)
+- [[skill:claude-code-config]] — where skills live and how they ship via the Nix flake

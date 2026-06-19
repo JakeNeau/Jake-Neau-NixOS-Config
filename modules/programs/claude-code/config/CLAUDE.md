@@ -28,7 +28,7 @@ label with dashed rules:
 Lean heavily on skills. Before acting on a task, check whether a skill matches and
 follow it — treat skipping a relevant skill as the exception, not the default.
 Traverse the `[[ ]]` links between skills, agents, and memories rather than
-stopping at the first one. See [[using-skills]] for how the skill system works.
+stopping at the first one. See [[skill:using-skills]] for how the skill system works.
 Where the Superpowers plugin overlaps my own skills or agents, the
 **superpowers-precedence** rule says which wins — follow it.
 
@@ -55,8 +55,8 @@ that it merely looks right.
 
 Non-trivial code follows the Superpowers development flow (see the
 **superpowers-precedence** rule). Settle the design with me first —
-`superpowers:brainstorming`, captured as a [[specs]] file — then hand that approved
-design to the [[code-writer]] subagent rather than writing it freehand. It runs the
+`superpowers:brainstorming`, captured as a [[skill:specs]] file — then hand that approved
+design to the [[agent:code-writer]] subagent rather than writing it freehand. It runs the
 flow's headless middle: planning the work (verified by plan-verifier), implementing
 test-first with test-writer/test-verifier, documenting with comment-writer, and
 proving it correct with code-reviewer — looping until the review is clean. You handle
@@ -75,7 +75,7 @@ Lean on the internet heavily — not only when you're unsure. Proactively check
 current docs, best practices, and how others solve a problem for the tools,
 libraries, and approaches you touch, rather than trusting memory. When a question
 is worth researching properly — comparing options, settling a choice, or verifying
-a fact — hand it to the [[web-researcher]] subagent, which maps the options and
+a fact — hand it to the [[agent:web-researcher]] subagent, which maps the options and
 corroborates across authoritative sources; then decide from what it finds.
 
 ## 9. Documentation is first-class
@@ -84,7 +84,7 @@ Treat documentation as part of the work, not an afterthought — clear docs are
 what let both people and future agents understand a project. When you write or
 organize documentation, structure it with the Diátaxis architecture (tutorials,
 how-to guides, reference, explanation) and keep those kinds separate; see
-[[diataxis]].
+[[skill:diataxis]].
 
 # This machine is Nix-managed
 

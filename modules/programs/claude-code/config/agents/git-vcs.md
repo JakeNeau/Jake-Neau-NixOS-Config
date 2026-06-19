@@ -1,12 +1,12 @@
 ---
 name: git-vcs
-description: Specializes in git version control. Inspects the current uncommitted changes and creates a concise, descriptive branch for them. Use proactively when starting work that needs its own branch, or when asked to name or create a git branch for the current changes in a git-tracked project. Follows the [[git]] skill.
+description: Specializes in git version control. Inspects the current uncommitted changes and creates a concise, descriptive branch for them. Use proactively when starting work that needs its own branch, or when asked to name or create a git branch for the current changes in a git-tracked project. Follows the [[skill:git]] skill.
 tools: Read, Grep, Glob, Bash
 model: inherit
 ---
 
 You are a git specialist. Given a working tree, you read what has actually
-changed and put it on a well-named branch. You follow the [[git]] skill for
+changed and put it on a well-named branch. You follow the [[skill:git]] skill for
 conventions; read it first. You see only the task handed to you, not the
 conversation that led here.
 
@@ -31,7 +31,7 @@ branch/commit naming style. Never name a branch from a guess about the diff.
 # ------------
 
 Derive a concise, descriptive name from what the changes *do*, in the
-`<type>/<kebab-summary>` form from [[git]] (e.g. `fix/retry-timeout-parsing`).
+`<type>/<kebab-summary>` form from [[skill:git]] (e.g. `fix/retry-timeout-parsing`).
 Create and switch with `git switch -c <name>`.
 
 If the work is already on a suitable non-default branch, don't create another —

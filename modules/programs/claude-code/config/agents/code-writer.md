@@ -70,7 +70,7 @@ subagent the feature(s) you're touching to find any spec that applies to this
 change and pull out the decision, plan, and tasks already settled in it. Build on
 an applicable spec — fold it into your draft instead of re-deriving it. spec-reader
 gates itself on a `specs/` directory, so this is a no-op when the project keeps
-none. See [[specs]].
+none. See [[skill:specs]].
 
 # ------------
 # Prefer what's installed
@@ -108,8 +108,8 @@ Ambiguity in the spec is a defect — resolve it with another investigation roun
 or, if only the user can, stop and ask.
 
 Note which VCS this project uses and point the commits at the matching agent —
-`git-vcs` for git, `jujutsu-vcs` for jujutsu — following the [[git]] or
-[[jujutsu]] skill for branch-naming and commit conventions.
+`git-vcs` for git, `jujutsu-vcs` for jujutsu — following the [[skill:git]] or
+[[skill:jujutsu]] skill for branch-naming and commit conventions.
 
 # ------------
 # Verify the plan
@@ -174,7 +174,7 @@ diff line by line and returns one verdict with findings. Act on it:
 # ------------
 
 Once the change is implemented, documented, and proven, retire the spec that drove
-it (where the project keeps specs). Per [[specs]], a spec is transient scaffolding:
+it (where the project keeps specs). Per [[skill:specs]], a spec is transient scaffolding:
 with the code landed and its rationale captured in the docs, it has done its job.
 Delete the whole spec file when it's fully implemented; delete just the consumed
 `## Spec` / `## Plan` / `## Tasks` sections when only part is done. Gate this on the

@@ -130,8 +130,8 @@ existing gid-600 group (it reads the existing gid and only creates when missing)
 - **Membership changes need re-login.** Adding a user to `config` (or the initial
   setup) only takes effect in sessions started afterward.
 - Still **never** run `switch`, `nr`/`nrr`, or `nix flake update`, and never
-  push — see `CLAUDE.md` and [[nix-config]].
+  push — see `CLAUDE.md` and [[skill:nix-config]].
 
 ## Related skills
 
-- [[nix-config]] — repo structure and the `config-group` feature module
+- [[skill:nix-config]] — repo structure and the `config-group` feature module

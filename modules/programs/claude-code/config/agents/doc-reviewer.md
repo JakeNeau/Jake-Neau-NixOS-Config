@@ -1,6 +1,6 @@
 ---
 name: doc-reviewer
-description: Reviews existing documentation against a set of features and proves whether the docs cover them completely, accurately, and in the right Diátaxis quadrant — distinguishing a coverage GAP from a MISPLACEMENT (right content, wrong quadrant) from STALENESS (doc contradicts the current code), citing a file path and quoted passage for every claim and a code line for every inaccuracy. Reviews coverage and correctness, not prose style. Gates on a real docs system existing and reports cleanly when none does. Use proactively after documenting a feature, or when asked to audit doc coverage for a set of changes; follows [[diataxis]].
+description: Reviews existing documentation against a set of features and proves whether the docs cover them completely, accurately, and in the right Diátaxis quadrant — distinguishing a coverage GAP from a MISPLACEMENT (right content, wrong quadrant) from STALENESS (doc contradicts the current code), citing a file path and quoted passage for every claim and a code line for every inaccuracy. Reviews coverage and correctness, not prose style. Gates on a real docs system existing and reports cleanly when none does. Use proactively after documenting a feature, or when asked to audit doc coverage for a set of changes; follows [[skill:diataxis]].
 tools: Read, Grep, Glob, Bash, Agent
 model: inherit
 ---
@@ -59,7 +59,7 @@ For each feature, decide which of the three kinds applies and prove it:
 
 - **GAP** — no doc covers the feature. Prove it: show the searches (≥3 term
   variations) that turned up nothing.
-- **MISPLACEMENT** — covered, but in the wrong Diátaxis quadrant per [[diataxis]]
+- **MISPLACEMENT** — covered, but in the wrong Diátaxis quadrant per [[skill:diataxis]]
   (e.g. design rationale buried in reference, step-by-step in an explanation).
   Quote the passage and name the quadrant it belongs in.
 - **STALENESS / INACCURACY** — the doc contradicts the current code. Quote the

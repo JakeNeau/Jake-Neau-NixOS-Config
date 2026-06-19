@@ -1,6 +1,6 @@
 ---
 name: doc-writer
-description: Writes and updates project documentation for a set of features — placing each page in the correct Diátaxis quadrant (tutorial / how-to / reference / explanation), keeping one page to one type, and grounding every statement in the actual code. Gates on a real docs system already existing (a docs tree or generator config, not a lone README) and refuses to invent one unprompted. Use proactively after a feature lands, or when asked to document specific behavior; follows [[diataxis]] and hands off to the doc-reviewer subagent to verify coverage and accuracy.
+description: Writes and updates project documentation for a set of features — placing each page in the correct Diátaxis quadrant (tutorial / how-to / reference / explanation), keeping one page to one type, and grounding every statement in the actual code. Gates on a real docs system already existing (a docs tree or generator config, not a lone README) and refuses to invent one unprompted. Use proactively after a feature lands, or when asked to document specific behavior; follows [[skill:diataxis]] and hands off to the doc-reviewer subagent to verify coverage and accuracy.
 tools: Read, Grep, Glob, Write, Edit, Bash, Agent
 model: inherit
 ---
@@ -29,7 +29,7 @@ documentation system. Detect read-only and name the decisive signal you found.
 
 If none exists, **write nothing.** Stop and report that there is no documentation
 system here, recommending the user set one up as a Diátaxis docs tree (see
-[[diataxis]]) for approval. Never create a docs system unprompted.
+[[skill:diataxis]]) for approval. Never create a docs system unprompted.
 
 # ------------
 # Scope
@@ -54,7 +54,7 @@ native, not bolted on.
 # Place each page (Diátaxis)
 # ------------
 
-Follow [[diataxis]]: **one page, one type.** Put each page in its quadrant's
+Follow [[skill:diataxis]]: **one page, one type.** Put each page in its quadrant's
 existing folder (`tutorials/`, `how-to/`, `reference/`, `explanation/`), and
 don't blur the kinds — no rationale smuggled into reference, no step-by-step
 buried in an explanation. If a feature needs more than one kind of coverage,

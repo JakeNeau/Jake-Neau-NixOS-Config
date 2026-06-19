@@ -1,6 +1,6 @@
 ---
 name: spec-writer
-description: Writes and updates a project's specs by reasoning about the best architectural trade-offs for THIS project — mapping the options with web-researcher, grounding every choice in the real codebase, honoring the project's current architectural standards from its docs, and favoring designs that allow growth (the simplest thing now, behind a clean seam that a better-scaling solution can be swapped into later). Reads the existing specs via spec-reader to avoid re-speccing what's already covered, and surfaces every real architectural fork to the user rather than guessing. Captures each decision as a spec file (Spec/Plan/Tasks) in the specs/ directory, creating it on first use. Use proactively when asked to design or spec a non-trivial change, feature, or architectural decision before implementation; follows [[specs]] and [[diataxis]].
+description: Writes and updates a project's specs by reasoning about the best architectural trade-offs for THIS project — mapping the options with web-researcher, grounding every choice in the real codebase, honoring the project's current architectural standards from its docs, and favoring designs that allow growth (the simplest thing now, behind a clean seam that a better-scaling solution can be swapped into later). Reads the existing specs via spec-reader to avoid re-speccing what's already covered, and surfaces every real architectural fork to the user rather than guessing. Captures each decision as a spec file (Spec/Plan/Tasks) in the specs/ directory, creating it on first use. Use proactively when asked to design or spec a non-trivial change, feature, or architectural decision before implementation; follows [[skill:specs]] and [[skill:diataxis]].
 tools: Read, Grep, Glob, Write, Edit, Bash, Agent
 model: inherit
 ---
@@ -78,7 +78,7 @@ first.
 # Write the spec
 # ------------
 
-Capture the decision as a spec in the `specs/` directory, following [[specs]]. This
+Capture the decision as a spec in the `specs/` directory, following [[skill:specs]]. This
 embodies `superpowers:brainstorming` for this repo, but the artifact lives here in
 `specs/` in the format below — **never** `docs/superpowers/` (see the
 superpowers-precedence rule):

@@ -1,14 +1,14 @@
 ---
 name: writing-skills
-description: How to author a Claude Code skill (SKILL.md) so it is clear, discoverable, and well-connected — frontmatter format, best practices for understandability, the [[name]] convention that links skills, agents, and memories into a traversable graph, and how to bulletproof a discipline-enforcing skill against rationalization. Read before creating or editing any skill. Also use when you notice an important concept that no skill covers (a gap in the graph) and want to capture it as a new skill.
+description: How to author a Claude Code skill (SKILL.md) so it is clear, discoverable, and well-connected — frontmatter format, best practices for understandability, the typed [[type:name]] convention that links skills, agents, memories, and other config into a traversable graph, and how to bulletproof a discipline-enforcing skill against rationalization. Read before creating or editing any skill. Also use when you notice an important concept that no skill covers (a gap in the graph) and want to capture it as a new skill.
 ---
 
 # Writing skills
 
 Read this **before** creating or editing any skill. It covers how to write a good
 one; for *where* skills live and the edit → `git add` → rebuild flow, see
-[[claude-code-config]], and for how skills are discovered and how the `[[ ]]`
-graph is used at run time, see [[using-skills]].
+[[skill:claude-code-config]], and for how skills are discovered and how the `[[ ]]`
+graph is used at run time, see [[skill:using-skills]].
 
 ## Anatomy
 
@@ -131,25 +131,26 @@ adding more words.
 
 ## Link your skill into the graph
 
-Skills link to each other — and to agents and memories — with `[[name]]` tokens;
-see [[using-skills]] for how that graph works and why it is traversed at run time.
-When authoring:
+Skills link to each other — and to agents, memories, and the other config kinds —
+with `[[type:name]]` tokens; see [[skill:using-skills]] for the grammar, the full
+type vocabulary, and why the graph is traversed at run time. When authoring:
 
-- **Link inline** where one skill references another ("see [[machine-layout]]").
-  `name` is the target skill's `name:` (= its folder).
-- **Link to agents too.** An agent is a valid target by its `name:` slug — a global
-  agent (`config/agents/`, e.g. [[code-reviewer]]) from a global skill, or a
-  project-local agent (`.claude/agents/`) from a local skill.
+- **Type every link.** A link is `[[type:name]]`: `type` says what the target is
+  (`skill`, `agent`, `rule`, …) and `name` is its `name:` slug (= the folder, for a
+  skill). Never a bare `[[name]]` — the type is mandatory.
+- **Link inline** where one skill references another ("see [[skill:machine-layout]]"),
+  and to agents too (`[[agent:code-reviewer]]`).
 - **End with a `## Related skills` trailer:** a short section listing outgoing
-  links, one per line — `- [[name]] — one-line reason to follow it`.
+  links, one per line — `- [[type:name]] — one-line reason to follow it`.
 - **Link liberally and bidirectionally:** if A → B helps, B usually should point
   back to A, so the graph is navigable from any node — within a layer.
-- **Stay within your layer.** Link global↔global and local↔local only — each layer
-  spans its skills *and* agents; never a project-local skill → global skill/agent or
-  vice versa. `CLAUDE.md` bridges the layers (see [[using-skills]]).
-- **Add links to skills that don't exist yet.** A `[[name]]` pointing at a
+- **Stay within your layer.** Link global↔global and local↔local only; never a
+  project-local skill → global target or vice versa, and never the local-only
+  `spec`/`doc` types from a global skill. `CLAUDE.md` bridges the layers (see
+  [[skill:using-skills]]).
+- **Add links to targets that don't exist yet.** A `[[skill:foo]]` pointing at a
   missing skill is a deliberate marker of where the graph should grow, not an
-  error — and your cue to write that skill next (see [[using-skills]]).
+  error — and your cue to write that skill next (see [[skill:using-skills]]).
 
 ## Finish checklist
 
@@ -160,10 +161,10 @@ When authoring:
   flags, and the guidance form matched to the failure (see the section above).
 - Related skills linked; forward / empty links added where useful.
 - Doesn't duplicate another skill — link to it instead.
-- `git add` the new file, then let the user rebuild (see [[claude-code-config]]).
+- `git add` the new file, then let the user rebuild (see [[skill:claude-code-config]]).
 
 ## Related skills
 
-- [[using-skills]] — how skills are discovered and how the graph is traversed
-- [[claude-code-config]] — where skills live and how to ship them via the flake
-- [[machine-layout]] — the Nix machine context these skills run on
+- [[skill:using-skills]] — how skills are discovered and how the graph is traversed
+- [[skill:claude-code-config]] — where skills live and how to ship them via the flake
+- [[skill:machine-layout]] — the Nix machine context these skills run on

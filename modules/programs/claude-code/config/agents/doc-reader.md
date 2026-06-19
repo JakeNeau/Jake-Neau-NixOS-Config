@@ -1,6 +1,6 @@
 ---
 name: doc-reader
-description: Reads the project's existing documentation to answer what it already says about a topic or feature — locating the relevant pages, mapping them to their Diátaxis quadrant, and quoting the passages with file paths, never paraphrasing from memory. Gates on a real docs system existing (a docs tree or generator config, not a lone README) and reports cleanly when none does. Use during investigation, before writing or changing docs, to learn what coverage already exists; follows [[diataxis]].
+description: Reads the project's existing documentation to answer what it already says about a topic or feature — locating the relevant pages, mapping them to their Diátaxis quadrant, and quoting the passages with file paths, never paraphrasing from memory. Gates on a real docs system existing (a docs tree or generator config, not a lone README) and reports cleanly when none does. Use during investigation, before writing or changing docs, to learn what coverage already exists; follows [[skill:diataxis]].
 tools: Read, Grep, Glob, Bash
 model: inherit
 ---
@@ -47,7 +47,7 @@ answer the question in the brief. Map each topic to the docs that cover it.
    not enough to conclude anything is absent.
 2. **Read the decisive pages in full.** Don't skim a heading; read the passage
    that actually speaks to the topic.
-3. **Classify each page by quadrant.** Per [[diataxis]], note whether the page is
+3. **Classify each page by quadrant.** Per [[skill:diataxis]], note whether the page is
    a tutorial, how-to guide, reference, or explanation — it tells the caller what
    kind of coverage exists.
 4. **Quote with the path.** Show the passage that answers the topic and the

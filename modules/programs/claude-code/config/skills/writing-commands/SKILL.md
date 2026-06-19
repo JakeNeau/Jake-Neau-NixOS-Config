@@ -6,7 +6,7 @@ description: How to author a Claude Code slash command in this repo — a markdo
 # Writing slash commands
 
 A slash command is a reusable prompt invoked as `/<name>`. Author one as a
-markdown file; see [[claude-code-config]] for the edit → `git add` → rebuild flow.
+markdown file; see [[skill:claude-code-config]] for the edit → `git add` → rebuild flow.
 
 ## Where it goes
 
@@ -54,6 +54,6 @@ https://code.claude.com/docs/en/slash-commands
 
 ## Related skills
 
-- [[claude-code-config]] — the declarative edit/ship workflow
-- [[writing-agents]] — delegate heavier work to a subagent (e.g. [[code-reviewer]])
-- [[writing-hooks]] — run automation on events instead of on demand
+- [[skill:claude-code-config]] — the declarative edit/ship workflow
+- [[skill:writing-agents]] — delegate heavier work to a subagent (e.g. [[agent:code-reviewer]])
+- [[skill:writing-hooks]] — run automation on events instead of on demand

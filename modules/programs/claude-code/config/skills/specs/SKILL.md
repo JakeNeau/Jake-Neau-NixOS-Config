@@ -1,6 +1,6 @@
 ---
 name: specs
-description: How a project organizes and uses specs — short-lived, pre-implementation working documents that capture an architectural decision plus its plan and tasks. Covers the top-level specs/ directory (one short-named markdown file per spec, or a subfolder for a large spec with sub-specs), the Spec/Plan/Tasks sections each file holds, and the transient lifecycle (write → implement → document → delete) in which a spec's durable rationale graduates into the Diátaxis docs and the spec itself is then removed. Use when writing or organizing specs, deciding where a spec lives or what goes in it, or understanding why a spec is deleted after a feature ships; see [[diataxis]].
+description: How a project organizes and uses specs — short-lived, pre-implementation working documents that capture an architectural decision plus its plan and tasks. Covers the top-level specs/ directory (one short-named markdown file per spec, or a subfolder for a large spec with sub-specs), the Spec/Plan/Tasks sections each file holds, and the transient lifecycle (write → implement → document → delete) in which a spec's durable rationale graduates into the Diátaxis docs and the spec itself is then removed. Use when writing or organizing specs, deciding where a spec lives or what goes in it, or understanding why a spec is deleted after a feature ships; see [[skill:diataxis]].
 ---
 
 # Specs
@@ -44,11 +44,11 @@ Every spec file has the same three sections:
 
 A spec is not a permanent source of truth; it is consumed:
 
-1. **Write** — [[spec-writer]] reasons about the architecture and writes the spec.
-2. **Implement** — [[code-writer]] finds the applicable spec (via [[spec-reader]])
+1. **Write** — [[agent:spec-writer]] reasons about the architecture and writes the spec.
+2. **Implement** — [[agent:code-writer]] finds the applicable spec (via [[agent:spec-reader]])
    and builds it.
 3. **Document** — the durable *why* graduates into the project's Diátaxis docs
-   (an explanation page or ADR — see [[diataxis]]).
+   (an explanation page or ADR — see [[skill:diataxis]]).
 4. **Delete** — the consumed spec is removed; a whole file when fully implemented,
    just the consumed sections when partial.
 
@@ -75,19 +75,19 @@ that keeps the future open wins.
 
 ## Who does what
 
-- **[[spec-writer]]** — writes and verifies specs: reasons about the best
+- **[[agent:spec-writer]]** — writes and verifies specs: reasons about the best
   architectural trade-offs for this project, researches options on the web,
   honors the project's existing architectural standards, and surfaces every real
   fork to the user instead of guessing.
-- **[[spec-reader]]** — reads the `specs/` directory to report what is already
+- **[[agent:spec-reader]]** — reads the `specs/` directory to report what is already
   specced, quoting the relevant passages.
-- **[[code-writer]]** — consumes an applicable spec, then retires it after the
+- **[[agent:code-writer]]** — consumes an applicable spec, then retires it after the
   documentation step.
 
 ## Related skills
 
-- [[diataxis]] — where a spec's durable rationale graduates to; specs are the
+- [[skill:diataxis]] — where a spec's durable rationale graduates to; specs are the
   transient pre-implementation counterpart to those lasting docs.
-- [[spec-writer]] — the agent that writes and verifies specs.
-- [[spec-reader]] — the agent that reads them.
-- [[code-writer]] — the agent that implements a spec and retires it.
+- [[agent:spec-writer]] — the agent that writes and verifies specs.
+- [[agent:spec-reader]] — the agent that reads them.
+- [[agent:code-writer]] — the agent that implements a spec and retires it.

@@ -178,7 +178,7 @@ home-manager equivalent) — nvf does not own that.
 
 ## Fitting it into this dendritic repo
 
-This repo is a flake-parts / dendritic config (see [[nix-config]]). Two
+This repo is a flake-parts / dendritic config (see [[skill:nix-config]]). Two
 clean ways to bring the standalone editor in:
 
 1. **Separate flake input (most "its own flake").** Keep the Neovim flake above
@@ -260,4 +260,4 @@ Format Nix with **`alejandra`** (2-space indent), matching the rest of the repo.
 
 ## Related skills
 
-- [[nix-config]] — features/aspects/flake wiring this fits into
+- [[skill:nix-config]] — features/aspects/flake wiring this fits into

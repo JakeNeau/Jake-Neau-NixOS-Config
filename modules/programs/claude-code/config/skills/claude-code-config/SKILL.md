@@ -14,7 +14,7 @@ in the repo instead.
 ## Where the source lives
 
 `modules/programs/claude-code/config/` in the Nix config repo
-(`/etc/nix-darwin` on macOS, `/etc/nixos` on NixOS — see [[machine-layout]]).
+(`/etc/nix-darwin` on macOS, `/etc/nixos` on NixOS — see [[skill:machine-layout]]).
 
 ## Two ways to edit config
 
@@ -32,33 +32,33 @@ in the repo instead.
 **2. Nix-attrset** — edit Nix code, *not* a file under `config/`:
 
 - **LSP servers** → the `lspServers` attrset in `claude-code.nix`
-  (see [[configuring-lsp-servers]]).
+  (see [[skill:configuring-lsp-servers]]).
 - **MCP servers** → `programs.mcp.servers`, pulled in via `enableMcpIntegration`
-  (see [[configuring-mcp-servers]]).
+  (see [[skill:configuring-mcp-servers]]).
 - **Plugins** → an `enabledPlugins` entry in the `settingsPolicy` attrset in
   `claude-code.nix`, plus a one-time `claude plugin install` per machine
-  (see [[configuring-plugins]]).
+  (see [[skill:configuring-plugins]]).
 
 **Hooks caveat:** a hook file alone does **not** fire — the module ships the
 script, but you must register it in `settings.json` separately. See
-[[writing-hooks]].
+[[skill:writing-hooks]].
 
 ## Per-config-type guides — read the matching one before editing
 
 Each config type has its own best-practices skill. Read the relevant one first:
 
-- [[writing-agents]] — subagents (`config/agents/`); e.g. [[code-reviewer]], [[web-researcher]]
-- [[writing-commands]] — slash commands (`config/commands/`)
-- [[writing-rules]] — auto-loaded rules / memory (`config/rules/`)
-- [[writing-hooks]] — event hooks (`config/hooks/` + settings.json registration)
-- [[writing-skills]] — skills (one `SKILL.md` per skill, no supporting files)
-- [[writing-claude-md]] — the global `CLAUDE.md` and memory
-- [[configuring-lsp-servers]] — language servers (Nix attrset)
-- [[configuring-mcp-servers]] — MCP servers (Nix attrset)
-- [[configuring-plugins]] — marketplace plugins (settingsPolicy attrset + per-machine install)
+- [[skill:writing-agents]] — subagents (`config/agents/`); e.g. [[agent:code-reviewer]], [[agent:web-researcher]]
+- [[skill:writing-commands]] — slash commands (`config/commands/`)
+- [[skill:writing-rules]] — auto-loaded rules / memory (`config/rules/`)
+- [[skill:writing-hooks]] — event hooks (`config/hooks/` + settings.json registration)
+- [[skill:writing-skills]] — skills (one `SKILL.md` per skill, no supporting files)
+- [[skill:writing-claude-md]] — the global `CLAUDE.md` and memory
+- [[skill:configuring-lsp-servers]] — language servers (Nix attrset)
+- [[skill:configuring-mcp-servers]] — MCP servers (Nix attrset)
+- [[skill:configuring-plugins]] — marketplace plugins (settingsPolicy attrset + per-machine install)
 
 Not yet wired here (upstream supports it — future skill):
-[[configuring-output-styles]].
+[[skill:configuring-output-styles]].
 
 ## Not managed by Nix — edit live, no rebuild
 
@@ -74,7 +74,7 @@ settings.json specifically, use the built-in `update-config` skill.
    invisible to the build.
 3. Rebuild to apply. Changes are inert until then.
 
-Do **not** run `switch` / `nr` yourself (see [[machine-layout]]); stage the
+Do **not** run `switch` / `nr` yourself (see [[skill:machine-layout]]); stage the
 change and let the user rebuild.
 
 Routing every change through the flake is what keeps this config reproducible and
@@ -82,5 +82,5 @@ identical across all the user's machines.
 
 ## Related skills
 
-- [[writing-skills]] — read before authoring or editing a skill
-- [[machine-layout]] — where the Nix config lives and how a rebuild is applied
+- [[skill:writing-skills]] — read before authoring or editing a skill
+- [[skill:machine-layout]] — where the Nix config lives and how a rebuild is applied

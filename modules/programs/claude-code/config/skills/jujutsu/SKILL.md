@@ -1,6 +1,6 @@
 ---
 name: jujutsu
-description: How to work with the Jujutsu (jj) version control system — its change/bookmark model, inspecting the working copy and the stack of changes, naming a bookmark for the working change, writing a concise description for every proposed change, and finding the correct existing change to absorb (squash) new edits into. Because jj logs every operation, `jj undo` and `jj op log` make almost everything reversible, so you can operate with confidence. Use when a project is tracked by jujutsu (a `.jj` directory), when describing or organizing a stack of jj changes, or when deciding which change new edits belong in. See [[git]] for the git equivalent and [[jujutsu-vcs]] for the agent that does this for you.
+description: How to work with the Jujutsu (jj) version control system — its change/bookmark model, inspecting the working copy and the stack of changes, naming a bookmark for the working change, writing a concise description for every proposed change, and finding the correct existing change to absorb (squash) new edits into. Because jj logs every operation, `jj undo` and `jj op log` make almost everything reversible, so you can operate with confidence. Use when a project is tracked by jujutsu (a `.jj` directory), when describing or organizing a stack of jj changes, or when deciding which change new edits belong in. See [[skill:git]] for the git equivalent and [[agent:jujutsu-vcs]] for the agent that does this for you.
 
 ---
 
@@ -39,7 +39,7 @@ jj describe -m "<concise message>"        # title the working change (@)
 jj bookmark create <name> -r @            # or: jj bookmark set <name> -r @
 ```
 
-Name it from what the change *does*, same conventions as [[git]].
+Name it from what the change *does*, same conventions as [[skill:git]].
 
 ## Describe every proposed change
 
@@ -68,12 +68,11 @@ in rather than leaving a stray working change:
 
 ## Commit conventions
 
-Same as [[git]]: imperative, concise descriptions, one logical change each, and
+Same as [[skill:git]]: imperative, concise descriptions, one logical change each, and
 **never attribute yourself**. Don't `jj git push` unless explicitly asked.
 
 ## Related skills
 
-- [[git]] — the git equivalent, and the shared commit conventions
-- [[jujutsu-vcs]] — the agent that names, describes, and organizes jj changes for you
-- [[repo-permissions]] — write access to the root-owned Nix config repo
-- [[machine-layout]] — the Nix machine these projects live on
+- [[skill:git]] — the git equivalent, and the shared commit conventions
+- [[agent:jujutsu-vcs]] — the agent that names, describes, and organizes jj changes for you
+- [[skill:machine-layout]] — the Nix machine these projects live on
