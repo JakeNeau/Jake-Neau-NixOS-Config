@@ -18,6 +18,7 @@
         podman
         niri-desktop
         audio
+        ungoogled-chromium
       ])
       ++ [inputs.self.modules.generic.cli];
 
@@ -154,7 +155,6 @@
       signal-desktop # A private messaging service
       spotify # Music subscription service
       todoist-electron # Todo tracker app
-      ungoogled-chromium # Chromium without all the callbacks to google
       vesktop # Alternative to discord messaging app
       xournalpp # App for signing PDFs
     ];
@@ -191,6 +191,7 @@
       karabiner
       key-repeat
       mac-app-util
+      ungoogled-chromium
     ];
   };
 
