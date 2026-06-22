@@ -11,22 +11,6 @@
         imports = with inputs.self.modules.homeManager; [
           system-desktop
         ];
-
-        programs.git = {
-          enable = true;
-          settings.user = {
-            name = "Jake Neau";
-            email = "jakeneau@proton.me";
-          };
-        };
-
-        programs.jujutsu = {
-          enable = true;
-          settings.user = {
-            name = "Jake Neau";
-            email = "jakeneau@proton.me";
-          };
-        };
       };
     }
   ];

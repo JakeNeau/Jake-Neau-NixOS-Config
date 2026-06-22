@@ -19,12 +19,6 @@
     # Kubernetes CLI tools — only on this work laptop for now.
     home-manager.users."jake.neau".imports = [inputs.self.modules.homeManager.kubernetes];
 
-    # direnv will load nix configs automatically in project folders
-    programs.direnv = {
-      enable = true;
-      nix-direnv.enable = true;
-    };
-
     # Host-specific homebrew casks (the homebrew machinery itself comes from
     # the homebrew feature via system-desktop).
     homebrew.casks = [

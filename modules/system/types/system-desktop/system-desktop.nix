@@ -106,26 +106,6 @@
     security.pam.services.greetd.enableGnomeKeyring = true;
 
     # --------
-    # Programs
-    # --------
-    # direnv will load nix configs automatically in project folders
-    programs.direnv = {
-      enable = true;
-      nix-direnv.enable = true;
-    };
-
-    # Default version control software
-    programs.git = {
-      enable = true;
-      config = {
-        user.name = "Jake Neau";
-        user.email = "jakeneau@proton.me";
-        init.defaultBranch = "main";
-        safe.directory = "/etc/nixos";
-      };
-    };
-
-    # --------
     # Packages
     # --------
     environment.systemPackages = with pkgs; [

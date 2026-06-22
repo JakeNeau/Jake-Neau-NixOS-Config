@@ -10,6 +10,8 @@
       nur
       config-group
       yazi
+      direnv
+      git
     ];
   };
 
@@ -20,6 +22,7 @@
       home-manager
       nur
       config-group
+      direnv
     ];
   };
 
@@ -28,6 +31,8 @@
       (with inputs.self.modules.homeManager; [
         system-minimal
         yazi
+        git
+        jujutsu
       ])
       ++ [
         # The systemConstants option declarations; the values are pushed in
