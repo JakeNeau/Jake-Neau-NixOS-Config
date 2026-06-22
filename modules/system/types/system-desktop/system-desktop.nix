@@ -17,6 +17,7 @@
         fish
         podman
         niri-desktop
+        audio
       ])
       ++ [inputs.self.modules.generic.cli];
 
@@ -91,19 +92,6 @@
       ];
     };
 
-    # -----
-    # Audio
-    # -----
-    services.pulseaudio.enable = false;
-    security.rtkit.enable = true;
-    services.pipewire = {
-      enable = true;
-      alsa.enable = true;
-      alsa.support32Bit = true;
-      pulse.enable = true;
-      jack.enable = true;
-    };
-
     # ----------------
     # Security & login
     # ----------------
@@ -159,11 +147,9 @@
       mpv # General purpose video player
       obs-studio # Screen recording software
       obsidian # Note taking utility using markdown files
-      pavucontrol # Sound setting control GUI
       playerctl # Keyboard controls for audio players
       prismlauncher # Minecraft launcher
       loupe # Fast and lightweight image viewer
-      qpwgraph # A patchbay and volume control program that works with pipewire
       reaper # A configurable digital audio workstation
       signal-desktop # A private messaging service
       spotify # Music subscription service
