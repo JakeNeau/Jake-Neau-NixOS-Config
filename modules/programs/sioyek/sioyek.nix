@@ -2,7 +2,7 @@
   # Sioyek: a keyboard-driven PDF reader built for papers and textbooks
   # (vim-flavored keybindings, marks/bookmarks, smart citation jumping).
   #
-  # Cross-platform [nd]: nixpkgs builds sioyek on both Linux and macOS, so a
+  # Cross-platform: nixpkgs builds sioyek on both Linux and macOS, so a
   # single home-manager aspect installs it everywhere. home-manager now ships a
   # native `programs.sioyek` module, so the package, key bindings and prefs are
   # all declared here. Setting sioyek as the default PDF reader differs per OS:

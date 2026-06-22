@@ -93,10 +93,6 @@ Nix ignores them; they just help you find things. Add more (`gaming/`, `desktop/
   named after the feature** and split it by class — `nixos.nix`, `darwin.nix`,
   `generic.nix` — or `flake-parts.nix` (boilerplate). flake-parts merges them all,
   so splitting is free and aids maintenance.
-- The upstream guide tags feature directories with the contexts they cover:
-  **`[N]`**ixOS, **`[D]`**arwin; lowercase **`[n]`/`[d]`** mean home-manager on that
-  platform (e.g. `browser [nd]`, `ssh [ND]`). Human convention only — optional, but
-  handy for scanning the tree.
 - Names starting with `_` are **ignored** by the importer — use them to park
   unfinished work or non-feature files.
 

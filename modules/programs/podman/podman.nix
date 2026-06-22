@@ -1,13 +1,13 @@
 {
   # Podman: a daemonless container engine.
   #
-  # NixOS [N]: the virtualisation.podman module, with docker CLI compat.
-  #            On every workstation via system-desktop.
-  # macOS [D]: nixpkgs has no podman module for darwin, so this installs the
-  #            pieces by hand: the podman CLI, a `docker` shim, and the
-  #            Apple-native VM stack (vfkit + gvproxy) that `podman machine`
-  #            uses to run the Linux VM that containers actually live in.
-  #            Imported per-host (currently only the work laptop).
+  # NixOS: the virtualisation.podman module, with docker CLI compat.
+  #        On every workstation via system-desktop.
+  # macOS: nixpkgs has no podman module for darwin, so this installs the
+  #        pieces by hand: the podman CLI, a `docker` shim, and the
+  #        Apple-native VM stack (vfkit + gvproxy) that `podman machine`
+  #        uses to run the Linux VM that containers actually live in.
+  #        Imported per-host (currently only the work laptop).
 
   flake.modules.nixos.podman = {
     virtualisation.podman = {

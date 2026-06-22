@@ -1,24 +1,24 @@
 {
   # Fish: the default interactive shell on every machine.
   #
-  # NixOS [N]: fish is each user's login shell (set by modules/factory/user);
-  #            interactive bash also hands off to fish so a stray bash session
-  #            lands in the same place.
-  # macOS [D]: macOS owns the account's login shell (zsh), so instead of
-  #            changing the account, interactive zsh execs into fish.
-  # Both [nd]: aliases, functions, and plugins live in home-manager; each
-  #            function is its own autoloadable functions/<name>.fish file.
-  #            The flake-management helpers (nc, nr/nrr) detect the platform
-  #            themselves (/etc/nixos vs /etc/nix-darwin) and work everywhere;
-  #            the power shortcuts (r/s) differ per platform. Functions that
-  #            need a specific program (eza, fastfetch, nix-minecraft) are
-  #            installed only where that program is configured.
+  # NixOS: fish is each user's login shell (set by modules/factory/user);
+  #        interactive bash also hands off to fish so a stray bash session
+  #        lands in the same place.
+  # macOS: macOS owns the account's login shell (zsh), so instead of
+  #        changing the account, interactive zsh execs into fish.
+  # Both:  aliases, functions, and plugins live in home-manager; each
+  #        function is its own autoloadable functions/<name>.fish file.
+  #        The flake-management helpers (nc, nr/nrr) detect the platform
+  #        themselves (/etc/nixos vs /etc/nix-darwin) and work everywhere;
+  #        the power shortcuts (r/s) differ per platform. Functions that
+  #        need a specific program (eza, fastfetch, nix-minecraft) are
+  #        installed only where that program is configured.
   #
   # Related: ctrl-v/alt-c keybind fixups come from modules/system/copy-paste-remaps.
 
-  # -----------------------------
-  # NixOS [N]: login shell + bash
-  # -----------------------------
+  # -------------------------
+  # NixOS: login shell + bash
+  # -------------------------
   flake.modules.nixos.fish = {pkgs, ...}: {
     # Registers fish in /etc/shells (required for it to be a login shell) and
     # wires vendor completions/config for fish plugin packages.
@@ -38,9 +38,9 @@
     };
   };
 
-  # ------------------------------
-  # macOS [D]: zsh execs into fish
-  # ------------------------------
+  # --------------------------
+  # macOS: zsh execs into fish
+  # --------------------------
   flake.modules.darwin.fish = {pkgs, ...}: {
     # Installs fish system-wide, registers it in /etc/shells, and sets up the
     # nix environment + vendor plugin loading for fish sessions.
@@ -57,9 +57,9 @@
     '';
   };
 
-  # ----------------------------------------------------
-  # Both [nd]: aliases, functions, plugins (home-manager)
-  # ----------------------------------------------------
+  # ------------------------------------------------
+  # Both: aliases, functions, plugins (home-manager)
+  # ------------------------------------------------
   flake.modules.homeManager.fish = {
     pkgs,
     lib,

@@ -12,6 +12,7 @@
       yazi
       direnv
       git
+      printing
     ];
   };
 
@@ -23,6 +24,7 @@
       nur
       config-group
       direnv
+      printing
     ];
   };
 

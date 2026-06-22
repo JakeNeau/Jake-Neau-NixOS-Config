@@ -23,6 +23,12 @@ label with dashed rules:
     # Section name
     # ------------
 
+When you write or edit comments through a direct edit, run a focused
+[[agent:comment-simplifier]] pass over them before the change is done — a
+dedicated review tightens what the first draft leaves loose. The
+[[agent:code-writer]] flow already runs it, so this is just for the edits you
+make yourself.
+
 ## 3. Use skills aggressively
 
 Lean heavily on skills. Before acting on a task, check whether a skill matches and
@@ -61,7 +67,8 @@ flow's headless middle: planning the work (verified by plan-verifier), implement
 test-first with test-writer/test-verifier, documenting with comment-writer, and
 proving it correct with code-reviewer — looping until the review is clean. You handle
 the interactive ends — the design, and finishing the branch; a small, obvious edit
-you may still make directly, explaining and proving it as above.
+you may still make directly, explaining, proving, and tightening its comments
+as above.
 
 It runs headless and sees none of this conversation, so you own what it can't:
 settle unclear intent with me first, pass the full task context when you hand off,

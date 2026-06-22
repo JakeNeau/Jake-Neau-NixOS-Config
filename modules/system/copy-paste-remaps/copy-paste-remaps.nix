@@ -2,15 +2,15 @@
   # Linux-style copy/paste muscle memory everywhere: ctrl+c / ctrl+v copy and
   # paste in GUI apps and in the terminal on both platforms.
   #
-  # macOS   [d]: Karabiner swaps ctrl<->cmd for the standard shortcut keys in
-  #              GUI apps, so ctrl+c copies and the displaced native ctrl
-  #              functions stay reachable on cmd. Terminals are excluded so
-  #              ctrl keeps its terminal meanings there.
-  # Ghostty [d]: ctrl+c / ctrl+v are copy/paste and the interrupt byte moves
-  #              to alt+c, identical on both platforms.
-  # Fish    [nd]: the fzf.fish variables widget moves off ctrl-v to ctrl-alt-v,
-  #              joining the plugin's own ctrl-alt-f/l/s/p family, and fish's
-  #              capitalize-word re-homes to ctrl-alt-c.
+  # macOS:   Karabiner swaps ctrl<->cmd for the standard shortcut keys in
+  #          GUI apps, so ctrl+c copies and the displaced native ctrl
+  #          functions stay reachable on cmd. Terminals are excluded so
+  #          ctrl keeps its terminal meanings there.
+  # Ghostty: ctrl+c / ctrl+v are copy/paste and the interrupt byte moves
+  #          to alt+c, identical on both platforms.
+  # Fish:    the fzf.fish variables widget moves off ctrl-v to ctrl-alt-v,
+  #          joining the plugin's own ctrl-alt-f/l/s/p family, and fish's
+  #          capitalize-word re-homes to ctrl-alt-c.
   #
   # Related: the nvf keymap alt+v -> visual block (modules/programs/nvf)
   # replaces vim's ctrl+v, which ghostty now consumes.

@@ -2,11 +2,11 @@
   # Caps lock as a dual-role key on every system: ctrl when held with another
   # key, escape when tapped alone.
   #
-  # NixOS  [N]: kanata grabs the real keyboards at the evdev level, so the
-  #             remap works in Wayland, X, and the console alike.
-  # macOS  [d]: a Karabiner-Elements rule contributed to the karabiner
-  #             feature (modules/programs/karabiner), which owns the app
-  #             install and renders karabiner.json.
+  # NixOS: kanata grabs the real keyboards at the evdev level, so the
+  #        remap works in Wayland, X, and the console alike.
+  # macOS: a Karabiner-Elements rule contributed to the karabiner
+  #        feature (modules/programs/karabiner), which owns the app
+  #        install and renders karabiner.json.
 
   flake.modules.nixos.caps-dual-role = {
     services.kanata = {

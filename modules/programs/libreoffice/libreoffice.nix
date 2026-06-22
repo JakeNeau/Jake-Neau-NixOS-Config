@@ -1,7 +1,7 @@
 {
   # LibreOffice: a FOSS, professional-quality office suite (Writer, Calc, …).
   #
-  # Cross-platform [nd]: the suite ships differently per OS, so each branch picks
+  # Cross-platform: the suite ships differently per OS, so each branch picks
   # the right package. Linux builds the Qt variant from source and finds its
   # spell-check dictionaries from the profile's hunspell share dir. macOS has no
   # source build, so nixpkgs ships the official prebuilt LibreOffice.app

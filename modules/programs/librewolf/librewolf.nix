@@ -3,7 +3,7 @@
   # browser (search engines, extensions, uBlock filter lists, bookmarks,
   # policies).
   #
-  # Cross-platform [nd]: nixpkgs builds LibreWolf on Linux and macOS, and the
+  # Cross-platform: nixpkgs builds LibreWolf on Linux and macOS, and the
   # home-manager `programs.librewolf` module works on both, so one aspect carries
   # the whole config everywhere. Making it the *default browser* differs per OS:
   # Linux uses XDG mimeapps; macOS has no declarative LaunchServices option, so

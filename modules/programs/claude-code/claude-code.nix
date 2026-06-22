@@ -1,7 +1,7 @@
 {
   # Claude Code: Anthropic's terminal coding assistant.
   #
-  # Cross-platform [nd]: nixpkgs builds claude-code on both Linux and macOS, so
+  # Cross-platform: nixpkgs builds claude-code on both Linux and macOS, so
   # a single home-manager aspect installs it for the user everywhere it's
   # imported. The nvf editor integration (claudecode.nvim,
   # modules/programs/nvf) spawns this same `claude` CLI.
