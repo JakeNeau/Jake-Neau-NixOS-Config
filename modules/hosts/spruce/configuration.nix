@@ -12,6 +12,14 @@
 
     # Host facts features branch on (e.g. fastfetch's Power box).
     systemConstants.isLaptop = true;
+    systemConstants.graphicsType = "nvidia";
+
+    # Placeholder bus IDs — PRIME offload asserts they're set. Replace with the
+    # real laptop's values.
+    hardware.nvidia.prime = {
+      nvidiaBusId = "PCI:1:0:0";
+      intelBusId = "PCI:0:2:0";
+    };
 
     # Simple UEFI bootloader (the desktop's themed GRUB is desktop-specific).
     boot.loader.systemd-boot.enable = true;

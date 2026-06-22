@@ -18,6 +18,7 @@
         podman
         niri-desktop
         audio
+        graphics
         ungoogled-chromium
       ])
       ++ [inputs.self.modules.generic.cli];
@@ -150,6 +151,7 @@
       system-default
       fish
       ghostty
+      graphics
       homebrew
       karabiner
       key-repeat

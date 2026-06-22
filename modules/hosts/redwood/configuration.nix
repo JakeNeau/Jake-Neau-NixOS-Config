@@ -13,6 +13,9 @@
 
     networking.hostName = "redwood";
 
+    # Host facts features branch on (e.g. the graphics vendor modules).
+    systemConstants.graphicsType = "amd";
+
     # ----
     # Boot
     # ----
@@ -61,21 +64,6 @@
     ];
 
     boot.initrd.luks.devices."luks-014e6aef-d36f-4b5b-9b48-447d6bc40b95".device = "/dev/disk/by-uuid/014e6aef-d36f-4b5b-9b48-447d6bc40b95";
-
-    # ---
-    # GPU
-    # ---
-    # Configure hardware settings for AMD GPUs
-    hardware.graphics = {
-      enable = true;
-      enable32Bit = true;
-      extraPackages = with pkgs; [
-        # Needed for Davinci Resolve
-        rocmPackages.clr.icd
-        mesa.opencl
-      ];
-    };
-    nixpkgs.config.rocmSupport = true;
 
     # -----
     # Audio
@@ -152,14 +140,6 @@
     services.hardware.openrgb = {
       enable = true;
       startupProfile = "orange";
-    };
-
-    # -----------
-    # Environment
-    # -----------
-    # Desktop-specific environment variables (RUSTICL for the AMD GPU).
-    environment.variables = {
-      RUSTICL_ENABLE = "radeonsi";
     };
 
     # ----------------

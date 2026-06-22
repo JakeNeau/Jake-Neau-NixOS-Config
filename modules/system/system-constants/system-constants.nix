@@ -28,6 +28,15 @@ in {
         default = false;
         description = "Whether this host runs the local-ai stack (llama-server).";
       };
+      graphicsType = lib.mkOption {
+        type = lib.types.enum ["amd" "intel" "nvidia" "apple"];
+        # No default: every host MUST declare its GPU vendor.
+        description = ''
+          This host's GPU vendor. The graphics modules under
+          modules/system/graphics/ each self-activate on a match, so a host
+          declares only the GPU it has.
+        '';
+      };
     };
   };
 

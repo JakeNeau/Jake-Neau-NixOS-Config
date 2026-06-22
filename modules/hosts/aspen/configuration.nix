@@ -13,5 +13,6 @@
 
     # Host facts features branch on (e.g. fastfetch's Power box).
     systemConstants.isLaptop = true;
+    systemConstants.graphicsType = "apple";
   };
 }

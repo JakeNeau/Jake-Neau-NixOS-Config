@@ -15,6 +15,7 @@
 
     # Host facts features branch on (e.g. fastfetch's Power box).
     systemConstants.isLaptop = true;
+    systemConstants.graphicsType = "apple";
 
     # Kubernetes CLI tools — only on this work laptop for now.
     home-manager.users."jake.neau".imports = [inputs.self.modules.homeManager.kubernetes];
