@@ -16,6 +16,7 @@
         caps-dual-role
         fish
         podman
+        niri-desktop
       ])
       ++ [inputs.self.modules.generic.cli];
 
@@ -61,20 +62,6 @@
       LC_PAPER = "en_US.UTF-8";
       LC_TELEPHONE = "en_US.UTF-8";
       LC_TIME = "en_US.UTF-8";
-    };
-
-    # -------
-    # Desktop
-    # -------
-    # Compositor: displays the desktop
-    programs.niri.enable = true;
-
-    xdg.portal = {
-      enable = true;
-      extraPortals = [
-        pkgs.xdg-desktop-portal-gnome
-        pkgs.xdg-desktop-portal-gtk
-      ];
     };
 
     # ------
@@ -125,18 +112,6 @@
     # Enable polkit for running privledged operations
     security.polkit.enable = true;
 
-    # Greeter: handles login
-    services.greetd = {
-      enable = true;
-      settings = rec {
-        initial_session = {
-          command = "${pkgs.niri}/bin/niri-session -l";
-          user = "jakeneau";
-        };
-        default_session = initial_session;
-      };
-    };
-
     # Enable Gnome Keyring for staying logged into applications
     services.gnome.gnome-keyring.enable = true;
     security.pam.services.greetd.enableGnomeKeyring = true;
@@ -174,20 +149,16 @@
       #   # A wine prefix manager
       #   removeWarningPopup = true;
       # })
-      candy-icons # A gradient vector icon theme
-      clipse # A cool clipboard manager
       ckan # A mod manager for Kerbal Space Program
       davinci-resolve-studio # Professional video editor
       element-desktop # A group messaging service with an open source API
       freecad # An open source parametric 3D modeling program
-      fuzzel # Super fast application launcher
       gnucash # Double-entry accounting software
       inkscape # Vector graphics editor
       krita # A FOSS art program
       mpv # General purpose video player
       obs-studio # Screen recording software
       obsidian # Note taking utility using markdown files
-      papirus-icon-theme # Fallback icon set
       pavucontrol # Sound setting control GUI
       playerctl # Keyboard controls for audio players
       prismlauncher # Minecraft launcher
@@ -196,15 +167,10 @@
       reaper # A configurable digital audio workstation
       signal-desktop # A private messaging service
       spotify # Music subscription service
-      swaybg # Wallpaper utility
       todoist-electron # Todo tracker app
-      udiskie # Automounting for removable media
       ungoogled-chromium # Chromium without all the callbacks to google
       vesktop # Alternative to discord messaging app
-      wl-clip-persist # Make sure clipboard items persist after programs close
-      wl-clipboard # Clipboard manager backend
       xournalpp # App for signing PDFs
-      xwayland-satellite # Xwayland compatability for wayland only compositors
     ];
 
     # -----
@@ -254,6 +220,7 @@
       fish
       ghostty
       karabiner
+      beekeeper-studio
       libreoffice
       sioyek
     ];
