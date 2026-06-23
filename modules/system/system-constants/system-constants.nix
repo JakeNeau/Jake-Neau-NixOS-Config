@@ -18,6 +18,11 @@ in {
   # Imported everywhere via system-default; hosts only set the values.
   flake.modules.generic.system-constants = {lib, ...}: {
     options.systemConstants = {
+      hostName = lib.mkOption {
+        type = lib.types.str;
+        # No default: every host MUST declare its hostname.
+        description = "This host's network hostname (sets networking.hostName).";
+      };
       isLaptop = lib.mkOption {
         type = lib.types.bool;
         default = false;

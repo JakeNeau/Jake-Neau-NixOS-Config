@@ -8,7 +8,7 @@
       jakeneau
     ];
 
-    networking.hostName = "spruce";
+    systemConstants.hostName = "spruce";
 
     # Host facts features branch on (e.g. fastfetch's Power box).
     systemConstants.isLaptop = true;

@@ -2,30 +2,34 @@
   # The default system type: minimal + the tooling used everywhere.
 
   flake.modules.nixos.system-default = {
-    imports = with inputs.self.modules.nixos; [
-      system-minimal
-      system-constants
-      home-manager
-      secrets
-      nur
-      config-group
-      yazi
-      direnv
-      git
-      printing
-    ];
+    imports =
+      (with inputs.self.modules.nixos; [
+        system-minimal
+        system-constants
+        home-manager
+        secrets
+        nur
+        config-group
+        yazi
+        direnv
+        git
+        printing
+      ])
+      ++ [inputs.self.modules.generic.network];
   };
 
   flake.modules.darwin.system-default = {
-    imports = with inputs.self.modules.darwin; [
-      system-minimal
-      system-constants
-      home-manager
-      nur
-      config-group
-      direnv
-      printing
-    ];
+    imports =
+      (with inputs.self.modules.darwin; [
+        system-minimal
+        system-constants
+        home-manager
+        nur
+        config-group
+        direnv
+        printing
+      ])
+      ++ [inputs.self.modules.generic.network];
   };
 
   flake.modules.homeManager.system-default = {

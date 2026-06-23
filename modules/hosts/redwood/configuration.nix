@@ -11,7 +11,7 @@
       jakeneau
     ];
 
-    networking.hostName = "redwood";
+    systemConstants.hostName = "redwood";
 
     # Host facts features branch on (e.g. the graphics vendor modules).
     systemConstants.graphicsType = "amd";

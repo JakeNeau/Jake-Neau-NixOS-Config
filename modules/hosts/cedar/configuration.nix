@@ -11,7 +11,7 @@
       inputs.self.modules.generic.cli
     ];
 
-    networking.hostName = "cedar";
+    systemConstants.hostName = "cedar";
 
     # Host facts features branch on (e.g. fastfetch's Power box).
     systemConstants.isLaptop = true;

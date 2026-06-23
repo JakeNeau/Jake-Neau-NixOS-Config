@@ -19,31 +19,12 @@
         niri-desktop
         audio
         graphics
+        network
         ungoogled-chromium
         blender
         davinci-resolve
       ])
       ++ [inputs.self.modules.generic.cli];
-
-    # ----------
-    # Networking
-    # ----------
-    networking.wireless.iwd = {
-      enable = true;
-      settings = {
-        IPv6 = {
-          Enabled = true;
-        };
-        Settings = {
-          AutoConnect = true;
-        };
-      };
-    };
-
-    networking.networkmanager = {
-      enable = true;
-      wifi.backend = "iwd";
-    };
 
     # ---------
     # Bluetooth

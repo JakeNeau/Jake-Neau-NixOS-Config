@@ -9,7 +9,7 @@
       ])
       ++ [inputs.self.modules.generic.cli];
 
-    networking.hostName = "aspen";
+    systemConstants.hostName = "aspen";
 
     # Host facts features branch on (e.g. fastfetch's Power box).
     systemConstants.isLaptop = true;
