@@ -20,6 +20,8 @@
         audio
         graphics
         ungoogled-chromium
+        blender
+        davinci-resolve
       ])
       ++ [inputs.self.modules.generic.cli];
 
@@ -96,14 +98,12 @@
       vscode
       audacity # Audio recording program
       bitwarden-desktop # Password manager for all devices
-      blender # 3D Modeling art program with AMD GPU support (hip)
       bluetui # A tui for managing bluetooth
       # (bottles.override {
       #   # A wine prefix manager
       #   removeWarningPopup = true;
       # })
       ckan # A mod manager for Kerbal Space Program
-      davinci-resolve-studio # Professional video editor
       element-desktop # A group messaging service with an open source API
       freecad # An open source parametric 3D modeling program
       gnucash # Double-entry accounting software
