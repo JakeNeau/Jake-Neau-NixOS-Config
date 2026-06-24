@@ -534,8 +534,38 @@
             diagnostics = "<leader>fd";
             lspReferences = "<leader>fr";
             lspDefinitions = "<leader>fD";
+            # Git pickers share the <leader>g prefix with gitsigns (see Git below).
+            gitFiles = "<leader>gf";
             gitCommits = "<leader>gc";
-            gitBranches = "<leader>gb";
+            gitBufferCommits = "<leader>gC";
+            gitBranches = "<leader>gB";
+            gitStatus = "<leader>go";
+            gitStash = "<leader>gx";
+          };
+        };
+
+        # -----
+        # Git
+        # -----
+        # gitsigns alone (the rest of the `vim.git` suite stays off): acts on the
+        # hunk under the cursor, complementing the repo-browsing pickers above.
+        # Mappings moved onto <leader>g so all git shares one prefix.
+        git.gitsigns = {
+          enable = true;
+          mappings = {
+            nextHunk = "]c";
+            previousHunk = "[c";
+            stageHunk = "<leader>gs"; # also visual: stage selected lines
+            undoStageHunk = "<leader>gu";
+            resetHunk = "<leader>gr"; # also visual: reset selected lines
+            stageBuffer = "<leader>gS";
+            resetBuffer = "<leader>gR";
+            previewHunk = "<leader>gp";
+            blameLine = "<leader>gl";
+            toggleBlame = "<leader>gt";
+            diffThis = "<leader>gd";
+            diffProject = "<leader>gD";
+            toggleDeleted = "<leader>gT";
           };
         };
 
@@ -579,6 +609,12 @@
         # blocks or changes what the keys do.
         binds.whichKey = {
           enable = true;
+          # nvf's telescope module mkDefaults a <leader>fv "Telescope Git" group;
+          # the pickers moved to <leader>g, so null it to hide the empty group.
+          register = {
+            "<leader>fv" = null;
+            "<leader>fvc" = null;
+          };
           setupOpts = {
             preset = "modern"; # Full-width rounded panel at the bottom
             delay = 200; # ms of hesitation before the popup appears
