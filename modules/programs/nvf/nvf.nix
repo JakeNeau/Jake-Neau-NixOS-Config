@@ -638,6 +638,82 @@
               action = "<C-\\><C-n><C-w>l";
               desc = "Focus window right";
             }
+            # As above, but add Shift to move the window instead of focusing it.
+            {
+              key = "<C-S-h>";
+              mode = "n";
+              action = "<C-w>H";
+              desc = "Move window left";
+            }
+            {
+              key = "<C-S-j>";
+              mode = "n";
+              action = "<C-w>J";
+              desc = "Move window down";
+            }
+            {
+              key = "<C-S-k>";
+              mode = "n";
+              action = "<C-w>K";
+              desc = "Move window up";
+            }
+            {
+              key = "<C-S-l>";
+              mode = "n";
+              action = "<C-w>L";
+              desc = "Move window right";
+            }
+            {
+              key = "<C-S-h>";
+              mode = "t";
+              action = "<C-\\><C-n><C-w>H";
+              desc = "Move window left";
+            }
+            {
+              key = "<C-S-j>";
+              mode = "t";
+              action = "<C-\\><C-n><C-w>J";
+              desc = "Move window down";
+            }
+            {
+              key = "<C-S-k>";
+              mode = "t";
+              action = "<C-\\><C-n><C-w>K";
+              desc = "Move window up";
+            }
+            {
+              key = "<C-S-l>";
+              mode = "t";
+              action = "<C-\\><C-n><C-w>L";
+              desc = "Move window right";
+            }
+            # You resize while staying in the window, so unlike focus/move these
+            # use <cmd> (one mode-preserving entry) instead of the <C-\><C-n>
+            # break-out — terminal typing keeps working.
+            {
+              key = "<C-A-h>";
+              mode = ["n" "t"];
+              action = "<cmd>vertical resize -2<cr>";
+              desc = "Shrink window width";
+            }
+            {
+              key = "<C-A-j>";
+              mode = ["n" "t"];
+              action = "<cmd>resize -2<cr>";
+              desc = "Shrink window height";
+            }
+            {
+              key = "<C-A-k>";
+              mode = ["n" "t"];
+              action = "<cmd>resize +2<cr>";
+              desc = "Grow window height";
+            }
+            {
+              key = "<C-A-l>";
+              mode = ["n" "t"];
+              action = "<cmd>vertical resize +2<cr>";
+              desc = "Grow window width";
+            }
             {
               key = "-";
               mode = "n";
