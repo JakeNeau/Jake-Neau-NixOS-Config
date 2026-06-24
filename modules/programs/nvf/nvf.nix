@@ -673,10 +673,10 @@
               desc = "Visual block mode (ctrl+v is paste in ghostty)";
             }
           ]
-          # Local AI hovers (see luaConfigRC below). Both target the symbol under
-          # the cursor in normal mode, or the selection in visual mode: <leader>ak
-          # explains it, <leader>aq prompts for a free-form question about it. Live
-          # in the existing <leader>a "AI/Claude Code" which-key group.
+          # Local AI hovers (see luaConfigRC below), joining the existing
+          # <leader>a "AI/Claude Code" which-key group. ak/aq act on the symbol
+          # under the cursor (or the visual selection); ah is a global config
+          # query with no cursor context.
           ++ lib.optionals localAi [
             {
               key = "<leader>ak";
@@ -706,6 +706,13 @@
               action = ''function() require("llama_explain").ask_visual() end'';
               desc = "Ask about selection (local AI)";
             }
+            {
+              key = "<leader>ah";
+              mode = ["n"];
+              lua = true;
+              action = ''function() require("llama_explain").how() end'';
+              desc = "How do I…? (local AI)";
+            }
           ];
 
         # Local AI hovers, shown in the same float style as the LSP `K` hover.
@@ -713,9 +720,11 @@
         # Both target the visual selection, else the symbol under the cursor, and
         # feed the model the whole file plus the LSP-resolved definition of the
         # symbol (which may live in another file) so its answers aren't blind to
-        # the rest of the code. The HTTP call is async (vim.system) so it never
-        # blocks; the one short definition lookup is sync. Exposed as the
-        # llama_explain module the keymaps above require.
+        # the rest of the code. `how` instead feeds the editor's live keymaps and
+        # commands and answers a plain-language "how do I…?" config question. The
+        # HTTP call is async (vim.system) so it never blocks; the one short
+        # definition lookup is sync. Exposed as the llama_explain module the
+        # keymaps above require.
         luaConfigRC.llamaExplain = lib.mkIf localAi ''
           local M = {}
 
@@ -877,6 +886,58 @@
           -- visual mode) and hand it to the normal command.
           function M.explain_visual() M.explain(selection()) end
           function M.ask_visual() M.ask(selection()) end
+
+          -- Labeled keymaps (global + current buffer) as model context, deduped
+          -- by (mode, lhs). keytrans turns the internal lhs back into readable
+          -- form (a literal space becomes <Space>). Skip maps with no desc: they
+          -- are plumbing the user wouldn't ask for by name.
+          local function keymap_corpus()
+            local out, seen = {}, {}
+            for _, mode in ipairs({ "n", "i", "v", "x", "t" }) do
+              local maps = vim.api.nvim_get_keymap(mode)
+              vim.list_extend(maps, vim.api.nvim_buf_get_keymap(0, mode))
+              for _, m in ipairs(maps) do
+                local key = vim.fn.keytrans(m.lhsraw or m.lhs)
+                local id = mode .. "\t" .. key
+                if m.desc and m.desc ~= "" and not seen[id] then
+                  seen[id] = true
+                  out[#out + 1] = key .. " (" .. mode .. ") — " .. m.desc
+                end
+              end
+            end
+            return table.concat(out, "\n")
+          end
+
+          -- Ex commands (global + current buffer) as model context. Both APIs
+          -- return a name-keyed dict, so merge by key rather than concat.
+          local function command_corpus()
+            local cmds = vim.api.nvim_get_commands({})
+            cmds = vim.tbl_extend("force", cmds, vim.api.nvim_buf_get_commands(0, {}))
+            local out = {}
+            for name, c in pairs(cmds) do
+              local def = c.definition and vim.trim(c.definition) or ""
+              out[#out + 1] = def ~= "" and (":" .. name .. " — " .. def) or (":" .. name)
+            end
+            table.sort(out)
+            return table.concat(out, "\n")
+          end
+
+          -- Answer "how do I…?" from the keymap/command corpus instead of cursor
+          -- context: a global config question, so it names the binding(s) to use.
+          function M.how()
+            local keymaps, commands = keymap_corpus(), command_corpus()
+            vim.ui.input({ prompt = "How do I…? " }, function(q)
+              if not q or q == "" then return end
+              chat(
+                "You are an assistant for this configured Neovim. Given the question and the"
+                  .. " editor's keymaps and commands below, name the exact keymap(s)/command(s) that"
+                  .. " do it, quoting the precise keys (e.g. <leader>e) or command (e.g. :Oil)."
+                  .. " Prefer the user's configured bindings; fall back to standard Neovim only when"
+                  .. " nothing configured fits. Be concise. No preamble, no code fences.",
+                q .. "\n\nKeymaps:\n" .. keymaps .. "\n\nCommands:\n" .. commands,
+                "Searching the config…")
+            end)
+          end
 
           package.loaded["llama_explain"] = M
         '';
