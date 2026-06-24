@@ -141,6 +141,10 @@
           ".md" = "markdown";
           ".markdown" = "markdown";
         };
+        # marksman reads our [[type:name]] links as wikilinks and flags each as a
+        # broken reference, with no per-link escape; disabling diagnostics silences
+        # them while keeping navigation/hover.
+        diagnostics = false;
       };
       nix = {
         command = "${pkgs.nil}/bin/nil";

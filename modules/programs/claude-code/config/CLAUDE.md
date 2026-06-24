@@ -93,6 +93,14 @@ organize documentation, structure it with the Diátaxis architecture (tutorials,
 how-to guides, reference, explanation) and keep those kinds separate; see
 [[skill:diataxis]].
 
+## 10. Explain things assuming I'm unfamiliar
+
+When you explain anything — a concept, a tool, a piece of jargon, or why a change
+works — assume I may not know what you're referring to. Define terms in plain
+language, expand acronyms the first time you use them, and don't lean on
+background I might not have. Err toward over-explaining the unfamiliar rather
+than glossing over it.
+
 # This machine is Nix-managed
 
 This machine and my Claude Code config are managed declaratively by Nix. Before
