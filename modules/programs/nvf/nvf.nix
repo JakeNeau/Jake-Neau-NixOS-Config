@@ -263,6 +263,66 @@
               package = pkgs.vimPlugins.llama-vim;
               event = ["InsertEnter"];
             };
+
+            # jujutsu under <leader>j, mirroring the git <leader>g prefix. Only
+            # entry points are bound here; deeper ops (split, rebase, bookmarks,
+            # abandon) live as in-buffer keys inside the `:J log` hub.
+            "jj.nvim" = {
+              package = pkgs.vimPlugins.jj-nvim;
+              setupModule = "jj";
+              setupOpts = {};
+              cmd = ["J" "Jbrowse" "Jdiff" "Jhdiff" "Jvdiff"];
+              keys = [
+                {
+                  key = "<leader>js";
+                  mode = "n";
+                  action = "<cmd>J status<cr>";
+                  desc = "jj status";
+                }
+                {
+                  key = "<leader>jl";
+                  mode = "n";
+                  action = "<cmd>J log<cr>";
+                  desc = "jj log";
+                }
+                {
+                  key = "<leader>jd";
+                  mode = "n";
+                  action = "<cmd>Jdiff<cr>";
+                  desc = "jj diff (vs parent)";
+                }
+                {
+                  key = "<leader>jn";
+                  mode = "n";
+                  action = "<cmd>J new<cr>";
+                  desc = "jj new";
+                }
+                {
+                  key = "<leader>jc";
+                  mode = "n";
+                  action = "<cmd>J describe<cr>";
+                  desc = "jj describe";
+                }
+                {
+                  key = "<leader>je";
+                  mode = "n";
+                  action = "<cmd>J edit<cr>";
+                  desc = "jj edit";
+                }
+                {
+                  key = "<leader>jq";
+                  mode = "n";
+                  action = "<cmd>J squash<cr>";
+                  desc = "jj squash";
+                }
+                {
+                  key = "<leader>ju";
+                  mode = "n";
+                  action = "<cmd>J undo<cr>";
+                  desc = "jj undo";
+                }
+              ];
+            };
           };
         };
 
@@ -624,6 +684,7 @@
               (lib.generators.mkLuaInline ''{ "<leader>a", group = "AI/Claude Code" }'')
               (lib.generators.mkLuaInline ''{ "<leader>f", group = "Find/Telescope" }'')
               (lib.generators.mkLuaInline ''{ "<leader>g", group = "Git" }'')
+              (lib.generators.mkLuaInline ''{ "<leader>j", group = "Jujutsu" }'')
             ];
           };
         };
