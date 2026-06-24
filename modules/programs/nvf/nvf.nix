@@ -516,6 +516,16 @@
         # -----------
         telescope = {
           enable = true;
+          # fzf-native compiles a C sorter, replacing Telescope's pure-Lua
+          # fuzzy matcher for much faster filtering. nvf wires the dependency,
+          # `load_extension`, and setup from this one entry.
+          extensions = [
+            {
+              name = "fzf";
+              packages = [pkgs.vimPlugins.telescope-fzf-native-nvim];
+              setup = {fzf = {fuzzy = true;};};
+            }
+          ];
           mappings = {
             findFiles = "<leader>ff";
             liveGrep = "<leader>fg";
