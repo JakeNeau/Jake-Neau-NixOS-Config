@@ -762,13 +762,18 @@
           end
 
           -- Resolve one LSP definition location to a labeled snippet. The target
-          -- may be in another file and not yet loaded, so bufadd/bufload it.
+          -- often lives elsewhere (stdlib, for `Vec`/`Arc`); read it straight from
+          -- disk, not via a buffer — loading a not-yet-open file can invalidate
+          -- that buffer before we read it, which crashed `explain`.
           local function read_def(word, uri, range)
             local path = vim.uri_to_fname(uri)
-            local bufnr = vim.fn.bufadd(path)
-            vim.fn.bufload(bufnr)
             local from = range.start.line
-            local src = table.concat(vim.api.nvim_buf_get_lines(bufnr, from, from + 30, false), "\n")
+            local lines = {}
+            -- readfile errors on an unreadable path, so guard it.
+            if vim.fn.filereadable(path) == 1 then
+              lines = vim.list_slice(vim.fn.readfile(path, "", from + 30), from + 1, from + 30)
+            end
+            local src = table.concat(lines, "\n")
             local rel = vim.fn.fnamemodify(path, ":.")
             return path .. ":" .. from, "### `" .. word .. "` (" .. rel .. ":" .. (from + 1) .. ")\n" .. src
           end

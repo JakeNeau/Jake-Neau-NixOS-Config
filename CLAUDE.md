@@ -43,8 +43,8 @@ Dry builds check evaluation and build without activating anything:
 
 ```sh
 nix flake check
-nix build .#nixosConfigurations.<host>.config.system.build.toplevel --no-link   # NixOS  (hosts: nixos-desktop, nixos-laptop)
-nix build .#darwinConfigurations.<host>.system --no-link                        # macOS  (hosts: macos-laptop, jake-neau-work-laptop)
+nix build .#nixosConfigurations.<host>.config.system.build.toplevel --no-link   # NixOS  (hosts: redwood, spruce)
+nix build .#darwinConfigurations.<host>.system --no-link                        # macOS  (hosts: aspen, cedar)
 nix run .#write-flake                    # regenerate flake.nix after changing inputs
 ```
 
