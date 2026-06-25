@@ -1264,6 +1264,36 @@
 
           package.loaded["llama_explain"] = M
         '';
+
+        # llama.vim attaches its FIM ghost text to every insert-mode buffer,
+        # including the Telescope prompt, where autocomplete makes no sense (and
+        # cursor motions appear to "accept" it). Disable llama while a picker
+        # prompt is focused and restore it once the picker closes.
+        #
+        # llama lazy-loads on InsertEnter (via lz.n), so it isn't defined at
+        # FileType time. Hook the prompt's own InsertEnter instead: lz.n's loader
+        # autocmd is registered at startup, so it runs (and loads llama) before
+        # this one, created later at FileType. exists() still guards the gap.
+        luaConfigRC.llamaTelescope = lib.mkIf localAi ''
+          vim.api.nvim_create_autocmd("FileType", {
+            pattern = "TelescopePrompt",
+            callback = function(ev)
+              vim.api.nvim_create_autocmd("InsertEnter", {
+                buffer = ev.buf,
+                callback = function()
+                  if vim.fn.exists("*llama#disable") == 1 then vim.fn["llama#disable"]() end
+                end,
+              })
+              vim.api.nvim_create_autocmd({ "BufLeave", "BufWipeout" }, {
+                buffer = ev.buf,
+                once = true,
+                callback = function()
+                  if vim.fn.exists("*llama#enable") == 1 then vim.fn["llama#enable"]() end
+                end,
+              })
+            end,
+          })
+        '';
       };
     };
   };
