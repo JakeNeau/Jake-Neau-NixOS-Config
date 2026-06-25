@@ -587,18 +587,23 @@
             }
           ];
           # In-picker navigation, mirroring the global Alt motions: Alt+j/k step
-          # the selection, Alt+Shift+j/k jump it ~half a page. results_scrolling_*
-          # moves the selection (not just the view), so it's the half-page analog.
-          # The global Alt maps can't reach here (noremap won't fire Telescope's
-          # buffer-local maps), so bind the actions directly. Same in insert and
-          # normal mode, since the prompt starts in insert but <Esc> drops to normal.
+          # the selection, Alt+Shift+j/k jump it ~half a page, Alt+h/l move the
+          # cursor in the prompt (arrows, so insert mode never breaks — matching
+          # the global insert maps). results_scrolling_* moves the selection (not
+          # just the view), so it's the half-page analog. The global Alt maps
+          # can't reach here (noremap won't fire Telescope's buffer-local maps),
+          # so bind them directly. Same in insert and normal mode, since the
+          # prompt starts in insert but <Esc> drops to normal.
           setupOpts.defaults.mappings = let
             act = a: lib.generators.mkLuaInline "require('telescope.actions').${a}";
+            feed = k: lib.generators.mkLuaInline "function() vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('${k}', true, false, true), 'n', false) end";
             nav = {
               "<A-j>" = act "move_selection_next";
               "<A-k>" = act "move_selection_previous";
               "<A-J>" = act "results_scrolling_down";
               "<A-K>" = act "results_scrolling_up";
+              "<A-h>" = feed "<Left>";
+              "<A-l>" = feed "<Right>";
             };
           in {
             i = nav;
