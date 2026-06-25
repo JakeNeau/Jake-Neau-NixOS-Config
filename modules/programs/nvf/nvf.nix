@@ -586,6 +586,24 @@
               setup = {fzf = {fuzzy = true;};};
             }
           ];
+          # In-picker navigation, mirroring the global Alt motions: Alt+j/k step
+          # the selection, Alt+Shift+j/k jump it ~half a page. results_scrolling_*
+          # moves the selection (not just the view), so it's the half-page analog.
+          # The global Alt maps can't reach here (noremap won't fire Telescope's
+          # buffer-local maps), so bind the actions directly. Same in insert and
+          # normal mode, since the prompt starts in insert but <Esc> drops to normal.
+          setupOpts.defaults.mappings = let
+            act = a: lib.generators.mkLuaInline "require('telescope.actions').${a}";
+            nav = {
+              "<A-j>" = act "move_selection_next";
+              "<A-k>" = act "move_selection_previous";
+              "<A-J>" = act "results_scrolling_down";
+              "<A-K>" = act "results_scrolling_up";
+            };
+          in {
+            i = nav;
+            n = nav;
+          };
           mappings = {
             findFiles = "<leader>ff";
             liveGrep = "<leader>fg";
