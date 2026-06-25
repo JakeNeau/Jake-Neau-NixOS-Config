@@ -651,6 +651,17 @@
               "<C-r>" = "actions.refresh";
               "<C-w><CR>" = "actions.select_vsplit";
               "<C-w><C-CR>" = "actions.select_split";
+              # Open a terminal in the folder oil is currently showing.
+              "t" = lib.generators.mkLuaInline ''
+                {
+                  callback = function()
+                    local dir = require("oil").get_current_dir()
+                    if dir then Snacks.terminal.open(nil, { cwd = dir }) end
+                  end,
+                  desc = "Open terminal in current directory",
+                  mode = "n",
+                }
+              '';
             };
           };
         };
