@@ -237,5 +237,32 @@
           '. * $policy' "$settings" > "$tmp"  # deep-merge, our keys win
         mv "$tmp" "$settings"
       '';
+
+    # keybindings.json, unlike settings.json, is read-only to Claude Code (it
+    # never rewrites it), so a declarative Nix-store symlink is safe here.
+    # alt+j/k scroll by line and alt+shift+j/k by half page, in both the
+    # fullscreen Scroll view and the Ctrl+O Transcript view.
+    home.file.".claude/keybindings.json".text = let
+      scrollBinds = {
+        "alt+k" = "scroll:lineUp";
+        "alt+j" = "scroll:lineDown";
+        "alt+shift+k" = "scroll:halfPageUp";
+        "alt+shift+j" = "scroll:halfPageDown";
+      };
+    in
+      builtins.toJSON {
+        "$schema" = "https://www.schemastore.org/claude-code-keybindings.json";
+        "$docs" = "https://code.claude.com/docs/en/keybindings";
+        bindings = [
+          {
+            context = "Transcript";
+            bindings = scrollBinds;
+          }
+          {
+            context = "Scroll";
+            bindings = scrollBinds;
+          }
+        ];
+      };
   };
 }

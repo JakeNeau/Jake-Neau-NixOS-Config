@@ -855,6 +855,91 @@
               action = "<C-v>";
               desc = "Visual block mode (ctrl+v is paste in ghostty)";
             }
+            # -----------------------------------
+            # Alt+hjkl: move the cursor, any mode
+            # -----------------------------------
+            # Insert mode uses arrows so the cursor moves without leaving insert.
+            # Needs Ghostty's macos-option-as-alt to deliver Option as Alt.
+            {
+              key = "<A-h>";
+              mode = ["n" "x" "o"];
+              action = "h";
+              desc = "Move cursor left";
+            }
+            {
+              key = "<A-j>";
+              mode = ["n" "x" "o"];
+              action = "j";
+              desc = "Move cursor down";
+            }
+            {
+              key = "<A-k>";
+              mode = ["n" "x" "o"];
+              action = "k";
+              desc = "Move cursor up";
+            }
+            {
+              key = "<A-l>";
+              mode = ["n" "x" "o"];
+              action = "l";
+              desc = "Move cursor right";
+            }
+            {
+              key = "<A-h>";
+              mode = "i";
+              action = "<Left>";
+              desc = "Move cursor left";
+            }
+            {
+              key = "<A-j>";
+              mode = "i";
+              action = "<Down>";
+              desc = "Move cursor down";
+            }
+            {
+              key = "<A-k>";
+              mode = "i";
+              action = "<Up>";
+              desc = "Move cursor up";
+            }
+            {
+              key = "<A-l>";
+              mode = "i";
+              action = "<Right>";
+              desc = "Move cursor right";
+            }
+            # ---------------------------------------
+            # Alt+Shift+j/k: half-page scroll down/up
+            # ---------------------------------------
+            # Uppercase <A-J>/<A-K> is the robust notation for an Alt+shifted
+            # letter. noremap (nvf's default) keeps the <C-d>/<C-u> RHS bound to
+            # builtin scroll even though both are disabled just below.
+            {
+              key = "<A-J>";
+              mode = ["n" "x"];
+              action = "<C-d>";
+              desc = "Half page down";
+            }
+            {
+              key = "<A-K>";
+              mode = ["n" "x"];
+              action = "<C-u>";
+              desc = "Half page up";
+            }
+            # Drop the builtin Ctrl+d/Ctrl+u scroll in normal/visual only, so
+            # insert-mode Ctrl+u/Ctrl+d editing is left alone.
+            {
+              key = "<C-d>";
+              mode = ["n" "x"];
+              action = "<Nop>";
+              desc = "Disabled (half page is Alt+Shift+j)";
+            }
+            {
+              key = "<C-u>";
+              mode = ["n" "x"];
+              action = "<Nop>";
+              desc = "Disabled (half page is Alt+Shift+k)";
+            }
           ]
           # Local AI hovers (see luaConfigRC below), joining the existing
           # <leader>a "AI/Claude Code" which-key group. ak/aq act on the symbol

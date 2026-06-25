@@ -23,6 +23,9 @@
       settings = {
         background-opacity = 0.9;
         font-feature = ["liga" "calt" "dlig"];
+        # Send Option as Alt so Neovim's <A-…> maps fire; the cost is losing
+        # Option-composed special characters on macOS.
+        macos-option-as-alt = true;
         keybind = [
           "ctrl+enter=unbind"
         ];
