@@ -593,7 +593,8 @@
           # just the view), so it's the half-page analog. The global Alt maps
           # can't reach here (noremap won't fire Telescope's buffer-local maps),
           # so bind them directly. Same in insert and normal mode, since the
-          # prompt starts in insert but <Esc> drops to normal.
+          # prompt can be in either. <Esc> closes the picker outright (in insert
+          # too, where it would otherwise just drop to normal) for a one-press exit.
           setupOpts.defaults.mappings = let
             act = a: lib.generators.mkLuaInline "require('telescope.actions').${a}";
             feed = k: lib.generators.mkLuaInline "function() vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('${k}', true, false, true), 'n', false) end";
@@ -606,7 +607,7 @@
               "<A-l>" = feed "<Right>";
             };
           in {
-            i = nav;
+            i = nav // {"<esc>" = act "close";};
             n = nav;
           };
           mappings = {
