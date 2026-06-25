@@ -821,6 +821,15 @@
               action = "<cmd>vertical resize +2<cr>";
               desc = "Grow window width";
             }
+            # Ctrl+; drops terminal-insert into terminal-normal in place (to
+            # scroll/copy), without the window jump the <C-hjkl> maps do. Needs
+            # the kitty keyboard protocol to encode Ctrl+;, which Ghostty speaks.
+            {
+              key = "<C-;>";
+              mode = "t";
+              action = "<C-\\><C-n>";
+              desc = "Exit terminal mode";
+            }
             {
               key = "-";
               mode = "n";
