@@ -857,24 +857,21 @@
               desc = "Open oil (parent directory), any mode";
             }
             {
-              # Turn the current window into a terminal from any mode. In an oil
-              # buffer this matches the buffer-local `t` (cwd'd to oil's dir); in
-              # any other buffer it's a plain :terminal in the current cwd.
+              # Turn the current window into a terminal from any mode, always
+              # cwd'd to the base dir Neovim was launched from. getcwd(-1, -1) is
+              # the global cwd (never moves: no autochdir, no :cd), so a stray
+              # window-local :lcd can't drift it. (oil's `t` opens in oil's dir.)
               key = "<A-t>";
               mode = ["n" "i" "v" "t"];
               lua = true;
               action = ''
                 function()
-                  if vim.bo.filetype == "oil" then
-                    local dir = require("oil").get_current_dir()
-                    if not dir then return end
-                    vim.cmd.lcd({ dir })
-                  end
+                  vim.cmd.lcd({ vim.fn.getcwd(-1, -1) })
                   vim.cmd.terminal()
                   vim.cmd.startinsert()
                 end
               '';
-              desc = "Open a terminal in this window, any mode";
+              desc = "Open a terminal in this window (base dir), any mode";
             }
             # Cycle buffers (shadows the default screen-top/bottom motions).
             {
