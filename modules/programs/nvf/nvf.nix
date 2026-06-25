@@ -935,6 +935,34 @@
               action = "<C-u>";
               desc = "Half page up";
             }
+            # Insert mode: <C-o> runs one builtin scroll and returns to insert,
+            # so typing isn't interrupted (like the Alt+hjkl insert maps above).
+            {
+              key = "<A-J>";
+              mode = "i";
+              action = "<C-o><C-d>";
+              desc = "Half page down";
+            }
+            {
+              key = "<A-K>";
+              mode = "i";
+              action = "<C-o><C-u>";
+              desc = "Half page up";
+            }
+            # Terminal mode: break out to terminal-normal first (like the window
+            # focus/move maps) — scrollback can't move while the job has focus.
+            {
+              key = "<A-J>";
+              mode = "t";
+              action = "<C-\\><C-n><C-d>";
+              desc = "Half page down";
+            }
+            {
+              key = "<A-K>";
+              mode = "t";
+              action = "<C-\\><C-n><C-u>";
+              desc = "Half page up";
+            }
             # Drop the builtin Ctrl+d/Ctrl+u scroll in normal/visual only, so
             # insert-mode Ctrl+u/Ctrl+d editing is left alone.
             {
