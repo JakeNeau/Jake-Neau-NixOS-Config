@@ -858,9 +858,9 @@
             }
             {
               # Turn the current window into a terminal from any mode, always
-              # cwd'd to the base dir Neovim was launched from. getcwd(-1, -1) is
-              # the global cwd (never moves: no autochdir, no :cd), so a stray
-              # window-local :lcd can't drift it. (oil's `t` opens in oil's dir.)
+              # cwd'd to the base dir. getcwd(-1, -1) reads the global cwd (the
+              # base, set by <A-b>), ignoring any window-local :lcd drift. (oil's
+              # `t` opens in oil's dir.)
               key = "<A-t>";
               mode = ["n" "i" "v" "t"];
               lua = true;
@@ -872,6 +872,33 @@
                 end
               '';
               desc = "Open a terminal in this window (base dir), any mode";
+            }
+            {
+              # Set the base dir (global :cd, what <A-t> opens in) to "here":
+              # oil's folder, a terminal's live cwd (tracked via OSC 7 below), or
+              # the current file's folder. notify since a cwd change is invisible.
+              key = "<A-b>";
+              mode = ["n" "i" "v" "t"];
+              lua = true;
+              action = ''
+                function()
+                  local dir
+                  if vim.bo.filetype == "oil" then
+                    dir = require("oil").get_current_dir()
+                  elseif vim.bo.buftype == "terminal" then
+                    dir = vim.b.osc7_dir
+                  elseif vim.api.nvim_buf_get_name(0) ~= "" then
+                    dir = vim.fn.expand("%:p:h")
+                  end
+                  if dir and vim.fn.isdirectory(dir) == 1 then
+                    vim.cmd.cd({ dir })
+                    vim.notify("base dir → " .. dir)
+                  else
+                    vim.notify("couldn't determine a directory here", vim.log.levels.WARN)
+                  end
+                end
+              '';
+              desc = "Set the base dir to here (oil / terminal / file), any mode";
             }
             # Cycle buffers (shadows the default screen-top/bottom motions).
             {
@@ -1411,6 +1438,20 @@
                   if vim.fn.exists("*llama#enable") == 1 then vim.fn["llama#enable"]() end
                 end,
               })
+            end,
+          })
+        '';
+
+        # Track each terminal's live cwd from the OSC 7 sequence the shell emits
+        # (fish/Ghostty do) into a per-buffer osc7_dir, so <A-b> can :cd to it.
+        luaConfigRC.captureTerminalCwd = ''
+          vim.api.nvim_create_autocmd("TermRequest", {
+            desc = "Track terminal cwd via OSC 7 (for <A-b>)",
+            callback = function(ev)
+              local dir = ev.data.sequence:match("\027]7;file://[^/]*(/.*)$")
+              if not dir then return end
+              dir = dir:gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end)
+              if vim.fn.isdirectory(dir) == 1 then vim.b[ev.buf].osc7_dir = dir end
             end,
           })
         '';
