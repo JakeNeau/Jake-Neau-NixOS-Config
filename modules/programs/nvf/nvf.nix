@@ -571,63 +571,6 @@
           providers = ["friendly-snippets"];
         };
 
-        # -----------
-        # Telescope
-        # -----------
-        telescope = {
-          enable = true;
-          # fzf-native compiles a C sorter, replacing Telescope's pure-Lua
-          # fuzzy matcher for much faster filtering. nvf wires the dependency,
-          # `load_extension`, and setup from this one entry.
-          extensions = [
-            {
-              name = "fzf";
-              packages = [pkgs.vimPlugins.telescope-fzf-native-nvim];
-              setup = {fzf = {fuzzy = true;};};
-            }
-          ];
-          # In-picker navigation, mirroring the global Alt motions: Alt+j/k step
-          # the selection, Alt+Shift+j/k jump it ~half a page, Alt+h/l move the
-          # cursor in the prompt (arrows, so insert mode never breaks — matching
-          # the global insert maps). results_scrolling_* moves the selection (not
-          # just the view), so it's the half-page analog. The global Alt maps
-          # can't reach here (noremap won't fire Telescope's buffer-local maps),
-          # so bind them directly. Same in insert and normal mode, since the
-          # prompt can be in either. <Esc> closes the picker outright (in insert
-          # too, where it would otherwise just drop to normal) for a one-press exit.
-          setupOpts.defaults.mappings = let
-            act = a: lib.generators.mkLuaInline "require('telescope.actions').${a}";
-            feed = k: lib.generators.mkLuaInline "function() vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('${k}', true, false, true), 'n', false) end";
-            nav = {
-              "<A-j>" = act "move_selection_next";
-              "<A-k>" = act "move_selection_previous";
-              "<A-J>" = act "results_scrolling_down";
-              "<A-K>" = act "results_scrolling_up";
-              "<A-h>" = feed "<Left>";
-              "<A-l>" = feed "<Right>";
-            };
-          in {
-            i = nav // {"<esc>" = act "close";};
-            n = nav;
-          };
-          mappings = {
-            findFiles = "<leader>ff";
-            liveGrep = "<leader>fg";
-            buffers = "<leader>fb";
-            helpTags = "<leader>fh";
-            diagnostics = "<leader>fd";
-            lspReferences = "<leader>fr";
-            lspDefinitions = "<leader>fD";
-            # Git pickers share the <leader>g prefix with gitsigns (see Git below).
-            gitFiles = "<leader>gf";
-            gitCommits = "<leader>gc";
-            gitBufferCommits = "<leader>gC";
-            gitBranches = "<leader>gB";
-            gitStatus = "<leader>go";
-            gitStash = "<leader>gx";
-          };
-        };
-
         # -----
         # Git
         # -----
@@ -656,8 +599,42 @@
         # ----------------------------
         # Snacks (QoL plugin bundle)
         # ----------------------------
+        # The picker (file/grep/git/LSP finders, bound in keymaps below) plus
         # claudecode.nvim's recommended terminal provider.
-        utility.snacks-nvim.enable = true;
+        utility.snacks-nvim = {
+          enable = true;
+          # In-picker navigation mirroring the global Alt motions. snacks reads a
+          # bare string rhs as an action name, so moving the cursor needs a
+          # function action; it also binds <a-h> to toggle_hidden by default,
+          # which cursor_left/right override.
+          setupOpts.picker = let
+            feed = k: lib.generators.mkLuaInline "function() vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('${k}', true, false, true), 'n', false) end";
+            key = lib.generators.mkLuaInline;
+          in {
+            enabled = true;
+            actions.cursor_left = feed "<Left>";
+            actions.cursor_right = feed "<Right>";
+            win.input.keys = {
+              "<a-j>" = key ''{ "list_down", mode = { "i", "n" } }'';
+              "<a-k>" = key ''{ "list_up", mode = { "i", "n" } }'';
+              "<a-J>" = key ''{ "list_scroll_down", mode = { "i", "n" } }'';
+              "<a-K>" = key ''{ "list_scroll_up", mode = { "i", "n" } }'';
+              "<a-h>" = key ''{ "cursor_left", mode = { "i" } }'';
+              "<a-l>" = key ''{ "cursor_right", mode = { "i" } }'';
+              # snacks' default <Esc> is normal-mode only, but the picker opens
+              # in insert; bind both modes so one press closes it.
+              "<esc>" = key ''{ "cancel", mode = { "i", "n" } }'';
+            };
+          };
+        };
+
+        # snacks' pickers shell out to these: ripgrep for grep, fd for file
+        # finding. Bundle them into the Neovim wrapper so the editor never
+        # depends on $PATH.
+        extraPackages = with pkgs; [
+          ripgrep
+          fd
+        ];
 
         # ---------------
         # File Explorer
@@ -693,12 +670,6 @@
         # blocks or changes what the keys do.
         binds.whichKey = {
           enable = true;
-          # nvf's telescope module mkDefaults a <leader>fv "Telescope Git" group;
-          # the pickers moved to <leader>g, so null it to hide the empty group.
-          register = {
-            "<leader>fv" = null;
-            "<leader>fvc" = null;
-          };
           setupOpts = {
             preset = "modern"; # Full-width rounded panel at the bottom
             delay = 200; # ms of hesitation before the popup appears
@@ -706,7 +677,7 @@
             # Name the key groups so prefixes show a label instead of "+prefix"
             spec = [
               (lib.generators.mkLuaInline ''{ "<leader>a", group = "AI/Claude Code" }'')
-              (lib.generators.mkLuaInline ''{ "<leader>f", group = "Find/Telescope" }'')
+              (lib.generators.mkLuaInline ''{ "<leader>f", group = "Find" }'')
               (lib.generators.mkLuaInline ''{ "<leader>g", group = "Git" }'')
               (lib.generators.mkLuaInline ''{ "<leader>j", group = "Jujutsu" }'')
             ];
@@ -1001,6 +972,107 @@
               action = "<Nop>";
               desc = "Disabled (half page is Alt+Shift+k)";
             }
+
+            # --------------------------------
+            # Snacks pickers (Find <leader>f)
+            # --------------------------------
+            # The `Snacks` global is available once the picker is enabled above.
+            {
+              key = "<leader>ff";
+              mode = ["n"];
+              lua = true;
+              action = ''function() Snacks.picker.files() end'';
+              desc = "Find files";
+            }
+            {
+              key = "<leader>fg";
+              mode = ["n"];
+              lua = true;
+              action = ''function() Snacks.picker.grep() end'';
+              desc = "Grep";
+            }
+            {
+              key = "<leader>fb";
+              mode = ["n"];
+              lua = true;
+              action = ''function() Snacks.picker.buffers() end'';
+              desc = "Buffers";
+            }
+            {
+              key = "<leader>fh";
+              mode = ["n"];
+              lua = true;
+              action = ''function() Snacks.picker.help() end'';
+              desc = "Help tags";
+            }
+            {
+              key = "<leader>fd";
+              mode = ["n"];
+              lua = true;
+              action = ''function() Snacks.picker.diagnostics() end'';
+              desc = "Diagnostics";
+            }
+            {
+              key = "<leader>fr";
+              mode = ["n"];
+              lua = true;
+              action = ''function() Snacks.picker.lsp_references() end'';
+              desc = "LSP references";
+            }
+            {
+              key = "<leader>fD";
+              mode = ["n"];
+              lua = true;
+              action = ''function() Snacks.picker.lsp_definitions() end'';
+              desc = "LSP definitions";
+            }
+
+            # ----------------------------------
+            # Snacks git pickers (Git <leader>g)
+            # ----------------------------------
+            # On the <leader>g prefix alongside gitsigns, so all git shares it.
+            {
+              key = "<leader>gf";
+              mode = ["n"];
+              lua = true;
+              action = ''function() Snacks.picker.git_files() end'';
+              desc = "Git files";
+            }
+            {
+              key = "<leader>gc";
+              mode = ["n"];
+              lua = true;
+              action = ''function() Snacks.picker.git_log() end'';
+              desc = "Git commits";
+            }
+            {
+              key = "<leader>gC";
+              mode = ["n"];
+              lua = true;
+              action = ''function() Snacks.picker.git_log_file() end'';
+              desc = "Git buffer commits";
+            }
+            {
+              key = "<leader>gB";
+              mode = ["n"];
+              lua = true;
+              action = ''function() Snacks.picker.git_branches() end'';
+              desc = "Git branches";
+            }
+            {
+              key = "<leader>go";
+              mode = ["n"];
+              lua = true;
+              action = ''function() Snacks.picker.git_status() end'';
+              desc = "Git status";
+            }
+            {
+              key = "<leader>gx";
+              mode = ["n"];
+              lua = true;
+              action = ''function() Snacks.picker.git_stash() end'';
+              desc = "Git stash";
+            }
           ]
           # Local AI hovers (see luaConfigRC below), joining the existing
           # <leader>a "AI/Claude Code" which-key group. ak/aq act on the symbol
@@ -1272,17 +1344,17 @@
         '';
 
         # llama.vim attaches its FIM ghost text to every insert-mode buffer,
-        # including the Telescope prompt, where autocomplete makes no sense (and
-        # cursor motions appear to "accept" it). Disable llama while a picker
+        # including the snacks picker prompt, where autocomplete makes no sense
+        # (and cursor motions appear to "accept" it). Disable llama while a picker
         # prompt is focused and restore it once the picker closes.
         #
         # llama lazy-loads on InsertEnter (via lz.n), so it isn't defined at
         # FileType time. Hook the prompt's own InsertEnter instead: lz.n's loader
         # autocmd is registered at startup, so it runs (and loads llama) before
         # this one, created later at FileType. exists() still guards the gap.
-        luaConfigRC.llamaTelescope = lib.mkIf localAi ''
+        luaConfigRC.llamaPicker = lib.mkIf localAi ''
           vim.api.nvim_create_autocmd("FileType", {
-            pattern = "TelescopePrompt",
+            pattern = "snacks_picker_input",
             callback = function(ev)
               vim.api.nvim_create_autocmd("InsertEnter", {
                 buffer = ev.buf,

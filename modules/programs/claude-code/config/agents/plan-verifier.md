@@ -37,9 +37,10 @@ plausible it sounds:
 
 1. **Take each assumption the plan rests on** — "this helper exists", "this
    function returns X", "no other caller depends on this" — and test it.
-2. **Ground it in the codebase.** When an assumption needs proof, hand the
+2. **Ground it in the codebase.** When an assumption needs proof, hand a
    `codebase-investigator` subagent a precise question and rely on its `file:line`
-   evidence. Spawn only `codebase-investigator` — no other agents.
+   evidence. Spawn as many as the verification needs — in parallel when the
+   questions are independent — but only ever `codebase-investigator`, no other type.
 3. **Hunt the gaps.** Look for what the plan omits: an untouched call site, a
    missing migration, an unhandled edge case, a test that wouldn't actually bite.
 

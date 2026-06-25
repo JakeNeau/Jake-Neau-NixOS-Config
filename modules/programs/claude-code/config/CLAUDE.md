@@ -76,6 +76,10 @@ and relay any questions it returns — re-invoking it with the answers and the
 findings it sent back. In plan mode, ask it for the verified plan only, present
 that, and have it implement after approval.
 
+When you draft a plan yourself in plan mode rather than via [[agent:code-writer]],
+offer to run [[agent:plan-verifier]] on it before you ask me to approve — present
+its verdict alongside the plan so I can choose to proceed or refine further.
+
 ## 8. Reach for the internet liberally
 
 Lean on the internet heavily — not only when you're unsure. Proactively check
