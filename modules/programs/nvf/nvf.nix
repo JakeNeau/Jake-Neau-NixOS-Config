@@ -842,6 +842,14 @@
               action = "<cmd>Oil<cr>";
               desc = "Open oil (parent directory)";
             }
+            # Same as `-`, but from any mode. <cmd> runs :Oil without changing
+            # mode, so insert and terminal mode work without a break-out chord.
+            {
+              key = "<A-->";
+              mode = ["n" "i" "v" "t"];
+              action = "<cmd>Oil<cr>";
+              desc = "Open oil (parent directory), any mode";
+            }
             # Cycle buffers (shadows the default screen-top/bottom motions).
             {
               key = "<S-l>";
