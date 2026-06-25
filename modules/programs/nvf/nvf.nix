@@ -651,14 +651,20 @@
               "<C-r>" = "actions.refresh";
               "<C-w><CR>" = "actions.select_vsplit";
               "<C-w><C-CR>" = "actions.select_split";
-              # Open a terminal in the folder oil is currently showing.
+              # Turn the oil window itself into a terminal, cwd'd to the folder
+              # oil is showing. Neovim's :terminal loads into the current window
+              # (no split); lcd is window-local so the global cwd is untouched.
               "t" = lib.generators.mkLuaInline ''
                 {
                   callback = function()
                     local dir = require("oil").get_current_dir()
-                    if dir then Snacks.terminal.open(nil, { cwd = dir }) end
+                    if dir then
+                      vim.cmd.lcd({ dir })
+                      vim.cmd.terminal()
+                      vim.cmd.startinsert()
+                    end
                   end,
-                  desc = "Open terminal in current directory",
+                  desc = "Open a terminal in this window",
                   mode = "n",
                 }
               '';
@@ -849,6 +855,26 @@
               mode = ["n" "i" "v" "t"];
               action = "<cmd>Oil<cr>";
               desc = "Open oil (parent directory), any mode";
+            }
+            {
+              # Turn the current window into a terminal from any mode. In an oil
+              # buffer this matches the buffer-local `t` (cwd'd to oil's dir); in
+              # any other buffer it's a plain :terminal in the current cwd.
+              key = "<A-t>";
+              mode = ["n" "i" "v" "t"];
+              lua = true;
+              action = ''
+                function()
+                  if vim.bo.filetype == "oil" then
+                    local dir = require("oil").get_current_dir()
+                    if not dir then return end
+                    vim.cmd.lcd({ dir })
+                  end
+                  vim.cmd.terminal()
+                  vim.cmd.startinsert()
+                end
+              '';
+              desc = "Open a terminal in this window, any mode";
             }
             # Cycle buffers (shadows the default screen-top/bottom motions).
             {
