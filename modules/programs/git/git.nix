@@ -8,6 +8,12 @@
         name = "Jake Neau";
         email = "jakeneau@proton.me";
       };
+      # nix runs as the user against the root-owned config repo; without this
+      # allowlist libgit2 refuses to open it (one path per platform).
+      settings.safe.directory = [
+        "/etc/nixos"
+        "/etc/nix-darwin"
+      ];
     };
   };
 
