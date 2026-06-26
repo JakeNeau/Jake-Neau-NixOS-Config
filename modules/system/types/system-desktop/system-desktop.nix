@@ -23,6 +23,7 @@
         ungoogled-chromium
         blender
         davinci-resolve
+        spotify
       ])
       ++ [inputs.self.modules.generic.cli];
 
@@ -98,7 +99,6 @@
       loupe # Fast and lightweight image viewer
       reaper # A configurable digital audio workstation
       signal-desktop # A private messaging service
-      spotify # Music subscription service
       todoist-electron # Todo tracker app
       vesktop # Alternative to discord messaging app
       xournalpp # App for signing PDFs
