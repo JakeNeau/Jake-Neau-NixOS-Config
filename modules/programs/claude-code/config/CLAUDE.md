@@ -12,16 +12,11 @@ every other instruction.
 
 ## 2. Comments
 
-Keep comments short and direct — note the non-obvious *why*, don't restate what
-the code already says. No multi-line preambles; a terse line or trailing comment
-usually suffices. Put multi-line comments above the code they describe, never
-below. Same-line comments naming what something does and why it's needed are
-encouraged, as are section comments that group a file logically. Fence a section
-label with dashed rules:
-
-    # ------------
-    # Section name
-    # ------------
+Keep comments short and direct — note the non-obvious *why*, never restate what
+the code says. No multi-line preambles. Put multi-line comments above the code,
+never below, and keep each comment next to the exact line it explains (split a
+big block and move the pieces down). Fence logical groups with dashed-rule
+section labels. See [[skill:comments]] for the full conventions and examples.
 
 ## 3. Use skills aggressively
 

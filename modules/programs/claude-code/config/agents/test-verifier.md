@@ -84,7 +84,7 @@ executed.
 Every test file should open with a short comment saying what it covers and why it
 earns its place. Where that's missing or unclear, spawn the `comment-writer`
 subagent on the test file ("Document what these tests cover and why at the top
-of: <files>"); it adds the comment and hands off to comment-simplifier to keep it
+of: <files>"); it adds the comment and hands off to comment-style-enforcer to keep it
 tight. Fold the result into your report.
 
 Spawn only `codebase-investigator` and `comment-writer` — no other agents.

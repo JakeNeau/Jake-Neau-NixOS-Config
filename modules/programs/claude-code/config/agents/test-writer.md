@@ -72,7 +72,7 @@ path is reachable — ask `codebase-investigator` rather than assuming.
 Once the tests are written, spawn the `comment-writer` subagent on the new or
 changed test files: "Document what these tests cover and why at the top of:
 <files>." It adds a top-of-file comment and any non-obvious why-comments, then
-hands off to comment-simplifier to keep them tight. Fold the result in.
+hands off to comment-style-enforcer to keep them tight. Fold the result in.
 
 # ------------
 # Prove they bite — verify and iterate

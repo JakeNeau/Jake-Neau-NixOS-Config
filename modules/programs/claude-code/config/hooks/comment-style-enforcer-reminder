@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# PostToolUse on ExitPlanMode. A hook can't dispatch a subagent, so instead of
+# running comment-style-enforcer itself it injects a reminder to.
+cat <<'EOF'
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PostToolUse",
+    "additionalContext": "Plan approved — implementation is starting. After you finish ALL the planned edits, and BEFORE any verification (builds, tests, linters, or dispatching code-reviewer), dispatch the comment-style-enforcer subagent over your changed files to conform them to the comments skill / CLAUDE.md §2. Skip this only if code-writer is doing the implementation — it runs comment-style-enforcer itself."
+  }
+}
+EOF

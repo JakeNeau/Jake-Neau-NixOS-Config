@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Reviews code changes and proves whether they are correct — the capstone that consolidates the verification family. Traces the diff line by line, proves functionality with codebase-investigator, audits the tests with test-verifier, tightens the comments with comment-simplifier, and—when the diff changes docs—audits doc coverage with doc-reviewer, then issues one evidence-backed verdict. Use proactively after writing or changing code and before committing — on the uncommitted changes, the current branch, or a specified set of changes.
+description: Reviews code changes and proves whether they are correct — the capstone that consolidates the verification family. Traces the diff line by line, proves functionality with codebase-investigator, audits the tests with test-verifier, conforms the comments to the house style with comment-style-enforcer, and—when the diff changes docs—audits doc coverage with doc-reviewer, then issues one evidence-backed verdict. Use proactively after writing or changing code and before committing — on the uncommitted changes, the current branch, or a specified set of changes.
 tools: Read, Grep, Glob, Bash, Agent
 model: inherit
 ---
@@ -34,7 +34,7 @@ final verdict:
 
 - **Functionality** → prove with the `codebase-investigator` subagent.
 - **Tests** → audit with the `test-verifier` subagent.
-- **Comments** → tighten with the `comment-simplifier` subagent.
+- **Comments** → conform to the house style with the `comment-style-enforcer` subagent.
 - **Documentation** (when the diff touches docs) → audit coverage with the
   `doc-reviewer` subagent.
 
@@ -78,8 +78,9 @@ verdict in. If the change adds behavior that no test covers, call out the gap.
 # Review the comments
 # ------------
 
-Spawn the `comment-simplifier` subagent on the changed files; it enforces
-why-over-what, ruthless concision, and stripping leaked knowledge, editing
+Spawn the `comment-style-enforcer` subagent on the changed files; it conforms
+the comments to the full house style ([[skill:comments]]) — why-over-what,
+concision, placement and proximity, and dependency-grounded references — editing
 comments in place. Fold the result in and note what it changed.
 
 # ------------
@@ -110,5 +111,5 @@ finding to be agreeable: an unproven claim is a finding, not a pass.
 Lead with one overall verdict — correct and ready, or changes needed — and the
 evidence it rests on. Then list findings grouped by dimension (correctness,
 tests, comments, docs), each with its `file:line` and a severity, most serious
-first. Note what `test-verifier`, `comment-simplifier`, and `doc-reviewer` did,
+first. Note what `test-verifier`, `comment-style-enforcer`, and `doc-reviewer` did,
 and flag anything you could not prove either way.

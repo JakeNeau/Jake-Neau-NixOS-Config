@@ -68,7 +68,7 @@
     # across rebuilds and machines.
     settingsPolicy.enabledPlugins."superpowers@claude-plugins-official" = true; # skills
     settingsPolicy.enabledPlugins."security-guidance@claude-plugins-official" = true; # in-session vuln review
-    settingsPolicy.enabledPlugins."code-simplifier@claude-plugins-official" = false; # disabled: JS/TS-flavored, redundant with comment-simplifier + code-reviewer, fires proactively
+    settingsPolicy.enabledPlugins."code-simplifier@claude-plugins-official" = false; # disabled: JS/TS-flavored, redundant with comment-style-enforcer + code-reviewer, fires proactively
     settingsPolicy.enabledPlugins."claude-md-management@claude-plugins-official" = true; # CLAUDE.md audit/maintenance
 
     # Declarative hook registration, deep-merged into settings.json by the same
@@ -95,7 +95,7 @@
         {
           matcher = "ExitPlanMode";
           hooks = [
-            (cmd "~/.claude/hooks/comment-simplifier-reminder")
+            (cmd "~/.claude/hooks/comment-style-enforcer-reminder")
             (cmd "~/.claude/hooks/code-writer-plan-reminder")
           ];
         }

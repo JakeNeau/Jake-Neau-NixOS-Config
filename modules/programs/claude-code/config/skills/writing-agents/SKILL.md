@@ -53,7 +53,7 @@ This config already ships a family of agents — read them as templates for the 
 above. [[agent:code-writer]] is the orchestrator that turns a task into proven code; it
 leans on the code-verification family — [[agent:code-reviewer]] (the capstone),
 [[agent:test-writer]], [[agent:test-verifier]], [[agent:codebase-investigator]], [[agent:comment-writer]],
-and [[agent:comment-simplifier]] — plus [[agent:plan-verifier]] to vet its spec and the
+and [[agent:comment-style-enforcer]] — plus [[agent:plan-verifier]] to vet its spec and the
 standalone [[agent:web-researcher]]. A documentation family mirrors it — [[agent:doc-writer]]
 (authors docs), [[agent:doc-reader]] (read-only retrieval), and [[agent:doc-reviewer]] (the
 coverage/accuracy capstone), all following [[skill:diataxis]]. Each is a
