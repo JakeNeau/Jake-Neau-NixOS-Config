@@ -53,11 +53,13 @@
     # Global context (CLAUDE.md). Empty file -> "" -> nothing is written.
     context = builtins.readFile (configSrc + "/CLAUDE.md");
 
-    # We only want permission prompts for writes: the sandbox runs read-only,
-    # no-network commands unprompted; only escaping writes/network still ask.
+    # Auto-allow sandboxed bash: read-only commands, plus network to the
+    # allowlisted domains in ./_sandbox-allowed-domains.nix. Writes and any
+    # non-allowlisted host still fall back to a permission prompt.
     settingsPolicy.sandbox = {
       enabled = true;
       autoAllowBashIfSandboxed = true;
+      network.allowedDomains = import ./_sandbox-allowed-domains.nix;
     };
 
     # Force-enable plugins. Claude Code never auto-fetches plugins from settings
@@ -227,16 +229,15 @@
 
     # Merge our policy into the live settings.json rather than owning the file:
     # Claude rewrites it at runtime, so a read-only symlink would freeze theme/effort/hooks.
-    home.activation.claudeCodeSettingsPolicy =
-      lib.hm.dag.entryAfter ["writeBoundary"] ''
-        settings="$HOME/.claude/settings.json"
-        mkdir -p "$(dirname "$settings")"
-        [ -f "$settings" ] || echo '{}' > "$settings"
-        tmp="$(mktemp)"
-        ${pkgs.jq}/bin/jq --argjson policy ${lib.escapeShellArg (builtins.toJSON settingsPolicy)} \
-          '. * $policy' "$settings" > "$tmp"  # deep-merge, our keys win
-        mv "$tmp" "$settings"
-      '';
+    home.activation.claudeCodeSettingsPolicy = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      settings="$HOME/.claude/settings.json"
+      mkdir -p "$(dirname "$settings")"
+      [ -f "$settings" ] || echo '{}' > "$settings"
+      tmp="$(mktemp)"
+      ${pkgs.jq}/bin/jq --argjson policy ${lib.escapeShellArg (builtins.toJSON settingsPolicy)} \
+        '. * $policy' "$settings" > "$tmp"  # deep-merge, our keys win
+      mv "$tmp" "$settings"
+    '';
 
     # keybindings.json, unlike settings.json, is read-only to Claude Code (it
     # never rewrites it), so a declarative Nix-store symlink is safe here.
