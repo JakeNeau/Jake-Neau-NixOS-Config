@@ -104,6 +104,13 @@
       xournalpp # App for signing PDFs
     ];
 
+    # Temporary: versions flagged in the 2026-06-27 nixpkgs CVE batch but still
+    # pinned by an app above. Drop each once nixpkgs bumps its app off it.
+    nixpkgs.config.permittedInsecurePackages = [
+      "pnpm-10.29.2" # vesktop's build tool — build-only, not shipped at runtime
+      "electron-39.8.10" # bitwarden-desktop's runtime engine
+    ];
+
     # -----
     # Fonts
     # -----
