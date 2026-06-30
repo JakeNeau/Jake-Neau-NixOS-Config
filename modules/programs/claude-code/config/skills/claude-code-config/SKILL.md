@@ -39,9 +39,10 @@ in the repo instead.
   `claude-code.nix`, plus a one-time `claude plugin install` per machine
   (see [[skill:configuring-plugins]]).
 
-**Hooks caveat:** a hook file alone does **not** fire — the module ships the
-script, but you must register it in `settings.json` separately. See
-[[skill:writing-hooks]].
+**Hooks are two declarative steps:** ship the script under `config/hooks/`
+*and* register it in the `settingsPolicy.hooks` attrset in `claude-code.nix`
+(deep-merged into `settings.json` at activation) — a script alone does not fire.
+See [[skill:writing-hooks]].
 
 ## Per-config-type guides — read the matching one before editing
 
@@ -50,7 +51,7 @@ Each config type has its own best-practices skill. Read the relevant one first:
 - [[skill:writing-agents]] — subagents (`config/agents/`); e.g. [[agent:code-reviewer]], [[agent:web-researcher]]
 - [[skill:writing-commands]] — slash commands (`config/commands/`)
 - [[skill:writing-rules]] — auto-loaded rules / memory (`config/rules/`)
-- [[skill:writing-hooks]] — event hooks (`config/hooks/` + settings.json registration)
+- [[skill:writing-hooks]] — event hooks (`config/hooks/` script + `settingsPolicy.hooks` registration)
 - [[skill:writing-skills]] — skills (one `SKILL.md` per skill, no supporting files)
 - [[skill:writing-claude-md]] — the global `CLAUDE.md` and memory
 - [[skill:configuring-lsp-servers]] — language servers (Nix attrset)
@@ -62,10 +63,11 @@ Not yet wired here (upstream supports it — future skill):
 
 ## Not managed by Nix — edit live, no rebuild
 
-`~/.claude/settings.json` (effort level, theme, hook registrations),
-`~/.claude/keybindings.json`, and runtime state (history, sessions, caches) stay
-mutable on purpose. Change these in place; do not move them into the flake. For
-settings.json specifically, use the built-in `update-config` skill.
+`~/.claude/settings.json` (effort level, theme), `~/.claude/keybindings.json`,
+and runtime state (history, sessions, caches) stay mutable on purpose. Change
+these in place; do not move them into the flake. Note that policy keys merged in
+from `settingsPolicy` (sandbox, plugins, hooks) are owned by the flake — change
+those in `claude-code.nix`, not here.
 
 ## Workflow
 

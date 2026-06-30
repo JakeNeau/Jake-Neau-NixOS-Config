@@ -1,26 +1,29 @@
 ---
 name: writing-hooks
-description: How to author a Claude Code hook in this repo — an executable script under config/hooks/ that runs on lifecycle events (PreToolUse, PostToolUse, etc.). IMPORTANT — the Nix module ships the script but does NOT register it; you must register it in the runtime settings.json for it to fire. Covers events, JSON stdin, exit codes, and security. Use when adding automation that should run automatically before/after a tool call, prompt, or session event.
+description: How to author a Claude Code hook in this repo — an executable script under config/hooks/ that runs on lifecycle events (PreToolUse, PostToolUse, etc.). Both the script and its registration are declarative: ship the script under config/hooks/ and register it in the settingsPolicy.hooks attrset in claude-code.nix, which is deep-merged into settings.json at activation. Covers events, JSON stdin, exit codes, and security. Use when adding automation that should run automatically before/after a tool call, prompt, or session event.
 ---
 
 # Writing hooks
 
 A hook is a script Claude Code runs automatically on a lifecycle event. Authoring
-a working hook in this repo is **two steps** — and the second is easy to forget.
+a working hook in this repo is **two steps**, both declarative and shared across
+machines through the flake.
 
-## The two-step gotcha (read first)
+## The two steps (read first)
 
-1. **Ship the script (declarative).** `config/hooks/<name>` →
-   `~/.claude/hooks/<name>`, written verbatim and marked executable. See
-   [[skill:claude-code-config]] for the edit → `git add` → rebuild flow.
-2. **Register it (runtime).** The Nix module **does not** wire the script into
-   `settings.json`, so on its own **the hook never fires**. You must register it
-   in the runtime-mutable `~/.claude/settings.json` under `hooks.<Event>` with a
-   matcher and a `command` pointing at `~/.claude/hooks/<name>`. Use the built-in
-   `update-config` skill to edit settings.json.
+1. **Ship the script.** `config/hooks/<name>` → `~/.claude/hooks/<name>`, written
+   verbatim and marked executable. See [[skill:claude-code-config]] for the edit →
+   `git add` → rebuild flow.
+2. **Register it.** A shipped script does nothing until it is registered. Add an
+   entry to the `settingsPolicy.hooks` attrset in `claude-code.nix` under
+   `<Event>` with a matcher and a `command` pointing at `~/.claude/hooks/<name>`;
+   activation deep-merges `settingsPolicy` into the runtime `settings.json` (the
+   same path that ships `sandbox` and `enabledPlugins`).
 
-Caveat: that registration lives in unmanaged `settings.json`, so it is
-**per-machine** and not shared by the flake. Only the script is shared.
+**Array gotcha:** the merge is jq's `*`, which replaces arrays wholesale rather
+than appending. Each event's value is an array, so `settingsPolicy.hooks.<Event>`
+must list the **complete** set of registrations for that event — any one omitted
+is dropped from the live file.
 
 ## Events
 
@@ -36,8 +39,8 @@ docs for the current full list.
   - exit `0` — success; JSON on stdout can add context or a decision.
   - exit `2` — **block** the action; stderr is shown to Claude/user.
   - other — non-blocking error; stderr shown as a notice.
-- **Matcher** (in the settings.json registration) selects which tools/events fire
-  the hook (`Bash`, `Edit|Write`, regex like `mcp__.*`).
+- **Matcher** (in the `settingsPolicy.hooks` registration) selects which
+  tools/events fire the hook (`Bash`, `Edit|Write`, regex like `mcp__.*`).
 
 ## Best practices
 
@@ -55,7 +58,6 @@ https://code.claude.com/docs/en/hooks
 
 ## Related skills
 
-- [[skill:claude-code-config]] — shipping the script declaratively
-- the built-in `update-config` skill — registering the hook in settings.json
+- [[skill:claude-code-config]] — shipping the script and registration declaratively
 - [[skill:writing-commands]] — for on-demand automation instead of event-driven
 - [[skill:machine-layout]] — the Nix machine these ship from

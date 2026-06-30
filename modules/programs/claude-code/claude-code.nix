@@ -71,6 +71,37 @@
     settingsPolicy.enabledPlugins."code-simplifier@claude-plugins-official" = false; # disabled: JS/TS-flavored, redundant with comment-simplifier + code-reviewer, fires proactively
     settingsPolicy.enabledPlugins."claude-md-management@claude-plugins-official" = true; # CLAUDE.md audit/maintenance
 
+    # Declarative hook registration, deep-merged into settings.json by the same
+    # policy path as the keys above. jq's `*` replaces arrays wholesale, so each
+    # event must list its COMPLETE set — anything omitted here is dropped.
+    settingsPolicy.hooks = let
+      cmd = command: {
+        inherit command;
+        type = "command";
+        timeout = 10;
+      };
+    in {
+      PreToolUse = [
+        {
+          matcher = "ExitPlanMode";
+          hooks = [(cmd "~/.claude/hooks/plan-verifier-gate")];
+        }
+        {
+          matcher = "Write|Edit|NotebookEdit";
+          hooks = [(cmd "~/.claude/hooks/code-writer-gate")];
+        }
+      ];
+      PostToolUse = [
+        {
+          matcher = "ExitPlanMode";
+          hooks = [
+            (cmd "~/.claude/hooks/comment-simplifier-reminder")
+            (cmd "~/.claude/hooks/code-writer-plan-reminder")
+          ];
+        }
+      ];
+    };
+
     # LSP servers mirroring every language nvf configures an LSP for
     # (modules/programs/nvf). Commands are pinned to absolute store paths so
     # the `claude` process always resolves them regardless of PATH.

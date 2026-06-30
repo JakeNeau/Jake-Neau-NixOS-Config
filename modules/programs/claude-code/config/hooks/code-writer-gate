@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# PreToolUse gate on Write|Edit|NotebookEdit enforcing CLAUDE.md §7. The hook
+# stdin carries agent_type only for a subagent's call, so its presence means a
+# delegated write (allow) and its absence a direct main-session write (block).
+set -euo pipefail
+
+input=$(cat)
+
+# Tolerate jq being absent; empty agent_type (or malformed input) -> block.
+jq_bin=$(command -v jq || true)
+agent_type=""
+[ -n "$jq_bin" ] && agent_type=$("$jq_bin" -r '.agent_type // empty' <<<"$input" 2>/dev/null || true)
+
+# Delegated write — allow.
+[ -n "$agent_type" ] && exit 0
+
+cat >&2 <<'EOF'
+Direct writes from the main session are blocked.
+
+Every file write must go through a subagent (CLAUDE.md §7). Dispatch the
+code-writer subagent to make this change — hand it the full task context, since
+it sees none of this conversation.
+EOF
+exit 2
