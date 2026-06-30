@@ -135,6 +135,9 @@
           shellInit = ''
             # Clean up all failed commands from history after 20 entries
             set sponge_delay 20
+
+            # Keep signal-interrupted commands (130 SIGINT, 131 SIGQUIT, 143 SIGTERM)
+            set sponge_successful_exit_codes 0 130 131 143
           '';
         };
 
