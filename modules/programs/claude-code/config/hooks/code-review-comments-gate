@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# SubagentStop gate on code-reviewer. A code-reviewer run must dispatch
+# comment-style-enforcer before stopping; this hook audits the transcript.
+set -euo pipefail
+
+input=$(cat)
+
+# Tolerate jq being absent.
+jq_bin=$(command -v jq || true)
+agent_type=""
+agent_transcript_path=""
+stop_hook_active=""
+if [ -n "$jq_bin" ]; then
+  agent_type=$("$jq_bin" -r '.agent_type // empty' <<<"$input" 2>/dev/null || true)
+  agent_transcript_path=$("$jq_bin" -r '.agent_transcript_path // empty' <<<"$input" 2>/dev/null || true)
+  stop_hook_active=$("$jq_bin" -r '.stop_hook_active // false' <<<"$input" 2>/dev/null || true)
+fi
+
+# Not a code-reviewer stop — allow.
+[ "$agent_type" = "code-reviewer" ] || exit 0
+
+# Loop guard: if a stop hook already fired and blocked this stop, surrender.
+[ "$stop_hook_active" = "true" ] && exit 0
+
+# Missing/unreadable transcript — fail open.
+[ -f "$agent_transcript_path" ] || exit 0
+
+# Detect comment-style-enforcer dispatch from transcript.
+has_comment_pass="false"
+
+if [ -n "$jq_bin" ]; then
+  # jq primary path.
+  if "$jq_bin" -r '.message.content[]? | select(.type=="tool_use" and .name=="Agent") | .input.subagent_type' <"$agent_transcript_path" 2>/dev/null | grep -q '^comment-style-enforcer$'; then
+    has_comment_pass="true"
+  fi
+else
+  # jq absent — grep fallback.
+  grep -qE '"subagent_type":\s*"comment-style-enforcer"' "$agent_transcript_path" 2>/dev/null && has_comment_pass="true" || true
+fi
+
+# comment-style-enforcer was dispatched — allow.
+[ "$has_comment_pass" = "true" ] && exit 0
+
+cat >&2 <<'EOF'
+code-reviewer did not dispatch comment-style-enforcer.
+
+Run the comment pass over the changed files, then stop again.
+EOF
+exit 2

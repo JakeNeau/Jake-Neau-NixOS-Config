@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# SubagentStop gate on code-writer. A code-writer run that makes file edits
+# must dispatch code-reviewer before stopping; this hook audits the transcript.
+set -euo pipefail
+
+input=$(cat)
+
+# Tolerate jq being absent.
+jq_bin=$(command -v jq || true)
+agent_type=""
+agent_transcript_path=""
+stop_hook_active=""
+if [ -n "$jq_bin" ]; then
+  agent_type=$("$jq_bin" -r '.agent_type // empty' <<<"$input" 2>/dev/null || true)
+  agent_transcript_path=$("$jq_bin" -r '.agent_transcript_path // empty' <<<"$input" 2>/dev/null || true)
+  stop_hook_active=$("$jq_bin" -r '.stop_hook_active // false' <<<"$input" 2>/dev/null || true)
+fi
+
+# Not a code-writer stop — allow.
+[ "$agent_type" = "code-writer" ] || exit 0
+
+# Loop guard: if a stop hook already fired and blocked this stop, surrender
+# (block at most once, then get out of the way).
+[ "$stop_hook_active" = "true" ] && exit 0
+
+# Missing/unreadable transcript — fail open.
+[ -f "$agent_transcript_path" ] || exit 0
+
+# Detect edits (Write/Edit/NotebookEdit) and code-reviewer dispatch from transcript.
+has_edits="false"
+has_review="false"
+
+if [ -n "$jq_bin" ]; then
+  # jq primary path: scan for tool-use entries.
+  if "$jq_bin" -r '.message.content[]? | select(.type=="tool_use") | .name' <"$agent_transcript_path" 2>/dev/null | grep -qE '^(Write|Edit|NotebookEdit)$'; then
+    has_edits="true"
+  fi
+  if "$jq_bin" -r '.message.content[]? | select(.type=="tool_use" and .name=="Agent") | .input.subagent_type' <"$agent_transcript_path" 2>/dev/null | grep -q '^code-reviewer$'; then
+    has_review="true"
+  fi
+else
+  # jq absent — grep fallback.
+  grep -qE '"name":\s*"(Write|Edit|NotebookEdit)"' "$agent_transcript_path" 2>/dev/null && has_edits="true" || true
+  grep -qE '"subagent_type":\s*"code-reviewer"' "$agent_transcript_path" 2>/dev/null && has_review="true" || true
+fi
+
+# No edits (plan-only run) — allow.
+[ "$has_edits" = "true" ] || exit 0
+
+# Edits present but no code-reviewer dispatch — block.
+[ "$has_review" = "true" ] && exit 0
+
+cat >&2 <<'EOF'
+code-writer made file edits but did not dispatch code-reviewer.
+
+Dispatch code-reviewer on your changes, then stop again.
+EOF
+exit 2

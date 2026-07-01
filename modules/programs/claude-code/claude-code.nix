@@ -100,6 +100,18 @@
           ];
         }
       ];
+      # SubagentStop gates for code-review enforcement (code-review-gates spec).
+      # Both hooks self-filter by agent_type; matchers are omitted per spec design.
+      # NOTE: jq's `*` replaces arrays wholesale in the policy merge, so removal of
+      # these hooks later requires a manual jq-delete from ~/.claude/settings.json.
+      SubagentStop = [
+        {
+          hooks = [
+            (cmd "~/.claude/hooks/code-review-writer-gate")
+            (cmd "~/.claude/hooks/code-review-comments-gate")
+          ];
+        }
+      ];
     };
 
     # LSP servers mirroring every language nvf configures an LSP for
