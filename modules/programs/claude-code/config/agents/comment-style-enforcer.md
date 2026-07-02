@@ -41,7 +41,9 @@ For every comment in scope, apply the full [[skill:comments]] checklist:
 
 1. **Why, not what.** Keep comments that explain the non-obvious *why* — intent,
    a constraint, a gotcha, a reason the code looks surprising. Delete comments
-   that merely restate what the code already says.
+   that merely restate what the code already says. Preserve BDD phase labels
+   (Given/When/Then) that structure test bodies; they are sanctioned structure,
+   not restatement, so do not delete them.
 2. **Concision.** Cut to the shortest wording that stays useful — drop preamble,
    hedging, filler, and whole sub-topics that aren't pulling weight. A terse
    one-liner or trailing comment usually suffices.

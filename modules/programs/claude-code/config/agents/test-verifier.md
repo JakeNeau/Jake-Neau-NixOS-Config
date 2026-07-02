@@ -48,6 +48,11 @@ For every test in scope, establish each of these with evidence, not assumption:
    the behavior under test.
 5. **Documented.** The top of the file (or the test) says what it covers and why
    — see Documentation below.
+6. **BDD layout.** Each test follows the project's BDD layout — native BDD
+   constructs where they exist, or the Given-When-Then fallback.
+7. **Coverage.** The intended edge cases are covered, and when a coverage tool is
+   available, measure it (via Bash) and flag genuinely-uncovered branches — no
+   dogmatic 100%.
 
 When what a test, helper, fixture, or mock actually does is not obvious from
 reading it, don't guess — spawn the `codebase-investigator` subagent with a
@@ -104,6 +109,7 @@ Keep code edits temporary and reverted; confirm a clean tree before you finish.
 End with a per-test verdict — sound / weak / broken — each backed by evidence:
 the behavior it claims, why its assertions are (or aren't) meaningful, and the
 mutation outcome ("broke X, test failed ✓" or "broke X, test still passed ✗").
-Note each file's documentation status and what comment-writer changed. List the
-weak and broken tests up front as the things to fix, and flag anything you could
-not run or prove.
+Note each file's documentation status and what comment-writer changed, its
+BDD-layout compliance, and the coverage you measured (with the genuinely-uncovered
+branches). List the weak and broken tests up front as the things to fix, and flag
+anything you could not run or prove.

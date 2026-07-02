@@ -17,7 +17,9 @@ The single source of truth for how comments are written and placed here. The
 
 A good comment explains the non-obvious *why*: the intent, a constraint, a
 gotcha, a reason the code looks surprising. Delete any comment that merely
-restates what the code already says.
+restates what the code already says. BDD phase labels (Given/When/Then) that
+structure a test body are sanctioned structural markers, like section labels —
+keep them, don't delete them as what-restatement.
 
 ## Earn the line
 

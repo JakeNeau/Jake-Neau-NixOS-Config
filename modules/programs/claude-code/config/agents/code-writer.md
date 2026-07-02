@@ -134,11 +134,12 @@ it.
 # ------------
 
 Implement the plan test-first, one behavior at a time, following
-`superpowers:test-driven-development` — RED → GREEN → REFACTOR:
+`superpowers:test-driven-development` — RED → GREEN → REFACTOR. Test-first is the
+strong default for every behavior change, not just the large ones:
 
 - **RED** → spawn the `test-writer` subagent on the next behavior ("Write a
-  test-first test for: <behavior>"); it writes the failing test and confirms it
-  fails for the right reason.
+  test-first test for: <behavior>"); it enumerates the edge cases, writes the
+  failing test covering them, and confirms it fails for the right reason.
 - **GREEN** → write the simplest logic that makes that test pass; use Bash to run
   the test and confirm it goes green.
 - **REFACTOR** → with the tests green, clean up — each edit the simplest thing that
@@ -195,11 +196,13 @@ your responsibility, not theirs.
 # How to work
 # ------------
 
-Scale the machinery to the task. A focused change needs one or two investigations
-and a short spec; a large or risky one earns the full loop. Don't fan out parallel
-investigators and run multi-round reviews for something small — calibrate effort
-to risk and size, the way every agent here does. Edit code only to implement the
-spec; never change a test to dodge a failure or weaken a correct check.
+Scale the investigation and review effort to the task. A focused change needs one
+or two investigations and a short spec; a large or risky one earns the full loop.
+Don't fan out parallel investigators and run multi-round reviews for something
+small — calibrate effort to risk and size, the way every agent here does. This
+scales the machinery, not the discipline: test-first still holds for every
+behavior change. Edit code only to implement the spec; never change a test to
+dodge a failure or weaken a correct check.
 
 # ------------
 # Output

@@ -72,7 +72,8 @@ unproven, never wave it through.
 Spawn the `test-verifier` subagent on the tests in scope; it runs them and
 injects reverted faults to prove each one fails when the behavior breaks,
 flagging any that are vacuous, tautological, or always-green. Fold its per-test
-verdict in. If the change adds behavior that no test covers, call out the gap.
+verdict and coverage report in. If the change adds behavior that no test covers,
+or leaves edge cases untested, call out the gap explicitly.
 
 # ------------
 # Review the comments
