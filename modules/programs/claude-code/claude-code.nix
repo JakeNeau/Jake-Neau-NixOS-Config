@@ -20,6 +20,7 @@
   flake.modules.homeManager.claude-code = {
     pkgs,
     lib,
+    config,
     ...
   }: let
     # Source tree for the declarative config (see ./config/README.md).
@@ -70,6 +71,14 @@
     settingsPolicy.enabledPlugins."security-guidance@claude-plugins-official" = true; # in-session vuln review
     settingsPolicy.enabledPlugins."code-simplifier@claude-plugins-official" = false; # disabled: JS/TS-flavored, redundant with comment-style-enforcer + code-reviewer, fires proactively
     settingsPolicy.enabledPlugins."claude-md-management@claude-plugins-official" = true; # CLAUDE.md audit/maintenance
+
+    # Points at the script materialised by home.file below; shows real
+    # subscription usage from Claude Code's own /usage payload on stdin.
+    settingsPolicy.statusLine = {
+      type = "command";
+      command = "${config.home.homeDirectory}/.claude/statusline-usage.sh";
+      padding = 0;
+    };
 
     # Declarative hook registration, deep-merged into settings.json by the same
     # policy path as the keys above. jq's `*` replaces arrays wholesale, so each
@@ -308,5 +317,13 @@
           }
         ];
       };
+
+    # Status line script, materialised from ./config (the claude-code module has
+    # no status-line option, so this bypasses it the same way keybindings.json
+    # does). settingsPolicy.statusLine above points settings.json at this path.
+    home.file.".claude/statusline-usage.sh" = {
+      text = builtins.readFile (configSrc + "/statusline-usage.sh");
+      executable = true;
+    };
   };
 }
