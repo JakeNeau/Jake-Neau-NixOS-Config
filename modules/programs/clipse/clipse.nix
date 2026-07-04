@@ -3,7 +3,7 @@
   flake.modules.homeManager.clipse = {
     services.clipse = {
       enable = true;
-      imageDisplay = {
+      settings.imageDisplay = {
         type = "kitty";
         scaleX = 9;
         scaleY = 9;
