@@ -1,7 +1,7 @@
 {
   # The `config` group owns this flake repo so its members can edit the
   # configuration without sudo, while the tree itself stays root-owned. Users get
-  # no write access until they are listed here explicitly, so adding a future user
+  # no write access until they are listed explicitly, so adding a future user
   # never silently grants them the config — membership is current users only.
   #
   # The group is declared declaratively per platform; converting a root-owned
@@ -35,9 +35,7 @@
     # that is listed in knownGroups, and it needs an explicit gid (600 is free
     # here — the only custom gids are Apple's sharepoint groups at 701/702).
     users.knownGroups = ["config"];
-    users.groups.config = {
-      gid = 600;
-      members = ["jake.neau"];
-    };
+    # account names differ per host, so each host aspect lists its own members
+    users.groups.config.gid = 600;
   };
 }

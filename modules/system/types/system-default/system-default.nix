@@ -26,6 +26,7 @@
         home-manager
         nur
         config-group
+        manual-workaround
         direnv
         network
         printing

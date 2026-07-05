@@ -1,6 +1,6 @@
 ---
 name: diataxis
-description: The Diátaxis architecture for organizing technical documentation — four distinct types (tutorials for learning, how-to guides for tasks, reference for information, explanation for understanding) arranged on two axes (action vs cognition, acquisition vs application), and the discipline of keeping them separate. Use when writing, structuring, or reviewing documentation; deciding what kind of doc a page should be; untangling docs that mix tutorial/how-to/reference/explanation; or laying out a docs site's top-level sections.
+description: The Diátaxis architecture for organizing technical documentation — four distinct types (tutorials for learning, how-to guides for tasks, reference for information, explanation for understanding) arranged on two axes (action vs cognition, acquisition vs application), the discipline of keeping them separate, and the docs-root page that explains both this system and the project's own documentation setup. Use when writing, structuring, or reviewing documentation; deciding what kind of doc a page should be; untangling docs that mix tutorial/how-to/reference/explanation; laying out a docs site's top-level sections; or writing a docs tree's root/landing page.
 ---
 
 # Diátaxis: a documentation architecture
@@ -54,6 +54,22 @@ is a compass for deciding which kind you're writing.
 - **One page, one type.** Give each quadrant its own section/folder
   (`tutorials/`, `how-to/`, `reference/`, `explanation/`) so readers navigate by
   need.
+
+## The docs root explains the system
+
+The root page of the docs tree (`docs/README.md`, `index.md`, or the site's
+landing page) always carries two things, so a reader — or a future agent — can
+navigate and extend the docs without prior knowledge:
+
+1. **How Diátaxis works** — a short orientation: the four types, the need each
+   serves, and where each lives in this tree; link to https://diataxis.fr for
+   the full theory.
+2. **This project's documentation setup** — whatever is specific to the
+   project: the generator/tooling and how to build or preview the docs, the
+   folder layout, naming conventions, and any local carve-outs.
+
+Write this page first when creating a docs tree; when working in docs whose
+root lacks either part, add the missing part.
 
 ## Reference
 

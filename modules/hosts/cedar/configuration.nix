@@ -17,6 +17,9 @@
     systemConstants.isLaptop = true;
     systemConstants.graphicsType = "apple";
 
+    # repo write without sudo; the group itself comes from modules/system/config-group
+    users.groups.config.members = ["jake.neau"];
+
     # Kubernetes CLI tools — only on this work laptop for now.
     home-manager.users."jake.neau".imports = [inputs.self.modules.homeManager.kubernetes];
 

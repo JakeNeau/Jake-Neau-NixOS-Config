@@ -14,5 +14,8 @@
     # Host facts features branch on (e.g. fastfetch's Power box).
     systemConstants.isLaptop = true;
     systemConstants.graphicsType = "apple";
+
+    # repo write without sudo; the group itself comes from modules/system/config-group
+    users.groups.config.members = ["jakeneau"];
   };
 }
