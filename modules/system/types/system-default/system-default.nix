@@ -27,6 +27,7 @@
         nur
         config-group
         direnv
+        network
         printing
       ])
       ++ [inputs.self.modules.generic.network];

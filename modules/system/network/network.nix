@@ -4,6 +4,12 @@
     networking.hostName = config.systemConstants.hostName;
   };
 
+  # ComputerName (the friendly Finder/Sharing name) follows the hostname;
+  # LocalHostName already does by nix-darwin default.
+  flake.modules.darwin.network = {config, ...}: {
+    networking.computerName = config.systemConstants.hostName;
+  };
+
   # WiFi via iwd as NetworkManager's backend: iwd drives the radio (IPv6 +
   # auto-connect), NetworkManager manages connections on top.
   flake.modules.nixos.network = {
