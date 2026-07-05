@@ -8,5 +8,14 @@
     # The Homebrew prefix is owned by the host's admin account.
     nix-homebrew.user = config.system.primaryUser;
     homebrew.enable = true;
+
+    # A rebuild upgrades everything Nix-side, so keep casks current too.
+    homebrew.onActivation = {
+      autoUpdate = true;
+      upgrade = true;
+    };
+    # Without greedy, brew treats self-updating casks as never outdated
+    # and skips them.
+    homebrew.greedyCasks = true;
   };
 }
