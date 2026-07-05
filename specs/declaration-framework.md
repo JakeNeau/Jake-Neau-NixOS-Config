@@ -103,7 +103,8 @@ Illustrative shapes (from the brainstorm; field names deferred):
 - **ghostty** — per-user install impossible on macOS (cask, global-only) but
   possible on Linux; config part per-user everywhere. Generated: a `darwin`
   cask unit, a Linux-gated `homeManager` unit, the `-config` unit for mac
-  users. This replaces today's hand-written split in
+  users — on the macs both arrive through a `globalPrograms` listing, the only
+  channel that can carry a cask. This replaces today's hand-written split in
   `modules/programs/ghostty/ghostty.nix`.
 - **yazi** — per-user install on both platforms + config part; listed in the
   Linux hosts' `globalPrograms`, so every user gets the HM install by default
@@ -132,8 +133,11 @@ Illustrative shapes (from the brainstorm; field names deferred):
   platforms *plus* a cask on macOS. Generated: the full `homeManager` unit,
   the `-config` unit (sets `programs.firefox.package = null` — home-manager's
   supported configure-without-installing mode), and a `darwin` cask unit.
-  aspen takes the default HM install; cedar overrides to the cask (the nix
-  package breaks against the organization's SSO), so its users get `-config`.
+  Listed in `globalPrograms` on the hosts that want it — under the
+  per-user-only rule that host channel is the only one that can carry the
+  cask: aspen takes the default HM install; cedar overrides to the cask (the
+  nix package breaks against the organization's SSO), so its users get
+  `-config` through the baseline.
   Today firefox exists only as cedar's hand-written cask
   (`modules/hosts/cedar/configuration.nix:25-27`); the HM install path on
   other hosts is new capability, like yazi's macOS presence.
@@ -162,13 +166,15 @@ The framework routes each global program's parts by construction:
 
 Which way applies is resolved per **(program, host)**, not per platform: when
 the program declares several ways for the host's platform, per-user HM wins by
-default, and the host's override map picks another declared way. An override
-re-routes both
-halves by construction, per the routing above — the system part into the
-host's generated system aspect, the host's users onto the `-config` unit — so
-one line can never yield a cask without config or a double install. It is
-channel-agnostic: it applies whether the program came from `globalPrograms` or
-a `flake.users` declaration's per-host list. The override lives on the *host*
+default, and the host's override map picks another declared way. For a
+`globalPrograms` entry an override re-routes both halves by construction, per
+the routing above — the system part into the host's generated system aspect,
+the host's users onto the `-config` unit — so one line can never yield a cask
+without config or a double install. For a program requested from a
+`flake.users` declaration it does **not** re-route: user declarations are
+per-user-only (see *User declarations*), so an override forcing the system
+install **filters** the user's entry out instead — a user entry can never
+cause a system install. The override lives on the *host*
 because what it encodes is a fact about the machine (cedar's org SSO breaks
 the nix firefox package) and a cask is inherently machine-global — a program-
 or user-level knob would either violate principle 2 (programs never name
@@ -180,8 +186,9 @@ constants at routing time, and the two coordinated moves (import the cask
 unit, set the fact) drift silently into a double install; separate
 `firefox`/`firefox-cask` declarations — splits one program's identity and
 duplicates config; annotating list entries (`"firefox:cask"` in
-`globalPrograms`) — breaks channel-agnostic resolution, forcing a user
-declaration to know a host's install quirk.
+`globalPrograms`) — buries the machine fact inside one channel's list, where
+user-declaration resolution (which honors the same override to know when to
+filter) can't see it.
 
 The framework also stamps the flake outputs, replacing today's per-host
 boilerplate
@@ -257,16 +264,39 @@ flake.users."jake.neau" = {
 };
 ```
 
-- **Resolution** — program names resolve against `flake.programs` exactly as
-  `globalPrograms` does — per (program, host), honoring the host's install-way
-  override map: resolved to the HM way → the generated `homeManager.<name>`
-  unit; resolved to a system install (e.g. a cask) → the
-  true-system part routes into that host's generated system aspect **by
-  construction, even when requested from a user declaration** (a cask is
-  inherently global), and the requesting user gets the `-config` unit. Other
-  users on the host simply don't import the config.
+- **Resolution** — user declarations are **per-user-only**: they only ever
+  produce per-user (home-manager) units and never route anything into a host's
+  system aspect — system installs belong to host declarations alone
+  (`globalPrograms` + install-way overrides). Program names still resolve
+  against `flake.programs` per (program, host), honoring the host's
+  install-way override map, for both lists: resolved to the per-user HM way →
+  the generated `homeManager.<name>` unit; resolved to a system install —
+  either the platform has no per-user way at all (ghostty on macOS,
+  cask-only) or the host's override forces one (firefox on cedar) → the entry
+  **filters out** for that user on that host (the single-host list tightens
+  the no-per-user-way case to a throw — see *Strictness*). Rationale (same
+  program =
+  covered): if the host actually installs it (e.g. via `globalPrograms`), the
+  user rides that install and picks up the `-config` unit through the host
+  baseline like every other user on the host — no user-channel action needed;
+  if the host doesn't install it, the user simply doesn't have that program
+  on that machine — a user declaration cannot force a machine-global install.
+- **Strictness** — the two lists differ at declaration eval. `programs`
+  (all-hosts) filters **silently** per host — a program with a per-user way
+  on Linux but not macOS shows up on the user's Linux hosts and not their
+  macOS hosts, and vice versa — with one coherence check: listing a program
+  that declares no per-user way on *any* platform throws (it can never be a
+  per-user program, so it doesn't belong on a user declaration), naming the
+  user, the program, and the fix. `hosts.<h>.programs` (single-host) named
+  that host deliberately, so a program with no per-user way for that host's
+  platform **throws** rather than silently skipping — names the user, host,
+  program, and fix. The override-covered case (an HM way exists for the
+  platform, but the host's override forces the system install) still
+  filters, not throws — the host provides the same program, so the request
+  is satisfied, not contradicted.
 - **Composition** — the generator folds `units(programs ∪ hosts.<h>.programs)`
-  into `homeConfigurations."<user>@<host>"` at stamping time: static
+  (after the resolution filtering above) into
+  `homeConfigurations."<user>@<host>"` at stamping time: static
   composition per (user, host) pair, so no conditional imports are ever
   needed.
 - **Division of labor** — program installs go through the user declaration
@@ -349,6 +379,13 @@ flake.users."jake.neau" = {
 - `throw` at declaration eval for a host install-way override naming a way the
   program doesn't declare on that host's platform — names the program, the
   host, and the fix.
+- `throw` at declaration eval for a user's `programs` entry naming a program
+  that declares no per-user way on *any* platform — it can never be a per-user
+  program — names the user, the program, and the fix.
+- `throw` at declaration eval for a user's `hosts.<h>.programs` entry naming a
+  program with no per-user way for that host's platform — names the user, the
+  host, the program, and the fix. (The override-covered case filters, not
+  throws — see *User declarations*.)
 - Tombstone assertions for plausible-but-unsupported imports.
 
 ### Migration consequences
@@ -405,8 +442,9 @@ flake.users."jake.neau" = {
   declaration lists it under `hosts.cedar.programs`.
 - Cedar's hand-written `homebrew.casks = ["firefox"]`
   (`modules/hosts/cedar/configuration.nix:25-27`) becomes the firefox program
-  declaration plus one override line in cedar's host declaration — retired in
-  the stage-5 cutover.
+  declaration plus, in cedar's host declaration, a `globalPrograms` entry and
+  the override line — the entry requests the program, the override reroutes
+  it to the cask — retired in the stage-5 cutover.
 - Migration is **incremental** up to the cutover: the generators land first
   with nothing converted; programs convert one at a time, each validated by
   dry-builds; then all hosts, both users, and the old channel cut over in one
@@ -444,9 +482,9 @@ flake.users."jake.neau" = {
   HM-preferred default plus the host's override map — and generates the
   per-host baseline homeManager aspect (including the systemConstants
   read-through module) and the host's generated system aspect
-  (routing globalPrograms parts, plus the true-system parts of user-declared
-  and overridden programs, plus each listed user's factory-produced account
-  aspect), and stamps
+  (routing globalPrograms parts — including override-rerouted true-system
+  parts — plus each listed user's factory-produced account aspect; user
+  declarations contribute no system parts), and stamps
   `nixosConfigurations` / `darwinConfigurations` / `homeConfigurations."<user>@<host>"`,
   unioning each home's imports with the user-declaration units from users.nix.
   Subsumes the per-host `modules/hosts/<h>/flake-parts.nix` boilerplate and the
@@ -456,8 +494,14 @@ flake.users."jake.neau" = {
 - `modules/nix/flake-parts/declarations/users.nix` — declares the `flake.users`
   option (`programs` + `hosts.<h>.programs`; field names deferred) and the
   generator that resolves each entry against `flake.programs` into per-(user,
-  host) unit sets, plus the consistency throw for a `hosts.<h>` entry naming a
-  host the user isn't listed on in `flake.hosts.<h>.users`.
+  host) sets of per-user HM units **only** — silently filtering entries from
+  either list where the host's override forces the system install, and
+  `programs` entries where the host's platform lacks a per-user way — plus
+  the declaration-eval throws: a
+  `hosts.<h>` entry naming a host the user isn't listed on in
+  `flake.hosts.<h>.users`, a `programs` entry with no per-user way on any
+  platform, and a `hosts.<h>.programs` entry with no per-user way for that
+  host's platform.
 - A common nixpkgs module for standalone homes (shared `allowUnfree`,
   overlays), imported by every generated homeConfiguration; it also sets
   `programs.home-manager.enable = true` so every home ships the
@@ -494,7 +538,8 @@ flake.users."jake.neau" = {
 - Host files `modules/hosts/{aspen,cedar,redwood,spruce}/` — each gains a
   `flake.hosts.<name>` declaration (class, system, users, globalPrograms,
   install-way overrides where needed — cedar's hand-written firefox cask line
-  drops in favor of its override); the hand-written aspect keeps quirks,
+  drops in favor of its `globalPrograms` entry plus override); the
+  hand-written aspect keeps quirks,
   systemConstants values, daemon and system-type imports, but drops its
   user-account imports (e.g. `configuration.nix:10` on cedar — the generator
   places them); the `flake-parts.nix` boilerplate goes away.
@@ -526,8 +571,9 @@ flake.users."jake.neau" = {
 
 ```
 flake.programs.<p>  ──generator──▶  flake.modules.{homeManager,nixos,darwin} units
-flake.users.<u>     ──generator──▶  per-(user,host) unit sets: units(programs ∪ hosts.<h>.programs)
-flake.hosts.<h>     ──generator──▶  host system aspect (system parts of globalPrograms + user-declared programs
+flake.users.<u>     ──generator──▶  per-(user,host) HM unit sets: units(programs ∪ hosts.<h>.programs),
+                                      platform/override-filtered — never system parts
+flake.hosts.<h>     ──generator──▶  host system aspect (system parts of globalPrograms
                                       + listed users' account aspects)
                                     host baseline HM aspect (HM/-config parts + system-type baselines
                                       + systemConstants = self.<class>Configurations.<h>.config.systemConstants)
@@ -573,12 +619,16 @@ next; stage 5 is a single atomic cutover commit.
 2. **Host- and user-declaration generators + baselines + outputs.** Land
    `flake.hosts` + `flake.users` together (output stamping unions the user
    units into each home, so they're one coherent piece): baseline generation,
-   globalPrograms and user-declaration routing, the systemConstants
+   globalPrograms routing and user-declaration resolution (per-user HM units
+   only, with the platform/override filtering), the systemConstants
    read-through injection, account-aspect placement, the common nixpkgs
-   module, the users-consistency throw, and output
+   module, the users-consistency and no-per-user-way throws, and output
    stamping — again with nothing converted; prove shapes by `nix eval`
    against sample declarations, including that a `hosts.<h>` entry for a host
-   the user isn't listed on throws.
+   the user isn't listed on throws, that a user entry resolving to a system
+   install filters out (no HM unit and no system part for it anywhere), and
+   that both no-per-user-way cases throw (`programs`: no per-user way on any
+   platform; `hosts.<h>.programs`: none for that host's platform).
 3. **User-factory changes — repo-resident wiring only.** Add the
    repo-resident flag/parameter, `config`-group membership, and the
    `~/.config/nix-config` symlink (one flag gates both). Do **not** touch the
@@ -605,7 +655,8 @@ next; stage 5 is a single atomic cutover commit.
    collides with it.
    Start-set from the brainstorm: ghostty (the asymmetric case), yazi (the
    HM-plus-suppressed-system case), and firefox (the multi-way /
-   per-host-override case — its override lands in the stage-5 cutover; until
+   per-host-override case — its `globalPrograms` entry and override land in
+   the stage-5 cutover; until
    then cedar's hand-written cask line keeps delivering, colliding with
    nothing since it defines no `darwin.firefox` aspect), then fastfetch and
    the other pushed programs. kubernetes (trivial: install-only, no config)
@@ -626,7 +677,8 @@ next; stage 5 is a single atomic cutover commit.
    replace per-host reach-ins with user-declaration entries (cedar's
    kubernetes line becomes `hosts.cedar.programs = ["kubernetes"]` in
    jake.neau's `flake.users` declaration), swap cedar's firefox cask line for
-   its install-way override, and drop both users' own
+   its `globalPrograms` entry plus install-way override, and drop both users'
+   own
    `homeManager.system-desktop` imports. Old-channel side, same commit: the
    factory's `home-manager.users.<u>.imports` blocks, every `sharedModules`
    push (stylix, mac-app-util, system-constants, fastfetch, niri-desktop), the
