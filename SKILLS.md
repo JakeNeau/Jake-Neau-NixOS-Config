@@ -64,3 +64,6 @@ Skills specific to this nix-darwin repo live under `.claude/skills/`:
   declarative `xdg.mimeApps`, and macOS's guarded `duti` activation plus the
   `mac-app-util` trampolines that let the guard stick. Covers the anti-hijacking
   modal trap and how to find the bundle ids / UTIs you need.
+- **todo-tracking** (`.claude/skills/todo-tracking/SKILL.md`) — how this repo
+  tracks TODOs: every outstanding work item goes in the single `TODO.md`
+  checklist at the repo root, in the flat `- [ ]` format described there.

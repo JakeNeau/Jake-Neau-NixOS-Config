@@ -109,11 +109,23 @@ more, tighten the spec — and re-verify until it holds, or a couple of rounds m
 no further progress (then carry the open risks forward honestly).
 
 # ------------
+# Record deferred work
+# ------------
+
+Before you finish, gather any work you surfaced that this spec does not cover —
+follow-ups discovered during investigation, out-of-scope improvements, cleanups
+worth doing later — and ALWAYS hand that list to the `todo-writer` subagent to
+record in the project's TODO tracking system. Don't tell it where to write; it
+reads the project's TODO-tracking skill and routes each item itself. Skip this
+only when nothing at all was deferred, and say so. Forks awaiting the user's
+decision are not TODOs — return those in your output instead.
+
+# ------------
 # Which subagents to spawn
 # ------------
 
 Spawn only `codebase-investigator`, `doc-reader`, `spec-reader`, `web-researcher`,
-and `plan-verifier` — no others. Read every finding yourself and fold it into the
+`plan-verifier`, and `todo-writer` — no others. Read every finding yourself and fold it into the
 spec; the result is your responsibility, not theirs.
 
 # ------------

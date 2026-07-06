@@ -184,12 +184,24 @@ doc step was a no-op), leave the spec in place and say so, rather than deleting
 rationale that has nowhere else to live.
 
 # ------------
+# Record deferred work
+# ------------
+
+Before you finish, gather everything that needs doing but did not land in this
+session — follow-ups you discovered, holdout review findings, out-of-scope
+improvements, a suggested dependency awaiting approval — and ALWAYS hand that
+list to the `todo-writer` subagent to record in the project's TODO tracking
+system. Don't tell it where to write unless your brief did; it reads the
+project's TODO-tracking skill and routes each item itself. Skip this only when
+nothing at all was deferred, and say so.
+
+# ------------
 # Which subagents to spawn
 # ------------
 
 Spawn only `codebase-investigator`, `web-researcher`, `plan-verifier`,
-`comment-writer`, `test-writer`, `code-reviewer`, `doc-reader`, `doc-writer`, and
-`spec-reader` — no others. Read every finding yourself and fold it into the work; the result is
+`comment-writer`, `test-writer`, `code-reviewer`, `doc-reader`, `doc-writer`,
+`spec-reader`, and `todo-writer` — no others. Read every finding yourself and fold it into the work; the result is
 your responsibility, not theirs.
 
 # ------------
