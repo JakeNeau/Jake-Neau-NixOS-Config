@@ -1,6 +1,11 @@
 function nr --description "Pulls, verifies every environment in the flake, commits and pushes, then rebuilds the system. Aborts if any step fails"
-  argparse 'n/no-git' 'f/full-output' -- $argv
+  argparse 'n/no-git' 's/staged' 'f/full-output' -- $argv
   or return 1
+
+  if set -q _flag_staged; and set -q _flag_no_git
+    echo "nr: --staged and --no-git contradict each other" >&2
+    return 1
+  end
 
   # The flake location, configuration class, and rebuild command are the
   # only platform-specific parts; everything else is shared
@@ -18,6 +23,13 @@ function nr --description "Pulls, verifies every environment in the flake, commi
     set rebuild_quiet
   end
 
+  # A leftover --staged stash holds changes every later run would silently
+  # exclude; refuse to do anything until it is restored
+  if string match -q "*nr --staged*" -- (git -C $flake stash list)
+    echo "nr: unrestored changes from a previous 'nr --staged' run are stashed; run 'git -C $flake stash pop' to restore them first" >&2
+    return 1
+  end
+
   # Quiet by default; -f/--full-output shows everything
   set -l git_quiet -q
   set -l nix_quiet --quiet
@@ -27,15 +39,30 @@ function nr --description "Pulls, verifies every environment in the flake, commi
     set rebuild_quiet
   end
 
+  set -l stash_hint # empty until stashed; every abort message appends it
+  # With --staged, park unstaged tracked changes: nix evaluates the working
+  # tree, so it must equal the index for the run to see only staged content.
+  # Skip when nothing is unstaged — popping a --keep-index stash whose
+  # staged half got committed would re-apply it
+  if set -q _flag_staged; and not sudo git -C $flake diff --quiet
+    # the message lets the startup guard above recognize a leftover stash
+    sudo git -C $flake stash push --keep-index -m "nr --staged" $git_quiet
+    or begin
+      echo "nr: git stash failed, aborting" >&2
+      return 1
+    end
+    set stash_hint "; your unstaged changes are stashed; run 'git -C $flake stash pop' to restore them"
+  end
+
   suu git -C $flake pull $git_quiet
   or begin
-    echo "nr: git pull failed, aborting" >&2
+    echo "nr: git pull failed, aborting$stash_hint" >&2
     return 1
   end
 
   sudo nix flake update --flake $flake $nix_quiet
   or begin
-    echo "nr: nix flake update failed, aborting" >&2
+    echo "nr: nix flake update failed, aborting$stash_hint" >&2
     return 1
   end
 
@@ -43,9 +70,15 @@ function nr --description "Pulls, verifies every environment in the flake, commi
   # evaluates a dirty git tree, so brand-new files would otherwise be
   # invisible to the verification (and to the rebuild) below
   if not set -q _flag_no_git
-    sudo git -C $flake add -A
+    if set -q _flag_staged
+      # only the flake.lock bump joins the commit; the stash above already
+      # made the working tree equal the index
+      sudo git -C $flake add flake.lock
+    else
+      sudo git -C $flake add -A
+    end
     or begin
-      echo "nr: git add failed, aborting" >&2
+      echo "nr: git add failed, aborting$stash_hint" >&2
       return 1
     end
   end
@@ -60,7 +93,7 @@ function nr --description "Pulls, verifies every environment in the flake, commi
 
     set -l hosts (nix eval "$flake#$class" --apply 'c: builtins.concatStringsSep "\n" (builtins.attrNames c)' --raw)
     or begin
-      echo "nr: could not list the hosts in $class, aborting" >&2
+      echo "nr: could not list the hosts in $class, aborting$stash_hint" >&2
       return 1
     end
 
@@ -68,7 +101,7 @@ function nr --description "Pulls, verifies every environment in the flake, commi
       echo "Verifying $class.$host..."
       nix eval "$flake#$class.$host.$target.drvPath" $nix_quiet >/dev/null
       or begin
-        echo "nr: $class.$host failed to verify, aborting (nothing was committed or pushed)" >&2
+        echo "nr: $class.$host failed to verify, aborting (nothing was committed or pushed)$stash_hint" >&2
         return 1
       end
     end
@@ -80,7 +113,7 @@ function nr --description "Pulls, verifies every environment in the flake, commi
   echo "Building $this_class.$this_host..."
   nix build "$flake#$this_class.$this_host.config.system.build.toplevel" --no-link $nix_quiet
   or begin
-    echo "nr: the build for $this_host failed, aborting (nothing was committed or pushed)" >&2
+    echo "nr: the build for $this_host failed, aborting (nothing was committed or pushed)$stash_hint" >&2
     return 1
   end
 
@@ -100,12 +133,12 @@ function nr --description "Pulls, verifies every environment in the flake, commi
       end
       sudo git -C $flake commit --amend $git_quiet -m "$new_commit_message"
       or begin
-        echo "nr: amending the last commit failed, aborting before the push and rebuild" >&2
+        echo "nr: amending the last commit failed, aborting before the push and rebuild$stash_hint" >&2
         return 1
       end
       suu git -C $flake push --force-with-lease $git_quiet
       or begin
-        echo "nr: git push failed, aborting before the rebuild (the amended commit is still local)" >&2
+        echo "nr: git push failed, aborting before the rebuild (the amended commit is still local)$stash_hint" >&2
         return 1
       end
     # Make a new commit if the message is specified
@@ -113,12 +146,12 @@ function nr --description "Pulls, verifies every environment in the flake, commi
       set new_commit_message "$this_host Generation $new_generation: $argv"
       sudo git -C $flake commit $git_quiet -m "$new_commit_message"
       or begin
-        echo "nr: git commit failed, aborting before the push and rebuild" >&2
+        echo "nr: git commit failed, aborting before the push and rebuild$stash_hint" >&2
         return 1
       end
       suu git -C $flake push $git_quiet
       or begin
-        echo "nr: git push failed, aborting before the rebuild (the commit is still local)" >&2
+        echo "nr: git push failed, aborting before the rebuild (the commit is still local)$stash_hint" >&2
         return 1
       end
     end
@@ -129,7 +162,7 @@ function nr --description "Pulls, verifies every environment in the flake, commi
   echo "Rebuilding the system configuration..."
   sudo $rebuild $flake $rebuild_quiet
   or begin
-    echo "nr: the rebuild failed" >&2
+    echo "nr: the rebuild failed$stash_hint" >&2
     return 1
   end
 
@@ -137,5 +170,15 @@ function nr --description "Pulls, verifies every environment in the flake, commi
   echo "System configuration rebuilt for generation $actual_generation"
   if not set -q _flag_no_git; and test "$actual_generation" != "$new_generation"
     echo "Warning: the commit was named $this_host Generation $new_generation but the system is at generation $actual_generation"
+  end
+
+  # The staged half is already in the commit, so popping the parked changes
+  # normally merges cleanly; on conflict git keeps the stash
+  if test -n "$stash_hint"
+    sudo git -C $flake stash pop $git_quiet
+    or begin
+      echo "nr: restoring your unstaged changes conflicted; they are still stashed, resolve and pop manually" >&2
+      return 1
+    end
   end
 end
