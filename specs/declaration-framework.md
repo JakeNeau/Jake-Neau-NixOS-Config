@@ -1,7 +1,13 @@
 # Declaration-driven dendritic framework
 
 > Status: **settled design, pre-implementation.** Every architectural fork below
-> was decided interactively; only the items under *Deferred* remain open. This
+> was decided interactively; only the items under *Deferred* remain open. A
+> plan-verifier pass disproved the original override mechanism (a single
+> `mkDefault` wrap); the replacement — the boundary priority wrapper under *The
+> override seam* — was settled with the user and proven by eval in a follow-up
+> design session, and the spec amended accordingly. A later session settled
+> the repo-vocabulary rename recorded under *Naming* (host-config / roles /
+> hostConstants) and this spec was amended to use it. This
 > spec is transient per the specs lifecycle: once implemented, the durable
 > rationale graduates into the Diátaxis docs and this file is deleted. It
 > **supersedes** the old `specs/program-factory.md` (a program-install factory),
@@ -12,9 +18,9 @@
 ### What & why
 
 Today config reaches a user's home through three ad-hoc channels: user aspect
-imports (`modules/factory/user/user.nix:25,36`), `home-manager.sharedModules`
-pushes (stylix, mac-app-util, system-constants, fastfetch, niri-desktop), and
-host-level reach-ins (`modules/hosts/cedar/configuration.nix:24` pushes
+imports (`modules/factory/user/user.nix`), `home-manager.sharedModules`
+pushes (mac-app-util, system-constants, fastfetch, niri-desktop), and
+host-level reach-ins (`modules/hosts/cedar/configuration.nix` pushes
 kubernetes into jake.neau). Home-manager runs as a system module
 (`modules/nix/tools/home-manager/home-manager.nix`, useGlobalPkgs /
 useUserPackages), so a user cannot apply their own home without a system
@@ -31,7 +37,8 @@ standalone home-manager.
    reserved for what HM cannot do (daemons, casks, setuid/wrappers) plus a small
    root-survival kit of system packages (list deferred).
 2. **Programs never name users.** Each program's shared default config is
-   authored once and lands at `lib.mkDefault` priority (1000), so any user
+   authored once, plain; the hosts generator lowers everything shared to
+   priority 900 at the host boundary (see *The override seam*), so any user
    overrides it by plain assignment (priority 100) in their own space — normal
    module merge is the whole override mechanism.
 3. **All users are standalone home-manager managed.** The home-manager system
@@ -42,6 +49,38 @@ standalone home-manager.
    declaration; everything else is generated wiring. Hand-written aspects remain
    first-class for what doesn't fit — services/daemons with rich system config,
    oddball programs. Declarations cover programs/hosts/users, not everything.
+
+### Naming
+
+Settled with the user: **"system" is retired as repo vocabulary** — it clashed
+with NixOS's own notion of system. Three renames, applied throughout this spec
+and landed during implementation (a `git mv` plus the option rename, as its own
+mechanical commit; placement in the migration is the implementer's):
+
+- `modules/system/` → **`modules/host-config/`** — names the machine-level
+  layer of config (what needs root, shared by all users) beside
+  `modules/hosts/` (the machines) and in contrast to per-user home config.
+  "System aspects" (audio, network, printing, ...) become **host-config
+  aspects**; the host's generated OS-level aspect is its **host-config aspect**.
+- `modules/system/types/` → **`modules/host-config/roles/`** — the layered
+  baselines name what a host *is*: **roles**. "System types" become roles
+  everywhere (role aggregates, role imports, role baselines). Whether the role
+  aspects keep bare names (`minimal`, `desktop`) or gain a `role-` prefix is
+  deferred (see *Deferred*); where this spec writes `role-desktop` /
+  `role-default` / `role-minimal` they are illustrative placeholders.
+- `systemConstants` → **`hostConstants`** — the option, its folder
+  (`modules/host-config/host-constants/`, file `host-constants.nix`), and the
+  schema source (`flake.modules.generic.host-constants`) — matching the "host
+  facts" prose this spec already uses.
+
+Nix's own vocabulary is untouched: the `system` platform field
+(`"aarch64-darwin"`), `config.system.build.toplevel`,
+`nixosConfigurations`/`darwinConfigurations`, "system module", "system
+install"/"system parts" (the OS-level half of a program vs the HM half), and
+generic "system rebuild/eval/config". Citations under the old names
+(`modules/system/...`, `system-constants.nix`, aggregates named
+`system-desktop`) refer to today's on-disk tree — current-state evidence, not
+the future layout.
 
 ### Program declarations — `flake.programs.<name>`
 
@@ -57,14 +96,16 @@ One declaration per program, living in that program's feature folder
   declarations*). Most programs declare exactly one way per platform; ghostty
   stays the degenerate case (cask-only on macOS, where per-user install is
   impossible — semantics unchanged).
-- **`config`** — the shared HM default config: a home-manager module — a full
-  module *function* stays supported (fastfetch's `systemConstants` branch and
-  ghostty's `mkIf` both work). The generated `-config` unit wraps the module's
-  config output in **one** `lib.mkDefault` and relies on the module system's native
-  property push-down to give every option leaf priority 1000 individually — no
-  hand-rolled recursive wrapping (principle 2). Stated fact: a user overriding
-  a list-valued option replaces the whole list (desired), and this never
-  affects sibling options.
+- **`config`** — the shared HM default config: a home-manager module in any
+  form — shorthand attrset or full module (`imports`/`options`/`config`), as a
+  value or a module *function* (fastfetch's `hostConstants` branch and
+  ghostty's `mkIf` both work). The generated `-config` unit carries it
+  **plain**, with no priority marking of its own: user-overridability comes
+  from the boundary priority wrapper the hosts generator applies at stamping
+  time (see *The override seam*), which handles every form uniformly. Stated
+  fact: a user overriding a list-valued option replaces the whole list
+  (desired — lists are leaves to the wrapper), and this never affects sibling
+  options.
 
 Each declaration generates importable units:
 
@@ -72,15 +113,17 @@ Each declaration generates importable units:
   `pkgs.stdenv.isLinux`/`isDarwin` on content, never on imports) + imports the
   config unit.
 - **Opt-out-able installs** — every generated install hangs off an overridable
-  boolean: the program's HM `programs.<name>.enable` option set to
-  `lib.mkDefault true` where one exists, a small generated toggle where one
-  doesn't (exact shape deferred) — **never** a priority-marked `home.packages`
-  list contribution, because priorities on list options discard lower-priority
+  boolean: the program's HM `programs.<name>.enable` option set plainly to
+  `true` where one exists (the boundary wrap lands it at priority 900, so a
+  user's plain `enable = false` at 100 wins — no per-unit `mkDefault`
+  needed), a small generated toggle where one doesn't (exact shape
+  deferred) — **never** a `home.packages` list contribution as the install
+  channel, because priorities on list options discard lower-priority
   definitions wholesale (a user's plain `home.packages` assignment would
   silently uninstall every default program). Generated installs are defaults,
   not mandates: a user opts out with `programs.<name>.enable = false;` in
   their own folder.
-- `homeManager.<name>-config` — config only, `mkDefault`'d, no package — for
+- `homeManager.<name>-config` — config only, carried plain, no package — for
   users on machines where the install is global/system-level.
 - `nixos.<name>` / `darwin.<name>` — true-system install units (e.g. the cask),
   generated only for programs that declare one.
@@ -106,7 +149,7 @@ Illustrative shapes (from the brainstorm; field names deferred):
   users — on the macs both arrive through a `globalPrograms` listing, the only
   channel that can carry a cask. redwood and spruce list ghostty in their
   `globalPrograms` too: today Linux users get it only through the
-  `homeManager.system-desktop` aggregate (`system-desktop.nix:161`), which
+  `homeManager.system-desktop` aggregate (`system-desktop.nix`), which
   stops importing it at the stage-5 cutover (see the one-channel consequence
   under *Host declarations*), so the host declaration is the sole channel on
   every platform. This replaces today's hand-written split in
@@ -115,9 +158,10 @@ Illustrative shapes (from the brainstorm; field names deferred):
   Linux hosts' `globalPrograms`, so every user gets the HM install by default
   and opts out with `programs.yazi.enable = false;` in their own folder.
   Generated: the full `homeManager` unit and the `-config` unit. The existing
-  `homeManager.yazi` (`yazi.nix:36-81`, the Linux-gated termfilechooser
-  wrapper — config only, no package install; imported at
-  `system-default.nix:40`) folds into the declaration's `config` field, so the
+  `homeManager.yazi` (`yazi.nix`, the Linux-gated termfilechooser
+  wrapper — config only, no package install; imported by the
+  `homeManager.system-default` aggregate in `system-default.nix`) folds into
+  the declaration's `config` field, so the
   generated unit subsumes it under the same name. That import site keeps
   working **during stage 4 only** — the invariant that lets unconverted hosts
   keep receiving through the old line mid-migration; at the stage-5 cutover
@@ -126,9 +170,9 @@ Illustrative shapes (from the brainstorm; field names deferred):
   (`xdg.mimeApps.defaultApplications."inode/directory" = "yazi.desktop"`),
   conditioned on the enable switch so opting out also releases the file-type
   default. The hand-written `nixos.yazi` aspect
-  (`modules/programs/yazi/yazi.nix:8-31`) slims to the portal routing
+  (`modules/programs/yazi/yazi.nix`) slims to the portal routing
   (extraPortals + portal config) and its support packages — dropping **both**
-  its `programs.yazi.enable = true` install line (`yazi.nix:9`, which would
+  its `programs.yazi.enable = true` install line (`yazi.nix`, which would
   double-install against the per-user unit) and its system-wide
   `xdg.mime.defaultApplications` block (superseded by the per-user claim);
   that surviving aspect is beyond a declaration, so the nixos class stays
@@ -147,8 +191,71 @@ Illustrative shapes (from the brainstorm; field names deferred):
   nix package breaks against the organization's SSO), so its users get
   `-config` through the baseline.
   Today firefox exists only as cedar's hand-written cask
-  (`modules/hosts/cedar/configuration.nix:28-30`); the HM install path on
+  (`modules/hosts/cedar/configuration.nix`); the HM install path on
   other hosts is new capability, like yazi's macOS presence.
+
+### The override seam — the boundary priority wrapper
+
+The mechanism behind principle 2. The original design — wrap each generated
+unit's config output in **one** `lib.mkDefault` and rely on the module
+system's native property push-down to give every leaf priority 1000 — is
+**disproven**, verified by eval against this flake's pinned nixpkgs:
+push-down delivers each leaf as override-outside/if-inside,
+`mkOverride 1000 (mkIf c v)`, and in `lib/modules.nix` `dischargeProperties`
+runs before `filterOverrides` and pattern-matches only `_type == "merge"`
+and `_type == "if"` — an override marker falls through opaque, so the inner
+`mkIf` is never discharged and reaches the type check as a raw
+`{_type = "if"; ...}` attrset ("A definition for option ... is not of type
+..."). The reverse nesting, `mkIf c (mkDefault v)`, works. Not theoretical:
+it bites ghostty (`package = mkIf isDarwin null`,
+`home.file = mkIf isDarwin {...}`), yazi (whose entire HM config is one
+`mkIf isLinux`), and fish (a top-level `mkMerge` of five `mkIf` branches).
+
+The replacement (prototyped and proven by eval): program definitions and
+role definitions (compounds like today's `system-desktop`) are the same kind of
+thing — bundles of shared config — so priority-lowering is applied **once
+per home, at the host boundary**. When the hosts generator stamps
+`homeConfigurations."<user>@<host>"`, it applies a recursive graph-walk
+wrapper to the entire delivered module set — host baseline, role
+compounds, generated program units, user-declaration units. The user's own
+aspect (`homeManager.<user>` plus their `modules/users/<user>/` folder) is
+**not** wrapped: it is the overriding layer. The wrapper has two levels:
+
+- **Value level** — descend the config value tree: `mkIf` → keep the `mkIf`,
+  recurse into its content (producing the working if-outside/override-inside
+  nesting); `mkMerge` → recurse into its contents; an existing explicit
+  `_type == "override"` (`mkForce`, a hand-written `mkDefault`/`mkOverride`)
+  → leave untouched; plain attrsets (except derivations, per
+  `lib.isDerivation`) → recurse per-attribute; everything else (leaves,
+  lists, derivations, functions) → stamp the priority.
+- **Graph level** — a module with reserved keys (`imports`/`options`/
+  `config`) keeps all other keys, gets its `config` part value-wrapped, and
+  has each `imports` entry recursed into (importing path entries first); a
+  shorthand module is treated entirely as config; a module function `f`
+  becomes `args: wrap (f args)`. Shorthand and full module form are thus
+  handled uniformly — no restriction on a program declaration's `config`
+  field form.
+
+The stamped priority is **900** (`lib.mkOverride 900`), not `mkDefault`'s
+1000: user config (100) beats repo shared config (900) beats upstream
+modules' internal `mkDefault`s (1000). This preserves today's
+repo-beats-upstream ordering and avoids the new class of equal-priority hard
+conflicts that 1000 would create against upstream internal defaults.
+
+Consequences:
+
+- Third-party modules delivered through baselines (the stylix HM module,
+  mac-app-util, ...) are swept by the walk too — their plain internal
+  settings become user-overridable at 900 (intended).
+- A shared value that must survive user override needs an explicit `mkForce`.
+- The generated units carry plain config with no priority marking of their
+  own — the boundary wrap is the sole mechanism (see the opt-out-able
+  installs and `-config` bullets above).
+
+**Why this shape** (durable rationale — graduates to the explanation docs at
+stage 7): the wrapper is a workaround for an upstream nixpkgs module-system
+wart — `dischargeProperties` not looking inside override markers. If nixpkgs
+ever teaches it to, remove or simplify the wrapper.
 
 ### Host declarations — `flake.hosts.<name>`
 
@@ -158,16 +265,16 @@ line per program that every user on the machine gets by default; installs are
 opt-out-able per the rule above), an **install-way
 override map** (illustrative: `installOverrides.firefox = "cask"`; see the
 resolution rule below), and **baseline imports**
-(the system-type homeManager aggregates this host's baseline inherits — e.g.
-`homeManager.system-desktop`, plus `homeManager.niri-desktop` on niri hosts).
+(the role homeManager aggregates this host's baseline inherits — e.g.
+`homeManager.role-desktop`, plus `homeManager.niri-desktop` on niri hosts).
 Nothing else can tell the generator that redwood's baseline includes the niri
 plumbing and cedar's doesn't; today that routing is the `sharedModules` push at
-`modules/system/types/niri-desktop/niri-desktop.nix:11`, which dies with the
+`modules/system/types/niri-desktop/niri-desktop.nix`, which dies with the
 system module.
 
 The framework routes each global program's parts by construction:
 
-- True-system install parts → the host's generated system aspect.
+- True-system install parts → the host's generated host-config aspect.
 - HM parts → a generated per-host **baseline** homeManager aspect applied to
   every listed user: the full HM unit for HM-installable programs, the
   `-config` unit for system-installed ones.
@@ -176,7 +283,8 @@ Which way applies is resolved per **(program, host)**, not per platform: when
 the program declares several ways for the host's platform, per-user HM wins by
 default, and the host's override map picks another declared way. For a
 `globalPrograms` entry an override re-routes both halves by construction, per
-the routing above — the system part into the host's generated system aspect,
+the routing above — the system part into the host's generated host-config
+aspect,
 the host's users onto the `-config` unit — so one line can never yield a cask
 without config or a double install. For a program requested from a
 `flake.users` declaration it does **not** re-route: user declarations are
@@ -189,7 +297,7 @@ or user-level knob would either violate principle 2 (programs never name
 hosts/users) or misrepresent a global install as per-user.
 
 **Rejected shapes** for way selection: branching the generated unit on a
-`systemConstants` fact — the flake-level generator cannot read module-eval
+`hostConstants` fact — the flake-level generator cannot read module-eval
 constants at routing time, and the two coordinated moves (import the cask
 unit, set the fact) drift silently into a double install; separate
 `firefox`/`firefox-cask` declarations — splits one program's identity and
@@ -206,56 +314,62 @@ boilerplate
 - `nixosConfigurations.<name>` / `darwinConfigurations.<name>` for the host.
 - `homeConfigurations."<user>@<host>"` for each listed user = user aspect +
   host baseline + the units from the user's declaration (see *User
-  declarations* below). (The `flake.homeConfigurations` option comes from
+  declarations* below), with everything but the user's own aspect passed
+  through the boundary priority wrapper at stamping (see *The override
+  seam*). (The `flake.homeConfigurations` option comes from
   `inputs.home-manager.flakeModules.home-manager`, already imported in
   `modules/nix/tools/home-manager/flake-parts.nix`; `lib.mkHomeManager` exists
   but is unused today and gets reworked for this.)
 
 The generator also imports each listed user's factory-produced account aspect
 (`nixos.<u>` / `darwin.<u>`, per the declaration's class) into the host's
-generated system aspect, retiring the hosts' hand-written account-import lines
-(e.g. `modules/hosts/cedar/configuration.nix:10`). `flake.hosts.<h>.users` is
+generated host-config aspect, retiring the hosts' hand-written account-import
+lines
+(e.g. `modules/hosts/cedar/configuration.nix`). `flake.hosts.<h>.users` is
 thus the single authority: one line yields the account, the home output, and
 the baseline, by construction. Boundary: account *definition* stays in the
 factory; only *placement* moves to the declaration.
 
-The host's hand-written aspect (quirks, `systemConstants` values, daemon
-imports, system-type import) composes alongside the generated wiring, as hosts
-do today. Baselines inherit system-type baselines: system types like
-`system-desktop` and `niri-desktop` carry homeManager baseline aspects too
-(their existing `flake.modules.homeManager.<type>` aggregates), routed via the
+The host's hand-written aspect (quirks, `hostConstants` values, daemon
+imports, role import) composes alongside the generated wiring, as hosts
+do today. Baselines inherit role baselines: roles like
+`system-desktop` (today's name) and `niri-desktop` carry homeManager baseline
+aspects too
+(their existing `flake.modules.homeManager.<role>` aggregates), routed via the
 baseline-imports field above.
 
-One-channel consequence: user aspects **drop their own system-type HM imports**
-(`modules/users/jake.neau/jake.neau.nix:12` and
-`modules/users/jakeneau/homeManager.nix:7` both import
+One-channel consequence: user aspects **drop their own role HM imports**
+(`modules/users/jake.neau/jake.neau.nix` and
+`modules/users/jakeneau/homeManager.nix` both import
 `homeManager.system-desktop`) — the baseline is the single source, so keeping
 both would double-import the aggregate into
 `homeConfigurations."<user>@<host>"`, violating the repo's one-import rule.
 The user aspect keeps only genuinely per-user config. The same rule retires
-the system-type aggregates' imports of converted programs at the cutover:
+the role aggregates' imports of converted programs at the cutover:
 `darwin.system-desktop` imports ghostty's cask aspect
-(`system-desktop.nix:141`), `homeManager.system-desktop` imports its HM unit
-(`system-desktop.nix:161`), and `homeManager.system-default` imports yazi
-(`system-default.nix:40`). Once a converted program rides `globalPrograms`,
+(`system-desktop.nix`), `homeManager.system-desktop` imports its HM unit
+(`system-desktop.nix`), and `homeManager.system-default` imports yazi
+(`system-default.nix`). Once a converted program rides `globalPrograms`,
 that is its **sole** channel — a surviving aggregate import would deliver a
 second copy that the module system merges, and list-valued options concatenate
 (ghostty's `keybind`/`font-feature` lists,
-`modules/programs/ghostty/ghostty.nix:25,29`, would duplicate their entries).
+`modules/programs/ghostty/ghostty.nix`, would duplicate their entries).
 
-**Host facts** (`systemConstants`,
+**Host facts** (`hostConstants` — today `systemConstants` at
 `modules/system/system-constants/system-constants.nix`) reach homes by a
 **lazy read-through of the evaluated system config** — neither `sharedModules`
 nor `osConfig` exists on the standalone path. The hosts generator injects one
 module into each host's generated baseline:
-`systemConstants = inputs.self.<nixosConfigurations|darwinConfigurations>.<host>.config.systemConstants;`
+`hostConstants = inputs.self.<nixosConfigurations|darwinConfigurations>.<host>.config.hostConstants;`
 (output attr chosen by the declaration's class), so homes see exactly the
 facts the system eval resolved. Constants keep today's set-anywhere semantics:
 values are assigned inside system module eval — host aspects, and bundles like
-`modules/system/types/local-ai/local-ai.nix:8` (which stays byte-for-byte
-unchanged); set-by-import remains a supported pattern, and import-set facts
+`modules/system/types/local-ai/local-ai.nix` (whose
+`hostConstants.localAi = true;` line — `systemConstants.localAi` today —
+carries over unchanged apart from the option rename);
+set-by-import remains a supported pattern, and import-set facts
 flow through. The schema's single source stays
-`flake.modules.generic.system-constants` (the HM side already gets the
+`flake.modules.generic.host-constants` (the HM side already gets the
 declarations via `homeManager.system-default`). Trade-offs accepted: a home
 eval now pulls (part of) the host's system eval — `hr` gets a few seconds
 slower, eval-only — and a non-evaluating system config blocks home rebuilds
@@ -283,7 +397,7 @@ flake.users."jake.neau" = {
 
 - **Resolution** — user declarations are **per-user-only**: they only ever
   produce per-user (home-manager) units and never route anything into a host's
-  system aspect — system installs belong to host declarations alone
+  host-config aspect — system installs belong to host declarations alone
   (`globalPrograms` + install-way overrides). Program names still resolve
   against `flake.programs` per (program, host), honoring the host's
   install-way override map, for both lists: resolved to the per-user HM way →
@@ -326,7 +440,7 @@ flake.users."jake.neau" = {
   host, and the fix.
 - **Rejected shapes** — an auto-imported per-host aspect convention
   `flake.modules.homeManager."<user>@<host>"` (less uniform; a file per tweak
-  instead of a one-liner), and `mkIf` on `systemConstants.hostName` inside the
+  instead of a one-liner), and `mkIf` on `hostConstants.hostName` inside the
   user aspect — still valid for plain per-host config *values*, but it cannot
   conditionally import a generated program unit.
 
@@ -343,12 +457,12 @@ flake.users."jake.neau" = {
 - User folders are **ordinary parts of the config-group-owned tree**: a user
   who manages their home config in this repo is a `config` group member.
   Membership is per-host on darwin — each host aspect lists its own members
-  (`modules/hosts/cedar/configuration.nix:21` lists jake.neau,
-  `modules/hosts/aspen/configuration.nix:19` lists jakeneau) — while the
+  (`modules/hosts/cedar/configuration.nix` lists jake.neau,
+  `modules/hosts/aspen/configuration.nix` lists jakeneau) — while the
   NixOS list stays central
-  (`modules/system/config-group/config-group.nix:30`); the darwin aspect
+  (`modules/system/config-group/config-group.nix`); the darwin aspect
   keeps only the group mechanics (`users.knownGroups`, gid 600,
-  `config-group.nix:37-39`). The existing one-time tree-wide ACL setup
+  `config-group.nix`). The existing one-time tree-wide ACL setup
   documented in `config-group.nix`'s comment block already covers the user
   folders — there is **no per-user ownership step**. Membership grants
   whole-tree write including `.git`, so users stage and commit their own new
@@ -369,7 +483,8 @@ flake.users."jake.neau" = {
   without a rebuild. Fully declarative: it lands at home activation, with no
   imperative step.
 - Per-user config/overrides live in `modules/users/<user>/` — the user's own
-  folder, where plain assignment beats the `mkDefault` program defaults.
+  folder, unwrapped, where plain assignment (100) beats the
+  boundary-wrapped shared defaults (900).
 
 ### Documentation
 
@@ -384,8 +499,12 @@ cognition); **Explanation** — understanding-oriented (acquisition ×
 cognition). Its disciplines hold throughout: one page, one type; each
 quadrant gets its own section/folder (`tutorials/`, `how-to/`, `reference/`,
 `explanation/`) if a docs tree is adopted; never smuggle rationale into
-reference or facts into explanation — split mixed pages instead. The
-enumeration is checked in both directions:
+reference or facts into explanation — split mixed pages instead. All stage-7
+documentation is written against the **post-migration end state** — the
+renamed tree and vocabulary from *Naming* (`modules/host-config/`, `roles/`,
+`hostConstants`) and the post-cutover architecture — never the pre-migration
+names, since the docs land after the cutover. The enumeration is checked in
+both directions:
 
 - **Coverage** — every documentable part of the system (the existing tree
   plus everything the refactor introduces or invalidates) has a planned home
@@ -397,10 +516,10 @@ enumeration is checked in both directions:
   *Tutorials* subsection below closes that gap.
 
 The repo has **no `docs/` tree** today: documentation is `README.md`,
-`SKILLS.md`, `CLAUDE.md`, and the four project skills under `.claude/skills/`
-(nix-config, nvf, repo-permissions, default-apps), which double as the real
-reference/explanation material. Whether stage 7 adopts the skill's quadrant
-folder layout or keeps that shape — and, per topic, whether a skill
+`SKILLS.md`, `CLAUDE.md`, and the five project skills under `.claude/skills/`
+(nix-config, nvf, repo-permissions, default-apps, todo-tracking), which double
+as the real reference/explanation material. Whether stage 7 adopts the
+skill's quadrant folder layout or keeps that shape — and, per topic, whether a skill
 (agent-facing) or a doc (human-facing) is the right home — is a recorded open
 question (see *Deferred*); the notes below name content and quadrant, not
 location.
@@ -447,14 +566,14 @@ teaching.
 - **Per-action runbooks** — one note per recurring action with an imperative
   component or a non-obvious declarative sequence. Known so far: **adding a
   user** (macOS account creation is imperative — nix-darwin never creates
-  accounts, it only records the home dir, `modules/factory/user/user.nix:31-33`;
+  accounts, it only records the home dir, `modules/factory/user/user.nix`;
   the member line + rebuild is declarative, but the new member must log
   out/in or `newgrp config` before membership takes effect); **fresh clone /
   new checkout** (re-run the ACL sequence). The refactor adds three more:
   **adding a program declaration** (the fields, the class-suppression choice,
   the dry-build pass), **adding a host** (a `flake.hosts` declaration + the
   hand-written quirks aspect — replacing the retired new-host recipe at
-  `.claude/skills/nix-config/SKILL.md:219-234`), and **adding a
+  `.claude/skills/nix-config/SKILL.md`), and **adding a
   per-user-per-host program** (the `flake.users` `hosts.<h>.programs`
   one-liner and when it filters vs throws).
 - **Rebuilding your home** — split from the standalone-home material per
@@ -484,16 +603,43 @@ structure — describes, never explains.
   (opting out also releases the file-type default but leaves the
   machine-global termfilechooser portal route to flip back per-user — see
   *Program declarations*).
+- **Generated host artifacts** — what the hosts generator stamps per
+  declaration: the per-host baseline homeManager aspect, the generated
+  host-config aspect, the injected hostConstants read-through module, and the
+  `nixosConfigurations` / `darwinConfigurations` /
+  `homeConfigurations."<user>@<host>"` outputs. Today these appear only in
+  *Plan* and inside tutorial/how-to steps; this page is their reference home.
+- **The common nixpkgs module** — the module every generated home imports:
+  shared `allowUnfree`, the NUR overlay, the `permittedInsecurePackages`
+  pins, and `programs.home-manager.enable` (which the `hr` CLI needs).
+- **Generated user artifacts** — what the user factory stamps: the account
+  aspects, `homeManager.<user>`, and the `~/.config/nix-config` out-of-store
+  symlink's contract (points at the user's `modules/users/<user>/` folder,
+  lands at home activation) — currently stated only inside the tutorial and
+  the rebuilding-your-home guide; the reference is where the contract gets
+  recorded.
 - **Feature/aspect index** — one page mapping what exists and which hosts
   use it: 4 hosts, 2 users, the user factory, the 33 programs under
-  `modules/programs/`, the system aspects (audio, caps-dual-role, cli,
-  config-group, copy-paste-remaps, graphics with per-vendor self-activation,
-  key-repeat, network, printing, system-constants), the system types
-  (system-minimal/default/desktop, niri-desktop, local-ai), the nix tools
-  (`modules/nix/tools/`), services (llama-server), and
-  `modules/config/hidden-desktop-entries`. Today discoverability is
-  grep-only. Not one page per module: the index maps what exists; whether
-  any entry earns its own page is the deferred depth decision.
+  `modules/programs/`, the host-config aspects (`modules/host-config/`:
+  audio, caps-dual-role, cli, config-group, copy-paste-remaps, graphics with
+  per-vendor self-activation, key-repeat, manual-workaround — listed as a
+  transient workaround for the nix-darwin manual breakage, not
+  architecture — network, printing, host-constants), the roles
+  (`modules/host-config/roles/`: today's system-minimal/default/desktop,
+  niri-desktop, local-ai), the ten nix tools under `modules/nix/tools/`
+  (home-manager, mac-app-util, minegrub, nix-darwin, nix-homebrew,
+  nix-minecraft, nixpkgs, nur, sops, stylix), services (llama-server),
+  `modules/config/hidden-desktop-entries`, and the non-module top-level
+  directories: `wallpapers/` (wallpaper images referenced by stylix/hosts),
+  `secrets/` (sops-encrypted secrets; `keys.txt` never committed — the flow
+  docs live elsewhere, this is only the index line), and `specs/` (transient
+  pre-implementation design docs; write → implement → document → delete
+  lifecycle). Completeness rule, mechanically checkable at stage 7: every
+  directory under `modules/` — plus the top-level `secrets/`, `wallpapers/`,
+  and `specs/` directories — gets a one-line what-it-does entry in the
+  index. Today discoverability is grep-only. Not one page per module: the
+  index maps what exists; whether any entry earns its own page is the
+  deferred depth decision.
 
 #### Explanation (understanding-oriented)
 
@@ -502,25 +648,34 @@ trade-offs; read to understand, not to do. This quadrant is where this
 transient spec's durable rationale graduates before the file is deleted.
 
 - **The framework's why** — the three declarations, the one-channel home
-  model, the mkDefault override seam, and the error strategy (throws at
-  declaration eval, tombstones on import): the rationale this transient spec
-  carries graduates here.
+  model, the boundary priority wrapper (the disproven single-`mkDefault`
+  design, the dischargeProperties proof, the 100/900/1000 priority ladder,
+  and the remove-when-nixpkgs-fixes-it note — see *The override seam*), and
+  the error strategy (throws at declaration eval, tombstones on import): the
+  rationale this transient spec carries graduates here.
 - **Install-way resolution** — per-(program, host) resolution: the
   HM-preferred default, the host override map rerouting both halves of a
   `globalPrograms` entry, user-entry filtering vs throwing, and the rejected
   shapes as the durable rationale.
-- **Host-facts read-through** — how `systemConstants` reaches standalone
+- **Host-facts read-through** — how `hostConstants` reaches standalone
   homes via the evaluated system config, its trade-offs (slower `hr` eval; a
   non-evaluating system config blocks home rebuilds), and the retirement of
   the declare-and-forward push
-  (`modules/system/system-constants/system-constants.nix:5-11`). The Constants
-  pattern entry (`.claude/skills/nix-config/aspects.md:202-248`) stays valid
+  (`modules/system/system-constants/system-constants.nix`). The Constants
+  pattern entry (`.claude/skills/nix-config/aspects.md`) stays valid
   for declaring and reading facts; its delivery story changes, and aspects.md
   likely gains a ninth "Declaration" entry (or equivalent) for the new
-  pattern — exact shape is stage-7 judgment.
+  pattern — exact shape is stage-7 judgment. Set-by-import fact semantics
+  graduate here too, with the minecraft move as the worked example: the
+  enable moving into `nix-minecraft.nix` with the new fact set beside it
+  means importing the feature now *means* "this host runs a minecraft
+  server" — durable rationale currently defined only in this spec
+  (*Migration consequences*).
 - **The standalone home model** — why exactly one channel delivers config to
   a home and the system module is gone; the consequences worth
-  understanding: packages land in `~/.nix-profile` instead of
+  understanding: each home evaluates its own nixpkgs, configured by the
+  common nixpkgs module (see *Reference*); packages land in
+  `~/.nix-profile` instead of
   `/etc/profiles/per-user/<user>`, the system module's
   `backupFileExtension` is lost (hence `-b backup` in every documented
   switch command), and `nr` now verifies all homes but reactivates only the
@@ -531,11 +686,20 @@ transient spec's durable rationale graduates before the file is deleted.
   (`modules/programs/claude-code/` — skills/agents/hooks/MCP/sandbox policy,
   a documentable subsystem of its own), the secrets flow (sops-nix + age —
   also the open README roadmap item), the stylix theming flow (especially
-  post-restructure), system-constants and the graphics self-activation
-  pattern, config-group's trust model, and the flake machinery
-  (`modules/nix/flake-parts/`: factory, dendritic-tools,
-  darwinConfigurations-fix). Which of these earn pages vs index entries is
-  the deferred depth decision.
+  post-restructure), host-constants and the graphics self-activation
+  pattern, and config-group's trust model. Which of these earn pages vs
+  index entries is the deferred depth decision.
+- **The flake machinery** — a **committed** page (decided; not
+  depth-deferred): how the repo uses flake-parts — the module system as one
+  engine running at three layers (flake-parts at the flake level,
+  NixOS/nix-darwin per host, home-manager per home), which options live at
+  which layer, how the dendritic substrate (import-tree auto-import,
+  `flake.modules.<class>.<name>` aspects) rides it, and how the three
+  declaration generators attach (`modules/nix/flake-parts/`: factory,
+  dendritic-tools, darwinConfigurations-fix — plus the surviving input
+  machinery: flake-file's generated `flake.nix` with
+  `nix run .#write-flake`). The generators' *why* stays on the
+  framework's-why page; this page is the machinery itself.
 
 #### Staleness sweep (existing pages the refactor invalidates or that are already wrong)
 
@@ -544,29 +708,29 @@ item ends by naming the quadrant(s) its salvaged content lands in — split
 into one page per type, never dual-homed.
 
 - **`README.md`** — stale today and further invalidated by the refactor:
-  `README.md:98` claims "intended to run on a NixOS system currently. Check
+  `README.md` claims "intended to run on a NixOS system currently. Check
   back in the future for other environments like MacOS" — two darwin hosts
-  (aspen, cedar) exist; installation (`README.md:109-121`) covers only the
+  (aspen, cedar) exist; installation (`README.md`) covers only the
   NixOS clone-into-`/etc/nixos` path — no macOS/nix-darwin install, no
   config-group ACL step (cross-reference the bootstrap guide); Usage
-  (`README.md:130-138`) documents niri shortcuts and `nr`/`nrr` only — needs
+  (`README.md`) documents niri shortcuts and `nr`/`nrr` only — needs
   `hr` and the standalone home model, and omits the other autoloaded fish
   functions (`mc-*`, `np*`, `nc`, `suu` under
   `modules/programs/fish/functions/`; decide coverage, don't promise all);
-  Roadmap still lists the dendritic move (`README.md:151`) and the nix-darwin
-  environment (`README.md:154`) as open though both are done, while the SOPS
-  instructions item (`README.md:156`) is genuinely open; contact/link sweep
-  (`README.md:197`, shield URLs). Salvage: the About/design-principles
+  Roadmap still lists the dendritic move (`README.md`) and the nix-darwin
+  environment (`README.md`) as open though both are done, while the SOPS
+  instructions item (`README.md`) is genuinely open; contact/link sweep
+  (`README.md`, shield URLs). Salvage: the About/design-principles
   material is explanation; the installation steps become the bootstrap
   how-to (and feed the new-machine tutorial candidate); Usage becomes
   how-to pointers (`hr`, `nr`, the fish functions); Roadmap and contact are
   project metadata outside the quadrants.
 - **`SKILLS.md`** — "Syncing global skills across machines (nix)"
-  (`SKILLS.md:21-40`) documents a `home.file.".claude/skills"` recursive-copy
+  (`SKILLS.md`) documents a `home.file.".claude/skills"` recursive-copy
   approach that predates the declarative claude-code module
   (`modules/programs/claude-code/claude-code.nix`); rewrite to point at the
   real mechanism or delete the section. The project-skills index
-  (`SKILLS.md:42-66`) needs re-syncing with whatever skill changes stage 7
+  (`SKILLS.md`) needs re-syncing with whatever skill changes stage 7
   makes. Salvage: the index is reference; the superseded sync section
   becomes a one-line reference pointer at the claude-code module, or is
   deleted.
@@ -581,24 +745,34 @@ into one page per type, never dual-homed.
   scope — including the keep-the-name decision — are in *The nix-config skill
   rewrite* below.
 - **repo-permissions skill** — says the darwin `config-group` aspect itself
-  lists members (`repo-permissions/SKILL.md:17-18`); the uncommitted split
-  moves membership per-host (`config-group.nix:38` comment;
-  `modules/hosts/cedar/configuration.nix:21`,
-  `modules/hosts/aspen/configuration.nix:19`) while NixOS stays central
-  (`config-group.nix:30`). Two more spots assume a single darwin member:
+  lists members (`repo-permissions/SKILL.md`); the split (landed in
+  Generation 143) moves membership per-host (the "each host aspect lists its
+  own members" comment in `config-group.nix`;
+  `modules/hosts/cedar/configuration.nix`,
+  `modules/hosts/aspen/configuration.nix`) while NixOS stays central
+  (`config-group.nix`). Two more spots assume a single darwin member:
   "the username differs by platform: `jakeneau` on NixOS, `jake.neau` on
-  macOS" (`SKILL.md:21-22` — aspen's darwin member *is* jakeneau) and the
-  macOS bootstrap step that appends only jake.neau (`SKILL.md:107`). Must
+  macOS" (`SKILL.md` — aspen's darwin member *is* jakeneau) and the
+  macOS bootstrap step that appends only jake.neau (`SKILL.md`). Must
   absorb the split and cross-reference the bootstrap guide once the ACL
   comment block graduates out of `config-group.nix`. Salvage: the setup
   sequences graduate into the bootstrap how-to; the group facts (gid 600,
   the per-host member lists, the check commands) are reference.
 - **machine-layout skill** (global claude-code config,
   `modules/programs/claude-code/config/skills/machine-layout/SKILL.md`) — its
-  description headlines "one flake-parts/dendritic flake" (`SKILL.md:3`); that
+  description headlines "one flake-parts/dendritic flake" (`SKILL.md`); that
   characterization gets the same declarations-first reframe, in a line. Its
-  two prose pointers at the nix-config skill (`SKILL.md:3,67`) survive
+  two prose pointers at the nix-config skill (`SKILL.md`) survive
   unchanged — the name is kept (below).
+- **The remaining project skills** — the sweep covers all five, each with its
+  check: **default-apps** intersects the yazi conversion — the file-type
+  default moves from the system-wide `xdg.mime.defaultApplications` block to
+  the per-user `xdg.mimeApps` claim conditioned on the enable switch (see
+  *Program declarations*); re-check the skill's Linux story against that and
+  record the verdict. **nvf** — its "wiring the built editor into a host"
+  material gets re-checked against declaration-based delivery once nvf
+  converts (or is recorded as a hand-written survivor). **todo-tracking** —
+  expected untouched; the sweep records the verdict rather than assuming it.
 
 #### The nix-config skill rewrite
 
@@ -612,28 +786,28 @@ stage 7 rewrites the skill wholesale around the new architecture. Decided
 scope:
 
 - **What dies (the stale-spot catalog).** The preamble's "the repo is
-  mid-migration to this pattern" note (`SKILL.md:14-16`) — the migration this
+  mid-migration to this pattern" note (`SKILL.md`) — the migration this
   spec *completes*; "Turning aspects into real configurations"
-  (`SKILL.md:137-164`) documents `mkNixos`/`mkDarwin`/`mkHomeManager` from
+  (`SKILL.md`) documents `mkNixos`/`mkDarwin`/`mkHomeManager` from
   `modules/nix/flake-parts/lib.nix` and the per-host `flake-parts.nix`
   boilerplate, both retired by the hosts generator; the "Installing a
-  program" recipe (`SKILL.md:198-217` — define a per-class aspect, import it
+  program" recipe (`SKILL.md` — define a per-class aspect, import it
   into a host or system-type aggregate) becomes the wrong default advice
   once `flake.programs` + `globalPrograms` is the primary channel and the
   one-channel rule retires aggregate delivery for converted programs; the
-  new-host recipe (`SKILL.md:219-234`) shows the retired boilerplate; the
-  new-user recipe (`SKILL.md:236-240`) leans on the Multi-Context pull
+  new-host recipe (`SKILL.md`) shows the retired boilerplate; the
+  new-user recipe (`SKILL.md`) leans on the Multi-Context pull
   ("pulling home-manager in from the system aspect") that dies with the
   system module; rule 4's `home-manager.sharedModules` double-import caution
-  (`SKILL.md:178-179`) outlives the pushes it warns about; the validation
-  section (`SKILL.md:253-260`) needs the homeConfigurations dry-build. In
-  `aspects.md`: the **Multi-Context** entry (`aspects.md:69-98`) is built
+  (`SKILL.md`) outlives the pushes it warns about; the validation
+  section (`SKILL.md`) needs the homeConfigurations dry-build. In
+  `aspects.md`: the **Multi-Context** entry (`aspects.md`) is built
   entirely on `home-manager.sharedModules` / `home-manager.users.<name>` —
   options that no longer exist in this repo's system evals post-cutover, so
   the pattern's mechanism is gone, not merely discouraged; the **Factory**
-  entry's example (`aspects.md:309,314`) shows the exact
+  entry's example (`aspects.md`) shows the exact
   `home-manager.users.${username}.imports` wiring stage 5 removes; the
-  **Inheritance** caveat about sharedModules double-adds (`aspects.md:136`)
+  **Inheritance** caveat about sharedModules double-adds (`aspects.md`)
   shares rule 4's fate.
 - **The reframe.** The dendritic *substrate* survives as underlying
   machinery — import-tree auto-import, `flake.modules.<class>.<name>`
@@ -642,7 +816,7 @@ scope:
   skill leads with the three declarations and the generated wiring; aspects
   and auto-import are presented as the machinery beneath and the escape
   hatch for hand-written features (services/daemons, oddballs) — second,
-  never the default recipe. The `description:` frontmatter (`SKILL.md:3`),
+  never the default recipe. The `description:` frontmatter (`SKILL.md`),
   which today names the dendritic pattern, is rewritten to name the
   declaration framework.
 - **Name: kept — `nix-config` (decided).** The name describes the skill's
@@ -653,13 +827,13 @@ scope:
   coupling that forced this rewrite — while buying nothing over rewriting
   the description, and would touch every reference site: the
   `.claude/skills/nix-config/` directory, the `name:` frontmatter
-  (`SKILL.md:2`), the `[[skill:nix-config]]` links at
-  `repo-permissions/SKILL.md:133,137`, `default-apps/SKILL.md:10,147,159`,
-  and `nvf/SKILL.md:181,263`, the `CLAUDE.md:15` read-this-first pointer,
-  the `SKILLS.md:46` index entry, the `README.md:77` pointer, the
+  (`SKILL.md`), the `[[skill:nix-config]]` links in
+  `repo-permissions/SKILL.md`, `default-apps/SKILL.md`,
+  and `nvf/SKILL.md`, the `CLAUDE.md` read-this-first pointer,
+  the `SKILLS.md` index entry, the `README.md` pointer, the
   machine-layout skill's prose references
-  (`modules/programs/claude-code/config/skills/machine-layout/SKILL.md:3,67`),
-  and this spec's own `SKILL.md:`/`aspects.md:` citations. Keeping the name,
+  (`modules/programs/claude-code/config/skills/machine-layout/SKILL.md`),
+  and this spec's own `SKILL.md`/`aspects.md` citations. Keeping the name,
   every reference stays valid as-is. (Were a rename ever revisited, that
   list is its blast radius — an ordinary `git mv` of the in-repo, git-tracked
   skill directory plus those edits.)
@@ -675,11 +849,12 @@ scope:
   `hosts.<h>.programs` one-liner and when it filters vs throws); writing or
   editing a hand-written aspect (the surviving rules and patterns);
   overriding a program default per-user (plain assignment in the user's
-  folder beats `mkDefault`); opting out of a global program
+  folder beats the boundary-wrapped 900 defaults); opting out of a global
+  program
   (`programs.<name>.enable = false;`); adding a flake input
   (`flake-file.inputs` + `nix run .#write-flake`); adding a secret
   (sops-nix); adding a service/daemon (hand-written aspects, beyond
-  declarations); touching system types and baselines; validating (the
+  declarations); touching roles and baselines; validating (the
   dry-builds, including the new `homeConfigurations."<u>@<h>"` outputs).
 - **Diátaxis seam.** The skill duplicates none of the stage-7 pages: where a
   how-to runbook or reference page covers an action, the skill states the
@@ -692,7 +867,7 @@ scope:
   how-to, the pattern catalog (`aspects.md`) is explanation — with the skill
   keeping the brief agent-facing statement of each and the pages keeping
   the depth. New material stands: the three declarations, the generated
-  units, the mkDefault override seam (or links to wherever that reference
+  units, the boundary override seam (or links to wherever that reference
   lands), plus aspects.md's ninth-"Declaration"-pattern question (see
   *Host-facts read-through*).
 
@@ -724,8 +899,8 @@ stage-7 work.
 - The `nr` rebuild function (`modules/programs/fish/functions/nr.fish`)
   changes: (a) its verify step covers **all** `homeConfigurations."<user>@<host>"`
   outputs in addition to all system configs, so a self-managed user's next
-  switch can never hit a broken config — note the verification loop at
-  `nr.fish:55-75` already enumerates `homeConfigurations` via
+  switch can never hit a broken config — note the verification loop in
+  `nr.fish` already enumerates `homeConfigurations` via
   `activationPackage.drvPath` eval, so this is confirming/strengthening
   coverage, not adding it; (b) after the system rebuild it reactivates the
   **invoking** user's home by simply calling `hr` — one implementation, not
@@ -754,29 +929,39 @@ stage-7 work.
 
 - The home-manager system module (`modules/nix/tools/home-manager/home-manager.nix`)
   is **removed**; each homeConfiguration evaluates its own nixpkgs, so shared
-  nixpkgs config must be provided explicitly via a common module — today
-  `allowUnfree` comes from `modules/system/types/system-minimal/{nixos,darwin}-minimal.nix:6`
-  and overlays from `modules/nix/tools/nur/nur.nix` and
-  `modules/nix/tools/nix-minecraft/nix-minecraft.nix`. The common module must
-  also carry the `permittedInsecurePackages` pins that HM-installed packages
-  need (librewolf's, at `{nixos,darwin}-minimal.nix`; the system-level pins in
-  `system-desktop.nix` stay where they are). Removing the system module also
-  loses `backupFileExtension = "backup"` (`home-manager.nix:9`, important on
-  the macs) — the documented switch command becomes
-  `home-manager switch -b backup --flake <repo>#<user>@<host>`.
-- The `flake.modules.{nixos,darwin}.home-manager` import sites go with it:
-  `modules/system/types/system-default/system-default.nix:9` (nixos) and `:26`
-  (darwin).
+  nixpkgs config must be provided explicitly via a common module. It carries
+  `allowUnfree` (today from
+  `modules/system/types/system-minimal/{nixos,darwin}-minimal.nix`) and the
+  NUR overlay (`modules/nix/tools/nur/nur.nix` — genuinely needed by homes:
+  librewolf's addons come from `pkgs.nur.repos.rycee.firefox-addons`). The
+  nix-minecraft overlay (`modules/nix/tools/nix-minecraft/nix-minecraft.nix`)
+  is **not** included: its packages are consumed only by redwood's
+  system-level service, no home uses it, so it stays at the system layer.
+  The common module must also carry the `permittedInsecurePackages` pins
+  that HM-installed packages
+  need — re-derive which from the live `permittedInsecurePackages` lists in
+  the role modules at implementation time, since they shift with
+  nixpkgs CVE batches (at this writing the only live pin is
+  bitwarden-desktop's electron in `system-desktop.nix` — system-installed, so
+  it stays; no HM-installed package currently needs one). Removing the
+  system module also loses `backupFileExtension = "backup"`
+  (`home-manager.nix`, important on the macs) — the documented switch command
+  becomes `home-manager switch -b backup --flake <repo>#<user>@<host>`.
+- The `flake.modules.{nixos,darwin}.home-manager` import sites go with it —
+  the `home-manager` entries in
+  `modules/system/types/system-default/system-default.nix`'s nixos and darwin
+  import lists.
 - `osConfig` is unavailable in HM modules; current users —
-  `modules/programs/fastfetch/fastfetch.nix:25` and
-  `modules/programs/fish/fish.nix:67` — must get facts from the host
-  declaration instead. fastfetch's reads map onto existing `systemConstants`;
+  `modules/programs/fastfetch/fastfetch.nix` and
+  `modules/programs/fish/fish.nix` — must get facts from the host
+  declaration instead. fastfetch's reads map onto existing `hostConstants`
+  facts;
   fish's read of `osConfig.services.minecraft-servers.enable`
-  (`fish.nix:82-88`) needs a **new systemConstants fact** (e.g.
+  (`fish.nix`) needs a **new hostConstants fact** (e.g.
   `minecraftServer`; name is the implementer's). The minecraft feature
   (`modules/nix/tools/nix-minecraft/nix-minecraft.nix`) today only imports
   the upstream module and adds its overlay — the enable lives in redwood's
-  hand-written aspect (`modules/hosts/redwood/configuration.nix:150`). The
+  hand-written aspect (`modules/hosts/redwood/configuration.nix`). The
   enable **moves into the feature** (`services.minecraft-servers.enable = true`
   in `nix-minecraft.nix`) and the fact is set right beside it, making
   set-by-import real: importing nix-minecraft now means "this host runs a
@@ -784,50 +969,66 @@ stage-7 work.
   attrset, `eula`, `openFirewall` — everything except `enable`); redwood is
   the feature's only importer today, so nothing else changes meaning.
 - Every current `sharedModules` push migrates:
-  - stylix (`modules/nix/tools/stylix/stylix.nix:16`) — has a standalone HM
-    module, but the work is bigger than the one-line push: today per-user
-    theming rides stylix's NixOS module auto-importing its HM module through
-    the system HM module. Standalone homes need the stylix HM module imported
-    into Linux baselines *and* the theme values (`stylix.nix:18-46`, currently
-    NixOS-class only) shared across classes so the HM side states the same
-    theme.
-  - mac-app-util (`modules/nix/tools/mac-app-util/mac-app-util.nix:23`) — has
+  - stylix (`modules/nix/tools/stylix/stylix.nix`) — its push (librewolf's
+    `stylix.targets.librewolf.profileNames`) was removed outright on
+    2026-07-06 (librewolf goes unthemed for now; a TODO.md entry tracks
+    re-theming per-profile later), but stylix still has standalone-HM work:
+    today per-user theming rides stylix's NixOS module auto-importing its HM
+    module through the system HM module. Standalone homes need the stylix HM
+    module imported into Linux baselines *and* the theme values
+    (`stylix.nix`, currently NixOS-class only) shared across classes so the
+    HM side states the same theme. Settled shape: the theme values become a
+    `let` binding at the top of `stylix.nix` — a small function taking `pkgs`
+    (cursor and fonts reference packages) — spliced into both the existing
+    NixOS aspect and a new homeManager aspect; the HM aspect imports the
+    upstream stylix HM module and lands in the Linux hosts' baselines only.
+    macOS stylix theming was verified possible (the pinned stylix ships
+    `darwinModules.stylix`, and its HM module is platform-generic) but is
+    deliberately out of this refactor's scope; it and a runtime
+    theme-switching feature are both tracked in TODO.md as post-refactor
+    work — the spec doesn't re-describe them.
+  - mac-app-util (`modules/nix/tools/mac-app-util/mac-app-util.nix`) — has
     an HM module; goes into the darwin hosts' baselines.
-  - system-constants (`modules/system/system-constants/system-constants.nix:8`) — replaced by the generated baseline's read-through of the evaluated
+  - system-constants (`modules/system/system-constants/system-constants.nix`) — replaced by the generated baseline's read-through of the evaluated
     system config (see *Host facts*).
-  - fastfetch (`modules/programs/fastfetch/fastfetch.nix:5`) and niri-desktop
-    (`modules/system/types/niri-desktop/niri-desktop.nix:11`) — become
+  - fastfetch (`modules/programs/fastfetch/fastfetch.nix`) and niri-desktop
+    (`modules/system/types/niri-desktop/niri-desktop.nix`) — become
     globalPrograms / baseline entries.
 - Host→user reach-ins — kubernetes on cedar
-  (`modules/hosts/cedar/configuration.nix:24`) — become user-declaration
+  (`modules/hosts/cedar/configuration.nix`) — become user-declaration
   entries, **not** user-aspect imports: an import in
   `modules/users/jake.neau/` would put kubernetes on all of jake.neau's
   machines, a regression. Instead kubernetes gains a small
   `flake.programs.kubernetes` declaration — per-user HM install of
   kubectl + k9s on both platforms, no config part; its hand-written
   `homeManager.kubernetes` aspect
-  (`modules/programs/kubernetes/kubernetes.nix:2-7`) is exactly what the
+  (`modules/programs/kubernetes/kubernetes.nix`) is exactly what the
   generated unit replaces, under the same name — and jake.neau's `flake.users`
   declaration lists it under `hosts.cedar.programs`.
 - Cedar's hand-written `homebrew.casks = ["firefox"]`
-  (`modules/hosts/cedar/configuration.nix:28-30`) becomes the firefox program
+  (`modules/hosts/cedar/configuration.nix`) becomes the firefox program
   declaration plus, in cedar's host declaration, a `globalPrograms` entry and
   the override line — the entry requests the program, the override reroutes
   it to the cask — retired in the stage-5 cutover.
 - Migration is **incremental** up to the cutover: the generators land first
   with nothing converted; programs convert one at a time, each validated by
   dry-builds; then all hosts, both users, and the old channel — including the
-  system-type aggregates' imports of converted programs (see the one-channel
+  role aggregates' imports of converted programs (see the one-channel
   consequence) — cut over in one atomic commit (stage 5), validated by
   dry-builds plus building the new homeConfigurations outputs.
 
 ### Deferred — record only, do not decide
 
 - Final names: `flake.programs` vs alternatives, the `<name>-config` suffix,
-  baseline aspect naming, `flake.hosts` field names (including the install-way
+  `flake.hosts` field names (including the install-way
   override map: `installOverrides` vs alternatives), `flake.users` vs
   alternatives, `hosts.<host>.programs` vs `programsByHost`, the user
-  declaration's filename.
+  declaration's filename. (Decided and out of this deferral:
+  `modules/host-config/`, `roles/`, and `hostConstants` — see *Naming*.)
+- Role aspect naming: bare (`minimal`, `default`, `desktop`) vs prefixed
+  (`role-minimal`, `role-default`, `role-desktop`). This spec's
+  `role-desktop`/`role-default` citations are illustrative placeholders, not
+  the decision.
 - The root-survival system package list.
 - The generated install-toggle's exact shape for programs without an HM
   `programs.<name>.enable` option.
@@ -844,7 +1045,8 @@ stage-7 work.
   linking into the docs (see *The nix-config skill rewrite*).
 - Documentation depth (which explanation and how-to standouts get pages vs
   index entries; whether the new-machine tutorial candidate is written) —
-  stage-7 judgment with the user.
+  stage-7 judgment with the user. Already settled and outside this deferral:
+  the flake-machinery explanation page is committed (see *Documentation*).
 
 ## Plan
 
@@ -861,13 +1063,16 @@ stage-7 work.
 - `modules/nix/flake-parts/declarations/hosts.nix` — declares `flake.hosts`,
   resolves each requested program's install way per (program, host) — the
   HM-preferred default plus the host's override map — and generates the
-  per-host baseline homeManager aspect (including the systemConstants
-  read-through module) and the host's generated system aspect
+  per-host baseline homeManager aspect (including the hostConstants
+  read-through module) and the host's generated host-config aspect
   (routing globalPrograms parts — including override-rerouted true-system
   parts — plus each listed user's factory-produced account aspect; user
   declarations contribute no system parts), and stamps
   `nixosConfigurations` / `darwinConfigurations` / `homeConfigurations."<user>@<host>"`,
-  unioning each home's imports with the user-declaration units from users.nix.
+  unioning each home's imports with the user-declaration units from users.nix
+  and passing everything but the user's own aspect through the boundary
+  priority wrapper (`lib.mkOverride 900`; see *The override seam*) — the
+  wrapper lives here, applied once per home at stamping.
   Subsumes the per-host `modules/hosts/<h>/flake-parts.nix` boilerplate and the
   `mkNixos`/`mkDarwin`/`mkHomeManager` helpers in
   `modules/nix/flake-parts/lib.nix` (rework or retire them as conversion
@@ -883,22 +1088,31 @@ stage-7 work.
   `flake.hosts.<h>.users`, a `programs` entry with no per-user way on any
   platform, and a `hosts.<h>.programs` entry with no per-user way for that
   host's platform.
-- A common nixpkgs module for standalone homes (shared `allowUnfree`,
-  overlays), imported by every generated homeConfiguration; it also sets
+- A common nixpkgs module for standalone homes (shared `allowUnfree` + the
+  NUR overlay; nix-minecraft stays system-level — see *Migration
+  consequences*), imported by every generated homeConfiguration; it also sets
   `programs.home-manager.enable = true` so every home ships the
   `home-manager` CLI that `hr` needs.
 - `modules/programs/fish/functions/hr.fish` — the quick per-user home reload:
   platform-select the flake path, then
   `home-manager switch -b backup --flake "$flake#$USER@"(hostname -s)`; no
-  git, no input updates.
+  git, no input updates. Registered by adding `"hr"` to the `functionFiles`
+  list in `modules/programs/fish/fish.nix` — fish only autoloads
+  functions named there; an unregistered file never reaches
+  `~/.config/fish/functions/`.
 
 ### Changed files
 
+- **The tree rename** (see *Naming*): `git mv modules/system modules/host-config`,
+  `types/` → `roles/`, `system-constants/` → `host-constants/` (file
+  `host-constants.nix`), plus the `systemConstants` → `hostConstants` option
+  rename across every reader and writer — mechanical, its own commit; placement
+  in the migration is the implementer's.
 - `modules/factory/user/user.nix` — drop both `home-manager.users.<u>.imports`
-  blocks (`user.nix:25,36`; at the stage-5 cutover — see stage 3). The
+  blocks (`user.nix`; at the stage-5 cutover — see stage 3). The
   signature stays `username: isAdmin:`, and the factory does no config-group
   work (the member lists — per-host on darwin in the host aspects, central
-  for NixOS at `config-group.nix:30` — are untouched).
+  for NixOS in `config-group.nix` — are untouched).
   Every stamped user gains the `~/.config/nix-config` symlink,
   unconditionally, in the `homeManager.${username}` aspect:
 
@@ -920,34 +1134,42 @@ stage-7 work.
   drops in favor of its `globalPrograms` entry plus override; redwood and
   spruce list ghostty, replacing the aggregate delivery); the
   hand-written aspect keeps quirks,
-  systemConstants values, config-group membership, daemon and system-type
+  hostConstants values, config-group membership, daemon and role
   imports, but drops its
-  user-account imports (e.g. `configuration.nix:10` on cedar — the generator
+  user-account imports (e.g. `configuration.nix` on cedar — the generator
   places them); the `flake-parts.nix` boilerplate goes away.
-- `modules/system/types/*` — system types expose their homeManager aggregates
+- `modules/system/types/*` (renamed to `modules/host-config/roles/*` — see
+  *Naming*) — roles expose their homeManager aggregates
   as baseline aspects the host baseline inherits; the
-  `home-manager.sharedModules` pushes in `niri-desktop.nix:11`,
-  `system-constants.nix:8`, `stylix.nix:16`, `mac-app-util.nix:23`,
-  `fastfetch.nix:5` are all removed in favor of baseline/host-declaration
+  `home-manager.sharedModules` pushes in `niri-desktop.nix`,
+  `system-constants.nix`, `mac-app-util.nix`,
+  `fastfetch.nix` are all removed in favor of baseline/host-declaration
   routing, and the aggregates' imports of converted programs drop at the
-  cutover — ghostty at `system-desktop.nix:141` (darwin cask) and `:161`
-  (homeManager), yazi at `system-default.nix:40` — since `globalPrograms` is
+  cutover — ghostty in `system-desktop.nix` (the darwin cask and
+  homeManager imports), yazi in `system-default.nix` — since `globalPrograms` is
   the sole post-cutover channel (see the one-channel consequence).
-- `modules/nix/tools/stylix/stylix.nix` — restructured: theme values shared
-  across classes; the stylix HM module + theme land in Linux hosts' baselines.
-- `modules/system/types/system-default/system-default.nix` — lines 9 and 26
-  drop the `home-manager` aspect imports when the system module is removed.
+- `modules/nix/tools/stylix/stylix.nix` — restructured: the theme values move
+  into a `let`-bound function of `pkgs` at the top of the file, spliced into
+  both the existing NixOS aspect and a new homeManager aspect; the HM aspect
+  imports the upstream stylix HM module and lands in the Linux hosts'
+  baselines only (macOS theming and runtime theme switching are out of scope,
+  tracked in TODO.md).
+- `modules/system/types/system-default/system-default.nix` — the nixos and
+  darwin import lists drop their `home-manager` entries when the system
+  module is removed.
 - `modules/programs/fish/fish.nix` and `modules/programs/fastfetch/fastfetch.nix`
-  — replace `osConfig` reads with `systemConstants` facts delivered through the
+  — replace `osConfig` reads with `hostConstants` facts delivered through the
   baseline (fish needs the new minecraft-server fact; see above).
-- `modules/system/system-constants/system-constants.nix` — gains that fact's
+- `modules/system/system-constants/system-constants.nix` (renamed to
+  `modules/host-config/host-constants/host-constants.nix` — see *Naming*) —
+  gains that fact's
   *declaration*; the minecraft feature sets the value beside enabling the
   service. The `declare-and-forward` sharedModules push is retired.
 - `modules/nix/tools/nix-minecraft/nix-minecraft.nix` — gains
   `services.minecraft-servers.enable = true` (moved from redwood) with the
-  new systemConstants fact set beside it.
+  new hostConstants fact set beside it.
 - `modules/hosts/redwood/configuration.nix` — drops the `enable` line
-  (`configuration.nix:150`); keeps the server definitions (`servers`, `eula`,
+  (`configuration.nix`); keeps the server definitions (`servers`, `eula`,
   `openFirewall`).
 - `modules/users/jake.neau/` — gains the `flake.users."jake.neau"` declaration
   (kubernetes under `hosts.cedar.programs`, replacing cedar's reach-in; exact
@@ -968,12 +1190,13 @@ stage-7 work.
 flake.programs.<p>  ──generator──▶  flake.modules.{homeManager,nixos,darwin} units
 flake.users.<u>     ──generator──▶  per-(user,host) HM unit sets: units(programs ∪ hosts.<h>.programs),
                                       platform/override-filtered — never system parts
-flake.hosts.<h>     ──generator──▶  host system aspect (system parts of globalPrograms
+flake.hosts.<h>     ──generator──▶  host-config aspect (system parts of globalPrograms
                                       + listed users' account aspects)
-                                    host baseline HM aspect (HM/-config parts + system-type baselines
-                                      + systemConstants = self.<class>Configurations.<h>.config.systemConstants)
+                                    host baseline HM aspect (HM/-config parts + role baselines
+                                      + hostConstants = self.<class>Configurations.<h>.config.hostConstants)
                                     nixosConfigurations/darwinConfigurations.<h>
-                                    homeConfigurations."<u>@<h>" = homeManager.<u> + baseline(<h>) + units(flake.users.<u>) + common nixpkgs module
+                                    homeConfigurations."<u>@<h>" = homeManager.<u> + wrap900(baseline(<h>) + units(flake.users.<u>) + common nixpkgs module)
+                                      (wrap900 = the boundary priority wrapper; the user's own aspect is unwrapped)
 flake.factory.user  ──unchanged──▶  account aspects + homeManager.<u>   (HM system wiring removed)
 ```
 
@@ -999,7 +1222,7 @@ No unit-test harness exists for Nix module code here; verification is:
   instead of the system module's `useUserPackages` location
   `/etc/profiles/per-user/<user>`, so check PATH and plugin pickup during
   validation — fish's vendor-dir plugin pickup
-  (`modules/programs/fish/fish.nix:95-97`) depends on where packages land.
+  (`modules/programs/fish/fish.nix`) depends on where packages land.
 - Never switch/activate; never commit/push. Format Nix with `alejandra`.
 - Stage new `.nix` files with `git add` before evaluating — flake eval ignores
   untracked files.
@@ -1013,14 +1236,15 @@ next; stage 5 is a single atomic cutover commit.
 1. **Program-declaration generator.** Land `flake.programs` + the generator
    (units, `-config` split, tombstones, declaration-time throws) with **nothing
    converted**. Prove with `nix eval`: a sample declaration yields the expected
-   units; an incoherent one throws; a tombstone assertion fires when its unit is
-   imported into a probe eval; and a plain user assignment beats a shared
-   default — including a default nested inside a `mkIf`.
+   units; an incoherent one throws; a tombstone assertion fires when its unit
+   is imported into a probe eval; and both shorthand and full-form `config`
+   fields yield working units. (The override-seam proofs live in stage 2,
+   where the boundary wrapper lands with the hosts generator.)
 2. **Host- and user-declaration generators + baselines + outputs.** Land
    `flake.hosts` + `flake.users` together (output stamping unions the user
    units into each home, so they're one coherent piece): baseline generation,
    globalPrograms routing and user-declaration resolution (per-user HM units
-   only, with the platform/override filtering), the systemConstants
+   only, with the platform/override filtering), the hostConstants
    read-through injection, account-aspect placement, the common nixpkgs
    module, the users-consistency and no-per-user-way throws, and output
    stamping — again with nothing converted; prove shapes by `nix eval`
@@ -1028,27 +1252,36 @@ next; stage 5 is a single atomic cutover commit.
    the user isn't listed on throws, that a user entry resolving to a system
    install filters out (no HM unit and no system part for it anywhere), and
    that both no-per-user-way cases throw (`programs`: no per-user way on any
-   platform; `hosts.<h>.programs`: none for that host's platform).
+   platform; `hosts.<h>.programs`: none for that host's platform). The
+   **boundary priority wrapper** lands here, in the hosts generator's
+   stamping (see *The override seam*). Prove it by `nix eval`: a plain user
+   assignment beats shared config — including shared config under `mkIf` and
+   `mkMerge`, and delivered through an imports chain (a compound importing a
+   program); an explicit `mkForce` in shared config survives a user's plain
+   assignment; derivation-valued options are not descended into; the
+   100 < 900 < 1000 ordering holds against an upstream-style internal
+   `mkDefault`; and full-form and shorthand program configs both work
+   through the wrap.
 3. **User-factory changes — symlink only.** Add the
    unconditional `~/.config/nix-config` symlink to every stamped
    `homeManager.<user>` aspect (no flag, no config-group work — the factory
    signature stays `username: isAdmin:`). Do **not** touch the
-   `home-manager.users.<u>.imports` wiring yet: `user.nix:25,36` is the *only*
-   path delivering `homeManager.<user>` (and with it `home.username` and the
+   `home-manager.users.<u>.imports` wiring yet: that `user.nix` wiring is
+   the *only* path delivering `homeManager.<user>` (and with it `home.username` and the
    `homeManager` system-default minimals) into the system HM module. Removing
    it before the cutover fails cedar's dry-build — its reach-in would still
    define a home, now missing `home.stateVersion` (the HM system module
    defaults username/homeDirectory from the OS account, but stateVersion
    arrives only through the system-desktop → system-default → system-minimal
    chain this wiring imports,
-   `modules/system/types/system-minimal/homeManager-minimal.nix:15`) — and
+   `modules/system/types/system-minimal/homeManager-minimal.nix`) — and
    silently empties every other host's homes while their dry-builds still
    pass. The wiring removal happens in the stage-5 cutover.
 4. **Convert programs.** One declaration at a time (order deferred — confirm
    the first candidate with the user), each replacing the hand-written aspects
    it covers. Two invariants keep every intermediate commit building:
    generated `homeManager.<name>` units land under the **same name** the old
-   channel's consumers already import (user aspects, system-type aggregates,
+   channel's consumers already import (user aspects, role aggregates,
    pushers), so unconverted hosts keep delivering; and any class whose
    hand-written aspect must survive — yazi's slimmed portal `nixos.yazi`,
    fastfetch's pusher `nixos`/`darwin.fastfetch` until the stage-5 cutover —
@@ -1075,9 +1308,9 @@ next; stage 5 is a single atomic cutover commit.
    drop the hosts' imports of push aspects that globalPrograms now supersedes
    (e.g. the `fastfetch` import in each host's `configuration.nix` — otherwise
    this commit's un-suppression turns those names into imported tombstones),
-   remove the system-type aggregates' imports of converted programs — ghostty
-   at `system-desktop.nix:141` (darwin cask) and `:161` (homeManager), yazi at
-   `system-default.nix:40` — since globalPrograms (redwood and spruce list
+   remove the role aggregates' imports of converted programs — ghostty
+   in `system-desktop.nix` (the darwin cask and homeManager imports), yazi in
+   `system-default.nix` — since globalPrograms (redwood and spruce list
    ghostty; the Linux hosts list yazi) is now the sole channel and a surviving
    aggregate line would double-deliver (ghostty's list-valued
    `keybind`/`font-feature` entries would duplicate — see the one-channel
@@ -1089,10 +1322,10 @@ next; stage 5 is a single atomic cutover commit.
    own
    `homeManager.system-desktop` imports. Old-channel side, same commit: the
    factory's `home-manager.users.<u>.imports` blocks, every `sharedModules`
-   push (stylix, mac-app-util, system-constants, fastfetch, niri-desktop), the
-   `home-manager` aspect imports in `system-default.nix:9,26`, and
+   push (mac-app-util, system-constants, fastfetch, niri-desktop), the
+   `home-manager` aspect imports in `system-default.nix`, and
    `modules/nix/tools/home-manager/home-manager.nix` itself all go; replace
-   the `osConfig` reads in fish and fastfetch with systemConstants facts
+   the `osConfig` reads in fish and fastfetch with hostConstants facts
    (incl. the new minecraft-server fact — moving
    `services.minecraft-servers.enable = true` from redwood's aspect into
    `nix-minecraft.nix` and setting the fact beside it), land the stylix HM
@@ -1102,9 +1335,10 @@ next; stage 5 is a single atomic cutover commit.
    validate by building all four system configs and every new
    `homeConfigurations."<u>@<h>"` output.
 6. **Land `hr` and update `nr`.** Add
-   `modules/programs/fish/functions/hr.fish`; in `nr`, verify-all-homes
-   (confirm/strengthen the existing `homeConfigurations` loop at
-   `nr.fish:55-75`) and wire post-rebuild reactivation of the invoking user's
+   `modules/programs/fish/functions/hr.fish` and register `"hr"` in fish.nix's
+   `functionFiles` list; in `nr`, verify-all-homes
+   (confirm/strengthen the existing `homeConfigurations` loop in
+   `nr.fish`) and wire post-rebuild reactivation of the invoking user's
    home through `hr`. Check here the unverified dotted-username detail (see
    *Activation*). Verify-loop details deferred; do not run `nr` or `hr` to
    test — validate by review plus `fish -n` syntax check of both functions.
@@ -1123,8 +1357,10 @@ next; stage 5 is a single atomic cutover commit.
    `mc-*` standouts per the depth decision. **Reference**: the
    declaration-schema and generated-units references; the feature/aspect
    index. **Explanation**: graduate the durable rationale — the framework's
-   why, install-way resolution, the host-facts read-through, the standalone
-   home model — plus the existing-tree standouts per the depth decision.
+   why (including the boundary-wrapper rationale and the 100/900/1000
+   ladder), install-way resolution, the host-facts read-through, the
+   standalone home model — plus the committed flake-machinery page and the
+   remaining existing-tree standouts per the depth decision.
    Then **rewrite the nix-config skill** per *The nix-config skill rewrite* —
    name kept; declarations-first framing over the surviving dendritic
    machinery; the full per-action coverage list; the rewritten

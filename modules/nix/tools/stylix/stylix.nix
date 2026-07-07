@@ -10,11 +10,6 @@
   flake.modules.nixos.stylix = {pkgs, ...}: {
     imports = [inputs.stylix.nixosModules.stylix];
 
-    # Theme librewolf's default profile for any user with it enabled (NixOS;
-    # the macs have no stylix). Lives here so the cross-platform user aspect
-    # stays free of NixOS-only option namespaces.
-    home-manager.sharedModules = [{stylix.targets.librewolf.profileNames = ["default"];}];
-
     stylix = {
       enable = true;
 
