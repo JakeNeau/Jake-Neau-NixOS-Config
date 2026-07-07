@@ -3,7 +3,8 @@
   lib,
   ...
 }: {
-  # Helper library for turning aspects into real system / home-manager outputs.
+  # Helper library for turning aspects into real system outputs. Home
+  # outputs are stamped by the hosts generator (declarations/hosts.nix).
 
   options.flake.lib = lib.mkOption {
     type = lib.types.attrsOf lib.types.unspecified;
@@ -25,16 +26,6 @@
         modules = [
           inputs.self.modules.darwin.${name}
           {nixpkgs.hostPlatform = lib.mkDefault system;}
-        ];
-      };
-    };
-
-    mkHomeManager = system: name: {
-      ${name} = inputs.home-manager.lib.homeManagerConfiguration {
-        pkgs = inputs.nixpkgs.legacyPackages.${system};
-        modules = [
-          inputs.self.modules.homeManager.${name}
-          {nixpkgs.config.allowUnfree = true;}
         ];
       };
     };
