@@ -9,7 +9,7 @@
   # Declaration schema
   # ---------------------------------------------------------------------
 
-  programType = types.submodule {
+  programType = types.submodule ({name, ...}: {
     options = {
       install = {
         linux = lib.mkOption {
@@ -53,6 +53,19 @@
         '';
       };
 
+      packages = lib.mkOption {
+        type = types.functionTo (types.listOf types.package);
+        default = pkgs: [pkgs.${name}];
+        defaultText = lib.literalExpression "pkgs: [pkgs.<name>]";
+        description = ''
+          The packages the generated toggle installs, as a function of pkgs.
+          Only consulted when hasEnableOption is false — with a real HM
+          module, home-manager installs the package itself. Covers programs
+          whose attr differs from the declaration name or that install
+          several packages.
+        '';
+      };
+
       handWritten = lib.mkOption {
         type = types.listOf (types.enum ["nixos" "darwin" "homeManager"]);
         default = [];
@@ -64,7 +77,7 @@
         '';
       };
     };
-  };
+  });
 
   # ---------------------------------------------------------------------
   # Unit generation
@@ -116,7 +129,7 @@
           # mkOverride 100 is plain priority, but the explicit marker makes
           # the boundary wrapper leave the list alone, so it concatenates
           # with a user's own home.packages like an upstream HM module.
-          home.packages = lib.mkIf config.programs.${name}.enable (lib.mkOverride 100 [pkgs.${name}]);
+          home.packages = lib.mkIf config.programs.${name}.enable (lib.mkOverride 100 (decl.packages pkgs));
         })
       ]);
     };
