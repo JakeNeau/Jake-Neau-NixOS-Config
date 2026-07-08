@@ -66,10 +66,10 @@
     # ----------------
     security.sudo.wheelNeedsPassword = false;
 
-    # Enable polkit for running privledged operations
+    # polkit lets desktop apps run privileged operations
     security.polkit.enable = true;
 
-    # Enable Gnome Keyring for staying logged into applications
+    # gnome keyring keeps applications logged in across sessions
     services.gnome.gnome-keyring.enable = true;
     security.pam.services.greetd.enableGnomeKeyring = true;
 

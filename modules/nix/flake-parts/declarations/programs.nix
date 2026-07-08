@@ -147,8 +147,8 @@
             if decl.hasEnableOption && (hasSystem || hasCask)
             then {
               imports = [decl.config];
-              # a true-system way is the only case hosts.nix routes -config
-              # for, so null the package: enabling then configures the
+              # the host generator routes -config only alongside a true-system
+              # install, so null the package: enabling then configures the
               # system-installed app instead of double-installing the nix one
               programs.${name}.package = null;
             }
