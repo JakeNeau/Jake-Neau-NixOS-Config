@@ -1,24 +1,18 @@
 {inputs, ...}: let
-  # The config itself is pure home-manager; the system aspects only push the
-  # homeManager aspect to every user on the host.
+  # The system aspects only push the generated homeManager.fastfetch unit
+  # to every user on the host.
   push-to-users = {
     home-manager.sharedModules = [inputs.self.modules.homeManager.fastfetch];
   };
-in {
-  # ----------------------
-  # System aspects (push)
-  # ----------------------
-  # Fastfetch: the system-info splash shown by the fish greeting on every
-  # machine. One aspect for all hosts; hosts with systemConstants.isLaptop
-  # (see modules/system/system-constants) get an extra boxed Power section
-  # (battery + power adapter) between Software and Time.
-  flake.modules.nixos.fastfetch = push-to-users;
-  flake.modules.darwin.fastfetch = push-to-users;
-
-  # -----------------------
-  # Home-manager config
-  # -----------------------
-  flake.modules.homeManager.fastfetch = {
+  # ---------------------------
+  # Shared home-manager config
+  # ---------------------------
+  # Hosts with systemConstants.isLaptop (see modules/system/system-constants)
+  # get an extra boxed Power section (battery + power adapter) between
+  # Software and Time. Let-bound rather than inline in the declaration so the
+  # settings block below keeps its indentation — its key strings carry
+  # nerd-font glyphs that must never be retyped.
+  fastfetch-config = {
     config,
     pkgs,
     lib,
@@ -232,4 +226,22 @@ in {
       };
     };
   };
+in {
+  # Fastfetch: the system-info splash shells show as their greeting, so it
+  # installs per-user on every machine.
+  flake.programs.fastfetch = {
+    install.linux = ["home"];
+    install.macos = ["home"];
+    # The pusher aspects below keep delivering to unconverted hosts until
+    # the stage-5 cutover; suppress their classes so no generated unit or
+    # tombstone collides with them.
+    handWritten = ["nixos" "darwin"];
+    config = fastfetch-config;
+  };
+
+  # ----------------------
+  # System aspects (push)
+  # ----------------------
+  flake.modules.nixos.fastfetch = push-to-users;
+  flake.modules.darwin.fastfetch = push-to-users;
 }
