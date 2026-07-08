@@ -1,10 +1,12 @@
 # Aspect design patterns
 
-Reference for the eight recurring patterns from the dendritic guide
-(<https://github.com/Doc-Steve/dendritic-design-with-flake-parts>) — ways to shape
-`flake.modules.<class>.<name>` aspects. They are suggestions, not rules, and a
-single feature often combines several. See [`SKILL.md`](SKILL.md) for the mental
-model and the core rules these all obey.
+Reference for the recurring patterns shaping `flake.modules.<class>.<name>`
+aspects. **Declaration** is this repo's own primary pattern — reach for it
+first; the other seven come from the dendritic guide
+(<https://github.com/Doc-Steve/dendritic-design-with-flake-parts>) and shape
+the hand-written aspects beneath and beside the declarations. They are
+suggestions, not rules, and a single feature often combines several. See
+[`SKILL.md`](SKILL.md) for the mental model and the core rules these all obey.
 
 Each section gives **What it is** (the aspect's structure), **Why use it** (the
 problem it solves), and **Use it over others when** (how to pick it against
@@ -12,8 +14,8 @@ neighbouring patterns).
 
 | Pattern | Reach for it when… |
 | --- | --- |
-| [Simple](#simple) | a feature is independent and just configures something per class |
-| [Multi-Context](#multi-context) | a system (nixos/darwin) feature must also push home-manager config |
+| [Declaration](#declaration) | the thing is a program, a host, or a user — the default |
+| [Simple](#simple) | a hand-written feature is independent and just configures something per class |
 | [Inheritance](#inheritance) | you want to extend or modify an existing feature |
 | [Conditional](#conditional) | parts of an aspect should depend on a condition (e.g. platform) |
 | [Collector](#collector) | a feature's config is assembled from contributions by other features |
@@ -23,8 +25,8 @@ neighbouring patterns).
 
 Quick decision guide:
 
+- A program, host, or user → **Declaration** — always, before any hand-written shape.
 - Just configuring something, no relationship to other features → **Simple**.
-- Need to also reach into a nested context (home-manager from a system) → **Multi-Context**.
 - Building on top of an existing feature → **Inheritance**.
 - One aspect, but some lines only apply sometimes → **Conditional**.
 - Many features each want to add to one shared thing → **Collector**.
@@ -34,19 +36,71 @@ Quick decision guide:
 
 ---
 
+## Declaration
+
+**What it is:** a structured entry on one of the three declaration options —
+`flake.programs.<name>`, `flake.hosts.<name>`, `flake.users.<name>` — from
+which a generator (`modules/nix/flake-parts/declarations/`) produces the
+aspects and flake outputs. You write data; the wiring is generated. Fields:
+the [declaration schema reference](../../../docs/reference/declaration-schema.md);
+what gets generated: [units](../../../docs/reference/generated-units.md) and
+[host artifacts](../../../docs/reference/generated-host-artifacts.md).
+
+**Why use it:** one declaration replaces the whole hand-written shape — the
+per-class aspects, the platform split, the host wiring, the flake-output
+boilerplate — and guarantees the invariants (one delivery channel per home,
+user-overridable defaults, opt-out-able installs) by construction.
+
+**Use it over others when:** the thing is a program, a host, or a user —
+always. Hand-written patterns below are for what declarations don't cover:
+services/daemons, machine-level plumbing, oddballs. A program that is *mostly*
+declarable keeps its declaration and marks the hand-written class in
+`handWritten` (yazi keeps a hand-written `nixos` portal aspect beside its
+declaration).
+
+```nix
+# modules/programs/kubernetes/kubernetes.nix
+{
+  flake.programs.kubernetes = {
+    install.linux = ["home"];
+    install.macos = ["home"];
+    hasEnableOption = false; # no HM module; the generator supplies the toggle
+    packages = pkgs: [pkgs.kubectl pkgs.k9s];
+  };
+}
+```
+
+```nix
+# modules/hosts/cedar/configuration.nix (the declaration half)
+flake.hosts.cedar = {
+  class = "darwin";
+  system = "aarch64-darwin";
+  users = ["jake.neau"];
+  globalPrograms = ["ghostty" "firefox" "fastfetch"];
+  installOverrides.firefox = "cask";
+  baselines = ["role-desktop" "mac-app-util"];
+};
+```
+
+```nix
+# modules/users/jake.neau/jake.neau.nix (the declaration line)
+flake.users."jake.neau".hosts.cedar.programs = ["kubernetes"];
+```
+
 ## Simple
 
 **What it is:** an independent `class` module per context, configuring directly.
 Independent classes can share one file (handy for sharing partial config) or split
 into `nixos.nix` / `darwin.nix` / etc.
 
-**Why use it:** the lowest-ceremony way to turn a feature on — the aspect's body
-does the enabling, with nothing to wire up beyond importing it.
+**Why use it:** the lowest-ceremony way to turn a hand-written feature on — the
+aspect's body does the enabling, with nothing to wire up beyond importing it.
 
-**Use it over others when:** the feature stands alone. It doesn't reach into a
-nested context (*Multi-Context*), build on another feature (*Inheritance*), or vary
-by parameter (*Factory*). Most features are Simple — start here, escalate only when
-a real relationship appears.
+**Use it over others when:** the feature stands alone *and* isn't a
+program/host/user (those are Declarations). It doesn't build on another
+feature (*Inheritance*) or vary by parameter (*Factory*). Most hand-written
+features are Simple — start here, escalate only when a real relationship
+appears.
 
 ```nix
 {
@@ -66,46 +120,15 @@ a real relationship appears.
 }
 ```
 
-## Multi-Context
-
-**What it is:** a main `class` module (e.g. NixOS or Darwin) plus an auxiliary
-module of a *nested* class (home-manager), where the main module pulls the
-auxiliary one in (via `home-manager.sharedModules` or `home-manager.users.<name>`).
-
-**Why use it:** some configuration only makes sense from the system side but must
-also drive per-user home-manager settings as one indivisible feature — so the two
-halves travel together and turn on with a single import.
-
-**Use it over others when:** you must configure two *contexts at once* from one
-feature. If the home-manager part is genuinely standalone, leave it a Simple
-`homeManager` aspect; reach for Multi-Context only when a system aspect owns and
-must activate the nested config.
-
-```nix
-{inputs, ...}: {
-  flake.modules.nixos.gnome = {
-    home-manager.sharedModules = [inputs.self.modules.homeManager.gnome];
-    # gnome configuration at the system level
-  };
-
-  flake.modules.homeManager.gnome = {
-    # gnome configuration with home-manager's options (auxiliary module)
-  };
-}
-```
-
-The auxiliary `homeManager.gnome` starts "private" but is a normal named aspect, so
-it can also be reused directly as a standalone home-manager feature later.
-
 ## Inheritance
 
 **What it is:** an aspect that `imports` one or more *parent* aspects in each class
-and layers its own additions on top. This is how layered "system types" and
-composed hosts/users are built.
+and layers its own additions on top. This is how the layered roles
+(`modules/host-config/roles/`) and hosts' quirks aspects are built.
 
 **Why use it:** it lets you compose features instead of copy-pasting them — a
-"desktop" is "cli plus a browser plus printing", expressed as imports, so the
-parent stays the single source of truth.
+"desktop" is "default plus audio plus graphics plus a browser", expressed as
+imports, so the parent stays the single source of truth.
 
 **Use it over others when:** you want to *reuse and extend* an existing feature
 as-is. Choose Collector instead when many features should contribute *into* one
@@ -113,28 +136,23 @@ shared aspect (the dependency points the other way); choose Factory when the thi
 you'd be extending is really the same template stamped out with different values.
 
 ```nix
+# modules/host-config/roles/desktop/desktop.nix (abridged)
 {inputs, ...}: {
-  flake.modules.nixos.system-desktop = {
+  flake.modules.nixos.role-desktop = {
     imports = with inputs.self.modules.nixos; [
-      system-cli # parent aspect
+      role-default # parent aspect
       # extensions:
-      browser
-      printing
-    ];
-  };
-
-  flake.modules.darwin.system-desktop = {
-    imports = with inputs.self.modules.darwin; [
-      system-cli # parent aspect
-      browser
+      audio
+      graphics
+      niri-desktop
     ];
   };
 }
 ```
 
-> When combining Inheritance with Multi-Context, guard against importing the same
-> module twice (e.g. don't add the same module to `home-manager.sharedModules`
-> from both a parent and a child).
+> Remember the one-channel rule: a role's homeManager aggregate must never
+> import a generated program unit that a host's `globalPrograms` or a user
+> declaration already delivers — that would be a second channel into the home.
 
 ## Conditional
 
@@ -149,7 +167,9 @@ breaking evaluation with a conditional import.
 **Use it over others when:** the variation is *within* one aspect and switches on a
 runtime-detectable condition (`pkgs.stdenv.isLinux/isDarwin`). If the contexts are
 genuinely separate modules, prefer Simple's per-class split; reach for Conditional
-when you want one aspect that bends rather than several that duplicate.
+when you want one aspect that bends rather than several that duplicate. The same
+shape works inside a program declaration's `config` field (ghostty's module
+gates its macOS-only lines on `pkgs.stdenv.isDarwin`).
 
 ```nix
 flake.modules.homeManager.office = {pkgs, lib, ...}:
@@ -181,8 +201,10 @@ Inheritance: there a child reaches out to pull parents in; here contributors pus
 into a shared aspect. Use Constants instead when what's shared is a single value
 rather than accumulated config.
 
+Illustrative (from the dendritic guide — no syncthing feature exists here):
+
 ```nix
-# modules/services/syncthing/syncthing.nix  — the collector
+# the collector
 {
   flake.modules.nixos.syncthing = {
     services.syncthing.enable = true;
@@ -191,7 +213,7 @@ rather than accumulated config.
 ```
 
 ```nix
-# modules/hosts/homeserver/syncthing.nix  — a contributor adds its device
+# a contributor's own folder — it adds its device
 {
   flake.modules.nixos.syncthing = {
     services.syncthing.settings.devices.homeserver.id = "VNV2XTI-…-Z35JUEG";
@@ -201,14 +223,17 @@ rather than accumulated config.
 
 ## Constants
 
-**What it is:** a `generic` aspect that declares an option and sets it, imported
-high in the hierarchy (e.g. into a default system type) so the value is available
-everywhere. Read it back like any other config option. Replaces older `specialArgs`
-plumbing.
+**What it is:** a `generic` aspect that declares an option and sets defaults,
+imported high in the hierarchy so the values are readable everywhere. The live
+instance is **host facts**: `flake.modules.generic.host-constants`
+(`modules/host-config/host-constants/host-constants.nix`) declares the
+`hostConstants` schema, `role-default` imports it into every class, hosts set
+the values in their quirks aspect, and features read them back like any other
+config option.
 
-**Why use it:** it shares plain values (an admin email, a domain) across features
-and classes through the normal module system, so there's one definition and
-type-checked reads instead of threaded arguments.
+**Why use it:** it shares plain values (a hostname, a GPU vendor, "is this a
+laptop") across features and classes through the normal module system — one
+definition, type-checked reads, no threaded arguments or `specialArgs`.
 
 **Use it over others when:** the shared thing is *data*, not config that accumulates
 (that's Collector) and not a template (that's Factory). If the "constant" is
@@ -216,33 +241,40 @@ actually a *function*, it becomes a *library* aspect — the repo keeps such hel
 in `flake.lib`. For a value used in just one file, a plain `let … in` is lighter.
 
 ```nix
-# define
+# declare (modules/host-config/host-constants/host-constants.nix, abridged)
 {
-  flake.modules.generic.systemConstants = {lib, ...}: {
-    options.systemConstants = lib.mkOption {
-      type = lib.types.attrsOf lib.types.unspecified;
-      default = {};
+  flake.modules.generic.host-constants = {lib, ...}: {
+    options.hostConstants = {
+      isLaptop = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+      };
+      # hostName, graphicsType, localAi, …
     };
-    config.systemConstants.adminEmail = "admin@test.org";
   };
 }
 ```
 
 ```nix
-# make available (import into each class of a base system type)
-{inputs, ...}: {
-  flake.modules.nixos.system-default.imports = [inputs.self.modules.generic.systemConstants];
-  flake.modules.darwin.system-default.imports = [inputs.self.modules.generic.systemConstants];
-  flake.modules.homeManager.system-default.imports = [inputs.self.modules.generic.systemConstants];
-}
+# set (a host's quirks aspect)
+flake.modules.darwin.cedar = {
+  hostConstants.isLaptop = true;
+  hostConstants.graphicsType = "apple";
+};
 ```
 
 ```nix
-# use
-flake.modules.nixos.homeserver = {config, ...}: {
-  services.zfs.zed.settings.ZED_EMAIL_ADDR = [config.systemConstants.adminEmail];
+# read (any feature, any class)
+flake.modules.homeManager.fastfetch = {config, ...}: {
+  # branch on config.hostConstants.isLaptop
 };
 ```
+
+**Delivery to homes:** standalone homes have no `osConfig`, so the hosts
+generator injects a read-through of the *evaluated* system config into each
+host's baseline — homes see exactly the facts the system eval resolved,
+including facts set by imports. Declaring and reading stay exactly as above;
+see [host facts](../../../docs/explanation/host-facts.md).
 
 > Alternatives for sharing values: a `let … in` in a single file, or an
 > `options.<name>` on the feature read via `inputs.self.<name>`.
@@ -285,10 +317,11 @@ networking.interfaces."enp86s0" =
 
 **What it is:** a function in the `flake.factory` library that, given parameters,
 returns named aspects across classes. Call it to mint features, then merge
-per-instance customizations with `lib.mkMerge`.
+per-instance customizations with `lib.mkMerge`. The live instance is the user
+factory (`modules/factory/user/user.nix`).
 
-**Why use it:** when many features follow the same template (every user, every CIFS
-mount), a factory captures the shape once so each instance is a call with arguments
+**Why use it:** when many features follow the same template (every user), a
+factory captures the shape once so each instance is a call with arguments
 rather than a hand-copied block.
 
 **Use it over others when:** instances differ by *parameters* and share a template.
@@ -297,35 +330,41 @@ instances instead share a fixed chunk you want to extend, use DRY; if there's on
 one of the thing, a Simple aspect is enough.
 
 ```nix
-# a factory function in the library
-{self, ...}: {
+# modules/factory/user/user.nix (abridged): account aspects + the HM aspect.
+# Homes are standalone — the hosts generator stamps
+# homeConfigurations."<user>@<host>" from the homeManager aspect; the factory
+# does no home-manager wiring of its own.
+{
   config.flake.factory.user = username: isAdmin: {
     nixos.${username} = {lib, pkgs, ...}: {
       users.users.${username} = {
         isNormalUser = true;
-        extraGroups = lib.optionals isAdmin ["wheel"];
-        shell = pkgs.zsh;
+        home = "/home/${username}";
+        extraGroups = ["networkmanager"] ++ lib.optionals isAdmin ["wheel"];
+        shell = pkgs.fish;
       };
-      home-manager.users.${username}.imports = [self.modules.homeManager.${username}];
     };
-    darwin.${username} = {lib, pkgs, ...}: {
-      users.users.${username}.shell = pkgs.zsh;
+    darwin.${username} = {lib, ...}: {
+      # macOS owns the account; nix-darwin only records its home dir.
+      users.users.${username}.home = "/Users/${username}";
       system.primaryUser = lib.mkIf isAdmin username;
-      home-manager.users.${username}.imports = [self.modules.homeManager.${username}];
     };
-    homeManager.${username}.home.username = username;
+    homeManager.${username} = {config, pkgs, ...}: {
+      home.username = username;
+      # + the ~/.config/nix-config out-of-store symlink
+    };
   };
 }
 ```
 
 ```nix
-# instantiate, then customize
-{self, lib, ...}: {
+# instantiate, then customize (modules/users/<user>/<user>.nix)
+{inputs, lib, ...}: {
   flake.modules = lib.mkMerge [
-    (self.factory.user "bob" true)
+    (inputs.self.factory.user "bob" true)
     {
       nixos.bob = {/* extra NixOS settings */};
-      darwin.bob = {/* extra Darwin settings */};
+      homeManager.bob = {/* per-user home config */};
     }
   ];
 }
