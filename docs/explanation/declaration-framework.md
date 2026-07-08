@@ -123,7 +123,13 @@ Value level — descend the config value tree:
 - an explicit `_type == "override"` (`mkForce`, a hand-written
   `mkDefault`/`mkOverride`) → left untouched: the author chose a priority;
 - plain attrsets (except derivations) → recurse per-attribute;
-- everything else — scalars, lists, derivations, other markers like
+- lists → left plain. Priority filtering keeps only the winning
+  priority's definitions, so a 900 stamp wouldn't demote a shared list —
+  it would delete it outright once any plain definition of the option
+  exists (nvf's `home.packages` contribution vanishing against
+  home-manager's own internal definitions was the proving case).
+  Accumulative options must merge, not lose;
+- everything else — scalars, derivations, other markers like
   `mkOrder` — → stamp `mkOverride 900`.
 
 The implementation also skips several things the walk must *not* stamp,
@@ -146,15 +152,18 @@ their values, so a marker there leaks raw to readers:
   internal settings become user-overridable at 900. Intended.
 - A shared value that must survive user override needs an explicit
   `mkForce`.
-- A user overriding a list-valued option replaces the whole list — lists
-  are leaves to the wrapper. Desired, with one carve-out: where a shared
-  *list* must concatenate with the user's own (the generated
-  `home.packages` install channel; the [common nixpkgs
-  module](../reference/common-nixpkgs.md)'s `nixpkgs.overlays`), the
-  definition carries an explicit `lib.mkOverride 100` marker. 100 is plain
-  priority, so merging is unchanged — the marker exists purely to make the
-  wrapper leave the definition alone, the same way an upstream module's
-  plain list definition would behave.
+- Shared lists merge with the user's own, upstream-style — both sit at
+  plain priority thanks to the exemption. A user who wants to *replace* a
+  shared list uses `mkForce`. The exemption obsoleted the old
+  `lib.mkOverride 100` carve-out markers on generated `home.packages` and
+  the [common nixpkgs module](../reference/common-nixpkgs.md)'s
+  `nixpkgs.overlays`; only `nixpkgs.config` still carries one, for the
+  opaque-type reason above, not for list merging.
+- Accumulative *string* options (`types.lines`, extraConfig-style) still
+  get stamped to 900 — at the value level they are indistinguishable from
+  plain strings — so a shared definition is silently dropped if any
+  plain-priority definition of the same option exists. Known residual
+  hazard, tracked in `TODO.md`.
 
 ## The error strategy
 

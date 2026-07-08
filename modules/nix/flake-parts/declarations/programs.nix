@@ -104,9 +104,8 @@
     hasCask = lib.elem "cask" decl.install.macos;
 
     # The per-user install: platform-gated on content (imports are never
-    # conditional) and hung off an overridable boolean — never a bare
-    # home.packages contribution, which a user's own home.packages would
-    # discard wholesale once the boundary wrapper lowers it to priority 900.
+    # conditional) and hung off an overridable boolean, so opting out is
+    # always the uniform `programs.<name>.enable = false;`.
     installUnit = {
       pkgs,
       lib,
@@ -126,10 +125,9 @@
       config = lib.mkIf gate (lib.mkMerge [
         {programs.${name}.enable = true;}
         (lib.optionalAttrs (!decl.hasEnableOption) {
-          # mkOverride 100 is plain priority, but the explicit marker makes
-          # the boundary wrapper leave the list alone, so it concatenates
-          # with a user's own home.packages like an upstream HM module.
-          home.packages = lib.mkIf config.programs.${name}.enable (lib.mkOverride 100 (decl.packages pkgs));
+          # Plain: the boundary wrapper exempts lists, so this concatenates
+          # with a user's own home.packages like an upstream HM module's.
+          home.packages = lib.mkIf config.programs.${name}.enable (decl.packages pkgs);
         })
       ]);
     };

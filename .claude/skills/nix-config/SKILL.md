@@ -52,7 +52,10 @@ Rationale:
 user's own aspect (unwrapped, the overriding layer) + the host's baseline +
 the user's resolved declaration units, with everything shared lowered to
 priority 900 by the boundary wrapper — so a user's plain assignment (100)
-overrides any shared default. Nothing else may deliver config to a home:
+overrides any shared default. Lists are exempt: shared lists merge with the
+user's own at plain priority (replace one with `mkForce`), because priority
+filtering would delete, not demote, them. Nothing else may deliver config to
+a home:
 never import a generated program unit from an aspect a declaration already
 routes. Why one channel:
 [the standalone home model](../../../docs/explanation/standalone-homes.md).

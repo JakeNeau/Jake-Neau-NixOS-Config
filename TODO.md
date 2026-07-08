@@ -193,6 +193,20 @@
       shorthand module's `freeformType` key gets priority-stamped instead of
       stripped the way nixpkgs `unifyModuleSyntax` strips it. Harmless today —
       it's the one inexact spot in the mirror — but strip it for exactness.
+- [ ] Declaration framework, boundary priority wrapper
+      (`modules/nix/flake-parts/declarations/hosts.nix`, `wrapValue`):
+      accumulative *string* options (`types.lines`, extraConfig-style) are
+      still demoted to priority 900 by the wrapper. The Nix module system's
+      priority filtering keeps only the winning priority's definitions, so a
+      shared lines contribution is silently dropped whenever any
+      plain-priority (100) definition of the same option exists — the same
+      delete-not-demote hazard just fixed for lists by exempting them from
+      stamping. Strings can't get the same exemption: at the value level a
+      `types.lines` string is indistinguishable from a plain scalar string
+      (where 900-stamping is correct and wanted), so fixing this needs a
+      different approach (e.g. option-type awareness, or per-option
+      carve-outs with explicit `lib.mkOverride 100` markers as
+      `nixpkgs.config` still uses).
 - [ ] Declaration framework, hosts generator guard
       (`modules/nix/flake-parts/declarations/hosts.nix`): a program declared
       with `handWritten = ["homeManager"]` but listed in a host's

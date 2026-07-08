@@ -23,8 +23,10 @@ model](../explanation/standalone-homes.md).
 
 ## Priority markers
 
-Both `nixpkgs.config` and `nixpkgs.overlays` carry an explicit
-`lib.mkOverride 100` marker. 100 is plain priority — the marker changes
-nothing about merging. The boundary priority wrapper leaves explicitly
-marked definitions untouched; the rationale for marking these two options:
+`nixpkgs.config` carries an explicit `lib.mkOverride 100` marker. 100 is
+plain priority — the marker changes nothing about merging; it makes the
+boundary priority wrapper leave the attrset whole instead of recursing
+into it, because the option's opaque type never discharges markers
+stamped inside its value. `nixpkgs.overlays` needs no marker: the wrapper
+exempts lists. Rationale:
 [the framework's why](../explanation/declaration-framework.md).

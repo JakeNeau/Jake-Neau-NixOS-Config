@@ -108,7 +108,14 @@
     # plumbing (lib helpers, overlay and package functions), not settings.
     else if lib.isFunction v
     then v
-    # Leaves: scalars, lists, derivations.
+    # Lists stay plain: filterOverrides keeps only the winning priority's
+    # definitions, so a 900 stamp wouldn't demote a shared list — it would
+    # delete it once any plain (100) definition of the option exists.
+    # Accumulative options must merge; a user replacing one uses mkForce,
+    # as with any upstream module's list.
+    else if lib.isList v
+    then v
+    # Leaves: scalars, derivations.
     else lib.mkOverride 900 v;
 
   # Config level: like wrapValue, but keep the top-level `lib` and

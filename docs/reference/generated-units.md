@@ -20,14 +20,13 @@ contains `"home"`. It:
   `programs.<name>.enable = false;` (priority 100) wins;
 - when `hasEnableOption = false`, declares the `programs.<name>.enable`
   toggle itself (`lib.mkEnableOption`) and installs the declaration's
-  `packages` behind it via `home.packages`, marked `lib.mkOverride 100` —
-  an explicit marker the boundary wrapper leaves alone, so the list
-  concatenates with a user's own `home.packages` like an upstream
-  home-manager module's would.
+  `packages` behind it via a plain `home.packages` definition — the
+  boundary wrapper exempts lists, so it concatenates with a user's own
+  `home.packages` like an upstream home-manager module's would.
 
-The install channel is never a bare `home.packages` contribution: a
-900-stamped list would be discarded wholesale by a user's plain
-`home.packages` assignment.
+The install channel hangs off the enable toggle rather than being a bare
+`home.packages` contribution so opting out stays the uniform
+`programs.<name>.enable = false;`.
 
 ## homeManager.\<name\>-config
 
