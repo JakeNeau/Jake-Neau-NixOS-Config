@@ -1,13 +1,18 @@
 {inputs, ...}: {
   # Jake's personal MacBook ("aspen", formerly "Jakes-MacBook-Air").
+  flake.hosts.aspen = {
+    class = "darwin";
+    system = "aarch64-darwin";
+    users = ["jakeneau"];
+    globalPrograms = ["ghostty" "firefox" "fastfetch"];
+    baselines = ["role-desktop" "mac-app-util"];
+  };
+
   flake.modules.darwin.aspen = {...}: {
-    imports =
-      (with inputs.self.modules.darwin; [
-        role-desktop
-        fastfetch
-        jakeneau
-      ])
-      ++ [inputs.self.modules.generic.cli];
+    imports = [
+      inputs.self.modules.darwin.role-desktop
+      inputs.self.modules.generic.cli
+    ];
 
     hostConstants.hostName = "aspen";
 

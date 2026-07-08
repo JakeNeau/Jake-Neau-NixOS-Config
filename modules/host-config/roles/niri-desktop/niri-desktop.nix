@@ -4,12 +4,6 @@
   # per-user wayland plumbing. NixOS-only; niri does not exist on macOS.
 
   flake.modules.nixos.niri-desktop = {pkgs, ...}: {
-    # The per-user plumbing rides along on every user of a niri host. Bridging it
-    # from the NixOS aspect (rather than the shared home-manager desktop) keeps it
-    # off macOS, where these same users also live. Same idiom as the mac-app-util
-    # feature.
-    home-manager.sharedModules = [inputs.self.modules.homeManager.niri-desktop];
-
     programs.niri.enable = true;
 
     xdg.portal = {
@@ -34,6 +28,8 @@
   };
 
   # Per-user wayland plumbing, aggregated -- each tool is its own feature.
+  # Rides the niri hosts' baselines (a flake.hosts baselines entry), which
+  # keeps it off macOS, where these same users also live.
   flake.modules.homeManager.niri-desktop = {
     imports = with inputs.self.modules.homeManager; [
       swaybg

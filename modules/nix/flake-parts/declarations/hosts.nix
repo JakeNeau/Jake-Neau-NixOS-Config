@@ -96,10 +96,48 @@
       # Other markers (mkOrder, ...) are leaves; stamping outside them is
       # safe — filterOverrides strips the override before sorting.
       else lib.mkOverride 900 v
+    # Store-path-like attrsets (flake inputs, fetched sources): plumbing
+    # data, typically inside opaque (types.attrs/raw/unspecified) options
+    # where a marker stamped on the paths inside would never be discharged
+    # and leaks raw (e.g. stylix's internal stylix.inputs). Leave whole.
+    else if lib.isAttrs v && v ? outPath && !lib.isDerivation v
+    then v
     else if lib.isAttrs v && !lib.isDerivation v
     then lib.mapAttrs (_: wrapValue) v
-    # Leaves: scalars, lists, derivations, functions.
+    # Functions stay unstamped for the same opaque-option reason: they're
+    # plumbing (lib helpers, overlay and package functions), not settings.
+    else if lib.isFunction v
+    then v
+    # Leaves: scalars, lists, derivations.
     else lib.mkOverride 900 v;
+
+  # Config level: like wrapValue, but keep the top-level `lib` and
+  # `_module` keys unstamped. Both are opaque to the module system (attrsOf
+  # attrs / lazyAttrsOf raw) — markers stamped inside their values are
+  # never discharged, so they'd leak raw to readers — and both carry
+  # plumbing (e.g. stylix's config.lib.stylix helpers and its flake
+  # module's _module.args.inputs), not user-facing settings.
+  configPlumbingKeys = ["lib" "_module"];
+  wrapConfig = c:
+    if c ? _type
+    then
+      if c._type == "if"
+      then c // {content = wrapConfig c.content;}
+      else if c._type == "merge"
+      then c // {contents = map wrapConfig c.contents;}
+      else if c._type == "override"
+      then c
+      else lib.mkOverride 900 c
+    else if lib.isAttrs c && !lib.isDerivation c
+    then
+      lib.mapAttrs (
+        n: v:
+          if lib.elem n configPlumbingKeys
+          then v
+          else wrapValue v
+      )
+      c
+    else lib.mkOverride 900 c;
 
   # Graph level: recurse the module graph down to its config values.
   # Mirrors unifyModuleSyntax: full form is m ? config || m ? options;
@@ -111,18 +149,22 @@
     # Mirror the function args so the module system still injects pkgs &c.
     else if lib.isFunction m
     then lib.mirrorFunctionArgs m (args: wrapModule (m args))
+    # A property marker as the whole module body (a top-level mkMerge/mkIf):
+    # the entire value is config — wrap it as one, not per-attribute.
+    else if m ? _type
+    then wrapConfig m
     else if m ? config || m ? options
     # Full form: config value-wrapped, imports recursed, other keys kept.
     then
       m
-      // {config = wrapValue (m.config or {});}
+      // {config = wrapConfig (m.config or {});}
       // lib.optionalAttrs (m ? imports) {imports = map wrapModule m.imports;}
     else
       lib.mapAttrs (
         n: v:
           if n == "imports"
           then map wrapModule v
-          else if lib.elem n moduleMetaKeys
+          else if lib.elem n (moduleMetaKeys ++ configPlumbingKeys)
           then v
           else wrapValue v
       )

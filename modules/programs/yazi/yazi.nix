@@ -1,6 +1,7 @@
 {
-  # Yazi: a TUI file browser, installed per-user on every machine. On Linux
-  # it is also wired up as the xdg-desktop-portal file chooser so app file
+  # Yazi: a TUI file browser, installable per-user on both platforms; today
+  # only the Linux hosts request it (their globalPrograms). On Linux it is
+  # also wired up as the xdg-desktop-portal file chooser so app file
   # pickers (browser uploads, "save as") use yazi.
 
   flake.programs.yazi = {

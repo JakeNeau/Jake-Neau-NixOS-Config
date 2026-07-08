@@ -123,5 +123,12 @@ in {
     description = "User declarations, each resolving to per-(user, host) HM unit sets.";
   };
 
+  # flake-parts doesn't declare flake.lib itself; homeUnits (consumed by the
+  # hosts generator at stamping) is its only occupant.
+  options.flake.lib = lib.mkOption {
+    type = types.attrsOf types.unspecified;
+    default = {};
+  };
+
   config.flake.lib.homeUnits = homeUnits;
 }

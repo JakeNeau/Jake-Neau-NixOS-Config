@@ -137,7 +137,6 @@
     imports = with inputs.self.modules.darwin; [
       role-default
       fish
-      ghostty
       graphics
       homebrew
       karabiner
@@ -157,7 +156,6 @@
       caps-dual-role
       copy-paste-remaps
       fish
-      ghostty
       karabiner
       beekeeper-studio
       libreoffice

@@ -1,13 +1,22 @@
 {inputs, ...}: {
   # The macOS work laptop ("cedar"). Only the jake.neau user
   # lives here.
+  flake.hosts.cedar = {
+    class = "darwin";
+    system = "aarch64-darwin";
+    users = ["jake.neau"];
+    globalPrograms = ["ghostty" "firefox" "fastfetch"];
+    # The nix firefox package breaks against the org's SSO, so cedar takes
+    # the cask; its users get the -config unit through the baseline.
+    installOverrides.firefox = "cask";
+    baselines = ["role-desktop" "mac-app-util"];
+  };
+
   flake.modules.darwin.cedar = {...}: {
     imports = [
       inputs.self.modules.darwin.role-desktop
       inputs.self.modules.darwin.podman
-      inputs.self.modules.darwin.fastfetch
       inputs.self.modules.darwin.local-ai
-      inputs.self.modules.darwin."jake.neau"
       inputs.self.modules.generic.cli
     ];
 
@@ -19,14 +28,5 @@
 
     # repo write without sudo; the group itself comes from modules/host-config/config-group
     users.groups.config.members = ["jake.neau"];
-
-    # Kubernetes CLI tools — only on this work laptop for now.
-    home-manager.users."jake.neau".imports = [inputs.self.modules.homeManager.kubernetes];
-
-    # Host-specific homebrew casks (the homebrew machinery itself comes from
-    # the homebrew feature via role-desktop).
-    homebrew.casks = [
-      "firefox"
-    ];
   };
 }

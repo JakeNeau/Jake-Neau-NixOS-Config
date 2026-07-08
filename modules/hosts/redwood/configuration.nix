@@ -1,14 +1,20 @@
 {inputs, ...}: {
   # The NixOS desktop ("redwood"). Shared desktop config comes from
   # role-desktop; this file holds only desktop-specific hardware/features.
+  flake.hosts.redwood = {
+    class = "nixos";
+    system = "x86_64-linux";
+    users = ["jakeneau"];
+    globalPrograms = ["ghostty" "yazi" "fastfetch"];
+    baselines = ["role-desktop" "niri-desktop" "stylix"];
+  };
+
   flake.modules.nixos.redwood = {pkgs, ...}: {
     imports = with inputs.self.modules.nixos; [
       role-desktop
-      fastfetch
       local-ai
       minegrub
       nix-minecraft
-      jakeneau
     ];
 
     hostConstants.hostName = "redwood";
@@ -145,9 +151,9 @@
     # ----------------
     # Minecraft server
     # ----------------
-    # A declaratively configured minecraft server
+    # Server definitions only; the enable (and the hostConstants fact) come
+    # from importing the nix-minecraft feature.
     services.minecraft-servers = {
-      enable = true;
       eula = true;
       openFirewall = true;
 

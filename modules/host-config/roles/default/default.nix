@@ -6,7 +6,6 @@
       (with inputs.self.modules.nixos; [
         role-minimal
         host-constants
-        home-manager
         secrets
         nur
         config-group
@@ -23,7 +22,6 @@
       (with inputs.self.modules.darwin; [
         role-minimal
         host-constants
-        home-manager
         nur
         config-group
         manual-workaround
@@ -38,13 +36,13 @@
     imports =
       (with inputs.self.modules.homeManager; [
         role-minimal
-        yazi
         git
         jujutsu
       ])
       ++ [
-        # The hostConstants option declarations; the values are pushed in
-        # from the system level (see modules/host-config/host-constants).
+        # The hostConstants option declarations; the values arrive via the
+        # hosts generator's read-through of the evaluated system config
+        # (see modules/nix/flake-parts/declarations/hosts.nix).
         inputs.self.modules.generic.host-constants
       ];
   };

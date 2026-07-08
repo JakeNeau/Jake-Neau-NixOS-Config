@@ -64,7 +64,6 @@
     pkgs,
     lib,
     config,
-    osConfig ? {},
     ...
   }: let
     # Installs each named function as its own ~/.config/fish/functions file,
@@ -77,15 +76,9 @@
         names);
 
     # The mc-* helpers wrap systemd units that only exist when the host runs
-    # nix-minecraft. osConfig is the host's system configuration; it is absent
-    # for standalone home-manager configurations, hence the fallbacks.
-    hasMinecraft =
-      (
-        if osConfig == null
-        then {}
-        else osConfig
-      ).services.minecraft-servers.enable
-      or false;
+    # nix-minecraft; the fact arrives via the baseline's hostConstants
+    # read-through (osConfig doesn't exist for standalone homes).
+    hasMinecraft = config.hostConstants.minecraftServer;
   in
     lib.mkMerge [
       {

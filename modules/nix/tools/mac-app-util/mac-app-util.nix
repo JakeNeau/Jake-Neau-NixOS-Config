@@ -15,11 +15,15 @@
   # its own pinned nixpkgs (SBCL 2.5.7) sidesteps the broken toolchain. The
   # extra nixpkgs only feeds this build-time tool, so the closure cost is small.
 
-  # Trampoline both system apps (environment.systemPackages, via the darwin
-  # module) and every user's home-manager apps (via sharedModules) -- sioyek is
-  # installed through home-manager, so the latter is what fixes its PDF default.
+  # Trampoline system apps (environment.systemPackages).
   flake.modules.darwin.mac-app-util = {
     imports = [inputs.mac-app-util.darwinModules.default];
-    home-manager.sharedModules = [inputs.mac-app-util.homeManagerModules.default];
+  };
+
+  # Trampoline every user's home-manager apps -- sioyek is installed through
+  # home-manager, so this is what fixes its PDF default. Delivered through the
+  # mac hosts' baselines.
+  flake.modules.homeManager.mac-app-util = {
+    imports = [inputs.mac-app-util.homeManagerModules.default];
   };
 }

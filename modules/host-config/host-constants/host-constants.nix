@@ -1,21 +1,13 @@
-{inputs, ...}: let
-  # System-side wiring: declare the options at the system level and forward
-  # the resolved values to every user's home-manager config (which gets the
-  # declarations via homeManager.role-default).
-  declare-and-forward = {config, ...}: {
-    imports = [inputs.self.modules.generic.host-constants];
-
-    home-manager.sharedModules = [
-      {hostConstants = config.hostConstants;}
-    ];
-  };
-in {
+{inputs, ...}: {
   # Constants pattern: facts about a host, declared once and readable from any
   # feature in any class (system config and home-manager). A host states what
   # it *is* (e.g. hostConstants.isLaptop = true) and features branch on the
   # fact, instead of minting per-variant aspects per feature.
   #
-  # Imported everywhere via role-default; hosts only set the values.
+  # Imported everywhere via role-default (both the system classes and the
+  # homeManager aggregate); hosts only set the values. Homes receive the
+  # resolved values through the hosts generator's read-through of the
+  # evaluated system config.
   flake.modules.generic.host-constants = {lib, ...}: {
     options.hostConstants = {
       hostName = lib.mkOption {
@@ -33,6 +25,11 @@ in {
         default = false;
         description = "Whether this host runs the local-ai stack (llama-server).";
       };
+      minecraftServer = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Whether this host runs the declarative minecraft server (nix-minecraft).";
+      };
       graphicsType = lib.mkOption {
         type = lib.types.enum ["amd" "intel" "nvidia" "apple"];
         # No default: every host MUST declare its GPU vendor.
@@ -45,6 +42,6 @@ in {
     };
   };
 
-  flake.modules.nixos.host-constants = declare-and-forward;
-  flake.modules.darwin.host-constants = declare-and-forward;
+  flake.modules.nixos.host-constants.imports = [inputs.self.modules.generic.host-constants];
+  flake.modules.darwin.host-constants.imports = [inputs.self.modules.generic.host-constants];
 }
