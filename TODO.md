@@ -181,6 +181,16 @@
       the later Headscale migration cheap (IPs and the DNS suffix change on
       migration; bare hostnames survive). The Headscale entry in the homelab
       section below is the planned exit from the hosted coordination server.
+- [ ] Share LSP (Language Server Protocol) server config between Neovim (via
+      nvf) and Claude Code instead of declaring each server twice:
+      `modules/programs/nvf/nvf.nix` declares LSP servers for Neovim, and
+      `modules/programs/claude-code/claude-code.nix` has its own separate
+      `lspServers` attrset for Claude Code — the two lists overlap heavily
+      (same language, same command/args/package) but are maintained
+      independently. Factor the common per-language server config (command,
+      args, package, etc.) into one shared declaration that both modules read
+      from, so adding or updating a language server is a one-place edit
+      instead of two.
 - [ ] Declaration framework, boundary priority wrapper
       (`modules/nix/flake-parts/declarations/hosts.nix`, `wrapModule`): legacy
       `require` entries in shorthand modules pass through unwrapped, so their
