@@ -4,7 +4,7 @@
     lib,
     ...
   }:
-    lib.mkIf (config.systemConstants.graphicsType == "apple") {
+    lib.mkIf (config.hostConstants.graphicsType == "apple") {
       # macOS drives its own GPU; no-op vendor module to complete the set.
     };
 }

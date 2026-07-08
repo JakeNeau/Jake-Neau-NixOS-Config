@@ -3,7 +3,7 @@
   # First-pass dendritic move: this is intentionally one large module. Split
   # individual features (niri, audio, shell, fonts, …) out of here over time.
 
-  flake.modules.nixos.system-desktop = {
+  flake.modules.nixos.role-desktop = {
     config,
     pkgs,
     lib,
@@ -11,7 +11,7 @@
   }: {
     imports =
       (with inputs.self.modules.nixos; [
-        system-default
+        role-default
         stylix
         caps-dual-role
         fish
@@ -133,9 +133,9 @@
   };
 
   # Darwin desktop layer (room to grow; base is enough today).
-  flake.modules.darwin.system-desktop = {
+  flake.modules.darwin.role-desktop = {
     imports = with inputs.self.modules.darwin; [
-      system-default
+      role-default
       fish
       ghostty
       graphics
@@ -148,9 +148,9 @@
   };
 
   # Home-manager desktop env shared by every user: the editor + CLI tools.
-  flake.modules.homeManager.system-desktop = {
+  flake.modules.homeManager.role-desktop = {
     imports = with inputs.self.modules.homeManager; [
-      system-default
+      role-default
       nvf
       claude-code
       cli-tools

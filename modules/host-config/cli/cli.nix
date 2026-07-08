@@ -1,6 +1,6 @@
 {
   # Cross-platform command-line programs, shared by NixOS desktops and macOS
-  # hosts. Linux/Wayland-specific terminal utilities stay in system-desktop.
+  # hosts. Linux/Wayland-specific terminal utilities stay in role-desktop.
   flake.modules.generic.cli = {pkgs, ...}: {
     environment.systemPackages = with pkgs; [
       bottom # A TUI system monitor

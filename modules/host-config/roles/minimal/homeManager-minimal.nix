@@ -1,6 +1,6 @@
 {
   # Baseline settings every home-manager user needs.
-  flake.modules.homeManager.system-minimal = {
+  flake.modules.homeManager.role-minimal = {
     config,
     pkgs,
     lib,

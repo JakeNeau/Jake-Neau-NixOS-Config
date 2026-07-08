@@ -1,7 +1,7 @@
 {inputs, ...}: {
   # Baseline settings every nix-darwin system needs.
-  flake.modules.darwin.system-minimal = {pkgs, ...}: {
-    imports = [inputs.self.modules.generic.system-minimal];
+  flake.modules.darwin.role-minimal = {pkgs, ...}: {
+    imports = [inputs.self.modules.generic.role-minimal];
 
     nixpkgs.config.allowUnfree = true;
 

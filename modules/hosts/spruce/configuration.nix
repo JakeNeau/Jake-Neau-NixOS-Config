@@ -3,16 +3,16 @@
   # host, minus the desktop-only hardware (GPU/audio rig, openrgb, minecraft).
   flake.modules.nixos.spruce = {
     imports = with inputs.self.modules.nixos; [
-      system-desktop
+      role-desktop
       fastfetch
       jakeneau
     ];
 
-    systemConstants.hostName = "spruce";
+    hostConstants.hostName = "spruce";
 
     # Host facts features branch on (e.g. fastfetch's Power box).
-    systemConstants.isLaptop = true;
-    systemConstants.graphicsType = "nvidia";
+    hostConstants.isLaptop = true;
+    hostConstants.graphicsType = "nvidia";
 
     # Placeholder bus IDs — PRIME offload asserts they're set. Replace with the
     # real laptop's values.

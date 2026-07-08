@@ -16,8 +16,8 @@
   }: let
     # Local AI features (the <leader>ak hover and llama.vim autocomplete) only
     # exist on hosts that run the llama-server stack. The fact is forwarded from
-    # the system level via systemConstants (see modules/system/types/local-ai).
-    localAi = config.systemConstants.localAi;
+    # the system level via hostConstants (see modules/host-config/roles/local-ai).
+    localAi = config.hostConstants.localAi;
   in {
     imports = [inputs.nvf.homeManagerModules.default];
 

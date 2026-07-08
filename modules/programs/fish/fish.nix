@@ -14,7 +14,7 @@
   #        need a specific program (eza, fastfetch, nix-minecraft) are
   #        installed only where that program is configured.
   #
-  # Related: ctrl-v/alt-c keybind fixups come from modules/system/copy-paste-remaps.
+  # Related: ctrl-v/alt-c keybind fixups come from modules/host-config/copy-paste-remaps.
 
   # -------------------------
   # NixOS: login shell + bash

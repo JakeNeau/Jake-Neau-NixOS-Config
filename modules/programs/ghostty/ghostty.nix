@@ -5,7 +5,7 @@
   # macOS: the app comes from the homebrew cask (no darwin build in
   #        nixpkgs); home-manager only manages the config.
   #
-  # Related: copy/paste keybinds come from modules/system/copy-paste-remaps.
+  # Related: copy/paste keybinds come from modules/host-config/copy-paste-remaps.
 
   flake.programs.ghostty = {
     install.linux = ["home"];

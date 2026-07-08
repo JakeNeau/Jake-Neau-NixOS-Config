@@ -1,6 +1,6 @@
 {
   # Nix daemon settings shared by every system, regardless of platform.
-  flake.modules.generic.system-minimal = {
+  flake.modules.generic.role-minimal = {
     nix.settings = {
       experimental-features = ["nix-command" "flakes"];
       # The nr rebuild script evaluates the flake before committing, so a

@@ -7,7 +7,7 @@
   # ---------------------------
   # Shared home-manager config
   # ---------------------------
-  # Hosts with systemConstants.isLaptop (see modules/system/system-constants)
+  # Hosts with hostConstants.isLaptop (see modules/host-config/host-constants)
   # get an extra boxed Power section (battery + power adapter) between
   # Software and Time. Let-bound rather than inline in the declaration so the
   # settings block below keeps its indentation — its key strings carry
@@ -161,7 +161,7 @@
           # ---------------------
           # Power (laptops only)
           # ---------------------
-          ++ lib.optionals config.systemConstants.isLaptop [
+          ++ lib.optionals config.hostConstants.isLaptop [
             "break"
             {
               type = "custom";

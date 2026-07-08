@@ -3,19 +3,19 @@
   flake.modules.darwin.aspen = {...}: {
     imports =
       (with inputs.self.modules.darwin; [
-        system-desktop
+        role-desktop
         fastfetch
         jakeneau
       ])
       ++ [inputs.self.modules.generic.cli];
 
-    systemConstants.hostName = "aspen";
+    hostConstants.hostName = "aspen";
 
     # Host facts features branch on (e.g. fastfetch's Power box).
-    systemConstants.isLaptop = true;
-    systemConstants.graphicsType = "apple";
+    hostConstants.isLaptop = true;
+    hostConstants.graphicsType = "apple";
 
-    # repo write without sudo; the group itself comes from modules/system/config-group
+    # repo write without sudo; the group itself comes from modules/host-config/config-group
     users.groups.config.members = ["jakeneau"];
   };
 }

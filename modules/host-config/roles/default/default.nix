@@ -1,11 +1,11 @@
 {inputs, ...}: {
   # The default system type: minimal + the tooling used everywhere.
 
-  flake.modules.nixos.system-default = {
+  flake.modules.nixos.role-default = {
     imports =
       (with inputs.self.modules.nixos; [
-        system-minimal
-        system-constants
+        role-minimal
+        host-constants
         home-manager
         secrets
         nur
@@ -18,11 +18,11 @@
       ++ [inputs.self.modules.generic.network];
   };
 
-  flake.modules.darwin.system-default = {
+  flake.modules.darwin.role-default = {
     imports =
       (with inputs.self.modules.darwin; [
-        system-minimal
-        system-constants
+        role-minimal
+        host-constants
         home-manager
         nur
         config-group
@@ -34,18 +34,18 @@
       ++ [inputs.self.modules.generic.network];
   };
 
-  flake.modules.homeManager.system-default = {
+  flake.modules.homeManager.role-default = {
     imports =
       (with inputs.self.modules.homeManager; [
-        system-minimal
+        role-minimal
         yazi
         git
         jujutsu
       ])
       ++ [
-        # The systemConstants option declarations; the values are pushed in
-        # from the system level (see modules/system/system-constants).
-        inputs.self.modules.generic.system-constants
+        # The hostConstants option declarations; the values are pushed in
+        # from the system level (see modules/host-config/host-constants).
+        inputs.self.modules.generic.host-constants
       ];
   };
 }

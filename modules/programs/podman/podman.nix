@@ -2,7 +2,7 @@
   # Podman: a daemonless container engine.
   #
   # NixOS: the virtualisation.podman module, with docker CLI compat.
-  #        On every workstation via system-desktop.
+  #        On every workstation via role-desktop.
   # macOS: nixpkgs has no podman module for darwin, so this installs the
   #        pieces by hand: the podman CLI, a `docker` shim, and the
   #        Apple-native VM stack (vfkit + gvproxy) that `podman machine`

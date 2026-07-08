@@ -58,7 +58,7 @@
       baselines = lib.mkOption {
         type = types.listOf types.str;
         default = [];
-        example = ["system-desktop" "niri-desktop"];
+        example = ["role-desktop" "niri-desktop"];
         description = ''
           flake.modules.homeManager aggregate names (roles and extras like
           niri-desktop) this host's generated baseline inherits.
@@ -203,9 +203,7 @@
         ++ [
           # Host facts read through the evaluated system config — neither
           # sharedModules nor osConfig exists on the standalone path.
-          # NOTE: stage 5 renames systemConstants -> hostConstants across
-          # the tree; this reads/writes the CURRENT option name.
-          {systemConstants = inputs.self."${host.class}Configurations".${name}.config.systemConstants;}
+          {hostConstants = inputs.self."${host.class}Configurations".${name}.config.hostConstants;}
         ];
     };
 

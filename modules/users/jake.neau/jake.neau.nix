@@ -9,7 +9,7 @@
     {
       homeManager."jake.neau" = {
         imports = with inputs.self.modules.homeManager; [
-          system-desktop
+          role-desktop
         ];
       };
     }

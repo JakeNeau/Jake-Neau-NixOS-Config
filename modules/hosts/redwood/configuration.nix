@@ -1,9 +1,9 @@
 {inputs, ...}: {
   # The NixOS desktop ("redwood"). Shared desktop config comes from
-  # system-desktop; this file holds only desktop-specific hardware/features.
+  # role-desktop; this file holds only desktop-specific hardware/features.
   flake.modules.nixos.redwood = {pkgs, ...}: {
     imports = with inputs.self.modules.nixos; [
-      system-desktop
+      role-desktop
       fastfetch
       local-ai
       minegrub
@@ -11,10 +11,10 @@
       jakeneau
     ];
 
-    systemConstants.hostName = "redwood";
+    hostConstants.hostName = "redwood";
 
     # Host facts features branch on (e.g. the graphics vendor modules).
-    systemConstants.graphicsType = "amd";
+    hostConstants.graphicsType = "amd";
 
     # ----
     # Boot
