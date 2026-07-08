@@ -145,6 +145,7 @@
         # ----------------
         options = {
           autoindent = true; # Automatically indent on a newline
+          autoread = true; # Reload buffers when the underlying file changes on disk
           cmdheight = 1; # The height of the command pane in lines
           cursorlineopt = "both"; # The way to highlight the line the cursor is on
           foldlevel = 99; # stops auto folding when opening document
@@ -1452,6 +1453,18 @@
               if not dir then return end
               dir = dir:gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end)
               if vim.fn.isdirectory(dir) == 1 then vim.b[ev.buf].osc7_dir = dir end
+            end,
+          })
+        '';
+
+        # autoread only permits a reload; something still has to poll the disk
+        # with :checktime. Without this, an external edit (e.g. from Claude
+        # Code) leaves the buffer — and LSP diagnostics/hover/go-to-def, which
+        # only refresh on didChange — stale.
+        luaConfigRC.checktimeOnFocus = ''
+          vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
+            callback = function()
+              if vim.bo.buftype == "" then vim.cmd("checktime") end
             end,
           })
         '';
