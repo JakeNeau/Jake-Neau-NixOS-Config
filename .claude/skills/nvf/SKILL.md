@@ -12,9 +12,12 @@ self-contained Neovim *package*.
 
 **This repo uses — and this skill documents — the standalone builder.** Jake
 intends to configure Neovim as its own flake, so prefer `nvf.lib.neovimConfiguration`
-over the `programs.nvf` NixOS/home-manager modules. (`configuration.nix` still
-carries old `programs.nvf` module config; treat that as the thing being migrated,
-not the pattern to copy — see *Migrating* below.)
+over the `programs.nvf` NixOS/home-manager modules. (Today
+`modules/programs/nvf/nvf.nix` still carries `programs.nvf` home-manager module
+config — a hand-written `homeManager.nvf` aspect, not a `flake.programs`
+declaration, delivered to every home through the `homeManager.role-desktop`
+baseline; treat that as the thing being migrated, not the pattern to copy — see
+*Migrating* below.)
 
 ## Why "its own flake"
 
@@ -217,15 +220,19 @@ clean ways to bring the standalone editor in:
    }
    ```
 
-   Then add `neovim` to a host/user's `imports`. Building from `pkgs` (the
-   evaluating system's nixpkgs) keeps it cross-platform automatically.
+   Then deliver the aspect the way `homeManager.nvf` reaches homes today:
+   imported by a role baseline (`homeManager.role-desktop` in
+   `modules/host-config/roles/desktop/desktop.nix`) or by a user's own folder.
+   Building from `pkgs` (the evaluating home's nixpkgs) keeps it
+   cross-platform automatically.
 
 Either way the editor config (`config.vim = { … }`) lives in a `config.nix`
 beside the feature, so the same Neovim is reproduced on every machine.
 
 ## Migrating from the `programs.nvf` module
 
-`configuration.nix` currently configures `programs.nvf.settings.vim = { … }`. The
+`modules/programs/nvf/nvf.nix` currently configures
+`programs.nvf.settings.vim = { … }` through nvf's home-manager module. The
 option tree is identical — only the wrapper changes:
 
 - `programs.nvf.settings.vim.<x>`  →  `config.vim.<x>` inside a `neovimConfiguration` module.

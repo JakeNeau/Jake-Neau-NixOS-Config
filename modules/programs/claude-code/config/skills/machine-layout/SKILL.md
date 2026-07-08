@@ -1,13 +1,14 @@
 ---
 name: machine-layout
-description: Reference for how the user's machines are set up. Every machine is configured entirely and declaratively by Nix (NixOS on Linux, nix-darwin on macOS) from one flake-parts/dendritic flake plus home-manager, so system and user state belongs in the repo rather than imperative tweaks. The config repo lives at /etc/nixos on NixOS and /etc/nix-darwin on macOS. Use when you need to know where system or user configuration lives, how changes are applied, or to remember that a machine is Nix-managed before changing anything on it; for the in-depth flake guide see the nix-config skill.
+description: Reference for how the user's machines are set up. Every machine is configured entirely and declaratively by Nix (NixOS on Linux, nix-darwin on macOS) from one flake organized around structured declarations (flake.programs / flake.hosts / flake.users) plus standalone home-manager homes, so system and user state belongs in the repo rather than imperative tweaks. The config repo lives at /etc/nixos on NixOS and /etc/nix-darwin on macOS. Use when you need to know where system or user configuration lives, how changes are applied, or to remember that a machine is Nix-managed before changing anything on it; for the in-depth flake guide see the nix-config skill.
 ---
 
 # How this machine is laid out
 
 **Every one of the user's machines is configured entirely and declaratively by
-Nix** — NixOS on Linux, nix-darwin on macOS — from a single flake-parts /
-dendritic flake plus home-manager. Nothing is set up imperatively: to change the
+Nix** — NixOS on Linux, nix-darwin on macOS — from a single flake organized
+around structured program/host/user declarations, with every user's home a
+standalone home-manager configuration. Nothing is set up imperatively: to change the
 system or the user environment, edit the repo and rebuild, never hand-tweak the
 running system.
 
@@ -30,9 +31,10 @@ its members write access without sudo.
 
 ## How changes are applied
 
-`darwin-rebuild switch` (macOS) or `nixos-rebuild switch` (NixOS); home-manager
-is folded into the system rebuild. The user has an `nr` helper that commits,
-pushes, and then rebuilds.
+`darwin-rebuild switch` (macOS) or `nixos-rebuild switch` (NixOS) for the
+system; each user applies their own standalone home with the `hr` helper. The
+user has an `nr` helper that commits, pushes, rebuilds the system, and then
+reactivates their own home.
 
 **Never run `switch`, `nr` / `nrr`, or `nix flake update` yourself** — those
 mutate the live system and push to GitHub. Stage changes and let the user run

@@ -11,15 +11,19 @@ tree root-owned — so a freshly added system user gets **no** access until gran
 it — a dedicated **`config` group** owns the tree with write access via group
 permissions + ACLs.
 
-- Declared dendritically in `modules/system/config-group/config-group.nix`,
-  imported into each `system-default`:
-  - **NixOS:** `flake.modules.nixos.config-group` → `users.groups.config.members`.
-  - **macOS:** `flake.modules.darwin.config-group` → `users.knownGroups = ["config"]`
-    plus `users.groups.config = { gid = 600; members = ["jake.neau"]; }`. nix-darwin
-    only creates/manages a group that is in `knownGroups` and given an explicit gid.
+- Declared dendritically in `modules/host-config/config-group/config-group.nix`,
+  imported into each `role-default`:
+  - **NixOS:** `flake.modules.nixos.config-group` → `users.groups.config.members`
+    (`["jakeneau"]`) — the member list is central, shared by all NixOS hosts.
+  - **macOS:** `flake.modules.darwin.config-group` carries only the group
+    mechanics — `users.knownGroups = ["config"]` plus `users.groups.config.gid
+    = 600` (nix-darwin only creates/manages a group that is in `knownGroups`
+    and given an explicit gid). Account names differ per host, so **each host
+    aspect lists its own members**: cedar lists `jake.neau`, aspen lists
+    `jakeneau` (`users.groups.config.members` in
+    `modules/hosts/<host>/configuration.nix`).
 - Membership is **current users only**, listed explicitly — deliberately *not*
-  baked into the user factory, so new users don't auto-gain write access. The
-  username differs by platform: `jakeneau` on NixOS, `jake.neau` on macOS.
+  baked into the user factory, so new users don't auto-gain write access.
 
 ## Why this matters to you (the agent)
 
@@ -64,62 +68,31 @@ Interpretation:
   member", a fresh shell/session picks it up without a full logout.
 - **All four good** → edit with native tools; no `sudo` needed.
 
-## How to set it up (hand these to the user)
+## How to set it up
 
-The declarative group should exist on the system, then the filesystem is adjusted
-once. The agent must **not** run the rebuild (it activates the system, and
-`nr`/`nrr` also push to GitHub) — that is the user's to run.
+The canonical sequence — the rebuild that creates the group, then the one-time
+filesystem ACL step per platform — lives in
+[`docs/how-to/bootstrap-machine.md`](../../../docs/how-to/bootstrap-machine.md);
+hand that to the user. Filesystem ACLs are not recorded by git, so **a fresh
+clone needs the ACL sequence re-run** even on a bootstrapped machine. The agent
+must **not** run the rebuild (it activates the system, and `nr`/`nrr` also push
+to GitHub) — that is the user's to run; the ACL commands themselves are safe for
+the agent to run with `sudo` once the group exists.
 
-### NixOS
+**macOS shortcut:** the group can be created imperatively *before* the rebuild,
+so sudo-free editing works immediately — the rebuild then just adopts the
+existing gid-600 group (it reads the existing gid and only creates when
+missing). Agent, with `sudo`:
 
-1. **User runs the rebuild** (their normal `nr` flow) so the `config` group is
-   created on the live system. (`nr` is a fish function — running it in a bash
-   subshell fails with `command not found`; run it in fish, e.g. `! nr` from the
-   Claude prompt.)
-2. **One-time filesystem setup** (safe for the agent to run with `sudo` once the
-   group exists — no rebuild, no push), from the repo root:
+```sh
+sudo dscl . -create /Groups/config
+sudo dscl . -create /Groups/config PrimaryGroupID 600
+sudo dscl . -create /Groups/config RealName "Nix config editors"
+sudo dscl . -create /Groups/config Password "*"
+sudo dscl . -append  /Groups/config GroupMembership <member>   # this host's declared member: jake.neau on cedar, jakeneau on aspen
+```
 
-   ```sh
-   sudo chgrp -R config .                       # group owns every file
-   sudo chmod -R g+w .                          # members may write
-   sudo find . -type d -exec chmod g+s {} +     # new files inherit the group
-   sudo setfacl -R  -m g:config:rwX .           # existing files
-   sudo setfacl -R -d -m g:config:rwX .         # default ACL keeps new files writable
-   sudo chmod 600 secrets/keys.txt              # re-lock the sops age key afterwards
-   ```
-3. **User logs out / back in** (or reboots) so the session gains `config`
-   membership; relaunch Claude.
-
-### macOS
-
-macOS has no `getfacl`/`setfacl`; ACLs are set with `chmod +a`. Because the group
-can be created imperatively, the agent can bootstrap it **before** the rebuild and
-the user gets sudo-free editing immediately — the rebuild then just adopts the
-existing gid-600 group (it reads the existing gid and only creates when missing).
-
-1. **Create the group** (agent, `sudo`) with the same gid the darwin aspect pins:
-
-   ```sh
-   sudo dscl . -create /Groups/config
-   sudo dscl . -create /Groups/config PrimaryGroupID 600
-   sudo dscl . -create /Groups/config RealName "Nix config editors"
-   sudo dscl . -create /Groups/config Password "*"
-   sudo dscl . -append  /Groups/config GroupMembership jake.neau
-   ```
-2. **One-time filesystem setup** (agent, `sudo`), from the repo root:
-
-   ```sh
-   sudo chgrp -R config .                       # group owns every file
-   sudo chmod -R g+w .                          # members may write
-   sudo find . -type d -exec chmod g+s {} +     # new files inherit the group
-   sudo chmod -R +a "group:config allow read,write,execute,file_inherit,directory_inherit" .
-   ```
-
-   No `keys.txt` re-lock: the sops age key lives outside the repo on macOS, and
-   the in-tree `secrets.yaml` is sops-encrypted (safe group-read).
-3. **User runs the rebuild** (`nr`) at their convenience to formalize the group
-   declaratively. Membership is usually live immediately (see check step 3/4); a
-   fresh shell picks it up if `id` lags.
+Then run the bootstrap guide's macOS ACL block from the repo root.
 
 ## Caveats
 

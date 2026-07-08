@@ -9,12 +9,14 @@ and **nix-darwin** (macOS). The config is dogmatically declarative: system setup
 lives in Nix, and program config goes through home-manager wherever possible so
 it stays reproducible across machines.
 
-It uses the **dendritic pattern** on flake-parts: every `.nix` under `modules/`
-is a feature module, auto-imported by `import-tree`; hosts and users are
-themselves features composed of smaller ones. **Read
-`.claude/skills/nix-config/SKILL.md` before adding or changing anything** — it
-covers the module classes, the `flake.modules.<class>.<name>` aspects, the
-host/user factories, and the rules for writing them.
+It is organized around **three structured declarations** — `flake.programs`,
+`flake.hosts`, `flake.users` — from which all wiring is generated, with every
+user's home a standalone home-manager configuration; underneath, the dendritic
+substrate on flake-parts auto-imports every `.nix` under `modules/` as a
+feature module. **Read `.claude/skills/nix-config/SKILL.md` before adding or
+changing anything** — it covers the declarations, the generated units, the
+`flake.modules.<class>.<name>` aspects, and the rules for writing them. The
+human-facing documentation is the Diátaxis tree under `docs/`.
 
 ## Conventions
 
@@ -45,8 +47,13 @@ Dry builds check evaluation and build without activating anything:
 nix flake check
 nix build .#nixosConfigurations.<host>.config.system.build.toplevel --no-link   # NixOS  (hosts: redwood, spruce)
 nix build .#darwinConfigurations.<host>.system --no-link                        # macOS  (hosts: aspen, cedar)
+nix build '.#homeConfigurations."<user>@<host>".activationPackage' --no-link    # homes (quote the dotted name)
 nix run .#write-flake                    # regenerate flake.nix after changing inputs
 ```
+
+Cross-platform note: a Mac has no Linux builder, so validate NixOS systems and
+homes there by evaluating instead of building, e.g.
+`nix eval --raw '.#homeConfigurations."<user>@<host>".activationPackage.drvPath'`.
 
 **Always pass `--no-link`.** Without it (or via `nixos-rebuild build` /
 `darwin-rebuild build`) the build tries to drop a `./result` symlink into this
@@ -64,13 +71,14 @@ functions yourself — see below.
 - **Root-owned repos.** These configs live at root-owned paths (`/etc/nixos` on
   NixOS, `/etc/nix-darwin` on macOS), so editing normally needs `sudo` and plain
   edits fail on permissions. Where the `config` group is set up (see
-  `modules/system/config-group`), its members own the tree and edit directly
+  `modules/host-config/config-group`), its members own the tree and edit directly
   without `sudo` (owner stays `root`; only members get write). If edits still
   fail on permissions, surface it rather than silently retrying.
 - **`nr` / `nrr` auto-commit AND push to GitHub.** These fish functions pull,
-  update flake inputs, verify every environment in the flake builds, then
-  `git add -A`, commit, and `git push` (sometimes `--force-with-lease`) to the
-  public repo before rebuilding the system. Never invoke them — or replicate
+  update flake inputs, verify every environment in the flake (all systems and
+  all homes), then `git add -A`, commit, and `git push` (sometimes
+  `--force-with-lease`) to the public repo before rebuilding the system and
+  reactivating the invoking user's home via `hr`. Never invoke them — or replicate
   their push behavior — unless the user explicitly asks. A rebuild here is
   system-wide and outward-facing.
 - **Commit message format.** Generation commits are
@@ -88,5 +96,7 @@ functions yourself — see below.
 
 ## Related docs
 
+- `docs/` — the human-facing Diátaxis tree (tutorials, how-to, reference,
+  explanation); start at `docs/README.md`.
 - `README.md` — project overview, install steps, roadmap, usage shortcuts.
 - `SKILLS.md` — how Claude Code skills are organized for this repo.

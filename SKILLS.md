@@ -20,34 +20,22 @@ useful for sharing with others, heavier-weight than personal skills.)
 
 ## Syncing global skills across machines (nix)
 
-This config is managed with nix-darwin, so the cleanest way to keep
-`~/.claude/skills/` reproducible across machines is to manage it declaratively.
-
-Keep the skills in a directory in this repo (e.g. `claude/skills/`) and wire them
-in with home-manager:
-
-```nix
-home.file.".claude/skills" = {
-  source = ./claude/skills;   # directory tracked in this repo
-  recursive = true;
-};
-```
-
-After `darwin-rebuild switch`, the skills are reproduced on every machine.
-
-Caveat: home-manager links files read-only into the nix store, so edit the skill
-in this repo and rebuild rather than editing under `~/.claude` directly. If you
-want live edits, use a plain dotfiles symlink or `mkOutOfStoreSymlink` instead.
+Global skills are managed declaratively by the claude-code feature: author them
+under `modules/programs/claude-code/config/skills/` and they land in
+`~/.claude/skills/` on every machine — see `modules/programs/claude-code/` and
+[docs/explanation/claude-code-config.md](docs/explanation/claude-code-config.md).
 
 ## Project skills
 
 Skills specific to this nix-darwin repo live under `.claude/skills/`:
 
 - **nix-config** (`.claude/skills/nix-config/SKILL.md`) — how this configuration
-  is structured and how to work in it: the dendritic / flake-parts layout shared
-  across NixOS and macOS, features/aspects/module classes, the flake wiring, and
-  recipes and conventions for adding or editing configuration. Bundles
-  `aspects.md`, a reference for the eight aspect design patterns.
+  is structured and how to work in it: the three structured declarations
+  (`flake.programs` / `flake.hosts` / `flake.users`) from which the wiring is
+  generated, standalone home-manager homes, the dendritic substrate beneath,
+  and how to perform every kind of edit to the repo. Bundles `aspects.md`, a
+  reference for the aspect design patterns (Declaration plus the seven
+  dendritic ones).
 - **nvf** (`.claude/skills/nvf/SKILL.md`) — how to configure Neovim with
   [nvf](https://github.com/NotAShelf/nvf) using the standalone flake method
   (`nvf.lib.neovimConfiguration`), which builds Neovim as a self-contained,

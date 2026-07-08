@@ -117,12 +117,14 @@ osascript -e 'id of app "Sioyek"'  # error -1728 "Can't get application" → not
 store-symlink app links with real `.app` *trampolines* in `~/Applications`,
 copying `CFBundleIdentifier` into the trampoline's Info.plist so the original id
 (`info.sioyek.sioyek`) stays intact and LaunchServices registers it. It's wired
-into `darwin.system-desktop`: the nix-darwin module trampolines system apps, and
-`home-manager.sharedModules` pushes the home-manager module to every user (which
-covers home-manager apps like sioyek). Trampolines also surface the apps in
-Spotlight and Launchpad. Any macOS host that imports `system-desktop` gets this for
-free; a host that doesn't must import `darwin.mac-app-util` itself before a `duti`
-default can stick.
+in twice: `darwin.role-desktop` imports the nix-darwin module (trampolines
+system apps), and each mac host's `flake.hosts` declaration lists
+`mac-app-util` in its `baselines`, delivering the home-manager module to every
+user's standalone home (which covers home-manager apps like sioyek).
+Trampolines also surface the apps in Spotlight and Launchpad. Both mac hosts
+(aspen, cedar) carry the pair today; a new mac host needs both — the
+`role-desktop` import and the `baselines` entry — before a `duti` default can
+stick.
 
 ## Finding the identifiers you need
 
