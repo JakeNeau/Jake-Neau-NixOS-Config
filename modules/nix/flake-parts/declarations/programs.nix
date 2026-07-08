@@ -130,7 +130,16 @@
             else tombstone name "declares no per-user install way; import homeManager.${name}-config for the config alone, or add \"home\" to an install.<platform> list";
           # Config only, carried plain — for users on machines where the
           # install is global/system-level.
-          "${name}-config" = decl.config;
+          "${name}-config" =
+            if decl.hasEnableOption && (hasSystem || hasCask)
+            then {
+              imports = [decl.config];
+              # a true-system way is the only case hosts.nix routes -config
+              # for, so null the package: enabling then configures the
+              # system-installed app instead of double-installing the nix one
+              programs.${name}.package = null;
+            }
+            else decl.config;
         };
       }
       // lib.optionalAttrs (!suppressed "nixos") {
