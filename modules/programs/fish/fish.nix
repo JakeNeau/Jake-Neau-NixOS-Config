@@ -8,7 +8,7 @@
   #        changing the account, interactive zsh execs into fish.
   # Both:  aliases, functions, and plugins live in home-manager; each
   #        function is its own autoloadable functions/<name>.fish file.
-  #        The flake-management helpers (nc, nr/nrr) detect the platform
+  #        The flake-management helpers (nc, nr/nrr, hr) detect the platform
   #        themselves (/etc/nixos vs /etc/nix-darwin) and work everywhere;
   #        the power shortcuts (r/s) differ per platform. Functions that
   #        need a specific program (eza, fastfetch, nix-minecraft) are
@@ -140,6 +140,7 @@
         xdg.configFile = functionFiles [
           "g"
           "h"
+          "hr"
           "nc"
           "npd"
           "npr"

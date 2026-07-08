@@ -1,4 +1,4 @@
-function nr --description "Pulls, verifies every environment in the flake, commits and pushes, then rebuilds the system. Aborts if any step fails"
+function nr --description "Pulls, verifies every environment in the flake, commits and pushes, then rebuilds the system and your home. Aborts if any step fails"
   argparse 'n/no-git' 's/staged' 'f/full-output' -- $argv
   or return 1
 
@@ -99,7 +99,9 @@ function nr --description "Pulls, verifies every environment in the flake, commi
 
     for host in $hosts
       echo "Verifying $class.$host..."
-      nix eval "$flake#$class.$host.$target.drvPath" $nix_quiet >/dev/null
+      # The name must be quoted inside the fragment: nix splits it on '.',
+      # so an unquoted home name like jake.neau@cedar breaks the attr path
+      nix eval "$flake#$class.\"$host\".$target.drvPath" $nix_quiet >/dev/null
       or begin
         echo "nr: $class.$host failed to verify, aborting (nothing was committed or pushed)$stash_hint" >&2
         return 1
@@ -170,6 +172,15 @@ function nr --description "Pulls, verifies every environment in the flake, commi
   echo "System configuration rebuilt for generation $actual_generation"
   if not set -q _flag_no_git; and test "$actual_generation" != "$new_generation"
     echo "Warning: the commit was named $this_host Generation $new_generation but the system is at generation $actual_generation"
+  end
+
+  # Reactivate only the invoking user's home (before any stash pop, so it
+  # sees the verified tree); other users run hr themselves
+  echo "Rebuilding your home configuration..."
+  hr
+  or begin
+    echo "nr: the home rebuild failed$stash_hint" >&2
+    return 1
   end
 
   # The staged half is already in the commit, so popping the parked changes
