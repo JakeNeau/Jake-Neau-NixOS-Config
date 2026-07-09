@@ -4,7 +4,7 @@
       flake inputs move past it: delete `modules/host-config/manual-workaround/`
       and its `manual-workaround` import line in
       `modules/host-config/roles/default/default.nix`.
-- [ ] When next touching `CLAUDE.md`: the `nr`/`nrr` caution says
+- [ ] When next touching `AGENTS.md`: the `nr`/`nrr` caution says
       the flow unconditionally runs `git add -A`, which under-describes the new
       `nr -s`/`--staged` flag (stages only `flake.lock` and stashes unstaged
       tracked changes; see `modules/programs/fish/functions/nr.fish`). Update
@@ -290,6 +290,31 @@
       unquoted verify fragment fails on the new dotted
       `homeConfigurations."jake.neau@cedar"` output (proven by eval) — so run
       the manual home switch there BEFORE the first `nr`.
+
+- [ ] Document when `matcher` may be omitted from a hook registration in
+      `modules/programs/claude-code/config/skills/writing-hooks/SKILL.md` — it
+      currently describes `matcher` as standard but doesn't say when omitting
+      it is valid. Two precedents now exist, differently reasoned: the
+      existing SubagentStop hook comment self-filters via `agent_type` instead
+      of a matcher, while the new SessionStart `agents-md-context` entry
+      (`modules/programs/claude-code/claude-code.nix`) omits matcher
+      intentionally because an absent SessionStart matcher fires on all four
+      session-start sources (startup/resume/clear/compact) — confirmed via the
+      installed Claude Code binary. Add a short note so future hook authors
+      don't have to re-derive this from the binary.
+
+## Waiting on upstream
+
+- [ ] Remove the `agents-md-context` session-start hook once Claude Code
+      natively supports BOTH conventions it bridges: reading a project-root
+      `AGENTS.md` (upstream feature request: anthropics/claude-code#6235) AND
+      auto-discovering skills in the cross-tool `.agents/skills/` directory
+      (upstream feature request: anthropics/claude-code#22902). Both must land
+      first — until then the hook still does at least one useful job. When they
+      do, delete the hook script
+      `modules/programs/claude-code/config/hooks/agents-md-context` and its
+      `settingsPolicy.hooks.SessionStart` registration in
+      `modules/programs/claude-code/claude-code.nix`.
 
 ## When I get a homelab
 

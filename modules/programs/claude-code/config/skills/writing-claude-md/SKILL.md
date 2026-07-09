@@ -46,3 +46,4 @@ https://code.claude.com/docs/en/memory
 - [[skill:writing-rules]] — scoped / always-on instructions
 - [[skill:writing-skills]] — on-demand procedures
 - [[skill:claude-code-config]] — the declarative edit/ship workflow
+- [[skill:starting-a-project]] — sharing a project's AGENTS.md/CLAUDE.md across every AI tool

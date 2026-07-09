@@ -109,6 +109,12 @@
           ];
         }
       ];
+      # No native AGENTS.md support in Claude Code; inject one from the project root at session start.
+      SessionStart = [
+        {
+          hooks = [(cmd "~/.claude/hooks/agents-md-context")];
+        }
+      ];
       # SubagentStop gates for code-review enforcement (code-review-gates spec).
       # Both hooks self-filter by agent_type; matchers are omitted per spec design.
       # NOTE: jq's `*` replaces arrays wholesale in the policy merge, so removal of

@@ -22,10 +22,10 @@ cross-linked — rationale is never smuggled into a recipe or a reference page.
   how it's built, and where to start.
 - **`docs/`** (this tree) — the human-facing documentation, in the four
   quadrants above.
-- **`.claude/skills/nix-config/`** — the agent-facing entry point: the
+- **`.agents/skills/nix-config/`** — the agent-facing entry point: the
   operational guide AI agents read before changing the repo. It states each
   action briefly and links into these pages for depth.
-- **`CLAUDE.md`** — standing instructions for agents working in the repo
+- **`AGENTS.md`** — standing instructions for agents working in the repo
   (validation commands, cautions, conventions).
 - **`specs/`** — transient pre-implementation design documents: written before
   a change, deleted once the durable rationale has graduated into

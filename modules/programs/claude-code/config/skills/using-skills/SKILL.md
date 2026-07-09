@@ -73,3 +73,4 @@ right default is to add, link, and move on. For how to author one well, see
 
 - [[skill:writing-skills]] — how to author a skill (anatomy, frontmatter, linking)
 - [[skill:claude-code-config]] — where skills live and how they ship via the Nix flake
+- [[skill:starting-a-project]] — sharing a project's .agents/skills across every AI tool

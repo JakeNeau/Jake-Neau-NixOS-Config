@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Claude Code reads only its own CLAUDE.md and auto-loads only .claude/skills/;
+# this bridges the two cross-tool conventions it ignores — a root AGENTS.md and
+# skills under .agents/skills/ — by injecting them at session start.
+set -euo pipefail
+
+input=$(cat)
+
+jq_bin=$(command -v jq || true)
+[ -n "$jq_bin" ] || exit 0
+
+cwd=$("$jq_bin" -r '.cwd // empty' <<<"$input" 2>/dev/null || true)
+[ -n "$cwd" ] || exit 0
+
+root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null || true)
+[ -n "$root" ] || root="$cwd" # non-git project: use cwd directly
+
+context=""
+
+agents_md="$root/AGENTS.md"
+if [ -f "$agents_md" ]; then
+  context="AGENTS.md found at the project root — treat its instructions with the same authority as CLAUDE.md:
+
+$(cat "$agents_md")"
+fi
+
+# Progressive disclosure: surface only each skill's frontmatter (name/description)
+# and path, never the full body — Claude reads the SKILL.md on demand when its
+# description matches the task, mirroring how it treats native .claude/skills.
+skills=""
+for skill_file in "$root"/.agents/skills/*/SKILL.md; do
+  # unmatched glob stays literal (nullglob off), so skip the non-file it yields
+  [ -f "$skill_file" ] || continue
+  # awk prints the lines strictly between the first and second `---` fences
+  frontmatter=$(awk '/^---$/{n++; next} n==1{print} n==2{exit}' "$skill_file")
+  skills="$skills
+
+$skill_file
+$frontmatter"
+done
+
+if [ -n "$skills" ]; then
+  [ -n "$context" ] && context="$context
+
+"
+  context="${context}Project skills under .agents/skills/ — Claude Code does not auto-load these. Read a skill's SKILL.md when its description matches your task:$skills"
+fi
+
+[ -n "$context" ] || exit 0
+
+"$jq_bin" -n --arg content "$context" \
+  '{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $content}}'

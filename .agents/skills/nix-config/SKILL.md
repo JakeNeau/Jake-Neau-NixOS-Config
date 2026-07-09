@@ -179,7 +179,7 @@ Collector, Constants, DRY, Factory — are cataloged with code in
 
 ## Validating changes
 
-Dry-build only — never activate, never push (see `CLAUDE.md`):
+Dry-build only — never activate, never push (see `AGENTS.md`):
 
 ```sh
 nix flake check
@@ -204,7 +204,7 @@ nix run .#write-flake                    # after adding/removing flake inputs
 
 - [`aspects.md`](aspects.md) — the aspect design patterns, with code.
 - `docs/` — the full Diátaxis tree (tutorials, how-to, reference, explanation).
-- `CLAUDE.md` — repo-wide cautions (root-owned paths, rebuild/push flow, secrets).
+- `AGENTS.md` — repo-wide cautions (root-owned paths, rebuild/push flow, secrets).
 - Dendritic pattern origin: <https://github.com/mightyiam/dendritic>
 
 ## Related skills

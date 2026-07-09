@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 Guidance for AI agents working in this repository.
 
@@ -13,7 +13,7 @@ It is organized around **three structured declarations** — `flake.programs`,
 `flake.hosts`, `flake.users` — from which all wiring is generated, with every
 user's home a standalone home-manager configuration; underneath, the dendritic
 substrate on flake-parts auto-imports every `.nix` under `modules/` as a
-feature module. **Read `.claude/skills/nix-config/SKILL.md` before adding or
+feature module. **Read `.agents/skills/nix-config/SKILL.md` before adding or
 changing anything** — it covers the declarations, the generated units, the
 `flake.modules.<class>.<name>` aspects, and the rules for writing them. The
 human-facing documentation is the Diátaxis tree under `docs/`.

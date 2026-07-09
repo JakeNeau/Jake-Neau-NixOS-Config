@@ -1,3 +1,6 @@
 secrets/keys.txt
 results/
 result
+
+# Claude Code's local/runtime state
+.claude/

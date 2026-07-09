@@ -103,7 +103,7 @@ Then run the bootstrap guide's macOS ACL block from the repo root.
 - **Membership changes need re-login.** Adding a user to `config` (or the initial
   setup) only takes effect in sessions started afterward.
 - Still **never** run `switch`, `nr`/`nrr`, or `nix flake update`, and never
-  push — see `CLAUDE.md` and [[skill:nix-config]].
+  push — see `AGENTS.md` and [[skill:nix-config]].
 
 ## Related skills
 
