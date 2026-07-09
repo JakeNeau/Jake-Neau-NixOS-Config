@@ -46,7 +46,15 @@ For every code change, walk the diff line by line and prove each line is correct
 before calling it done — trace the data flow, edge cases, and types; don't trust
 that it merely looks right.
 
-## 7. Delegate non-trivial code to the code-writer agent
+## 7. Hunt latent bugs proactively
+
+When you suspect latent bugs beyond the change at hand — or want an adversarial
+hunt over a risky surface — dispatch the [[agent:bug-finder]] subagent. It is the
+proactive counterpart to [[agent:code-reviewer]] (which proves a specific diff
+correct): a read-only hunt for the bugs nobody has pointed at yet, reported ranked
+by confidence with a suggested fix for each.
+
+## 8. Delegate non-trivial code to the code-writer agent
 
 Non-trivial code follows the Superpowers development flow (see the
 **superpowers-precedence** rule). Settle the design with me first —
@@ -69,7 +77,7 @@ When you draft a plan yourself in plan mode rather than via [[agent:code-writer]
 offer to run [[agent:plan-verifier]] on it before you ask me to approve — present
 its verdict alongside the plan so I can choose to proceed or refine further.
 
-## 8. Reach for the internet liberally
+## 9. Reach for the internet liberally
 
 Lean on the internet heavily — not only when you're unsure. Proactively check
 current docs, best practices, and how others solve a problem for the tools,
@@ -78,7 +86,7 @@ is worth researching properly — comparing options, settling a choice, or verif
 a fact — hand it to the [[agent:web-researcher]] subagent, which maps the options and
 corroborates across authoritative sources; then decide from what it finds.
 
-## 9. Documentation is first-class
+## 10. Documentation is first-class
 
 Treat documentation as part of the work, not an afterthought — clear docs are
 what let both people and future agents understand a project. When you write or
@@ -86,7 +94,7 @@ organize documentation, structure it with the Diátaxis architecture (tutorials,
 how-to guides, reference, explanation) and keep those kinds separate; see
 [[skill:diataxis]].
 
-## 10. Explain things assuming I'm unfamiliar
+## 11. Explain things assuming I'm unfamiliar
 
 When you explain anything — a concept, a tool, a piece of jargon, or why a change
 works — assume I may not know what you're referring to. Define terms in plain

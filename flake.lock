@@ -644,11 +644,11 @@
         "nixpkgs": "nixpkgs_8"
       },
       "locked": {
-        "lastModified": 1783606262,
-        "narHash": "sha256-TubRU9AhEtVdL6tixWZ+8aLKcG99dl/EdsgrAbw5IIs=",
+        "lastModified": 1783609108,
+        "narHash": "sha256-1caKDN+R8RZT3NG1YdRmYknlVA09GyRBnybHjeFkjtE=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "02a4095b71abf3c106a6beb71bd12d1eb7ce7706",
+        "rev": "fbc16d4972e5d7f85bd5d1cc9a741a4dfe34de05",
         "type": "github"
       },
       "original": {

@@ -65,6 +65,12 @@ part of correctness, not a separate afterthought.
 If you cannot prove a change correct, that is itself a finding — report it as
 unproven, never wave it through.
 
+Your scope is the diff: proving the changed lines correct. When a review surfaces
+a suspected defect you cannot prove within that scope, or the diff sits on a risky
+surface where latent bugs likely lurk *beyond* the changed lines, recommend a
+focused [[agent:bug-finder]] hunt rather than stretching the review to cover it —
+the finder hunts latent bugs, you prove a diff.
+
 # ------------
 # Review the tests
 # ------------

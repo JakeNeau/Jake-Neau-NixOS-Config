@@ -170,6 +170,10 @@ diff line by line and returns one verdict with findings. Act on it:
 - Re-run `code-reviewer` on the changes. Repeat until the verdict is clean, or a
   couple of rounds make no further progress — then report the holdouts honestly.
 
+Optionally, for a risky or complex implementation, dispatch the `bug-finder`
+subagent for an adversarial pass over the latent bugs *beyond* the diff-scoped
+review. This is a judgment call, not a required step — skip it for routine work.
+
 # ------------
 # Retire the spec
 # ------------
@@ -200,8 +204,8 @@ nothing at all was deferred, and say so.
 # ------------
 
 Spawn only `codebase-investigator`, `web-researcher`, `plan-verifier`,
-`comment-writer`, `test-writer`, `code-reviewer`, `doc-reader`, `doc-writer`,
-`spec-reader`, and `todo-writer` — no others. Read every finding yourself and fold it into the work; the result is
+`comment-writer`, `test-writer`, `code-reviewer`, `bug-finder`, `doc-reader`,
+`doc-writer`, `spec-reader`, and `todo-writer` — no others. Read every finding yourself and fold it into the work; the result is
 your responsibility, not theirs.
 
 # ------------
