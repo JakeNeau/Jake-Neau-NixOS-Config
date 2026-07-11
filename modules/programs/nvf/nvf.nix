@@ -265,6 +265,182 @@
               ];
             };
 
+            # codecompanion.nvim: chat with the omp coding agent over ACP
+            # (oh-my-pi homes only; claude-code homes get claudecode.nvim
+            # above). omp routes edits through ACP's session/request_permission
+            # and owns auth (~/.omp/agent/agent.db), so nvim holds no API key.
+            #
+            # No inline-assistant keymap: codecompanion's inline interaction
+            # supports HTTP adapters only, not ACP (interactions/inline).
+            "codecompanion.nvim" = lib.mkIf ompAi {
+              package = pkgs.vimPlugins.codecompanion-nvim;
+              setupModule = "codecompanion";
+              setupOpts = {
+                # Custom ACP adapter running `omp acp`. Extending the shipped
+                # claude_code ACP adapter inherits its protocol plumbing
+                # (form_messages etc.); the auth override is required — the
+                # inherited handler fails without CLAUDE_CODE_OAUTH_TOKEN, and
+                # omp needs no token from the editor.
+                adapters.acp.omp = lib.generators.mkLuaInline ''
+                  function()
+                    return require("codecompanion.adapters").extend("claude_code", {
+                      name = "omp",
+                      formatted_name = "oh-my-pi",
+                      commands = {
+                        default = { "omp", "acp" },
+                        yolo = { "omp", "acp" },
+                      },
+                      handlers = {
+                        auth = function() return true end,
+                      },
+                    })
+                  end
+                '';
+                interactions.chat.adapter = "omp";
+              };
+              cmd = [
+                "CodeCompanion"
+                "CodeCompanionChat"
+                "CodeCompanionActions"
+                "CodeCompanionCmd"
+              ];
+
+              keys = [
+                {
+                  key = "<leader>at";
+                  mode = "n";
+                  action = "<cmd>CodeCompanionChat Toggle<cr>";
+                  desc = "Toggle CodeCompanion";
+                }
+                {
+                  # Jump to the last chat's window, reopening it if hidden;
+                  # restore() focuses a visible chat instead of toggling it.
+                  key = "<leader>af";
+                  mode = "n";
+                  lua = true;
+                  action = ''
+                    function()
+                      local cc = require("codecompanion")
+                      local chat = cc.last_chat()
+                      if chat then cc.restore(chat.bufnr) else cc.chat() end
+                    end
+                  '';
+                  desc = "Focus CodeCompanion chat";
+                }
+                {
+                  # Open a fresh chat and run the /resume slash command (ACP
+                  # session/list + session/load — a picker of past omp
+                  # sessions). The ACP connection is created asynchronously
+                  # when the chat opens, so poll briefly until it's up.
+                  key = "<leader>ar";
+                  mode = "n";
+                  lua = true;
+                  action = ''
+                    function()
+                      local chat = require("codecompanion").chat()
+                      if not chat then return end
+                      local tries = 0
+                      local function attempt()
+                        if chat.acp_connection then
+                          require("codecompanion.interactions.chat.slash_commands").new():execute({
+                            label = "resume",
+                            config = require("codecompanion.config").interactions.chat.slash_commands.resume,
+                          }, chat)
+                        elseif tries < 50 then
+                          tries = tries + 1
+                          vim.defer_fn(attempt, 100)
+                        else
+                          vim.notify("omp ACP connection not ready; try /resume in the chat", vim.log.levels.WARN)
+                        end
+                      end
+                      attempt()
+                    end
+                  '';
+                  desc = "Resume an omp session";
+                }
+                {
+                  # ACP model picker (session-scoped): get_models() over the
+                  # live connection, then change_model on selection.
+                  key = "<leader>am";
+                  mode = "n";
+                  lua = true;
+                  action = ''
+                    function()
+                      local chat = require("codecompanion").last_chat()
+                      if not (chat and chat.acp_connection) then
+                        return vim.notify("No active CodeCompanion chat", vim.log.levels.WARN)
+                      end
+                      require("codecompanion.interactions.chat.keymaps.change_adapter").select_model(chat)
+                    end
+                  '';
+                  desc = "Select omp model";
+                }
+                {
+                  # Capture the path before touching the chat — creating or
+                  # focusing it changes the current buffer.
+                  key = "<leader>ab";
+                  mode = "n";
+                  lua = true;
+                  action = ''
+                    function()
+                      local path = vim.api.nvim_buf_get_name(0)
+                      if path == "" then
+                        return vim.notify("No file for this buffer", vim.log.levels.WARN)
+                      end
+                      local cc = require("codecompanion")
+                      local chat = cc.last_chat() or cc.chat()
+                      if not chat then return end
+                      require("codecompanion.interactions.chat.slash_commands").context(chat, "file", {
+                        path = path,
+                        description = "Added from <leader>ab",
+                      })
+                    end
+                  '';
+                  desc = "Add current buffer";
+                }
+                {
+                  key = "<leader>as";
+                  mode = "v";
+                  action = "<cmd>CodeCompanionChat Add<cr>";
+                  desc = "Send to CodeCompanion";
+                }
+                {
+                  # In oil, <leader>as adds the file under the cursor instead
+                  # of sending a selection (oil is this config's file
+                  # explorer; codecompanion has no tree integration of its
+                  # own, so resolve the path via oil's API).
+                  key = "<leader>as";
+                  mode = "n";
+                  ft = ["oil"];
+                  lua = true;
+                  action = ''
+                    function()
+                      local oil = require("oil")
+                      local entry = oil.get_cursor_entry()
+                      local dir = oil.get_current_dir()
+                      if not (entry and dir and entry.type == "file") then
+                        return vim.notify("No file under cursor", vim.log.levels.WARN)
+                      end
+                      local cc = require("codecompanion")
+                      local chat = cc.last_chat() or cc.chat()
+                      if not chat then return end
+                      require("codecompanion.interactions.chat.slash_commands").context(chat, "file", {
+                        path = dir .. entry.name,
+                        description = "Added from oil",
+                      })
+                    end
+                  '';
+                  desc = "Add file";
+                }
+                {
+                  key = "<leader>aa";
+                  mode = "n";
+                  action = "<cmd>CodeCompanionActions<cr>";
+                  desc = "CodeCompanion actions";
+                }
+              ];
+            };
+
             # llama.vim: inline FIM autocomplete from the local llama-server
             # (local-ai hosts only). Ghost text only matters while typing, so
             # load on first InsertEnter; configured via globals.llama_config.
