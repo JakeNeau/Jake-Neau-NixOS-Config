@@ -2,9 +2,9 @@
   # Claude Code: Anthropic's terminal coding assistant.
   #
   # Cross-platform: nixpkgs builds claude-code on both Linux and macOS, so
-  # one declaration installs it per-user on both platforms (routed today to
-  # jake.neau via flake.users). The nvf editor integration (claudecode.nvim,
-  # modules/programs/nvf) spawns this same `claude` CLI.
+  # one declaration installs it per-user on both platforms, for whichever
+  # users list it in flake.users.<name>.programs. The nvf editor integration
+  # (claudecode.nvim, modules/programs/nvf) spawns this same `claude` CLI.
   #
   # Configuration lives in the user's home folder at its upstream default
   # (~/.claude) — `configDir` is left untouched so the existing config, memory
