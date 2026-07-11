@@ -307,6 +307,24 @@
       session-start sources (startup/resume/clear/compact) — confirmed via the
       installed Claude Code binary. Add a short note so future hook authors
       don't have to re-derive this from the binary.
+- [ ] omp migration follow-up (`specs/omp-migration/`): port the remaining
+      eight subagent definitions to oh-my-pi task agents. The first pass
+      (`specs/omp-migration/omp-config.md`) ports only the ten load-bearing
+      ones; still to port from `modules/programs/claude-code/config/agents/`
+      into the oh-my-pi module's `config/agents/`: doc-reader, doc-reviewer,
+      doc-writer, spec-reader, spec-writer, git-vcs, jujutsu-vcs, todo-writer
+      (omp frontmatter + tool-name adaptation).
+- [ ] omp migration follow-up (`specs/omp-migration/`): if RULES.md /
+      agent-prompt discipline proves too soft under oh-my-pi — the migration
+      drops Claude Code's seven gate hooks (plan-verifier gate, code-writer
+      gate, code-review gates, reminders) in favor of instructions — implement
+      equivalent enforcement as omp TypeScript hooks in the oh-my-pi config
+      module (`modules/programs/oh-my-pi/`).
+- [ ] omp migration follow-up (`specs/omp-migration/`): port the Claude Code
+      keybindings (alt+j/k scroll binds from
+      `home.file.".claude/keybindings.json"` in
+      `modules/programs/claude-code/claude-code.nix`) to oh-my-pi's keybinding
+      system, if the equivalent itch appears in omp's TUI. Low priority.
 
 ## Waiting on upstream
 
