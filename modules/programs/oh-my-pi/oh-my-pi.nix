@@ -20,9 +20,36 @@
     install.macos = ["home"];
     hasEnableOption = false;
     packages = pkgs: [inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp];
-    # Stub: the declarative ~/.omp/agent config lands with
-    # specs/omp-migration/omp-config.md.
-    config = {};
+
+    # Declarative ~/.omp/agent in omp's native format (discovery priority 100,
+    # so it beats the .claude compat providers, which stay as a safety net).
+    # Mirrors the claude-code module's inline-from-./config pattern; auth stays
+    # imperative (/login once per machine, tokens in agent.db).
+    config = {lib, ...}: let
+      configSrc = ./config;
+
+      # Portable skills shared with the claude-code module.
+      sharedSkillsSrc = ../agents-shared/skills;
+
+      # Each subdirectory is one skill; inline its SKILL.md as a string
+      # (same reader shape as the claude-code module's readSkills).
+      readSkills = dir:
+        lib.mapAttrs (
+          name: _: builtins.readFile (dir + "/${name}/SKILL.md")
+        ) (lib.filterAttrs (_: type: type == "directory") (builtins.readDir dir));
+    in {
+      home.file =
+        {
+          # Global context, discovered natively by omp (walk-up included).
+          ".omp/agent/AGENTS.md".text = builtins.readFile (configSrc + "/AGENTS.md");
+          # Sticky rules: omp re-injects these near the current turn, so the
+          # hard constraints survive long conversations.
+          ".omp/agent/RULES.md".text = builtins.readFile (configSrc + "/RULES.md");
+        }
+        // lib.mapAttrs' (
+          name: text: lib.nameValuePair ".omp/agent/skills/${name}/SKILL.md" {inherit text;}
+        ) (readSkills sharedSkillsSrc);
+    };
   };
 
   # Numtide binary cache for the nix daemon. System-scoped, so hosts import
