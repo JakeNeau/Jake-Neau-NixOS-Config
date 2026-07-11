@@ -14,10 +14,9 @@
     config,
     ...
   }: let
-    # Which AI agent plugin this home gets, read from the sibling program
-    # state in the same home config. The enable options only exist in homes
-    # that import the generated program unit, hence attrByPath. oh-my-pi wins
-    # if both are somehow enabled; a home with neither gets no AI plugin.
+    # Which AI agent plugin this home gets. The enable options only exist in
+    # homes that import the generated program unit, hence attrByPath. oh-my-pi
+    # wins if both are somehow enabled; a home with neither gets no AI plugin.
     ompAi = lib.attrByPath ["programs" "oh-my-pi" "enable"] false config;
     claudeAi = !ompAi && lib.attrByPath ["programs" "claude-code" "enable"] false config;
 
@@ -275,9 +274,9 @@
                 interactions.chat.adapter = "omp";
 
                 # The ak/aq/ah shortcut ports (see their keymaps below). The
-                # content functions work from the captured buffer context, not
-                # the live cursor — they may run after focus moved to the chat
-                # — via the codecompanion_prompts helpers in luaConfigRC.
+                # content functions build on the codecompanion_prompts helpers
+                # in luaConfigRC, which read the captured buffer context, not
+                # the live cursor — they may run after focus moved to the chat.
                 prompt_library = {
                   "Explain why" = {
                     interaction = "chat";
@@ -436,7 +435,8 @@
                   action = ''
                     function()
                       local path = vim.api.nvim_buf_get_name(0)
-                      if path == "" then
+                      -- special buffers (terminal, oil, …) have non-file names
+                      if path == "" or vim.bo.buftype ~= "" then
                         return vim.notify("No file for this buffer", vim.log.levels.WARN)
                       end
                       local cc = require("codecompanion")
@@ -470,7 +470,7 @@
                       local oil = require("oil")
                       local entry = oil.get_cursor_entry()
                       local dir = oil.get_current_dir()
-                      if not (entry and dir and entry.type == "file") then
+                      if not (entry and dir and (entry.type == "file" or entry.type == "link")) then
                         return vim.notify("No file under cursor", vim.log.levels.WARN)
                       end
                       local cc = require("codecompanion")
