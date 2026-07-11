@@ -1,4 +1,4 @@
-{
+{inputs, ...}: {
   # oh-my-pi (omp): batteries-included fork of the `pi` coding agent —
   # subagents, MCP, built-in LSP, skills, plan mode. Replaces Claude Code for
   # the jakeneau user (rationale in specs/omp-migration/ until graduation).
@@ -10,6 +10,19 @@
   # Deliberately NOT `inputs.nixpkgs.follows = "nixpkgs"`: following our
   # nixpkgs would rebuild omp against it and miss the binary cache, which only
   # holds builds against the flake's own pin (mac-app-util precedent).
+
+  # Per-user install on both platforms. No HM programs.oh-my-pi module exists,
+  # so the generator supplies the enable toggle and installs omp behind it
+  # (kubernetes precedent).
+  flake.programs.oh-my-pi = {
+    install.linux = ["home"];
+    install.macos = ["home"];
+    hasEnableOption = false;
+    packages = pkgs: [inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp];
+    # Stub: the declarative ~/.omp/agent config lands with
+    # specs/omp-migration/omp-config.md.
+    config = {};
+  };
 
   # Numtide binary cache for the nix daemon, imported by every host's quirks
   # aspect. The `extra-` prefix appends to the defaults instead of replacing
