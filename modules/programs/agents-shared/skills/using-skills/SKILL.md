@@ -1,6 +1,6 @@
 ---
 name: using-skills
-description: How Claude Code skills work and how to get the most from them — what a skill is, how discovery works (the always-in-context description vs the on-demand body), why to reach for skills proactively, the [[ ]] graph of skills, agents, and memories you traverse at use time, and when to grow the graph by writing a new skill. Use when deciding whether to consult a skill, when following links between skills, agents, and memories, when you spot a concept no skill covers, or to understand the skill system itself; to author a skill, see [[skill:writing-skills]].
+description: How skills work in this setup and how to get the most from them — what a skill is, how discovery works (the always-in-context description vs the on-demand body), why to reach for skills proactively, the [[ ]] graph of skills, agents, and memories you traverse at use time, and when to grow the graph by writing a new skill. Use when deciding whether to consult a skill, when following links between skills, agents, and memories, when you spot a concept no skill covers, or to understand the skill system itself; to author a skill, see [[skill:writing-skills]].
 ---
 
 # Using skills
@@ -47,18 +47,20 @@ way to find related guidance.**
 
 The graph splits into two layers, and `[[type:name]]` edges must stay inside one:
 
-- **Global** — `config/skills/` + `config/agents/` (and the global rules, commands,
-  hooks, MCP servers), shipped to every machine by the Nix flake. Available in any repo.
-- **Project-local** — a repo's own `.claude/skills/` + `.claude/agents/` (plus its
-  specs and docs); exists only in that repo.
+- **Global** — the skills and agents (and the global rules, commands, hooks, MCP
+  servers) shipped to every machine by the Nix flake. Available in any repo.
+- **Project-local** — a repo's own skills and agents (under its agent-tool config
+  directory, e.g. `.claude/` or `.omp/`, plus its specs and docs); exists only in
+  that repo.
 
 A global skill that links a project-local one breaks in every *other* repo (the
 target isn't there); a local skill that links outward couples the repo to
 machine-wide config. So link **within a layer** only — each layer spans all its own
 config kinds, and neither links across. The `spec` and `doc` types have no global
 instances, so a `[[spec:…]]` or `[[doc:…]]` edge is inherently local-only — emitting
-one from a global skill is wrong by construction. `CLAUDE.md` (global and per-project)
-is the bridge between layers, not cross-layer `[[type:name]]` edges.
+one from a global skill is wrong by construction. The context file (the global and
+per-project `CLAUDE.md` / `AGENTS.md`) is the bridge between layers, not cross-layer
+`[[type:name]]` edges.
 
 ## Grow the graph — write skills aggressively
 
@@ -72,5 +74,5 @@ right default is to add, link, and move on. For how to author one well, see
 ## Related skills
 
 - [[skill:writing-skills]] — how to author a skill (anatomy, frontmatter, linking)
-- [[skill:claude-code-config]] — where skills live and how they ship via the Nix flake
+- [[skill:machine-layout]] — the Nix-managed machines these skills ship to
 - [[skill:starting-a-project]] — sharing a project's .agents/skills across every AI tool

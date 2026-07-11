@@ -1,18 +1,19 @@
 ---
 name: writing-skills
-description: How to author a Claude Code skill (SKILL.md) so it is clear, discoverable, and well-connected — frontmatter format, best practices for understandability, the typed [[type:name]] convention that links skills, agents, memories, and other config into a traversable graph, and how to bulletproof a discipline-enforcing skill against rationalization. Read before creating or editing any skill. Also use when you notice an important concept that no skill covers (a gap in the graph) and want to capture it as a new skill.
+description: How to author a skill (SKILL.md) so it is clear, discoverable, and well-connected — frontmatter format, best practices for understandability, the typed [[type:name]] convention that links skills, agents, memories, and other config into a traversable graph, and how to bulletproof a discipline-enforcing skill against rationalization. Read before creating or editing any skill. Also use when you notice an important concept that no skill covers (a gap in the graph) and want to capture it as a new skill.
 ---
 
 # Writing skills
 
 Read this **before** creating or editing any skill. It covers how to write a good
-one; for *where* skills live and the edit → `git add` → rebuild flow, see
-[[skill:claude-code-config]], and for how skills are discovered and how the `[[ ]]`
-graph is used at run time, see [[skill:using-skills]].
+one; global skills ship declaratively from the Nix config repo (see
+[[skill:machine-layout]] for the repo and the edit → `git add` → rebuild flow), and
+for how skills are discovered and how the `[[ ]]` graph is used at run time, see
+[[skill:using-skills]].
 
 ## Anatomy
 
-One folder per skill under `config/skills/<name>/`, holding a single `SKILL.md`.
+One folder per skill under the skills source directory, holding a single `SKILL.md`.
 The file starts with `---`-delimited YAML frontmatter containing only:
 
 - `name:` — kebab-case, exactly equal to the folder name.
@@ -140,14 +141,16 @@ type vocabulary, and why the graph is traversed at run time. When authoring:
   skill). Never a bare `[[name]]` — the type is mandatory.
 - **Link inline** where one skill references another ("see [[skill:machine-layout]]"),
   and to agents too (`[[agent:code-reviewer]]`).
+- **Link within reach.** Prefer targets that exist wherever this skill ships; a
+  harness-specific target from a shared skill leaves a dangling edge elsewhere.
 - **End with a `## Related skills` trailer:** a short section listing outgoing
   links, one per line — `- [[type:name]] — one-line reason to follow it`.
 - **Link liberally and bidirectionally:** if A → B helps, B usually should point
   back to A, so the graph is navigable from any node — within a layer.
 - **Stay within your layer.** Link global↔global and local↔local only; never a
   project-local skill → global target or vice versa, and never the local-only
-  `spec`/`doc` types from a global skill. `CLAUDE.md` bridges the layers (see
-  [[skill:using-skills]]).
+  `spec`/`doc` types from a global skill. The context file (`CLAUDE.md` /
+  `AGENTS.md`) bridges the layers (see [[skill:using-skills]]).
 - **Add links to targets that don't exist yet.** A `[[skill:foo]]` pointing at a
   missing skill is a deliberate marker of where the graph should grow, not an
   error — and your cue to write that skill next (see [[skill:using-skills]]).
@@ -161,10 +164,9 @@ type vocabulary, and why the graph is traversed at run time. When authoring:
   flags, and the guidance form matched to the failure (see the section above).
 - Related skills linked; forward / empty links added where useful.
 - Doesn't duplicate another skill — link to it instead.
-- `git add` the new file, then let the user rebuild (see [[skill:claude-code-config]]).
+- `git add` the new file, then let the user rebuild (see [[skill:machine-layout]]).
 
 ## Related skills
 
 - [[skill:using-skills]] — how skills are discovered and how the graph is traversed
-- [[skill:claude-code-config]] — where skills live and how to ship them via the flake
-- [[skill:machine-layout]] — the Nix machine context these skills run on
+- [[skill:machine-layout]] — the Nix machines these skills ship to, and the rebuild flow

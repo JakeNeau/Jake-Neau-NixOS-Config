@@ -31,6 +31,10 @@
       # Source tree for the declarative config (see ./config/README.md).
       configSrc = ./config;
 
+      # Portable skills shared with the oh-my-pi module; only Claude-specific
+      # skills remain under ./config/skills.
+      sharedSkillsSrc = ../agents-shared/skills;
+
       # Markdown folders (agents, commands, rules): map each `<name>.md` to
       # { <name> = <file contents> }. `.gitkeep` and any non-markdown file are
       # ignored, so an otherwise-empty folder yields {} (the option default).
@@ -279,7 +283,7 @@
         commands = readMarkdown (configSrc + "/commands");
         rules = readMarkdown (configSrc + "/rules");
         hooks = readHooks (configSrc + "/hooks");
-        skills = readSkills (configSrc + "/skills");
+        skills = readSkills sharedSkillsSrc // readSkills (configSrc + "/skills");
       };
 
       # MCP servers (flow into Claude via enableMcpIntegration above). mcp-nixos:

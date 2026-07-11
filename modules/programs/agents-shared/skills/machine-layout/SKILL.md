@@ -67,10 +67,11 @@ are placed at `flake.modules.<class>.<name>` (classes: `nixos`, `darwin`,
 ## Go deeper
 
 When working inside the repo, the **nix-config** skill is the full guide to the
-dendritic flake (aspects, design patterns, recipes), and `CLAUDE.md` holds the
-complete conventions and cautions.
+dendritic flake (aspects, design patterns, recipes), and the repo's `AGENTS.md`
+holds the complete conventions and cautions. The AI coding agents themselves are
+Nix-managed too — their global config (context, rules, skills, agents) ships from
+`modules/programs/` in this repo, so edit it there, never in the home directory.
 
 ## Related skills
 
-- [[skill:claude-code-config]] — editing Claude Code's own config in this repo
 - [[skill:writing-skills]] — authoring skills that ship from this repo
