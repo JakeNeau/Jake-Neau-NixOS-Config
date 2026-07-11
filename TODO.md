@@ -341,6 +341,30 @@
       superpowers' per-harness adaptation does under oh-my-pi (unverifiable
       from source alone; needs a live session on redwood/spruce/aspen after
       the plugin install).
+- [ ] omp migration follow-up (`specs/omp-migration/nvim-integration.md`): add
+      an inline-assistant keymap (`<leader>ai`) for codecompanion on the
+      oh-my-pi homes (`modules/programs/nvf/nvf.nix`) once upstream supports
+      it. At the pinned vimplugin-codecompanion.nvim-19.17.0, codecompanion's
+      inline interaction supports HTTP adapters only, not ACP
+      (`lua/codecompanion/interactions/inline/init.lua` warns "Only HTTP
+      adapters are supported for inline interactions"), so the keymap was
+      deliberately omitted rather than faked. Recheck when the nixpkgs pin
+      bumps the plugin.
+- [ ] omp migration follow-up (`specs/omp-migration/nvim-integration.md`):
+      `<leader>ac` ("continue most recent session") was omitted on the
+      omp/codecompanion branch (`modules/programs/nvf/nvf.nix`) —
+      codecompanion has no ACP continue-without-picker mechanism, so
+      `<leader>ar`'s native `/resume` slash command (ACP `session/list` +
+      `session/load` picker) is the only session-restore path. Revisit if
+      codecompanion grows a "load most recent session" API.
+- [ ] omp migration follow-up (`specs/omp-migration/nvim-integration.md`): on
+      first live use of nvim + omp on an omp machine (redwood/spruce/aspen),
+      verify omp's ACP agent actually advertises the optional capabilities the
+      new codecompanion keymaps (`modules/programs/nvf/nvf.nix`) rely on:
+      `session/list` + `session/load` (else `<leader>ar` warns "this agent
+      does not support listing/loading sessions") and model listing via
+      `get_models` (else `<leader>am` finds no models). If omp lacks them,
+      drop or rework those keymaps.
 
 ## Waiting on upstream
 
