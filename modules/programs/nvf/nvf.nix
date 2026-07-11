@@ -18,6 +18,13 @@
     # exist on hosts that run the llama-server stack. The fact is forwarded from
     # the system level via hostConstants (see modules/host-config/roles/local-ai).
     localAi = config.hostConstants.localAi;
+
+    # Which AI agent plugin this home gets, read from the sibling program
+    # state in the same home config. The enable options only exist in homes
+    # that import the generated program unit, hence attrByPath. oh-my-pi wins
+    # if both are somehow enabled; a home with neither gets no AI plugin.
+    ompAi = lib.attrByPath ["programs" "oh-my-pi" "enable"] false config;
+    claudeAi = !ompAi && lib.attrByPath ["programs" "claude-code" "enable"] false config;
   in {
     imports = [inputs.nvf.homeManagerModules.default];
 
@@ -169,7 +176,8 @@
           enableLznAutoRequire = true; # Builtin plugins need this, only turn off for debug
           plugins = {
             # Claude Code IDE integration: spawns the `claude` CLI
-            "claudecode.nvim" = {
+            # (claude-code homes only; oh-my-pi homes get codecompanion).
+            "claudecode.nvim" = lib.mkIf claudeAi {
               package = pkgs.vimPlugins.claudecode-nvim;
               setupModule = "claudecode";
               setupOpts = {};
@@ -692,13 +700,17 @@
             preset = "modern"; # Full-width rounded panel at the bottom
             delay = 200; # ms of hesitation before the popup appears
 
-            # Name the key groups so prefixes show a label instead of "+prefix"
-            spec = [
-              (lib.generators.mkLuaInline ''{ "<leader>a", group = "AI/Claude Code" }'')
-              (lib.generators.mkLuaInline ''{ "<leader>f", group = "Find" }'')
-              (lib.generators.mkLuaInline ''{ "<leader>g", group = "Git" }'')
-              (lib.generators.mkLuaInline ''{ "<leader>j", group = "Jujutsu" }'')
-            ];
+            # Name the key groups so prefixes show a label instead of "+prefix".
+            # The <leader>a label follows the home's AI plugin; a home with
+            # neither agent registers no group.
+            spec =
+              lib.optional claudeAi (lib.generators.mkLuaInline ''{ "<leader>a", group = "AI/Claude Code" }'')
+              ++ lib.optional ompAi (lib.generators.mkLuaInline ''{ "<leader>a", group = "AI/CodeCompanion" }'')
+              ++ [
+                (lib.generators.mkLuaInline ''{ "<leader>f", group = "Find" }'')
+                (lib.generators.mkLuaInline ''{ "<leader>g", group = "Git" }'')
+                (lib.generators.mkLuaInline ''{ "<leader>j", group = "Jujutsu" }'')
+              ];
           };
         };
 
