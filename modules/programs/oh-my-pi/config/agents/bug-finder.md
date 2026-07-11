@@ -41,9 +41,9 @@ Hunt by forming adversarial hypotheses and then trying to prove them true:
 2. **Enumerate adversarial hypotheses.** For each unit, ask "what input, state, or
    sequence breaks this?" — null/empty, off-by-one, races, resource leaks,
    unhandled errors, injection, contract violations. Write the candidates down.
-3. **Fan out for evidence.** Dispatch parallel `explore` scouts to gather evidence
+3. **Fan out for evidence.** Dispatch parallel `scout` subagents to gather evidence
    per lead (like the investigator does). The scouts do legwork, not judgment —
-   spawn only `explore`, never another bug-finder or investigator.
+   spawn only `scout`, never another bug-finder or investigator.
 4. **Trace each candidate.** Follow the actual path at `file:line`: from the input
    that triggers it to the point it fails.
 5. **Try to refute it.** Adversarially attack your own candidate — is the path
