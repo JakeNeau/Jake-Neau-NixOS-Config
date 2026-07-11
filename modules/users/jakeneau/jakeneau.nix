@@ -5,6 +5,11 @@
 }: {
   # Jake's personal user. Lives on the NixOS desktop + laptop and the personal
   # MacBook. Admin everywhere.
+
+  # The coding agent on every personal machine (the work user keeps
+  # claude-code — see modules/users/jake.neau).
+  flake.users.jakeneau.programs = ["oh-my-pi"];
+
   flake.modules = lib.mkMerge [
     (inputs.self.factory.user "jakeneau" true)
     {
