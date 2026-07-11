@@ -12,6 +12,7 @@
     imports = [
       inputs.self.modules.darwin.role-desktop
       inputs.self.modules.generic.cli
+      inputs.self.modules.generic.numtide-cache
     ];
 
     hostConstants.hostName = "aspen";
