@@ -31,6 +31,14 @@
       # Portable skills shared with the claude-code module.
       sharedSkillsSrc = ../agents-shared/skills;
 
+      # Map each <name>.md to { <name> = <contents> }, skipping non-markdown
+      # (same reader shape as the claude-code module's readMarkdown).
+      readMarkdown = dir:
+        lib.mapAttrs' (
+          name: _:
+            lib.nameValuePair (lib.removeSuffix ".md" name) (builtins.readFile (dir + "/${name}"))
+        ) (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (builtins.readDir dir));
+
       # Each subdirectory is one skill; inline its SKILL.md as a string
       # (same reader shape as the claude-code module's readSkills).
       readSkills = dir:
@@ -48,7 +56,12 @@
         }
         // lib.mapAttrs' (
           name: text: lib.nameValuePair ".omp/agent/skills/${name}/SKILL.md" {inherit text;}
-        ) (readSkills sharedSkillsSrc);
+        ) (readSkills sharedSkillsSrc)
+        # Task-agent roster ported from the claude-code agents (omp frontmatter,
+        # omp tool names; `task` in tools implies unrestricted spawns).
+        // lib.mapAttrs' (
+          name: text: lib.nameValuePair ".omp/agent/agents/${name}.md" {inherit text;}
+        ) (readMarkdown (configSrc + "/agents"));
     };
   };
 
