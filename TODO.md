@@ -9,6 +9,11 @@
       `nr -s`/`--staged` flag (stages only `flake.lock` and stashes unstaged
       tracked changes; see `modules/programs/fish/functions/nr.fish`). Update
       the sentence to cover both modes. Low priority.
+- [ ] `nr` (`modules/programs/fish/functions/nr.fish`): support long commit
+      messages — the single short `<message>` argument only allows a subject
+      line; add a way to pass a multi-line body (e.g. a repeatable `-m` flag,
+      a body option, or reading stdin) so rebuild commits can carry full
+      commit messages.
 - [ ] Update the specs conventions so new specs never cite code by line number —
       cite file paths with durable content anchors (symbol names or short quoted
       phrases) instead, since line numbers rot as the tree changes under a spec's
