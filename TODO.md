@@ -325,6 +325,22 @@
       `home.file.".claude/keybindings.json"` in
       `modules/programs/claude-code/claude-code.nix`) to oh-my-pi's keybinding
       system, if the equivalent itch appears in omp's TUI. Low priority.
+- [ ] omp migration follow-up (`specs/omp-migration/`): verify the Superpowers
+      plugin works under oh-my-pi on a target machine after the one-time
+      `omp plugin marketplace add anthropics/claude-plugins-official` +
+      `omp plugin install superpowers@claude-plugins-official`. Verified from
+      the pinned omp 16.4.1 source: plugin *skills* load (the claude-plugins
+      discovery provider scans the plugin's `skills/` dir), but Claude-format
+      `hooks/hooks.json` event hooks do NOT run (omp only loads plugin
+      `hooks/pre/*` and `hooks/post/*` shell scripts), so superpowers'
+      SessionStart skill-injection hook will not fire —
+      `~/.omp/agent/AGENTS.md` carries a fallback line pointing at the
+      `using-superpowers` skill. Confirm on a real session that the
+      superpowers skills surface and the flow works from that pointer alone.
+- [ ] omp migration follow-up (`specs/omp-migration/`): check what
+      superpowers' per-harness adaptation does under oh-my-pi (unverifiable
+      from source alone; needs a live session on redwood/spruce/aspen after
+      the plugin install).
 
 ## Waiting on upstream
 
