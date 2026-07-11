@@ -1,20 +1,18 @@
 {inputs, ...}: {
   # oh-my-pi (omp): batteries-included fork of the `pi` coding agent —
   # subagents, MCP, built-in LSP, skills, plan mode. Installs for whichever
-  # users list it in flake.users.<name>.programs (rationale in
-  # specs/omp-migration/ until graduation).
+  # users list it in flake.users.<name>.programs.
   #
   # The package comes from llm-agents.nix (numtide), which bumps its agents
   # daily and pushes builds to cache.numtide.com, so omp's Rust core is never
   # compiled locally and the pin still moves only with flake.lock.
   # Deliberately NOT `inputs.nixpkgs.follows = "nixpkgs"`: following our
   # nixpkgs would rebuild omp against it and miss the binary cache, which only
-  # holds builds against the flake's own pin (mac-app-util precedent).
+  # holds builds against the flake's own pin.
   flake-file.inputs.llm-agents.url = "github:numtide/llm-agents.nix";
 
   # Per-user install on both platforms. No HM programs.oh-my-pi module exists,
-  # so the generator supplies the enable toggle and installs omp behind it
-  # (kubernetes precedent).
+  # so the generator supplies the enable toggle and installs omp behind it.
   flake.programs.oh-my-pi = {
     install.linux = ["home"];
     install.macos = ["home"];
