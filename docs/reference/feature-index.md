@@ -110,15 +110,19 @@ Flake-level machinery and third-party tool wiring.
 
 ## modules/programs
 
-The 34 program features; converted ones carry a `flake.programs`
+One folder per program feature; converted ones carry a `flake.programs`
 declaration, the rest are hand-written aspects.
 
+- `agents-shared/` — agent-agnostic skill sources inlined by both the
+  claude-code and oh-my-pi config modules (no `.nix` files of its own). See
+  [coding agents](../explanation/coding-agents.md).
 - `beekeeper-studio/` — cross-platform SQL client.
 - `blender/` — 3D modeling/art, with HIP GPU rendering on AMD hosts.
 - `candy-icons/` — gradient vector icon theme.
 - `claude-code/` — Anthropic's terminal coding assistant, declaratively
-  configured. See [claude-code
-  config](../explanation/claude-code-config.md).
+  configured; `jake.neau`'s agent. See [claude-code
+  config](../explanation/claude-code-config.md), [coding
+  agents](../explanation/coding-agents.md).
 - `cli-tools/` — cross-platform command-line tools via home-manager.
 - `clipse/` — clipboard manager with a TUI history picker.
 - `davinci-resolve/` — professional video editor, with Rusticl OpenCL on
@@ -142,6 +146,10 @@ declaration, the rest are hand-written aspects.
 - `libreoffice/` — office suite.
 - `librewolf/` — privacy-hardened Firefox fork, Jake's daily browser.
 - `nvf/` — declarative Neovim, the same editor on every host.
+- `oh-my-pi/` — the omp coding agent; `jakeneau`'s agent, with declarative
+  `~/.omp/agent/` config and the numtide binary-cache aspect. See
+  [oh-my-pi](oh-my-pi.md), [coding
+  agents](../explanation/coding-agents.md).
 - `papirus-icon-theme/` — fallback icon set.
 - `pavucontrol/` — sound settings GUI.
 - `podman/` — daemonless container engine.
@@ -163,7 +171,7 @@ declaration, the rest are hand-written aspects.
 Each holds the user's `flake.users` declaration (where one exists), the
 factory instantiation, and per-user config.
 
-- `jake.neau/` — Jake's work user; cedar only; kubernetes via
-  `hosts.cedar.programs`.
+- `jake.neau/` — Jake's work user; cedar only; claude-code via `programs`,
+  kubernetes via `hosts.cedar.programs`.
 - `jakeneau/` — Jake's personal user; the NixOS machines and the personal
-  MacBook.
+  MacBook; oh-my-pi via `programs`.

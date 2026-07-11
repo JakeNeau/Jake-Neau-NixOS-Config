@@ -4,16 +4,22 @@ Why Claude Code's configuration — skills, agents, hooks, MCP servers,
 sandbox policy — is managed as a subsystem of this flake
 (`modules/programs/claude-code/`), and the design choices that shape it.
 
-## The goal: one config, every machine
+## The goal: one config, wherever it's used
 
 Claude Code's config normally accretes per machine under `~/.claude`. Here
 the durable parts are authored as plain files in the repo
 (`modules/programs/claude-code/config/`: `agents/`, `commands/`, `rules/`,
-`hooks/`, `skills/`, `CLAUDE.md`) and delivered through the home-manager
-aspect, so every machine gets the same assistant and changes ride the
-normal rebuild flow. The config *directory* stays at its upstream default
-— `~/.claude`, untouched `configDir` — so live state (memory, project
-history) keeps working.
+`hooks/`, `skills/`, `CLAUDE.md`) and carried by the
+`flake.programs.claude-code` declaration, so every home that requests it
+gets the same assistant and changes ride the normal rebuild flow. Today
+that is `jake.neau`'s `flake.users` entry — claude-code is cedar's agent,
+while the other machines run oh-my-pi; why the split routes per user:
+[coding agents](coding-agents.md). Skills that aren't Claude-specific live
+in the shared source directory `modules/programs/agents-shared/skills/`
+and are merged with the module's own set, so one text serves both agents.
+The config *directory* stays at its upstream default — `~/.claude`,
+untouched `configDir` — so live state (memory, project history) keeps
+working.
 
 ## Inline content, not symlinked directories
 
