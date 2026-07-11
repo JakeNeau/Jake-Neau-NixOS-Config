@@ -43,8 +43,9 @@ my-project/
 ## Steps
 
 1. **Write `AGENTS.md`** at the repo root — the project instructions (the same
-   content you would otherwise put in `CLAUDE.md`). See [[skill:writing-claude-md]]
-   for what belongs there.
+   content you would otherwise put in `CLAUDE.md`): what the project is, its
+   conventions, how to build and validate changes, and the cautions an agent
+   must know — durable facts, not session-specific detail.
 2. **Write skills** under `.agents/skills/<name>/SKILL.md`, one folder per skill.
    Each file is YAML frontmatter (`name` + `description`) then a body — the
    cross-tool Agent Skills format. See [[skill:writing-skills]] for the anatomy
@@ -62,16 +63,17 @@ my-project/
    pattern, per each tool's documented path (e.g. Codex, Cursor); check the
    tool's docs for where it looks.
 
-## On this machine, the hook already covers Claude Code
+## On this user's machines, `AGENTS.md` is already seen
 
-The global `agents-md-context` `SessionStart` hook ([[hook:agents-md-context]])
-auto-injects a root `AGENTS.md` and each `.agents/skills/` skill's frontmatter
-into every Claude Code session — so on this user's machines Claude Code *sees*
-both even before you add the symlinks. But the hook only injects descriptions as
-context text; it does not register skills as invokable via the Skill tool. So the
-`.claude/skills/` symlinks are still worth adding for full native behavior, and
-are required on any machine or tool without the hook. The hook and the symlinks
-are complementary, not redundant.
+Tools that read `AGENTS.md` natively (oh-my-pi, Codex, Cursor, …) discover the
+root file themselves, and on this user's machines Claude Code gets it too: a
+global `SessionStart` hook (`agents-md-context`) auto-injects a root `AGENTS.md`
+and each `.agents/skills/` skill's frontmatter into every Claude Code session.
+But that injection only supplies descriptions as context text; it does not
+register skills as natively invokable. So the vendor-path symlinks are still
+worth adding for full native behavior, and are required on any machine or tool
+without such support. The injection and the symlinks are complementary, not
+redundant.
 
 ## Don't
 
@@ -83,5 +85,4 @@ are complementary, not redundant.
 ## Related skills
 
 - [[skill:writing-skills]] — the SKILL.md anatomy (frontmatter + body) each skill file follows
-- [[skill:writing-claude-md]] — what belongs in the instructions file (AGENTS.md / CLAUDE.md)
 - [[skill:using-skills]] — how skills are discovered and the `[[ ]]` graph

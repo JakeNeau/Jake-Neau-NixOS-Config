@@ -40,8 +40,8 @@ say so rather than spawning another.
 
 - Imperative, concise subject (~50 chars); add a body only to explain the *why*.
 - One coherent, self-contained logical change per commit.
-- **Never attribute yourself** — no `Co-Authored-By`, no "Generated with Claude
-  Code", no self-reference anywhere in messages, branch names, or tags.
+- **Never attribute yourself** — no `Co-Authored-By`, no "Generated with …" tool
+  lines, no self-reference anywhere in messages, branch names, or tags.
 - Don't `push` or do anything outward-facing unless explicitly asked.
 
 ## This Nix config repo is special

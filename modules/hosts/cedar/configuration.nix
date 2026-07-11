@@ -16,8 +16,8 @@
     imports = [
       inputs.self.modules.darwin.role-desktop
       inputs.self.modules.darwin.podman
-      inputs.self.modules.darwin.local-ai
       inputs.self.modules.generic.cli
+      inputs.self.modules.generic.numtide-cache
     ];
 
     hostConstants.hostName = "cedar";

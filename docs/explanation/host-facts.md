@@ -69,4 +69,3 @@ two can never drift apart, and readers of the fact (fish's `mc-*` helpers,
 branching from standalone homes via the read-through) stay in lockstep
 with the service by construction. redwood imports the feature and keeps
 only the server definitions; the meaning travels with the import.
-`local-ai` follows the same pattern with `hostConstants.localAi`.

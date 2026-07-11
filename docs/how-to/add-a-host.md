@@ -42,7 +42,7 @@ In the same file, `flake.modules.<class>.<host>` carries what no declaration
 covers:
 
 - a role import (e.g. `inputs.self.modules.nixos.role-desktop`) and any
-  feature imports (daemons, `local-ai`, ...);
+  feature imports (daemons, ...);
 - `hostConstants.hostName` and `hostConstants.graphicsType` — **required, no
   defaults** — plus optional facts like `isLaptop`;
 - **darwin:** the host's `users.groups.config.members` line (membership is

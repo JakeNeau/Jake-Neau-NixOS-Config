@@ -307,6 +307,64 @@
       session-start sources (startup/resume/clear/compact) — confirmed via the
       installed Claude Code binary. Add a short note so future hook authors
       don't have to re-derive this from the binary.
+- [ ] omp migration follow-up (`specs/omp-migration/`): port the remaining
+      eight subagent definitions to oh-my-pi task agents. The first pass
+      (`specs/omp-migration/omp-config.md`) ports only the ten load-bearing
+      ones; still to port from `modules/programs/claude-code/config/agents/`
+      into the oh-my-pi module's `config/agents/`: doc-reader, doc-reviewer,
+      doc-writer, spec-reader, spec-writer, git-vcs, jujutsu-vcs, todo-writer
+      (omp frontmatter + tool-name adaptation).
+- [ ] omp migration follow-up (`specs/omp-migration/`): if RULES.md /
+      agent-prompt discipline proves too soft under oh-my-pi — the migration
+      drops Claude Code's seven gate hooks (plan-verifier gate, code-writer
+      gate, code-review gates, reminders) in favor of instructions — implement
+      equivalent enforcement as omp TypeScript hooks in the oh-my-pi config
+      module (`modules/programs/oh-my-pi/`).
+- [ ] omp migration follow-up (`specs/omp-migration/`): port the Claude Code
+      keybindings (alt+j/k scroll binds from
+      `home.file.".claude/keybindings.json"` in
+      `modules/programs/claude-code/claude-code.nix`) to oh-my-pi's keybinding
+      system, if the equivalent itch appears in omp's TUI. Low priority.
+- [ ] omp migration follow-up (`specs/omp-migration/`): verify the Superpowers
+      plugin works under oh-my-pi on a target machine after the one-time
+      `omp plugin marketplace add anthropics/claude-plugins-official` +
+      `omp plugin install superpowers@claude-plugins-official`. Verified from
+      the pinned omp 16.4.1 source: plugin *skills* load (the claude-plugins
+      discovery provider scans the plugin's `skills/` dir), but Claude-format
+      `hooks/hooks.json` event hooks do NOT run (omp only loads plugin
+      `hooks/pre/*` and `hooks/post/*` shell scripts), so superpowers'
+      SessionStart skill-injection hook will not fire —
+      `~/.omp/agent/AGENTS.md` carries a fallback line pointing at the
+      `using-superpowers` skill. Confirm on a real session that the
+      superpowers skills surface and the flow works from that pointer alone.
+- [ ] omp migration follow-up (`specs/omp-migration/`): check what
+      superpowers' per-harness adaptation does under oh-my-pi (unverifiable
+      from source alone; needs a live session on redwood/spruce/aspen after
+      the plugin install).
+- [ ] omp migration follow-up (`specs/omp-migration/nvim-integration.md`): add
+      an inline-assistant keymap (`<leader>ai`) for codecompanion on the
+      oh-my-pi homes (`modules/programs/nvf/nvf.nix`) once upstream supports
+      it. At the pinned vimplugin-codecompanion.nvim-19.17.0, codecompanion's
+      inline interaction supports HTTP adapters only, not ACP
+      (`lua/codecompanion/interactions/inline/init.lua` warns "Only HTTP
+      adapters are supported for inline interactions"), so the keymap was
+      deliberately omitted rather than faked. Recheck when the nixpkgs pin
+      bumps the plugin.
+- [ ] omp migration follow-up (`specs/omp-migration/nvim-integration.md`):
+      `<leader>ac` ("continue most recent session") was omitted on the
+      omp/codecompanion branch (`modules/programs/nvf/nvf.nix`) —
+      codecompanion has no ACP continue-without-picker mechanism, so
+      `<leader>ar`'s native `/resume` slash command (ACP `session/list` +
+      `session/load` picker) is the only session-restore path. Revisit if
+      codecompanion grows a "load most recent session" API.
+- [ ] omp migration follow-up (`specs/omp-migration/nvim-integration.md`): on
+      first live use of nvim + omp on an omp machine (redwood/spruce/aspen),
+      verify omp's ACP agent actually advertises the optional capabilities the
+      new codecompanion keymaps (`modules/programs/nvf/nvf.nix`) rely on:
+      `session/list` + `session/load` (else `<leader>ar` warns "this agent
+      does not support listing/loading sessions") and model listing via
+      `get_models` (else `<leader>am` finds no models). If omp lacks them,
+      drop or rework those keymaps.
 
 ## Waiting on upstream
 

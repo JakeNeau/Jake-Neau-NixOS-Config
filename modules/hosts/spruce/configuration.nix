@@ -10,7 +10,10 @@
   };
 
   flake.modules.nixos.spruce = {
-    imports = [inputs.self.modules.nixos.role-desktop];
+    imports = [
+      inputs.self.modules.nixos.role-desktop
+      inputs.self.modules.generic.numtide-cache
+    ];
 
     hostConstants.hostName = "spruce";
 

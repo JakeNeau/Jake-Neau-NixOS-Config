@@ -10,12 +10,13 @@
   };
 
   flake.modules.nixos.redwood = {pkgs, ...}: {
-    imports = with inputs.self.modules.nixos; [
-      role-desktop
-      local-ai
-      minegrub
-      nix-minecraft
-    ];
+    imports =
+      (with inputs.self.modules.nixos; [
+        role-desktop
+        minegrub
+        nix-minecraft
+      ])
+      ++ [inputs.self.modules.generic.numtide-cache];
 
     hostConstants.hostName = "redwood";
 
