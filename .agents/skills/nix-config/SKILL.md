@@ -141,7 +141,7 @@ Every kind of edit, with the page that carries the depth:
   hosts or roles that run it; declarations don't cover services.
 - **Touch roles and baselines** — roles live in `modules/host-config/roles/`
   as aggregate aspects (`role-minimal`, `role-default`, `role-desktop`,
-  `niri-desktop`, `local-ai`); their homeManager aggregates reach homes only
+  `niri-desktop`); their homeManager aggregates reach homes only
   through a host declaration's `baselines` list.
   [Feature index](../../../docs/reference/feature-index.md).
 - **Add a flake input** — never edit `flake.nix`; add it to the feature's

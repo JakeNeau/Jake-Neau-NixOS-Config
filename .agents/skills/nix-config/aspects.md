@@ -249,7 +249,7 @@ in `flake.lib`. For a value used in just one file, a plain `let … in` is light
         type = lib.types.bool;
         default = false;
       };
-      # hostName, graphicsType, localAi, …
+      # hostName, graphicsType, minecraftServer, …
     };
   };
 }

@@ -67,8 +67,6 @@ Machine-level config: what needs root, shared by all users.
   - `niri-desktop/` — the complete niri wayland desktop in one import
     (compositor, portals, greetd session, per-user wayland plumbing);
     NixOS-only.
-  - `local-ai/` — hosts that run the local AI stack: imports llama-server
-    and sets `hostConstants.localAi` beside it.
 
 ## modules/hosts
 
@@ -159,11 +157,6 @@ declaration, the rest are hand-written aspects.
 - `xwayland-satellite/` — rootless Xwayland for niri.
 - `yazi/` — TUI file browser; on Linux also the xdg-desktop-portal file
   chooser (hand-written `nixos` aspect).
-
-## modules/services
-
-- `llama-server/` — two llama.cpp servers (instruct hover + FIM
-  completion) that nvf's AI bindings point at.
 
 ## modules/users
 

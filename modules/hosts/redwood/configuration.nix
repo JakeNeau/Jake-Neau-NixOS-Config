@@ -13,7 +13,6 @@
     imports =
       (with inputs.self.modules.nixos; [
         role-desktop
-        local-ai
         minegrub
         nix-minecraft
       ])

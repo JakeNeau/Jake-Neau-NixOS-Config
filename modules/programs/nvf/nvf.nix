@@ -14,11 +14,6 @@
     config,
     ...
   }: let
-    # Local AI features (the <leader>ak hover and llama.vim autocomplete) only
-    # exist on hosts that run the llama-server stack. The fact is forwarded from
-    # the system level via hostConstants (see modules/host-config/roles/local-ai).
-    localAi = config.hostConstants.localAi;
-
     # Which AI agent plugin this home gets, read from the sibling program
     # state in the same home config. The enable options only exist in homes
     # that import the generated program unit, hence attrByPath. oh-my-pi wins
@@ -70,32 +65,6 @@
         # Read at plugin-load time, so it must be set here, before the plugin
         # sources (same early-globals path as mapleader above).
         globals.suda_smart_edit = 1;
-
-        # llama.vim FIM autocomplete (local-ai hosts only). Point it at the
-        # local FIM server's /infill port. llama.vim's defaults grab insert
-        # <Tab>/<S-Tab> (clashing with nvim-cmp) and even normal-mode <Tab>/<Esc>
-        # for its instruct feature, so move FIM-accept onto a free chord (<C-l>)
-        # and disable everything we don't use ("" disables a keymap).
-        globals.llama_config = lib.mkIf localAi {
-          endpoint_fim = "http://127.0.0.1:8012/infill";
-          keymap_fim_trigger = "<C-g>";
-          keymap_fim_accept_full = "<C-l>";
-          keymap_fim_accept_line = "";
-          keymap_fim_accept_word = "";
-          keymap_inst_trigger = "";
-          keymap_inst_rerun = "";
-          keymap_inst_continue = "";
-          keymap_inst_accept = "";
-          keymap_inst_cancel = "";
-          keymap_debug_toggle = "";
-          show_info = 0; # no inline inference-stats line after the suggestion
-        };
-
-        # llama.vim hardcodes its FIM ghost text to orange (highlight default
-        # llama_hl_fim_hint guifg=#ff772f). Override it to the muted Comment
-        # color so the suggestion reads as conventional gray ghost text;
-        # linking to Comment tracks the theme on both NixOS (stylix) and Darwin.
-        highlight.llama_hl_fim_hint = lib.mkIf localAi {link = "Comment";};
 
         # Pressing escape clears all highlighted search results
         hideSearchHighlight = true;
@@ -439,14 +408,6 @@
                   desc = "CodeCompanion actions";
                 }
               ];
-            };
-
-            # llama.vim: inline FIM autocomplete from the local llama-server
-            # (local-ai hosts only). Ghost text only matters while typing, so
-            # load on first InsertEnter; configured via globals.llama_config.
-            "llama.vim" = lib.mkIf localAi {
-              package = pkgs.vimPlugins.llama-vim;
-              event = ["InsertEnter"];
             };
 
             # jujutsu under <leader>j, mirroring the git <leader>g prefix. Only
@@ -893,743 +854,444 @@
         # ---------------
         # Other keymaps
         # ---------------
-        keymaps =
-          [
-            # Window navigation, normal mode. Terminal-mode variants below break
-            # out of the terminal first (<C-\><C-n>) so the same chord escapes
-            # the Claude Code terminal and lands in a code window in one press.
-            {
-              key = "<C-h>";
-              mode = "n";
-              action = "<C-w>h";
-              desc = "Focus window left";
-            }
-            {
-              key = "<C-j>";
-              mode = "n";
-              action = "<C-w>j";
-              desc = "Focus window below";
-            }
-            {
-              key = "<C-k>";
-              mode = "n";
-              action = "<C-w>k";
-              desc = "Focus window above";
-            }
-            {
-              key = "<C-l>";
-              mode = "n";
-              action = "<C-w>l";
-              desc = "Focus window right";
-            }
-            {
-              key = "<C-h>";
-              mode = "t";
-              action = "<C-\\><C-n><C-w>h";
-              desc = "Focus window left";
-            }
-            {
-              key = "<C-j>";
-              mode = "t";
-              action = "<C-\\><C-n><C-w>j";
-              desc = "Focus window below";
-            }
-            {
-              key = "<C-k>";
-              mode = "t";
-              action = "<C-\\><C-n><C-w>k";
-              desc = "Focus window above";
-            }
-            {
-              key = "<C-l>";
-              mode = "t";
-              action = "<C-\\><C-n><C-w>l";
-              desc = "Focus window right";
-            }
-            # As above, but add Shift to move the window instead of focusing it.
-            {
-              key = "<C-S-h>";
-              mode = "n";
-              action = "<C-w>H";
-              desc = "Move window left";
-            }
-            {
-              key = "<C-S-j>";
-              mode = "n";
-              action = "<C-w>J";
-              desc = "Move window down";
-            }
-            {
-              key = "<C-S-k>";
-              mode = "n";
-              action = "<C-w>K";
-              desc = "Move window up";
-            }
-            {
-              key = "<C-S-l>";
-              mode = "n";
-              action = "<C-w>L";
-              desc = "Move window right";
-            }
-            {
-              key = "<C-S-h>";
-              mode = "t";
-              action = "<C-\\><C-n><C-w>H";
-              desc = "Move window left";
-            }
-            {
-              key = "<C-S-j>";
-              mode = "t";
-              action = "<C-\\><C-n><C-w>J";
-              desc = "Move window down";
-            }
-            {
-              key = "<C-S-k>";
-              mode = "t";
-              action = "<C-\\><C-n><C-w>K";
-              desc = "Move window up";
-            }
-            {
-              key = "<C-S-l>";
-              mode = "t";
-              action = "<C-\\><C-n><C-w>L";
-              desc = "Move window right";
-            }
-            # You resize while staying in the window, so unlike focus/move these
-            # use <cmd> (one mode-preserving entry) instead of the <C-\><C-n>
-            # break-out — terminal typing keeps working.
-            {
-              key = "<C-A-h>";
-              mode = ["n" "t"];
-              action = "<cmd>vertical resize -2<cr>";
-              desc = "Shrink window width";
-            }
-            {
-              key = "<C-A-j>";
-              mode = ["n" "t"];
-              action = "<cmd>resize -2<cr>";
-              desc = "Shrink window height";
-            }
-            {
-              key = "<C-A-k>";
-              mode = ["n" "t"];
-              action = "<cmd>resize +2<cr>";
-              desc = "Grow window height";
-            }
-            {
-              key = "<C-A-l>";
-              mode = ["n" "t"];
-              action = "<cmd>vertical resize +2<cr>";
-              desc = "Grow window width";
-            }
-            # Ctrl+; drops terminal-insert into terminal-normal in place (to
-            # scroll/copy), without the window jump the <C-hjkl> maps do. Needs
-            # the kitty keyboard protocol to encode Ctrl+;, which Ghostty speaks.
-            {
-              key = "<C-;>";
-              mode = "t";
-              action = "<C-\\><C-n>";
-              desc = "Exit terminal mode";
-            }
-            {
-              key = "-";
-              mode = "n";
-              action = "<cmd>Oil<cr>";
-              desc = "Open oil (parent directory)";
-            }
-            # Same as `-`, but from any mode. <cmd> runs :Oil without changing
-            # mode, so insert and terminal mode work without a break-out chord.
-            {
-              key = "<A-->";
-              mode = ["n" "i" "v" "t"];
-              action = "<cmd>Oil<cr>";
-              desc = "Open oil (parent directory), any mode";
-            }
-            {
-              # Turn the current window into a terminal from any mode, always
-              # cwd'd to the base dir. getcwd(-1, -1) reads the global cwd (the
-              # base, set by <A-b>), ignoring any window-local :lcd drift. (oil's
-              # `t` opens in oil's dir.)
-              key = "<A-t>";
-              mode = ["n" "i" "v" "t"];
-              lua = true;
-              action = ''
-                function()
-                  vim.cmd.lcd({ vim.fn.getcwd(-1, -1) })
-                  vim.cmd.terminal()
-                  vim.cmd.startinsert()
-                end
-              '';
-              desc = "Open a terminal in this window (base dir), any mode";
-            }
-            {
-              # Set the base dir (global :cd, what <A-t> opens in) to "here":
-              # oil's folder, a terminal's live cwd (tracked via OSC 7 below), or
-              # the current file's folder. notify since a cwd change is invisible.
-              key = "<A-b>";
-              mode = ["n" "i" "v" "t"];
-              lua = true;
-              action = ''
-                function()
-                  local dir
-                  if vim.bo.filetype == "oil" then
-                    dir = require("oil").get_current_dir()
-                  elseif vim.bo.buftype == "terminal" then
-                    dir = vim.b.osc7_dir
-                  elseif vim.api.nvim_buf_get_name(0) ~= "" then
-                    dir = vim.fn.expand("%:p:h")
-                  end
-                  if dir and vim.fn.isdirectory(dir) == 1 then
-                    vim.cmd.cd({ dir })
-                    vim.notify("base dir → " .. dir)
-                  else
-                    vim.notify("couldn't determine a directory here", vim.log.levels.WARN)
-                  end
-                end
-              '';
-              desc = "Set the base dir to here (oil / terminal / file), any mode";
-            }
-            # Cycle buffers (shadows the default screen-top/bottom motions).
-            {
-              key = "<S-l>";
-              mode = "n";
-              action = "<cmd>bnext<cr>";
-              desc = "Next buffer";
-            }
-            {
-              key = "<S-h>";
-              mode = "n";
-              action = "<cmd>bprevious<cr>";
-              desc = "Previous buffer";
-            }
-            {
-              # Recommended by the which-key README: show only the keymaps
-              # local to the current buffer (e.g. oil's browser mappings).
-              key = "<leader>?";
-              mode = "n";
-              lua = true;
-              action = ''function() require("which-key").show({ global = false }) end'';
-              desc = "Buffer local keymaps (which-key)";
-            }
-            {
-              key = "<A-v>";
-              mode = ["n" "x"];
-              action = "<C-v>";
-              desc = "Visual block mode (ctrl+v is paste in ghostty)";
-            }
-            # -----------------------------------
-            # Alt+hjkl: move the cursor, any mode
-            # -----------------------------------
-            # Insert mode uses arrows so the cursor moves without leaving insert.
-            # Needs Ghostty's macos-option-as-alt to deliver Option as Alt.
-            {
-              key = "<A-h>";
-              mode = ["n" "x" "o"];
-              action = "h";
-              desc = "Move cursor left";
-            }
-            {
-              key = "<A-j>";
-              mode = ["n" "x" "o"];
-              action = "j";
-              desc = "Move cursor down";
-            }
-            {
-              key = "<A-k>";
-              mode = ["n" "x" "o"];
-              action = "k";
-              desc = "Move cursor up";
-            }
-            {
-              key = "<A-l>";
-              mode = ["n" "x" "o"];
-              action = "l";
-              desc = "Move cursor right";
-            }
-            {
-              key = "<A-h>";
-              mode = "i";
-              action = "<Left>";
-              desc = "Move cursor left";
-            }
-            {
-              key = "<A-j>";
-              mode = "i";
-              action = "<Down>";
-              desc = "Move cursor down";
-            }
-            {
-              key = "<A-k>";
-              mode = "i";
-              action = "<Up>";
-              desc = "Move cursor up";
-            }
-            {
-              key = "<A-l>";
-              mode = "i";
-              action = "<Right>";
-              desc = "Move cursor right";
-            }
-            # ---------------------------------------
-            # Alt+Shift+j/k: half-page scroll down/up
-            # ---------------------------------------
-            # Uppercase <A-J>/<A-K> is the robust notation for an Alt+shifted
-            # letter. noremap (nvf's default) keeps the <C-d>/<C-u> RHS bound to
-            # builtin scroll even though both are disabled just below.
-            {
-              key = "<A-J>";
-              mode = ["n" "x"];
-              action = "<C-d>";
-              desc = "Half page down";
-            }
-            {
-              key = "<A-K>";
-              mode = ["n" "x"];
-              action = "<C-u>";
-              desc = "Half page up";
-            }
-            # Insert mode: <C-o> runs one builtin scroll and returns to insert,
-            # so typing isn't interrupted (like the Alt+hjkl insert maps above).
-            {
-              key = "<A-J>";
-              mode = "i";
-              action = "<C-o><C-d>";
-              desc = "Half page down";
-            }
-            {
-              key = "<A-K>";
-              mode = "i";
-              action = "<C-o><C-u>";
-              desc = "Half page up";
-            }
-            # Terminal mode: break out to terminal-normal first (like the window
-            # focus/move maps) — scrollback can't move while the job has focus.
-            {
-              key = "<A-J>";
-              mode = "t";
-              action = "<C-\\><C-n><C-d>";
-              desc = "Half page down";
-            }
-            {
-              key = "<A-K>";
-              mode = "t";
-              action = "<C-\\><C-n><C-u>";
-              desc = "Half page up";
-            }
-            # Drop the builtin Ctrl+d/Ctrl+u scroll in normal/visual only, so
-            # insert-mode Ctrl+u/Ctrl+d editing is left alone.
-            {
-              key = "<C-d>";
-              mode = ["n" "x"];
-              action = "<Nop>";
-              desc = "Disabled (half page is Alt+Shift+j)";
-            }
-            {
-              key = "<C-u>";
-              mode = ["n" "x"];
-              action = "<Nop>";
-              desc = "Disabled (half page is Alt+Shift+k)";
-            }
-
-            # --------------------------------
-            # Snacks pickers (Find <leader>f)
-            # --------------------------------
-            # The `Snacks` global is available once the picker is enabled above.
-            {
-              key = "<leader>ff";
-              mode = ["n"];
-              lua = true;
-              action = ''function() Snacks.picker.files() end'';
-              desc = "Find files";
-            }
-            {
-              key = "<leader>fg";
-              mode = ["n"];
-              lua = true;
-              action = ''function() Snacks.picker.grep() end'';
-              desc = "Grep";
-            }
-            {
-              key = "<leader>fb";
-              mode = ["n"];
-              lua = true;
-              action = ''function() Snacks.picker.buffers() end'';
-              desc = "Buffers";
-            }
-            {
-              key = "<leader>fh";
-              mode = ["n"];
-              lua = true;
-              action = ''function() Snacks.picker.help() end'';
-              desc = "Help tags";
-            }
-            {
-              key = "<leader>fd";
-              mode = ["n"];
-              lua = true;
-              action = ''function() Snacks.picker.diagnostics() end'';
-              desc = "Diagnostics";
-            }
-            {
-              key = "<leader>fr";
-              mode = ["n"];
-              lua = true;
-              action = ''function() Snacks.picker.lsp_references() end'';
-              desc = "LSP references";
-            }
-            {
-              key = "<leader>fD";
-              mode = ["n"];
-              lua = true;
-              action = ''function() Snacks.picker.lsp_definitions() end'';
-              desc = "LSP definitions";
-            }
-
-            # ----------------------------------
-            # Snacks git pickers (Git <leader>g)
-            # ----------------------------------
-            # On the <leader>g prefix alongside gitsigns, so all git shares it.
-            {
-              key = "<leader>gf";
-              mode = ["n"];
-              lua = true;
-              action = ''function() Snacks.picker.git_files() end'';
-              desc = "Git files";
-            }
-            {
-              key = "<leader>gc";
-              mode = ["n"];
-              lua = true;
-              action = ''function() Snacks.picker.git_log() end'';
-              desc = "Git commits";
-            }
-            {
-              key = "<leader>gC";
-              mode = ["n"];
-              lua = true;
-              action = ''function() Snacks.picker.git_log_file() end'';
-              desc = "Git buffer commits";
-            }
-            {
-              key = "<leader>gB";
-              mode = ["n"];
-              lua = true;
-              action = ''function() Snacks.picker.git_branches() end'';
-              desc = "Git branches";
-            }
-            {
-              key = "<leader>go";
-              mode = ["n"];
-              lua = true;
-              action = ''function() Snacks.picker.git_status() end'';
-              desc = "Git status";
-            }
-            {
-              key = "<leader>gx";
-              mode = ["n"];
-              lua = true;
-              action = ''function() Snacks.picker.git_stash() end'';
-              desc = "Git stash";
-            }
-          ]
-          # Local AI hovers (see luaConfigRC below), joining the existing
-          # <leader>a "AI/Claude Code" which-key group. ak/aq act on the symbol
-          # under the cursor (or the visual selection); ah is a global config
-          # query with no cursor context.
-          ++ lib.optionals localAi [
-            {
-              key = "<leader>ak";
-              mode = ["n"];
-              lua = true;
-              action = ''function() require("llama_explain").explain() end'';
-              desc = "Explain symbol (local AI)";
-            }
-            {
-              key = "<leader>ak";
-              mode = ["x"];
-              lua = true;
-              action = ''function() require("llama_explain").explain_visual() end'';
-              desc = "Explain selection (local AI)";
-            }
-            {
-              key = "<leader>aq";
-              mode = ["n"];
-              lua = true;
-              action = ''function() require("llama_explain").ask() end'';
-              desc = "Ask about symbol (local AI)";
-            }
-            {
-              key = "<leader>aq";
-              mode = ["x"];
-              lua = true;
-              action = ''function() require("llama_explain").ask_visual() end'';
-              desc = "Ask about selection (local AI)";
-            }
-            {
-              key = "<leader>ah";
-              mode = ["n"];
-              lua = true;
-              action = ''function() require("llama_explain").how() end'';
-              desc = "How do I…? (local AI)";
-            }
-          ];
-
-        # Local AI hovers, shown in the same float style as the LSP `K` hover.
-        # `explain` summarizes the code; `ask` answers a typed question about it.
-        # Both target the visual selection, else the symbol under the cursor, and
-        # feed the model the whole file plus the LSP-resolved definition of the
-        # symbol (which may live in another file) so its answers aren't blind to
-        # the rest of the code. `how` instead feeds the editor's live keymaps and
-        # commands and answers a plain-language "how do I…?" config question. The
-        # HTTP call is async (vim.system) so it never blocks; the one short
-        # definition lookup is sync. Exposed as the llama_explain module the
-        # keymaps above require.
-        luaConfigRC.llamaExplain = lib.mkIf localAi ''
-          local M = {}
-
-          -- POST a chat completion to the local instruct server and render the
-          -- reply in a float. Replies come back as one long line; max_width
-          -- forces the float to wrap (it also sets wrap_at) instead of
-          -- stretching across the screen.
-          local function chat(system, user, placeholder)
-            local body = vim.json.encode({
-              messages = {
-                { role = "system", content = system },
-                { role = "user", content = user },
-              },
-              temperature = 0.2,
-              max_tokens = 512,
-              stream = false,
-            })
-            local float = { border = "rounded", max_width = 60 }
-            vim.lsp.util.open_floating_preview({ placeholder }, "markdown", float)
-            vim.system(
-              { "curl", "-sS", "--max-time", "30", "http://127.0.0.1:8011/v1/chat/completions",
-                "-H", "Content-Type: application/json", "-d", body },
-              { text = true },
-              function(out)
-                local ok, decoded = pcall(vim.json.decode, out.stdout or "")
-                local msg = (ok and decoded.choices and decoded.choices[1])
-                  and decoded.choices[1].message.content
-                  or "llama-server unreachable (is the local-ai service up on :8011?)"
-                vim.schedule(function()
-                  vim.lsp.util.open_floating_preview(vim.split(vim.trim(msg), "\n"), "markdown", float)
-                end)
+        keymaps = [
+          # Window navigation, normal mode. Terminal-mode variants below break
+          # out of the terminal first (<C-\><C-n>) so the same chord escapes
+          # the Claude Code terminal and lands in a code window in one press.
+          {
+            key = "<C-h>";
+            mode = "n";
+            action = "<C-w>h";
+            desc = "Focus window left";
+          }
+          {
+            key = "<C-j>";
+            mode = "n";
+            action = "<C-w>j";
+            desc = "Focus window below";
+          }
+          {
+            key = "<C-k>";
+            mode = "n";
+            action = "<C-w>k";
+            desc = "Focus window above";
+          }
+          {
+            key = "<C-l>";
+            mode = "n";
+            action = "<C-w>l";
+            desc = "Focus window right";
+          }
+          {
+            key = "<C-h>";
+            mode = "t";
+            action = "<C-\\><C-n><C-w>h";
+            desc = "Focus window left";
+          }
+          {
+            key = "<C-j>";
+            mode = "t";
+            action = "<C-\\><C-n><C-w>j";
+            desc = "Focus window below";
+          }
+          {
+            key = "<C-k>";
+            mode = "t";
+            action = "<C-\\><C-n><C-w>k";
+            desc = "Focus window above";
+          }
+          {
+            key = "<C-l>";
+            mode = "t";
+            action = "<C-\\><C-n><C-w>l";
+            desc = "Focus window right";
+          }
+          # As above, but add Shift to move the window instead of focusing it.
+          {
+            key = "<C-S-h>";
+            mode = "n";
+            action = "<C-w>H";
+            desc = "Move window left";
+          }
+          {
+            key = "<C-S-j>";
+            mode = "n";
+            action = "<C-w>J";
+            desc = "Move window down";
+          }
+          {
+            key = "<C-S-k>";
+            mode = "n";
+            action = "<C-w>K";
+            desc = "Move window up";
+          }
+          {
+            key = "<C-S-l>";
+            mode = "n";
+            action = "<C-w>L";
+            desc = "Move window right";
+          }
+          {
+            key = "<C-S-h>";
+            mode = "t";
+            action = "<C-\\><C-n><C-w>H";
+            desc = "Move window left";
+          }
+          {
+            key = "<C-S-j>";
+            mode = "t";
+            action = "<C-\\><C-n><C-w>J";
+            desc = "Move window down";
+          }
+          {
+            key = "<C-S-k>";
+            mode = "t";
+            action = "<C-\\><C-n><C-w>K";
+            desc = "Move window up";
+          }
+          {
+            key = "<C-S-l>";
+            mode = "t";
+            action = "<C-\\><C-n><C-w>L";
+            desc = "Move window right";
+          }
+          # You resize while staying in the window, so unlike focus/move these
+          # use <cmd> (one mode-preserving entry) instead of the <C-\><C-n>
+          # break-out — terminal typing keeps working.
+          {
+            key = "<C-A-h>";
+            mode = ["n" "t"];
+            action = "<cmd>vertical resize -2<cr>";
+            desc = "Shrink window width";
+          }
+          {
+            key = "<C-A-j>";
+            mode = ["n" "t"];
+            action = "<cmd>resize -2<cr>";
+            desc = "Shrink window height";
+          }
+          {
+            key = "<C-A-k>";
+            mode = ["n" "t"];
+            action = "<cmd>resize +2<cr>";
+            desc = "Grow window height";
+          }
+          {
+            key = "<C-A-l>";
+            mode = ["n" "t"];
+            action = "<cmd>vertical resize +2<cr>";
+            desc = "Grow window width";
+          }
+          # Ctrl+; drops terminal-insert into terminal-normal in place (to
+          # scroll/copy), without the window jump the <C-hjkl> maps do. Needs
+          # the kitty keyboard protocol to encode Ctrl+;, which Ghostty speaks.
+          {
+            key = "<C-;>";
+            mode = "t";
+            action = "<C-\\><C-n>";
+            desc = "Exit terminal mode";
+          }
+          {
+            key = "-";
+            mode = "n";
+            action = "<cmd>Oil<cr>";
+            desc = "Open oil (parent directory)";
+          }
+          # Same as `-`, but from any mode. <cmd> runs :Oil without changing
+          # mode, so insert and terminal mode work without a break-out chord.
+          {
+            key = "<A-->";
+            mode = ["n" "i" "v" "t"];
+            action = "<cmd>Oil<cr>";
+            desc = "Open oil (parent directory), any mode";
+          }
+          {
+            # Turn the current window into a terminal from any mode, always
+            # cwd'd to the base dir. getcwd(-1, -1) reads the global cwd (the
+            # base, set by <A-b>), ignoring any window-local :lcd drift. (oil's
+            # `t` opens in oil's dir.)
+            key = "<A-t>";
+            mode = ["n" "i" "v" "t"];
+            lua = true;
+            action = ''
+              function()
+                vim.cmd.lcd({ vim.fn.getcwd(-1, -1) })
+                vim.cmd.terminal()
+                vim.cmd.startinsert()
               end
-            )
-          end
-
-          -- Capture the highlighted text. Called only from the visual-mode maps,
-          -- so the marks are live; reads `mode` only for getregion's type.
-          local function selection()
-            local mode = vim.fn.mode()
-            local region = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = mode })
-            -- Leave visual mode so the highlight doesn't linger behind the float.
-            vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "nx", false)
-            return table.concat(region, "\n")
-          end
-
-          -- Resolve one LSP definition location to a labeled snippet. The target
-          -- often lives elsewhere (stdlib, for `Vec`/`Arc`); read it straight from
-          -- disk, not via a buffer — loading a not-yet-open file can invalidate
-          -- that buffer before we read it, which crashed `explain`.
-          local function read_def(word, uri, range)
-            local path = vim.uri_to_fname(uri)
-            local from = range.start.line
-            local lines = {}
-            -- readfile errors on an unreadable path, so guard it.
-            if vim.fn.filereadable(path) == 1 then
-              lines = vim.list_slice(vim.fn.readfile(path, "", from + 30), from + 1, from + 30)
-            end
-            local src = table.concat(lines, "\n")
-            local rel = vim.fn.fnamemodify(path, ":.")
-            return path .. ":" .. from, "### `" .. word .. "` (" .. rel .. ":" .. (from + 1) .. ")\n" .. src
-          end
-
-          -- Ask the running language server where the symbol under the cursor is
-          -- defined and return its source (deduped), or nil. This is the
-          -- "open other files for context" piece — reuse the LSP, don't grep.
-          local function definitions(word, pos)
-            if vim.tbl_isempty(vim.lsp.get_clients({ bufnr = 0 })) then return nil end
-            local params = {
-              textDocument = { uri = vim.uri_from_bufnr(0) },
-              position = { line = pos[1] - 1, character = pos[2] },
-            }
-            local res = vim.lsp.buf_request_sync(0, "textDocument/definition", params, 200)
-            if not res then return nil end
-            local out, seen = {}, {}
-            for _, r in pairs(res) do
-              local result = r.result or {}
-              -- a single Location/LocationLink, or a list of them
-              if result.uri or result.targetUri then result = { result } end
-              for _, loc in ipairs(result) do
-                local uri = loc.uri or loc.targetUri
-                local range = loc.range or loc.targetSelectionRange or loc.targetRange
-                if uri and range then
-                  local key, snippet = read_def(word, uri, range)
-                  if not seen[key] then
-                    seen[key] = true
-                    out[#out + 1] = snippet
-                  end
+            '';
+            desc = "Open a terminal in this window (base dir), any mode";
+          }
+          {
+            # Set the base dir (global :cd, what <A-t> opens in) to "here":
+            # oil's folder, a terminal's live cwd (tracked via OSC 7 below), or
+            # the current file's folder. notify since a cwd change is invisible.
+            key = "<A-b>";
+            mode = ["n" "i" "v" "t"];
+            lua = true;
+            action = ''
+              function()
+                local dir
+                if vim.bo.filetype == "oil" then
+                  dir = require("oil").get_current_dir()
+                elseif vim.bo.buftype == "terminal" then
+                  dir = vim.b.osc7_dir
+                elseif vim.api.nvim_buf_get_name(0) ~= "" then
+                  dir = vim.fn.expand("%:p:h")
+                end
+                if dir and vim.fn.isdirectory(dir) == 1 then
+                  vim.cmd.cd({ dir })
+                  vim.notify("base dir → " .. dir)
+                else
+                  vim.notify("couldn't determine a directory here", vim.log.levels.WARN)
                 end
               end
-            end
-            return #out > 0 and table.concat(out, "\n\n") or nil
-          end
+            '';
+            desc = "Set the base dir to here (oil / terminal / file), any mode";
+          }
+          # Cycle buffers (shadows the default screen-top/bottom motions).
+          {
+            key = "<S-l>";
+            mode = "n";
+            action = "<cmd>bnext<cr>";
+            desc = "Next buffer";
+          }
+          {
+            key = "<S-h>";
+            mode = "n";
+            action = "<cmd>bprevious<cr>";
+            desc = "Previous buffer";
+          }
+          {
+            # Recommended by the which-key README: show only the keymaps
+            # local to the current buffer (e.g. oil's browser mappings).
+            key = "<leader>?";
+            mode = "n";
+            lua = true;
+            action = ''function() require("which-key").show({ global = false }) end'';
+            desc = "Buffer local keymaps (which-key)";
+          }
+          {
+            key = "<A-v>";
+            mode = ["n" "x"];
+            action = "<C-v>";
+            desc = "Visual block mode (ctrl+v is paste in ghostty)";
+          }
+          # -----------------------------------
+          # Alt+hjkl: move the cursor, any mode
+          # -----------------------------------
+          # Insert mode uses arrows so the cursor moves without leaving insert.
+          # Needs Ghostty's macos-option-as-alt to deliver Option as Alt.
+          {
+            key = "<A-h>";
+            mode = ["n" "x" "o"];
+            action = "h";
+            desc = "Move cursor left";
+          }
+          {
+            key = "<A-j>";
+            mode = ["n" "x" "o"];
+            action = "j";
+            desc = "Move cursor down";
+          }
+          {
+            key = "<A-k>";
+            mode = ["n" "x" "o"];
+            action = "k";
+            desc = "Move cursor up";
+          }
+          {
+            key = "<A-l>";
+            mode = ["n" "x" "o"];
+            action = "l";
+            desc = "Move cursor right";
+          }
+          {
+            key = "<A-h>";
+            mode = "i";
+            action = "<Left>";
+            desc = "Move cursor left";
+          }
+          {
+            key = "<A-j>";
+            mode = "i";
+            action = "<Down>";
+            desc = "Move cursor down";
+          }
+          {
+            key = "<A-k>";
+            mode = "i";
+            action = "<Up>";
+            desc = "Move cursor up";
+          }
+          {
+            key = "<A-l>";
+            mode = "i";
+            action = "<Right>";
+            desc = "Move cursor right";
+          }
+          # ---------------------------------------
+          # Alt+Shift+j/k: half-page scroll down/up
+          # ---------------------------------------
+          # Uppercase <A-J>/<A-K> is the robust notation for an Alt+shifted
+          # letter. noremap (nvf's default) keeps the <C-d>/<C-u> RHS bound to
+          # builtin scroll even though both are disabled just below.
+          {
+            key = "<A-J>";
+            mode = ["n" "x"];
+            action = "<C-d>";
+            desc = "Half page down";
+          }
+          {
+            key = "<A-K>";
+            mode = ["n" "x"];
+            action = "<C-u>";
+            desc = "Half page up";
+          }
+          # Insert mode: <C-o> runs one builtin scroll and returns to insert,
+          # so typing isn't interrupted (like the Alt+hjkl insert maps above).
+          {
+            key = "<A-J>";
+            mode = "i";
+            action = "<C-o><C-d>";
+            desc = "Half page down";
+          }
+          {
+            key = "<A-K>";
+            mode = "i";
+            action = "<C-o><C-u>";
+            desc = "Half page up";
+          }
+          # Terminal mode: break out to terminal-normal first (like the window
+          # focus/move maps) — scrollback can't move while the job has focus.
+          {
+            key = "<A-J>";
+            mode = "t";
+            action = "<C-\\><C-n><C-d>";
+            desc = "Half page down";
+          }
+          {
+            key = "<A-K>";
+            mode = "t";
+            action = "<C-\\><C-n><C-u>";
+            desc = "Half page up";
+          }
+          # Drop the builtin Ctrl+d/Ctrl+u scroll in normal/visual only, so
+          # insert-mode Ctrl+u/Ctrl+d editing is left alone.
+          {
+            key = "<C-d>";
+            mode = ["n" "x"];
+            action = "<Nop>";
+            desc = "Disabled (half page is Alt+Shift+j)";
+          }
+          {
+            key = "<C-u>";
+            mode = ["n" "x"];
+            action = "<Nop>";
+            desc = "Disabled (half page is Alt+Shift+k)";
+          }
 
-          -- The whole buffer, so the model can see beyond the snippet. Bounded to
-          -- ~±100 lines around the cursor for big files so we don't blow the
-          -- server's context window.
-          local function file_context()
-            local n = vim.api.nvim_buf_line_count(0)
-            local from, to = 0, n
-            if n > 400 then
-              local row = vim.api.nvim_win_get_cursor(0)[1]
-              from, to = math.max(0, row - 100), math.min(n, row + 100)
-            end
-            local path = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":.")
-            return path, table.concat(vim.api.nvim_buf_get_lines(0, from, to, false), "\n")
-          end
+          # --------------------------------
+          # Snacks pickers (Find <leader>f)
+          # --------------------------------
+          # The `Snacks` global is available once the picker is enabled above.
+          {
+            key = "<leader>ff";
+            mode = ["n"];
+            lua = true;
+            action = ''function() Snacks.picker.files() end'';
+            desc = "Find files";
+          }
+          {
+            key = "<leader>fg";
+            mode = ["n"];
+            lua = true;
+            action = ''function() Snacks.picker.grep() end'';
+            desc = "Grep";
+          }
+          {
+            key = "<leader>fb";
+            mode = ["n"];
+            lua = true;
+            action = ''function() Snacks.picker.buffers() end'';
+            desc = "Buffers";
+          }
+          {
+            key = "<leader>fh";
+            mode = ["n"];
+            lua = true;
+            action = ''function() Snacks.picker.help() end'';
+            desc = "Help tags";
+          }
+          {
+            key = "<leader>fd";
+            mode = ["n"];
+            lua = true;
+            action = ''function() Snacks.picker.diagnostics() end'';
+            desc = "Diagnostics";
+          }
+          {
+            key = "<leader>fr";
+            mode = ["n"];
+            lua = true;
+            action = ''function() Snacks.picker.lsp_references() end'';
+            desc = "LSP references";
+          }
+          {
+            key = "<leader>fD";
+            mode = ["n"];
+            lua = true;
+            action = ''function() Snacks.picker.lsp_definitions() end'';
+            desc = "LSP definitions";
+          }
 
-          -- Build the context block both commands share: the focus (the given
-          -- selection, else the word under the cursor with nearby lines), the
-          -- whole file, and the symbol's definition. `sel` is the visual
-          -- selection (visual maps) or nil (normal maps). Returns (blob, label),
-          -- or nil if there's nothing to focus on.
-          local function gather(sel)
-            local pos = vim.api.nvim_win_get_cursor(0)
-            local word = vim.fn.expand("<cword>")
-            local defs = word ~= "" and definitions(word, pos) or nil
-            local focus, label
-            if sel and sel ~= "" then
-              focus, label = sel, "selection"
-            elseif word ~= "" then
-              local near = table.concat(vim.fn.getline(math.max(1, pos[1] - 8), pos[1] + 8), "\n")
-              focus, label = "`" .. word .. "`\n" .. near, word
-            else
-              return nil
-            end
-            local path, file = file_context()
-            local blob = "Focus on this " .. vim.bo.filetype .. " code:\n" .. focus
-              .. "\n\nFull file (" .. path .. "):\n" .. file
-              .. "\n\nDefinition of the symbol under the cursor:\n" .. (defs or "(none found)")
-            return blob, label
-          end
-
-          local explainer = "You are a code explainer. Be concise. No preamble, no code fences."
-
-          -- <leader>ak: explain the focus — its purpose and reasoning (why), not
-          -- a line-by-line description.
-          function M.explain(sel)
-            local blob, label = gather(sel)
-            if not blob then vim.notify("No symbol under cursor", vim.log.levels.WARN) return end
-            chat(explainer,
-              "Explain WHY the focused code does what it does — its purpose and reasoning, not a line-by-line description.\n\n" .. blob,
-              "Explaining " .. label .. "...")
-          end
-
-          -- <leader>aq: prompt for a free-form question about the focus; answer
-          -- renders in the same float.
-          function M.ask(sel)
-            local blob, label = gather(sel)
-            if not blob then vim.notify("No symbol under cursor", vim.log.levels.WARN) return end
-            vim.ui.input({ prompt = "Ask about this code: " }, function(question)
-              if not question or question == "" then return end
-              chat("You are a code assistant. Answer the question concisely. No preamble, no code fences.",
-                question .. "\n\n" .. blob,
-                "Asking...")
-            end)
-          end
-
-          -- Visual-mode entry points: capture the selection (while still in
-          -- visual mode) and hand it to the normal command.
-          function M.explain_visual() M.explain(selection()) end
-          function M.ask_visual() M.ask(selection()) end
-
-          -- Labeled keymaps (global + current buffer) as model context, deduped
-          -- by (mode, lhs). keytrans turns the internal lhs back into readable
-          -- form (a literal space becomes <Space>). Skip maps with no desc: they
-          -- are plumbing the user wouldn't ask for by name.
-          local function keymap_corpus()
-            local out, seen = {}, {}
-            for _, mode in ipairs({ "n", "i", "v", "x", "t" }) do
-              local maps = vim.api.nvim_get_keymap(mode)
-              vim.list_extend(maps, vim.api.nvim_buf_get_keymap(0, mode))
-              for _, m in ipairs(maps) do
-                local key = vim.fn.keytrans(m.lhsraw or m.lhs)
-                local id = mode .. "\t" .. key
-                if m.desc and m.desc ~= "" and not seen[id] then
-                  seen[id] = true
-                  out[#out + 1] = key .. " (" .. mode .. ") — " .. m.desc
-                end
-              end
-            end
-            return table.concat(out, "\n")
-          end
-
-          -- Ex commands (global + current buffer) as model context. Both APIs
-          -- return a name-keyed dict, so merge by key rather than concat.
-          local function command_corpus()
-            local cmds = vim.api.nvim_get_commands({})
-            cmds = vim.tbl_extend("force", cmds, vim.api.nvim_buf_get_commands(0, {}))
-            local out = {}
-            for name, c in pairs(cmds) do
-              local def = c.definition and vim.trim(c.definition) or ""
-              out[#out + 1] = def ~= "" and (":" .. name .. " — " .. def) or (":" .. name)
-            end
-            table.sort(out)
-            return table.concat(out, "\n")
-          end
-
-          -- Answer "how do I…?" from the keymap/command corpus instead of cursor
-          -- context: a global config question, so it names the binding(s) to use.
-          function M.how()
-            local keymaps, commands = keymap_corpus(), command_corpus()
-            vim.ui.input({ prompt = "How do I…? " }, function(q)
-              if not q or q == "" then return end
-              chat(
-                "You are an assistant for this configured Neovim. Given the question and the"
-                  .. " editor's keymaps and commands below, name the exact keymap(s)/command(s) that"
-                  .. " do it, quoting the precise keys (e.g. <leader>e) or command (e.g. :Oil)."
-                  .. " Prefer the user's configured bindings; fall back to standard Neovim only when"
-                  .. " nothing configured fits. Be concise. No preamble, no code fences.",
-                q .. "\n\nKeymaps:\n" .. keymaps .. "\n\nCommands:\n" .. commands,
-                "Searching the config…")
-            end)
-          end
-
-          package.loaded["llama_explain"] = M
-        '';
-
-        # llama.vim attaches its FIM ghost text to every insert-mode buffer,
-        # including the snacks picker prompt, where autocomplete makes no sense
-        # (and cursor motions appear to "accept" it). Disable llama while a picker
-        # prompt is focused and restore it once the picker closes.
-        #
-        # llama lazy-loads on InsertEnter (via lz.n), so it isn't defined at
-        # FileType time. Hook the prompt's own InsertEnter instead: lz.n's loader
-        # autocmd is registered at startup, so it runs (and loads llama) before
-        # this one, created later at FileType. exists() still guards the gap.
-        luaConfigRC.llamaPicker = lib.mkIf localAi ''
-          vim.api.nvim_create_autocmd("FileType", {
-            pattern = "snacks_picker_input",
-            callback = function(ev)
-              vim.api.nvim_create_autocmd("InsertEnter", {
-                buffer = ev.buf,
-                callback = function()
-                  if vim.fn.exists("*llama#disable") == 1 then vim.fn["llama#disable"]() end
-                end,
-              })
-              vim.api.nvim_create_autocmd({ "BufLeave", "BufWipeout" }, {
-                buffer = ev.buf,
-                once = true,
-                callback = function()
-                  if vim.fn.exists("*llama#enable") == 1 then vim.fn["llama#enable"]() end
-                end,
-              })
-            end,
-          })
-        '';
+          # ----------------------------------
+          # Snacks git pickers (Git <leader>g)
+          # ----------------------------------
+          # On the <leader>g prefix alongside gitsigns, so all git shares it.
+          {
+            key = "<leader>gf";
+            mode = ["n"];
+            lua = true;
+            action = ''function() Snacks.picker.git_files() end'';
+            desc = "Git files";
+          }
+          {
+            key = "<leader>gc";
+            mode = ["n"];
+            lua = true;
+            action = ''function() Snacks.picker.git_log() end'';
+            desc = "Git commits";
+          }
+          {
+            key = "<leader>gC";
+            mode = ["n"];
+            lua = true;
+            action = ''function() Snacks.picker.git_log_file() end'';
+            desc = "Git buffer commits";
+          }
+          {
+            key = "<leader>gB";
+            mode = ["n"];
+            lua = true;
+            action = ''function() Snacks.picker.git_branches() end'';
+            desc = "Git branches";
+          }
+          {
+            key = "<leader>go";
+            mode = ["n"];
+            lua = true;
+            action = ''function() Snacks.picker.git_status() end'';
+            desc = "Git status";
+          }
+          {
+            key = "<leader>gx";
+            mode = ["n"];
+            lua = true;
+            action = ''function() Snacks.picker.git_stash() end'';
+            desc = "Git stash";
+          }
+        ];
 
         # Track each terminal's live cwd from the OSC 7 sequence the shell emits
         # (fish/Ghostty do) into a per-buffer osc7_dir, so <A-b> can :cd to it.
