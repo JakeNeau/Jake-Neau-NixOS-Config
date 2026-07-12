@@ -55,6 +55,12 @@
             update_in_insert = false;
             virtual_lines = true;
           };
+
+          # Transient workaround: cpplint 2.0.2's tests fail under Python 3.14;
+          # fixed upstream in cpplint/cpplint#405 but unreleased. Same linter,
+          # tests skipped. mkForce: nvf's clang preset also defines this option.
+          # Remove once nixpkgs ships a cpplint whose tests pass.
+          nvim-lint.linters.cpplint.cmd = lib.mkForce "${pkgs.cpplint.overridePythonAttrs (_: {doCheck = false;})}/bin/cpplint";
         };
 
         # Cache lua bytecode for faster launches

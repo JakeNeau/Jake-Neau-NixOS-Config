@@ -44,12 +44,27 @@
       # first switch), not on every rebuild.
       (lib.mkIf pkgs.stdenv.isDarwin {
         home.packages = [pkgs.duti];
-        home.activation.sioyekDefaultPdf =
-          lib.hm.dag.entryAfter ["writeBoundary"] ''
-            if [ "$(${lib.getExe pkgs.duti} -d com.adobe.pdf 2>/dev/null)" != "info.sioyek.sioyek" ]; then
-              $DRY_RUN_CMD ${lib.getExe pkgs.duti} -s info.sioyek.sioyek com.adobe.pdf all || true
-            fi
-          '';
+        home.activation.sioyekDefaultPdf = lib.hm.dag.entryAfter ["writeBoundary"] ''
+          if [ "$(${lib.getExe pkgs.duti} -d com.adobe.pdf 2>/dev/null)" != "info.sioyek.sioyek" ]; then
+            $DRY_RUN_CMD ${lib.getExe pkgs.duti} -s info.sioyek.sioyek com.adobe.pdf all || true
+          fi
+        '';
+
+        # nixpkgs' hardened ld64 crashes linking qtspeech's darwin TTS plugin and
+        # sioyek's own app binary, so link both with lld (as nixpkgs#540940 does
+        # for R). Remove once the revert (nixpkgs#536365) reaches nixos-unstable.
+        programs.sioyek.package =
+          (pkgs.sioyek.override {
+            qt6 = pkgs.qt6.overrideScope (_: prev: {
+              qtspeech = prev.qtspeech.overrideAttrs (old: {
+                nativeBuildInputs = old.nativeBuildInputs ++ [pkgs.llvmPackages.lld];
+                env = (old.env or {}) // {NIX_CFLAGS_LINK = "-fuse-ld=lld";};
+              });
+            });
+          }).overrideAttrs (old: {
+            nativeBuildInputs = old.nativeBuildInputs ++ [pkgs.llvmPackages.lld];
+            env = (old.env or {}) // {NIX_CFLAGS_LINK = "-fuse-ld=lld";};
+          });
       })
     ];
 }
