@@ -303,12 +303,12 @@
       session-start sources (startup/resume/clear/compact) — confirmed via the
       installed Claude Code binary. Add a short note so future hook authors
       don't have to re-derive this from the binary.
-- [ ] omp migration follow-up (`specs/omp-migration/`): if RULES.md /
-      agent-prompt discipline proves too soft under oh-my-pi — the migration
-      drops Claude Code's seven gate hooks (plan-verifier gate, code-writer
-      gate, code-review gates, reminders) in favor of instructions — implement
-      equivalent enforcement as omp TypeScript hooks in the oh-my-pi config
-      module (`modules/programs/oh-my-pi/`).
+- [ ] omp gate hooks (`specs/omp-gates.md`): implement the spec when RULES.md /
+      agent-prompt discipline proves too soft in live omp use. The design is
+      settled and specced — a gates.ts extension in
+      `modules/programs/oh-my-pi/` replicating Claude Code's gate hooks
+      (write gate, code-writer/code-reviewer yield gates, plan-verifier gate,
+      plan-approval reminders); this entry is only the trigger.
 - [ ] omp migration follow-up (`specs/omp-migration/`): port the Claude Code
       keybindings (alt+j/k scroll binds from
       `home.file.".claude/keybindings.json"` in
