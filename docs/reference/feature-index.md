@@ -51,8 +51,6 @@ Machine-level config: what needs root, shared by all users.
   facts](../explanation/host-facts.md).
 - `key-repeat/` — key-repeat timing declared once, shared across
   platforms.
-- `manual-workaround/` — temporary: skips nix-darwin's broken HTML manual
-  build; delete once nix-darwin#1819 lands.
 - `network/` — hostname wiring from `hostConstants.hostName` on both
   platforms.
 - `printing/` — CUPS with avahi/mDNS discovery on NixOS; print-dialog

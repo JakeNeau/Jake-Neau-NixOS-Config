@@ -24,7 +24,6 @@
         host-constants
         nur
         config-group
-        manual-workaround
         direnv
         network
         printing

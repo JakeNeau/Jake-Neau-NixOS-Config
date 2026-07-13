@@ -1,9 +1,5 @@
 # TODO
 
-- [ ] Remove the darwin manual workaround once nix-darwin#1819 is merged and
-      flake inputs move past it: delete `modules/host-config/manual-workaround/`
-      and its `manual-workaround` import line in
-      `modules/host-config/roles/default/default.nix`.
 - [ ] When next touching `AGENTS.md`: the `nr`/`nrr` caution says
       the flow unconditionally runs `git add -A`, which under-describes the new
       `nr -s`/`--staged` flag (stages only `flake.lock` and stashes unstaged
