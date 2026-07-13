@@ -56,12 +56,10 @@ So **match a spec's durability to the change it describes**: it exists to get th
 work built and its rationale recorded, then it goes. Code answers *what the system
 does*; the docs answer *why*; a stale spec that survives only drifts and lies.
 
-**Process vs. artifact.** Produce a spec with the Superpowers flow —
-`superpowers:brainstorming` settles the `## Spec` (the design),
-`superpowers:writing-plans` fills the `## Plan` / `## Tasks` — but the artifact lives
-**here in `specs/`** in this format and follows the transient lifecycle above. Never
-write it to `docs/superpowers/`; that is the one place this overrides Superpowers
-(see the superpowers-precedence rule).
+**Process vs. artifact.** [[skill:brainstorming]] settles the `## Spec` (the
+design); [[skill:writing-plans]] governs the `## Plan` / `## Tasks`. The artifact
+lives **here in `specs/`** in this format and follows the transient lifecycle
+above.
 
 ## Architectural philosophy — design for growth
 

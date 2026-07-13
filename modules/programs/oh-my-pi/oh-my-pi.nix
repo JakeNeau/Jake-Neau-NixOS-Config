@@ -68,6 +68,11 @@
           # hard constraints survive long conversations.
           ".omp/agent/RULES.md".text = builtins.readFile (configSrc + "/RULES.md");
 
+          # Session-start injection of the development-flow map (omp discovers
+          # loose .ts extensions natively; Claude Code gets the same text via
+          # its session-flow-map hook).
+          ".omp/agent/extensions/flow-map.ts".text = builtins.readFile (configSrc + "/extensions/flow-map.ts");
+
           # MCP servers. omp only writes this file from explicit /mcp config
           # commands, which fail loudly on the read-only symlink — acceptable,
           # since servers are declared here by design.

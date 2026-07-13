@@ -61,7 +61,7 @@ Hunt by forming adversarial hypotheses and then trying to prove them true:
    gathered, using the ladder below.
 
 When root-causing a stubborn candidate — the failure reproduces but you cannot
-explain why — work it per `superpowers:systematic-debugging`: find the root cause
+explain why — work it per [[skill:systematic-debugging]]: find the root cause
 before you write it up.
 
 # ------------

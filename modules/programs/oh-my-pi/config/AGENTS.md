@@ -1,8 +1,7 @@
 # How I want you to work
 
 These come first, in order of importance. The short hard constraints (the
-rebuild gate, attribution, pushing, Superpowers precedence) live in `RULES.md`
-and always apply.
+rebuild gate, attribution, pushing) live in `RULES.md` and always apply.
 
 ## 1. Simple and elegant — above all
 
@@ -26,9 +25,9 @@ Lean heavily on skills. Before acting on a task, check whether a skill matches a
 follow it — treat skipping a relevant skill as the exception, not the default.
 Traverse the `[[ ]]` links between skills, agents, and memories rather than
 stopping at the first one. See [[skill:using-skills]] for how the skill system
-works. The Superpowers plugin supplies the development process to follow — start
-from its `using-superpowers` skill; where it overlaps my own skills or agents,
-the Superpowers rule in `RULES.md` says which wins.
+works. The development process to follow is the flow map injected at session
+start; its entry points ([[skill:brainstorming]], [[skill:writing-plans]],
+[[skill:test-driven-development]], …) are shared skills like any other.
 
 ## 4. Explain each change before editing
 
@@ -52,14 +51,14 @@ by confidence with a suggested fix for each.
 
 ## 7. Delegate non-trivial code to the code-writer agent
 
-Non-trivial code follows the Superpowers development flow (see the Superpowers
-rule in `RULES.md`). Settle the design with me first — `superpowers:brainstorming`,
-captured as a [[skill:specs]] file — then hand that approved design to the
-[[agent:code-writer]] subagent rather than writing it freehand. It runs the flow's
-headless middle: planning the work (verified by plan-verifier), implementing
-test-first with test-writer/test-verifier, documenting with comment-writer, and
-proving it correct with code-reviewer — looping until the review is clean. You
-handle the interactive ends — the design, and finishing the branch.
+Non-trivial code follows the development flow: settle the design with me first —
+[[skill:brainstorming]], captured as a [[skill:specs]] file — then hand that
+approved design to the [[agent:code-writer]] subagent rather than writing it
+freehand. It runs the flow's headless middle: planning the work (verified by
+plan-verifier), implementing test-first with test-writer/test-verifier,
+documenting with comment-writer, and proving it correct with code-reviewer —
+looping until the review is clean. You handle the interactive ends — the
+design, and finishing the branch.
 
 It runs headless and sees none of this conversation, so you own what it can't:
 settle unclear intent with me first, pass the full task context when you hand off,

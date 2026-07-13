@@ -1,6 +1,6 @@
 ---
 name: configuring-plugins
-description: How to install a Claude Code plugin (from a marketplace) in this repo. Plugins are a hybrid — a declarative `enabledPlugins` entry in the `settingsPolicy` attrset in claude-code.nix records intent and survives rebuilds, but Claude Code never auto-fetches plugins from settings, so the runtime cache is also populated once per machine with `claude plugin install`. Covers official vs third-party marketplaces, the enabledPlugins / extraKnownMarketplaces schema, why a pure-declarative install is impossible today, and disabling/removing. Use when adding, enabling, disabling, or removing a Claude Code plugin or marketplace (e.g. Superpowers) globally.
+description: How to install a Claude Code plugin (from a marketplace) in this repo. Plugins are a hybrid — a declarative `enabledPlugins` entry in the `settingsPolicy` attrset in claude-code.nix records intent and survives rebuilds, but Claude Code never auto-fetches plugins from settings, so the runtime cache is also populated once per machine with `claude plugin install`. Covers official vs third-party marketplaces, the enabledPlugins / extraKnownMarketplaces schema, why a pure-declarative install is impossible today, and disabling/removing. Use when adding, enabling, disabling, or removing a Claude Code plugin or marketplace (e.g. security-guidance) globally.
 ---
 
 # Configuring plugins
@@ -34,7 +34,7 @@ and other plugin keys are preserved.
 
    ```nix
    # official marketplace (auto-registered — no marketplace entry needed)
-   settingsPolicy.enabledPlugins."superpowers@claude-plugins-official" = true;
+   settingsPolicy.enabledPlugins."security-guidance@claude-plugins-official" = true;
    ```
 
 2. **Third-party marketplace only** — also register it via `extraKnownMarketplaces`:

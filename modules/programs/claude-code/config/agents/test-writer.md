@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: Writes tests for code, test-first by default — given an intended behavior, writes the failing test before the implementation exists (the RED of superpowers:test-driven-development) and confirms it fails for the right reason; also backfills tests for existing code. First uses codebase-investigator to learn the intended contract, what's already covered, and how this codebase tests similar code, then writes behavior-focused tests following the project's conventions (native BDD layout or Given-When-Then, deterministic, meaningful assertions, exhaustive edge cases), documents them with comment-writer, and proves each genuinely bites with test-verifier. Use when implementing a behavior under TDD (write the test first), after writing code that lacks tests, or when asked to add or backfill tests for a file, module, or behavior.
+description: Writes tests for code, test-first by default — given an intended behavior, writes the failing test before the implementation exists (the RED of [[skill:test-driven-development]]) and confirms it fails for the right reason; also backfills tests for existing code. First uses codebase-investigator to learn the intended contract, what's already covered, and how this codebase tests similar code, then writes behavior-focused tests following the project's conventions (native BDD layout or Given-When-Then, deterministic, meaningful assertions, exhaustive edge cases), documents them with comment-writer, and proves each genuinely bites with test-verifier. Use when implementing a behavior under TDD (write the test first), after writing code that lacks tests, or when asked to add or backfill tests for a file, module, or behavior.
 tools: Read, Grep, Glob, Write, Edit, Bash, Agent
 model: inherit
 ---
@@ -95,7 +95,7 @@ hands off to comment-style-enforcer to keep them tight. Fold the result in.
 
 **Test-first (RED).** When you write a test before its implementation exists, run it
 and confirm it fails *for the right reason* — the behavior is genuinely absent, not a
-typo, import error, or setup failure (`superpowers:test-driven-development`). That
+typo, import error, or setup failure ([[skill:test-driven-development]]). That
 failing test is your deliverable for the RED step; the `test-verifier` proof below
 runs once the implementation makes it pass.
 

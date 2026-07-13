@@ -40,14 +40,17 @@ discovery priority 100, so it beats the `.claude`-compat providers):
 |---|---|---|
 | `AGENTS.md` | global context, discovered natively (walk-up included) | `config/AGENTS.md` |
 | `RULES.md` | sticky rules; omp re-injects them near the current turn | `config/RULES.md` |
-| `skills/<name>/SKILL.md` | the nine shared skills | `modules/programs/agents-shared/skills/` |
-| `agents/<name>.md` | the ten task agents, in omp frontmatter with omp tool names | `config/agents/` |
+| `skills/<name>/SKILL.md` | the shared skills | `modules/programs/agents-shared/skills/` |
+| `agents/<name>.md` | the eighteen task agents, in omp frontmatter with omp tool names | `config/agents/` |
+| `extensions/flow-map.ts` | injects the development-flow map once per process (`before_agent_start`) | `config/extensions/flow-map.ts` |
 | `mcp.json` | MCP servers | generated JSON (below) |
 | `config.yml` | omp's own settings file — never owned; policy merged in (below) | — |
 
-The task agents: bug-finder, code-reviewer, code-writer,
-codebase-investigator, comment-style-enforcer, comment-writer, plan-verifier,
-test-verifier, test-writer, web-researcher.
+The task agents — the full Claude Code subagent roster: bug-finder,
+code-reviewer, code-writer, codebase-investigator, comment-style-enforcer,
+comment-writer, doc-reader, doc-reviewer, doc-writer, git-vcs, jujutsu-vcs,
+plan-verifier, spec-reader, spec-writer, test-verifier, test-writer,
+todo-writer, web-researcher.
 
 `mcp.json` declares the `nixos` server with its command pinned to the store
 path of `pkgs.mcp-nixos` (`lib.getExe`). It is a read-only symlink: omp only
@@ -77,14 +80,10 @@ Runtime knobs (color theme, model choice) are deliberately absent so
 
 ## State outside Nix
 
-Two pieces of per-machine state are imperative by design, set up once:
+One piece of per-machine state is imperative by design, set up once:
 
 - **Auth** — `/login` in omp (Anthropic subscription OAuth); tokens land in
   `agent.db` under `~/.omp/agent/`, never in Nix.
-- **Plugins** — `omp plugin marketplace add
-  anthropics/claude-plugins-official` and `omp plugin install
-  superpowers@claude-plugins-official`; state lands in
-  `~/.omp/plugins/installed_plugins.json`.
 
 Ordering note: a machine's first omp home build should follow a system
 rebuild, so the numtide cache (above) is active.

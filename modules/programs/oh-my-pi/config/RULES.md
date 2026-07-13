@@ -25,32 +25,7 @@ functions, so invoke them as `fish -c 'nrr'` or `fish -c 'nr "<message>"'`; the
 exec approval prompt is the backstop, never the ask. See [[skill:machine-layout]]
 for how a rebuild is applied.
 
-## Superpowers vs. my own skills and agents
+## Follow the development flow
 
-The Superpowers plugin supplies the development process to follow; my own agents
-are the implementers and reviewers within it. `AGENTS.md` still outranks
-everything there — Superpowers ranks it highest itself, and this rule is that
-instruction. The flow:
-
-1. **Design** — `superpowers:brainstorming`, run interactively with me. Capture
-   the result as a [[skill:specs]] file in `specs/`, never under `docs/superpowers/`.
-2. **Plan** — `superpowers:writing-plans`, refined into that spec's `## Plan` /
-   `## Tasks`; verify it with [[agent:plan-verifier]].
-3. **Implement test-first** — `superpowers:test-driven-development`
-   (RED-GREEN-REFACTOR): [[agent:test-writer]] writes the failing test first,
-   [[agent:test-verifier]] proves it bites.
-4. **Debug** — `superpowers:systematic-debugging`: root cause before any fix.
-5. **Review** — `superpowers:requesting-code-review`, but dispatch my
-   [[agent:code-reviewer]] agent as the reviewer, not its generic template;
-   respond per `superpowers:receiving-code-review`.
-6. **Claim done** — `superpowers:verification-before-completion`: evidence,
-   never "should".
-7. **Finish** — `superpowers:finishing-a-development-branch`, but never push or
-   open a PR unprompted; stop at the local / keep options.
-
-[[agent:code-writer]] runs steps 2–6 headless; I run the interactive ends (1 and
-7) with you. Where my rules override Superpowers: skill authoring follows my
-[[skill:writing-skills]] (rich descriptions + the `[[ ]]` graph), not
-`superpowers:writing-skills`; specs follow my [[skill:specs]] system; simple and
-elegant above all, prove every change, never self-attribute, never push
-unprompted — these always win.
+Follow the development flow injected at session start; before acting on a task,
+check whether a skill matches and follow it.

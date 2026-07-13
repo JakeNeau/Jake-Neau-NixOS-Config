@@ -31,12 +31,10 @@ the model decide to open the skill. Write it to:
 2. End with a concrete **"Use when…"** clause naming the situations, tasks, and
    keywords that should surface it.
 
-**This deliberately contradicts `superpowers:writing-skills`.** That plugin skill
-says a description must state *only* triggering conditions and never summarize the
-workflow, and applies TDD to skill authoring. Here the opposite holds: the
-description summarizes what the skill is *and* its workflow, because that is what
-powers discovery and the `[[ ]]` graph — and skills here aren't test-driven by default (the one carve-out, for
-discipline-enforcing skills, is below). When both surface, follow this skill (see the superpowers-precedence rule).
+A deliberate design choice: the description summarizes what the skill is *and*
+its workflow, not just its triggering conditions — a rich prose description is
+what powers discovery and the `[[ ]]` graph. Skills here aren't test-driven by
+default (the one carve-out, for discipline-enforcing skills, is below).
 
 ## Best practices for an understandable body
 
@@ -61,9 +59,9 @@ A **discipline-enforcing** skill is different: it says "you MUST always X before
 Its failure mode isn't confusion — it's defection. A future agent under pressure (a
 deadline, sunk cost, an insistent user) *knows* the rule and rationalizes its way
 around it, then writes a fluent justification for why it didn't apply this time.
-Plain prose loses to a motivated defector. The techniques below — adapted from
-`superpowers:writing-skills` — exist solely to defeat that, so apply them **only when
-the skill enforces a rule.** On a reference skill they add noise with nothing to bind.
+Plain prose loses to a motivated defector. The techniques below exist solely to
+defeat that, so apply them **only when the skill enforces a rule.** On a
+reference skill they add noise with nothing to bind.
 
 ### Watch it fail first
 

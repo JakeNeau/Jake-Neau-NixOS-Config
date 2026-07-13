@@ -303,13 +303,6 @@
       session-start sources (startup/resume/clear/compact) — confirmed via the
       installed Claude Code binary. Add a short note so future hook authors
       don't have to re-derive this from the binary.
-- [ ] omp migration follow-up (`specs/omp-migration/`): port the remaining
-      eight subagent definitions to oh-my-pi task agents. The first pass
-      (`specs/omp-migration/omp-config.md`) ports only the ten load-bearing
-      ones; still to port from `modules/programs/claude-code/config/agents/`
-      into the oh-my-pi module's `config/agents/`: doc-reader, doc-reviewer,
-      doc-writer, spec-reader, spec-writer, git-vcs, jujutsu-vcs, todo-writer
-      (omp frontmatter + tool-name adaptation).
 - [ ] omp migration follow-up (`specs/omp-migration/`): if RULES.md /
       agent-prompt discipline proves too soft under oh-my-pi — the migration
       drops Claude Code's seven gate hooks (plan-verifier gate, code-writer
@@ -321,22 +314,28 @@
       `home.file.".claude/keybindings.json"` in
       `modules/programs/claude-code/claude-code.nix`) to oh-my-pi's keybinding
       system, if the equivalent itch appears in omp's TUI. Low priority.
-- [ ] omp migration follow-up (`specs/omp-migration/`): verify the Superpowers
-      plugin works under oh-my-pi on a target machine after the one-time
-      `omp plugin marketplace add anthropics/claude-plugins-official` +
-      `omp plugin install superpowers@claude-plugins-official`. Verified from
-      the pinned omp 16.4.1 source: plugin *skills* load (the claude-plugins
-      discovery provider scans the plugin's `skills/` dir), but Claude-format
-      `hooks/hooks.json` event hooks do NOT run (omp only loads plugin
-      `hooks/pre/*` and `hooks/post/*` shell scripts), so superpowers'
-      SessionStart skill-injection hook will not fire —
-      `~/.omp/agent/AGENTS.md` carries a fallback line pointing at the
-      `using-superpowers` skill. Confirm on a real session that the
-      superpowers skills surface and the flow works from that pointer alone.
-- [ ] omp migration follow-up (`specs/omp-migration/`): check what
-      superpowers' per-harness adaptation does under oh-my-pi (unverifiable
-      from source alone; needs a live session on redwood/spruce/aspen after
-      the plugin install).
+- [ ] Clean superpowers out of live Claude Code state on cedar: `claude
+      plugin uninstall superpowers@claude-plugins-official` to clear the
+      cache, then jq-delete the
+      `enabledPlugins."superpowers@claude-plugins-official"` key from
+      `~/.claude/settings.json`. Removing the key from `settingsPolicy`
+      in `modules/programs/claude-code/claude-code.nix` is not enough — the
+      activation merge (`. * $policy`) is additive and preserves keys absent
+      from the policy.
+- [ ] Remove the imperative Claude Code install from redwood entirely:
+      uninstall the package however it was installed (likely npm or the
+      native installer) and delete the `~/.claude` and `~/.claude.json`
+      state. Redwood's declared harness is oh-my-pi; the Claude Code install
+      was a scratch install that predates the superpowers removal.
+- [ ] Live-verify the omp flow-map extension
+      (`modules/programs/oh-my-pi/config/extensions/flow-map.ts`) fires on an
+      omp machine (redwood/spruce/aspen): the development-flow map should land
+      in the model context once per omp process on the first prompt
+      (`before_agent_start`; verified against the pinned 16.4.8 binary, but
+      never on a live session). If it misbehaves, fall back to deleting the
+      extension and its `home.file` line in
+      `modules/programs/oh-my-pi/oh-my-pi.nix` and moving the compact flow map
+      into `config/RULES.md`, which omp re-injects every turn.
 - [ ] omp migration follow-up (`specs/omp-migration/nvim-integration.md`): add
       an inline-assistant keymap (`<leader>ai`) for codecompanion on the
       oh-my-pi homes (`modules/programs/nvf/nvf.nix`) once upstream supports

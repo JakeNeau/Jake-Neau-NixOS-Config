@@ -24,8 +24,6 @@ Lean heavily on skills. Before acting on a task, check whether a skill matches a
 follow it — treat skipping a relevant skill as the exception, not the default.
 Traverse the `[[ ]]` links between skills, agents, and memories rather than
 stopping at the first one. See [[skill:using-skills]] for how the skill system works.
-Where the Superpowers plugin overlaps my own skills or agents, the
-**superpowers-precedence** rule says which wins — follow it.
 
 ## 4. Never attribute yourself in version control
 
@@ -56,9 +54,8 @@ by confidence with a suggested fix for each.
 
 ## 8. Delegate non-trivial code to the code-writer agent
 
-Non-trivial code follows the Superpowers development flow (see the
-**superpowers-precedence** rule). Settle the design with me first —
-`superpowers:brainstorming`, captured as a [[skill:specs]] file — then hand that approved
+Non-trivial code follows the development flow: settle the design with me first —
+[[skill:brainstorming]], captured as a [[skill:specs]] file — then hand that approved
 design to the [[agent:code-writer]] subagent rather than writing it freehand. It runs the
 flow's headless middle: planning the work (verified by plan-verifier), implementing
 test-first with test-writer/test-verifier, documenting with comment-writer, and

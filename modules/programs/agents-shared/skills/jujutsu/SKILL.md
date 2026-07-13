@@ -1,6 +1,6 @@
 ---
 name: jujutsu
-description: How to work with the Jujutsu (jj) version control system — its change/bookmark model, inspecting the working copy and the stack of changes, naming a bookmark for the working change, writing a concise description for every proposed change, and finding the correct existing change to absorb (squash) new edits into. Because jj logs every operation, `jj undo` and `jj op log` make almost everything reversible, so you can operate with confidence. Use when a project is tracked by jujutsu (a `.jj` directory), when describing or organizing a stack of jj changes, or when deciding which change new edits belong in. See [[skill:git]] for the git equivalent and [[agent:jujutsu-vcs]] for the agent that does this for you.
+description: How to work with the Jujutsu (jj) version control system — its change/bookmark model, inspecting the working copy and the stack of changes, naming a bookmark for the working change, writing a concise description for every proposed change, finding the correct existing change to absorb (squash) new edits into, and isolating risky or parallel work in a separate workspace. Because jj logs every operation, `jj undo` and `jj op log` make almost everything reversible, so you can operate with confidence. Use when a project is tracked by jujutsu (a `.jj` directory), when describing or organizing a stack of jj changes, or when deciding which change new edits belong in. See [[skill:git]] for the git equivalent and [[agent:jujutsu-vcs]] for the agent that does this for you.
 
 ---
 
@@ -71,8 +71,26 @@ in rather than leaving a stray working change:
 Same as [[skill:git]]: imperative, concise descriptions, one logical change each, and
 **never attribute yourself**. Don't `jj git push` unless explicitly asked.
 
+## Isolating work in a workspace
+
+jj's equivalent of a git worktree is a **workspace** — a second working copy
+sharing the same repo. Apply the same judgment as [[skill:git]]:
+
+1. **Detect existing isolation first.** `jj workspace list` shows every
+   workspace; if you're already in a non-default one, use it — don't nest.
+2. **Prefer the harness's native isolation tooling** when one exists.
+3. **Fallback:** `jj workspace add ../<name>` (or a git-ignored `.workspaces/`
+   directory inside the repo) creates the workspace with its own working-copy
+   change; `jj workspace forget <name>` retires it when done.
+4. **Verify a clean baseline** — run the project's test suite in the new
+   workspace before changing anything.
+
+When the work is done, integrate and clean up per
+[[skill:finishing-a-development-branch]].
+
 ## Related skills
 
 - [[skill:git]] — the git equivalent, and the shared commit conventions
+- [[skill:finishing-a-development-branch]] — completing the work and cleaning up isolation
 - [[agent:jujutsu-vcs]] — the agent that names, describes, and organizes jj changes for you
 - [[skill:machine-layout]] — the Nix machine these projects live on

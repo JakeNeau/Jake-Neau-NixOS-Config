@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Injects the development-flow map at session start: which entry-point skill
+# governs which moment. The map lives here rather than in CLAUDE.md so both
+# harnesses can inject the identical text (oh-my-pi ships it as an extension).
+set -euo pipefail
+
+cat >/dev/null # payload unused (the map is static); drain stdin anyway
+
+jq_bin=$(command -v jq || true)
+[ -n "$jq_bin" ] || exit 0
+
+flow_map=$(cat <<'EOF'
+Development flow — the entry-point skill for each moment:
+- Creative work ahead (a feature, design, or architecture choice): settle the
+  design interactively via [[skill:brainstorming]]; capture it in a [[skill:specs]] file.
+- Turning an approved design into an implementation plan: [[skill:writing-plans]]
+  fills the spec's ## Plan / ## Tasks; verify with the plan-verifier agent.
+- Implementing: delegate non-trivial code to the code-writer agent; code written
+  directly follows [[skill:test-driven-development]] (RED-GREEN-REFACTOR).
+- A bug or unexpected failure: [[skill:systematic-debugging]] — find the root
+  cause before any fix, never patch blind.
+- Code-review feedback arrives: [[skill:receiving-code-review]] — verify before
+  implementing, no performative agreement.
+- About to claim something is done, fixed, or passing:
+  [[skill:verification-before-completion]] — evidence, never "should".
+- A development branch is complete: [[skill:finishing-a-development-branch]] —
+  tests first, then merge locally / keep / discard; never push or open a PR
+  unprompted.
+See [[skill:using-skills]] for how skills are discovered and linked.
+EOF
+)
+
+"$jq_bin" -n --arg content "$flow_map" \
+  '{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $content}}'

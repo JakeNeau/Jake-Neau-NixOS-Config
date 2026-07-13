@@ -76,7 +76,6 @@
       # alone, so each machine's cache is populated once via `claude plugin install
       # <plugin>@claude-plugins-official`; these entries just keep them enabled
       # across rebuilds and machines.
-      settingsPolicy.enabledPlugins."superpowers@claude-plugins-official" = true; # skills
       settingsPolicy.enabledPlugins."security-guidance@claude-plugins-official" = true; # in-session vuln review
       settingsPolicy.enabledPlugins."code-simplifier@claude-plugins-official" = false; # disabled: JS/TS-flavored, redundant with comment-style-enforcer + code-reviewer, fires proactively
       settingsPolicy.enabledPlugins."claude-md-management@claude-plugins-official" = true; # CLAUDE.md audit/maintenance
@@ -118,10 +117,14 @@
             ];
           }
         ];
-        # No native AGENTS.md support in Claude Code; inject one from the project root at session start.
         SessionStart = [
           {
-            hooks = [(cmd "~/.claude/hooks/agents-md-context")];
+            hooks = [
+              # no native AGENTS.md support in Claude Code; inject one from the project root
+              (cmd "~/.claude/hooks/agents-md-context")
+              # development-flow map (the hook explains why it lives there, not in CLAUDE.md)
+              (cmd "~/.claude/hooks/session-flow-map")
+            ];
           }
         ];
         # SubagentStop gates for code-review enforcement (code-review-gates spec).
