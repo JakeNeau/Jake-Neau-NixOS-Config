@@ -3,7 +3,7 @@
 Why install ways are resolved per (program, host), why the override lives
 on the host, and why user entries filter rather than force installs. The
 mechanics in recipe form: [Add a
-per-user program](../how-to/add-a-per-user-program.md); the field
+per-user program](../how-to/declarations/add-a-per-user-program.md); the field
 descriptions: [declaration schema
 reference](../reference/declaration-schema.md).
 

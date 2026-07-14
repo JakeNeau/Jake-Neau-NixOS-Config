@@ -105,18 +105,18 @@ Every kind of edit, with the page that carries the depth:
 - **Add a program** — write `flake.programs.<name>` in
   `modules/programs/<name>/`; pick install ways, `config`, and
   `hasEnableOption`/`packages`/`handWritten` where needed.
-  [Add a program](../../../docs/how-to/add-a-program.md).
+  [Add a program](../../../docs/how-to/declarations/add-a-program.md).
 - **Add a host** — one `configuration.nix` with the `flake.hosts` declaration
   plus a hand-written quirks aspect (`hostConstants` values, role imports,
-  config-group members). [Add a host](../../../docs/how-to/add-a-host.md);
+  config-group members). [Add a host](../../../docs/how-to/declarations/add-a-host.md);
   guided: [new-machine walkthrough](../../../docs/tutorials/new-machine-walkthrough.md).
 - **Add a user** — macOS account first (imperative), then the factory
   stamping in `modules/users/<user>/`, then list the user in
   `flake.hosts.<h>.users` — the single authority for account, baseline, and
-  home output. [Add a user](../../../docs/how-to/add-a-user.md).
+  home output. [Add a user](../../../docs/how-to/declarations/add-a-user.md).
 - **Make a program global on a host** — one `globalPrograms` entry on the
   host's declaration; the generator routes both halves.
-  [Add a program §3](../../../docs/how-to/add-a-program.md),
+  [Add a program §3](../../../docs/how-to/declarations/add-a-program.md),
   [schema: globalPrograms](../../../docs/reference/declaration-schema.md#globalprograms).
 - **Override a program's install way per-host** — the host's
   `installOverrides` map (e.g. cedar's `installOverrides.firefox = "cask"`);
@@ -125,7 +125,7 @@ Every kind of edit, with the page that carries the depth:
 - **Add a per-user(-per-host) program** — `flake.users."<u>".programs` or
   `.hosts.<h>.programs` in the user's folder; entries resolve to the per-user
   way or filter/throw per the table in
-  [Add a per-user program](../../../docs/how-to/add-a-per-user-program.md).
+  [Add a per-user program](../../../docs/how-to/declarations/add-a-per-user-program.md).
 - **Override a program default per-user** — plain assignment in
   `modules/users/<user>/` (priority 100) beats the boundary-wrapped shared
   defaults (900); no `mkForce` needed.
@@ -148,7 +148,7 @@ Every kind of edit, with the page that carries the depth:
   `flake-file.inputs`, then `nix run .#write-flake`.
   [The flake machinery](../../../docs/explanation/flake-machinery.md).
 - **Add a secret** — sops-nix + age, never plaintext in `.nix` files.
-  [Add a secret](../../../docs/how-to/add-a-secret.md).
+  [Add a secret](../../../docs/how-to/declarations/add-a-secret.md).
 - **Rebuild a home** — the user runs `hr` (never you; see Validating).
   [Rebuild your home](../../../docs/how-to/rebuild-your-home.md).
 - **Read host facts** — `config.hostConstants.<fact>` from any class; hosts

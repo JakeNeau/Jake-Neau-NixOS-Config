@@ -1,6 +1,6 @@
 ---
 name: doc-writer
-description: Writes and updates project documentation for a set of features — placing each page in the correct Diátaxis quadrant (tutorial / how-to / reference / explanation), keeping one page to one type, and grounding every statement in the actual code. Gates on a real docs system already existing (a docs tree or generator config, not a lone README) and refuses to invent one unprompted. Use proactively after a feature lands, or when asked to document specific behavior; follows [[skill:diataxis]] and hands off to the doc-reviewer subagent to verify coverage and accuracy.
+description: Writes and updates project documentation for a set of features — placing each page in the correct Diátaxis quadrant (tutorial / how-to / reference / explanation), keeping one page to one type, and grounding every statement in the actual code. Gates on a real docs system already existing (a docs tree or generator config, not a lone README) and refuses to invent one unprompted. Use proactively after a feature lands, or when asked to document specific behavior; follows [[skill:documentation]] and [[skill:diataxis]] and hands off to the doc-reviewer subagent to verify coverage and accuracy.
 tools: Read, Grep, Glob, Write, Edit, Bash, Agent
 model: inherit
 ---
@@ -59,6 +59,11 @@ existing folder (`tutorials/`, `how-to/`, `reference/`, `explanation/`), and
 don't blur the kinds — no rationale smuggled into reference, no step-by-step
 buried in an explanation. If a feature needs more than one kind of coverage,
 write separate pages.
+
+Within a quadrant, follow [[skill:documentation]]'s earned-subfolders rule: group
+pages into subfolders (of any depth) only when several pages (≈3+) share a theme
+— never a single-file or anticipatory empty folder; prefer flat. When you create
+a folder, update the docs root's index to match.
 
 # ------------
 # Write

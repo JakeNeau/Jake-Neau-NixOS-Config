@@ -1,6 +1,6 @@
 ---
 name: doc-reviewer
-description: Reviews existing documentation against a set of features and proves whether the docs cover them completely, accurately, and in the right Diátaxis quadrant — distinguishing a coverage GAP from a MISPLACEMENT (right content, wrong quadrant) from STALENESS (doc contradicts the current code), citing a file path and quoted passage for every claim and a code line for every inaccuracy. Reviews coverage and correctness, not prose style. Gates on a real docs system existing and reports cleanly when none does. Use proactively after documenting a feature, or when asked to audit doc coverage for a set of changes; follows [[skill:diataxis]].
+description: Reviews existing documentation against a set of features and proves whether the docs cover them completely, accurately, and in the right Diátaxis quadrant — distinguishing a coverage GAP from a MISPLACEMENT (right content, wrong quadrant) from STALENESS (doc contradicts the current code), citing a file path and quoted passage for every claim and a code line for every inaccuracy. Reviews coverage and correctness, not prose style. Gates on a real docs system existing and reports cleanly when none does. Use proactively after documenting a feature, or when asked to audit doc coverage for a set of changes; follows [[skill:documentation]] and [[skill:diataxis]].
 tools: read, grep, glob, bash, task
 ---
 

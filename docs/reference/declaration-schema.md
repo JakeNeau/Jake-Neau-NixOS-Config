@@ -3,9 +3,9 @@
 The fields of the three declarations — `flake.programs`, `flake.hosts`,
 `flake.users` — as their generators declare them
 (`modules/nix/flake-parts/declarations/{programs,hosts,users}.nix`). Recipes:
-[Add a program](../how-to/add-a-program.md),
-[Add a host](../how-to/add-a-host.md),
-[Add a per-user program](../how-to/add-a-per-user-program.md). What each
+[Add a program](../how-to/declarations/add-a-program.md),
+[Add a host](../how-to/declarations/add-a-host.md),
+[Add a per-user program](../how-to/declarations/add-a-per-user-program.md). What each
 declaration generates: [generated units](generated-units.md),
 [generated host artifacts](generated-host-artifacts.md).
 
@@ -137,4 +137,4 @@ Declared in `modules/nix/flake-parts/declarations/users.nix`.
   throws; an entry with no per-user way on that host's platform throws; an
   entry the host's override routes to a system install filters out
   silently. The filter-vs-throw table:
-  [Add a per-user program](../how-to/add-a-per-user-program.md).
+  [Add a per-user program](../how-to/declarations/add-a-per-user-program.md).

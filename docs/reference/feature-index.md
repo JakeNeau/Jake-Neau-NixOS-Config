@@ -10,7 +10,7 @@ compose: [the flake machinery](../explanation/flake-machinery.md).
 - `docs/` — this documentation tree, organized by Diátaxis quadrant.
 - `secrets/` — sops-encrypted secrets (`secrets.yaml`); the age key
   (`keys.txt`) is never committed. Flow: [Add a
-  secret](../how-to/add-a-secret.md), [secrets](../explanation/secrets.md).
+  secret](../how-to/declarations/add-a-secret.md), [secrets](../explanation/secrets.md).
 - `specs/` — transient pre-implementation design docs: write → implement →
   document → delete.
 - `wallpapers/` — wallpaper images referenced by stylix and hosts.

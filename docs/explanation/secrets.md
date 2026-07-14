@@ -1,7 +1,7 @@
 # The secrets flow
 
 Why secrets are managed with sops-nix + age, and how the design keeps a
-public repo safe. The recipe: [Add a secret](../how-to/add-a-secret.md).
+public repo safe. The recipe: [Add a secret](../how-to/declarations/add-a-secret.md).
 
 ## The constraint: a public, declarative repo
 

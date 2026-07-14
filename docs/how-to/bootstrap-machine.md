@@ -35,7 +35,7 @@ The NixOS build needs it to decrypt `secrets/secrets.yaml`
 
 **macOS:** no placement step. The darwin hosts consume no sops secrets at
 build time; keep the key outside the repo, needed only to
-[edit secrets](add-a-secret.md).
+[edit secrets](declarations/add-a-secret.md).
 
 ## The config-group ACL sequence
 
@@ -91,7 +91,7 @@ nix run github:nix-community/home-manager -- switch -b backup --flake /etc/nixos
 
 macOS accounts are created imperatively in System Settings — nix-darwin never
 creates them, it only records each user's home directory. Create the account
-before listing the user on the host. See [Add a user](add-a-user.md).
+before listing the user on the host. See [Add a user](declarations/add-a-user.md).
 
 ## Karabiner-Elements first-run approval (macOS)
 

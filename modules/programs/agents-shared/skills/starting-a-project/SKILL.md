@@ -45,7 +45,10 @@ my-project/
 1. **Write `AGENTS.md`** at the repo root — the project instructions (the same
    content you would otherwise put in `CLAUDE.md`): what the project is, its
    conventions, how to build and validate changes, and the cautions an agent
-   must know — durable facts, not session-specific detail.
+   must know — durable facts, not session-specific detail. When the project has
+   a docs system, include the docs-navigation pointer: where the docs tree
+   starts, and that docs come before code for high-level flows, per
+   [[skill:documentation]].
 2. **Write skills** under `.agents/skills/<name>/SKILL.md`, one folder per skill.
    Each file is YAML frontmatter (`name` + `description`) then a body — the
    cross-tool Agent Skills format. See [[skill:writing-skills]] for the anatomy

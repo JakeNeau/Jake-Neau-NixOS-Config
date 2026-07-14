@@ -36,9 +36,9 @@ Declare the secret so sops-nix decrypts it, in
 `modules/nix/tools/sops/sops.nix` (or in the feature that uses it):
 
 ```nix
+# add neededForUsers = true; inside the braces only for secrets read
+# during user creation, e.g. secrets.hashedPasswordJakeNeau
 sops.secrets.mySecret = {};
-# neededForUsers = true; only for secrets read during user creation,
-# e.g. secrets.hashedPasswordJakeNeau
 ```
 
 Then read it by *path*, never by value — the decrypted file lands under

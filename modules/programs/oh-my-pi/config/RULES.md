@@ -25,6 +25,18 @@ functions, so invoke them as `fish -c 'nrr'` or `fish -c 'nr "<message>"'`; the
 exec approval prompt is the backstop, never the ask. See [[skill:machine-layout]]
 for how a rebuild is applied.
 
+## Never hunt bugs inline
+
+Hunt latent bugs only via the [[agent:bug-finder]] agent, per
+[[skill:bug-hunting]]. A surface wider than one module gets parallel
+bug-finders — one per independent ground — merged per the skill.
+
+## Docs before code for high-level flows
+
+Consult the project docs first for any high-level flow, per
+[[skill:documentation]]. When code was needed for one, or a reusable procedure
+emerged, offer the user a docs update at the task's end — never silently.
+
 ## Follow the development flow
 
 Follow the development flow injected at session start; before acting on a task,

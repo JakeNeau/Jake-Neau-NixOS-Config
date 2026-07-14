@@ -5,7 +5,7 @@ an existing host and watch it land — the whole edit → stage → rebuild loop
 will use from now on. It takes about ten minutes.
 
 You need an account that an admin has already set up on this machine (per
-[the adding-a-user guide](../how-to/add-a-user.md)): your user is listed on
+[the adding-a-user guide](../how-to/declarations/add-a-user.md)): your user is listed on
 the host, your home has been activated at least once, and you've been added to
 the `config` group.
 

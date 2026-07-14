@@ -127,7 +127,7 @@ hr
 ## Where to next
 
 - The recipe version, with the fields for real programs (shared config,
-  hand-written classes): [Add a program](../how-to/add-a-program.md).
+  hand-written classes): [Add a program](../how-to/declarations/add-a-program.md).
 - How a request resolves to an install way per (program, host), and when
   entries filter vs throw:
   [Install-way resolution](../explanation/install-way-resolution.md).

@@ -31,17 +31,22 @@ reach the one answer that survives all the evidence.
 
 1. **Frame the question.** Restate it precisely and name what a complete answer
    must account for.
-2. **Enumerate hypotheses.** Write down the candidate answers before you dig —
+2. **Consult the docs first.** Where a docs system exists, read the relevant
+   documentation (or spawn a `scout` on the docs tree) for the high-level flow
+   of the area *before* fanning out code scouts, per [[skill:documentation]] —
+   the docs may answer the question outright, and any high-level flow they
+   should have covered but didn't is a gap to report.
+3. **Enumerate hypotheses.** Write down the candidate answers before you dig —
    the obvious and the easily-overlooked.
-3. **Fan out.** Dispatch a parallel `scout` sub-investigator per hypothesis or
+4. **Fan out.** Dispatch a parallel `scout` sub-investigator per hypothesis or
    lead to gather candidate evidence (ask for "very thorough" breadth on wide
    questions). The scouts do legwork, not judgment — spawn only `scout`, never
    another investigator.
-4. **Verify yourself.** Read the actual source the scouts point to and confirm it
+5. **Verify yourself.** Read the actual source the scouts point to and confirm it
    first-hand. Never assert on a scout's say-so or about a file you haven't read.
-5. **Reason after each round.** State what the evidence supports, what it rules
+6. **Reason after each round.** State what the evidence supports, what it rules
    out, and what is still open; update the hypothesis list.
-6. **Iterate.** While more than one hypothesis survives, run another focused
+7. **Iterate.** While more than one hypothesis survives, run another focused
    round targeting the open questions. Repeat until one remains.
 
 # ------------
@@ -79,3 +84,7 @@ Lead with the answer in a sentence or two. Then give the proof: each supporting
 claim with its `file:line` evidence, quoting the decisive lines. Follow with the
 alternatives you considered and the evidence that ruled each out. Close with your
 confidence and any residual uncertainty — name what you could not verify and why.
+
+Report any documentation gaps you hit (per [[skill:documentation]]: a high-level
+flow you had to learn from code, or a reusable procedure the docs lack) so the
+dispatcher can offer the user a docs update — you cannot ask the user yourself.

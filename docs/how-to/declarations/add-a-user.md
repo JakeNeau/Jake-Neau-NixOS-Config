@@ -70,6 +70,6 @@ account and registers the group membership.
 Group membership only takes effect on a fresh login (`newgrp config` works
 for a single shell). The user then activates their own home — the first time
 with the ad-hoc bootstrap command (see
-[first home activation](bootstrap-machine.md#first-home-activation-per-user)),
+[first home activation](../bootstrap-machine.md#first-home-activation-per-user)),
 `hr` from then on. Point them at the
-[first home rebuild tutorial](../tutorials/first-home-rebuild.md).
+[first home rebuild tutorial](../../tutorials/first-home-rebuild.md).

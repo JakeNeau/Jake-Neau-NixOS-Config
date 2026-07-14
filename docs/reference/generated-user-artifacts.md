@@ -5,7 +5,7 @@ What the user factory (`flake.factory.user`,
 user's folder instantiates it:
 `flake.modules = inputs.self.factory.user "<user>" <isAdmin>;`
 (see `modules/users/*`). The recipe: [Add a
-user](../how-to/add-a-user.md).
+user](../how-to/declarations/add-a-user.md).
 
 ## nixos.\<user\> — the NixOS account aspect
 

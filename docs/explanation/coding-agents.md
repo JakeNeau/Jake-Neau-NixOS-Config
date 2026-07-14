@@ -41,7 +41,7 @@ To make the routing uniform, claude-code — previously a hand-written aspect
 delivered through the `role-desktop` homeManager aggregate — was converted
 into a `flake.programs.claude-code` declaration carrying the same config
 module, so both agents ride the same declaration channel
-([add a per-user program](../how-to/add-a-per-user-program.md)). Rollback is
+([add a per-user program](../how-to/declarations/add-a-per-user-program.md)). Rollback is
 the same one-line mechanism: swap `"oh-my-pi"` for `"claude-code"` in
 `flake.users.jakeneau.programs`; cedar is never touched.
 

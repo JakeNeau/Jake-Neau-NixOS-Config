@@ -3,23 +3,23 @@
 A host is one file, `modules/hosts/<host>/configuration.nix`, holding two
 things: the `flake.hosts` declaration the generator wires everything from,
 and a hand-written aspect for the machine's quirks. For the guided version,
-see the [new-machine walkthrough](../tutorials/new-machine-walkthrough.md).
+see the [new-machine walkthrough](../../tutorials/new-machine-walkthrough.md).
 
 ## 1. Write the declaration
 
 ```nix
 flake.hosts.<host> = {
   class = "nixos";                    # or "darwin"
-  system = "x86_64-linux";            # the platform
+  system = "x86_64-linux";
   users = ["<user>"];                 # accounts on this machine
   globalPrograms = ["ghostty" "fastfetch"];  # every user gets these
   # installOverrides.firefox = "cask";       # pick a non-default install way
-  baselines = ["role-desktop"];       # homeManager aggregates the baseline inherits
+  baselines = ["role-desktop"];       # aggregates inherited by the HM baseline
 };
 ```
 
 Field semantics:
-[declaration schema reference](../reference/declaration-schema.md). Existing
+[declaration schema reference](../../reference/declaration-schema.md). Existing
 hosts to model on: `redwood`/`spruce` (NixOS), `aspen`/`cedar` (darwin) —
 note cedar's `installOverrides.firefox = "cask"` for the override pattern and
 the darwin hosts' `mac-app-util` baseline entry.
@@ -63,4 +63,4 @@ nix build '.#homeConfigurations."<user>@<host>".activationPackage' --no-link   #
 ```
 
 Then bootstrap the machine itself:
-[Bootstrap a machine](bootstrap-machine.md).
+[Bootstrap a machine](../bootstrap-machine.md).

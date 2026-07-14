@@ -10,7 +10,7 @@ Why omp, and why it routes per user:
 
 - `install.linux = ["home"]`, `install.macos = ["home"]` — per-user on both
   platforms. Delivered today by `flake.users.jakeneau.programs`
-  ([add a per-user program](../how-to/add-a-per-user-program.md)).
+  ([add a per-user program](../how-to/declarations/add-a-per-user-program.md)).
 - `hasEnableOption = false` + `packages` — no home-manager
   `programs.oh-my-pi` module exists, so the generator supplies the enable
   toggle and installs the package behind it.

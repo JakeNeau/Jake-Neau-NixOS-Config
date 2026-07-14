@@ -48,20 +48,25 @@ You MUST complete each phase before proceeding to the next.
 
 **BEFORE attempting ANY fix:**
 
-1. **Read error messages carefully** — don't skip past errors or warnings; they
+1. **Consult the project docs first** — before tracing any code, read the
+   documentation for the high-level flow of the affected area, per
+   [[skill:documentation]] (dispatch [[agent:doc-reader]] or read the docs tree
+   directly). Code is for low-level detail; if the docs should have covered the
+   flow and didn't, note the gap for Phase 4's capture step.
+2. **Read error messages carefully** — don't skip past errors or warnings; they
    often contain the exact solution. Read stack traces completely; note line
    numbers, file paths, error codes.
-2. **Reproduce consistently** — can you trigger it reliably? What are the exact
+3. **Reproduce consistently** — can you trigger it reliably? What are the exact
    steps? If not reproducible → gather more data, don't guess.
-3. **Check recent changes** — what changed that could cause this? Git diff,
+4. **Check recent changes** — what changed that could cause this? Git diff,
    recent commits, new dependencies, config changes, environmental differences.
-4. **Gather evidence in multi-component systems** — when the system has multiple
+5. **Gather evidence in multi-component systems** — when the system has multiple
    components (CI → build → signing, API → service → database), add diagnostic
    instrumentation at EACH component boundary before proposing fixes: log what
    data enters and exits each component, verify environment/config propagation,
    check state at each layer. Run once to see WHERE it breaks, then investigate
    that specific component.
-5. **Trace data flow backward to the source.** When the error is deep in the
+6. **Trace data flow backward to the source.** When the error is deep in the
    call stack, don't fix where it appears — that's a symptom. Ask: where does
    the bad value originate? What called this with the bad value? Keep tracing up
    the chain, one caller at a time, until you find the original trigger, and fix
@@ -118,6 +123,11 @@ You MUST complete each phase before proceeding to the next.
    Should we refactor the architecture instead of continuing to fix symptoms?
    **Discuss with the user before attempting more fixes.** This is NOT a failed
    hypothesis — this is a wrong architecture.
+6. **Capture documentation gaps** — once the fix is verified, run
+   [[skill:documentation]]'s capture flow: surface any reference gaps (you
+   needed code for a high-level flow) and how-to gaps (you discovered a
+   generally applicable procedure) hit along the way, and ask the user whether
+   to update the docs.
 
 ## Red flags — STOP and follow the process
 
@@ -163,7 +173,7 @@ If you catch yourself thinking:
 
 | Phase | Key activities | Success criteria |
 |-------|---------------|------------------|
-| **1. Root cause** | Read errors, reproduce, check changes, gather evidence | Understand WHAT and WHY |
+| **1. Root cause** | Consult docs, read errors, reproduce, check changes, gather evidence | Understand WHAT and WHY |
 | **2. Pattern** | Find working examples, compare | Identify differences |
 | **3. Hypothesis** | Form theory, test minimally | Confirmed or new hypothesis |
 | **4. Implementation** | Create test, fix, verify | Bug resolved, tests pass |
@@ -195,6 +205,7 @@ Vincent (MIT).*
 
 ## Related skills
 
+- [[skill:documentation]] — docs-first reading (Phase 1) and the gap-capture flow (Phase 4)
 - [[skill:test-driven-development]] — writing the failing test that pins the bug (Phase 4)
 - [[skill:verification-before-completion]] — proving the fix worked before claiming success
 - [[agent:bug-finder]] — the proactive hunt for latent bugs nobody has pointed at yet

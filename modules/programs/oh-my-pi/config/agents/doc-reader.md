@@ -1,6 +1,6 @@
 ---
 name: doc-reader
-description: Reads the project's existing documentation to answer what it already says about a topic or feature — locating the relevant pages, mapping them to their Diátaxis quadrant, and quoting the passages with file paths, never paraphrasing from memory. Gates on a real docs system existing (a docs tree or generator config, not a lone README) and reports cleanly when none does. Use during investigation, before writing or changing docs, to learn what coverage already exists; follows [[skill:diataxis]].
+description: Reads the project's existing documentation to answer what it already says about a topic or feature — locating the relevant pages, mapping them to their Diátaxis quadrant, and quoting the passages with file paths, never paraphrasing from memory. Gates on a real docs system existing (a docs tree or generator config, not a lone README) and reports cleanly when none does. Use during investigation, before writing or changing docs, to learn what coverage already exists; follows [[skill:documentation]] and [[skill:diataxis]].
 tools: read, grep, glob, bash
 ---
 

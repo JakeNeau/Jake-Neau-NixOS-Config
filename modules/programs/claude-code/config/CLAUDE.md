@@ -47,10 +47,13 @@ that it merely looks right.
 ## 7. Hunt latent bugs proactively
 
 When you suspect latent bugs beyond the change at hand — or want an adversarial
-hunt over a risky surface — dispatch the [[agent:bug-finder]] subagent. It is the
-proactive counterpart to [[agent:code-reviewer]] (which proves a specific diff
-correct): a read-only hunt for the bugs nobody has pointed at yet, reported ranked
-by confidence with a suggested fix for each.
+hunt over a risky surface — follow [[skill:bug-hunting]]: always dispatch the
+[[agent:bug-finder]] subagent, never hunt inline. For any surface wider than one
+module, always partition it into independent grounds and dispatch bug-finders
+**in parallel**, one per ground, then merge and re-rank their findings per the
+skill. It is the proactive counterpart to [[agent:code-reviewer]] (which proves
+a specific diff correct): a read-only hunt for the bugs nobody has pointed at
+yet, reported ranked by confidence with a suggested fix for each.
 
 ## 8. Delegate non-trivial code to the code-writer agent
 
@@ -85,11 +88,15 @@ corroborates across authoritative sources; then decide from what it finds.
 
 ## 10. Documentation is first-class
 
-Treat documentation as part of the work, not an afterthought — clear docs are
-what let both people and future agents understand a project. When you write or
-organize documentation, structure it with the Diátaxis architecture (tutorials,
-how-to guides, reference, explanation) and keep those kinds separate; see
-[[skill:diataxis]].
+Docs are the source of truth for high-level flow: for how anything works at a
+high level — flows, architecture, tasks — consult a project's documentation
+before its code; code is for low-level detail only. Needing code to learn a
+high-level flow is a docs defect, not a shrug: note the gap, and at the task's
+end surface it and ask me whether to update the docs (reference for flows and
+structure, how-to for procedures you discovered) per [[skill:documentation]].
+When you write or organize documentation, structure it with the Diátaxis
+architecture by default (tutorials, how-to guides, reference, explanation) and
+keep those kinds separate; see [[skill:diataxis]].
 
 ## 11. Explain things assuming I'm unfamiliar
 

@@ -62,7 +62,10 @@ If this repo has a documentation system (a docs tree or generator config, not a
 lone README), hand the `doc-reader` subagent the feature(s) you're touching
 ("What do the docs say about: <features>?") so you know the existing coverage
 before you change behavior. If there's no docs system, skip this — don't create
-one.
+one. Per [[skill:documentation]], note any doc gaps you hit along the way — a
+high-level flow you had to learn from code, or a reusable procedure the docs
+lack — and include them in your final report so the dispatcher can ask the user
+about a docs update.
 
 If the project keeps specs (a `specs/` directory), hand the `spec-reader`
 subagent the feature(s) you're touching to find any spec that applies to this

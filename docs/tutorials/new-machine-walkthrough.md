@@ -113,7 +113,7 @@ Notes as you adapt it:
   group's member list on NixOS is central, in
   `modules/host-config/config-group/config-group.nix`, not per-host.
 - The declaration fields are covered in the
-  [adding-a-host guide](../how-to/add-a-host.md) and the
+  [adding-a-host guide](../how-to/declarations/add-a-host.md) and the
   [declaration schema reference](../reference/declaration-schema.md).
 
 ## 3. Stage and dry-build

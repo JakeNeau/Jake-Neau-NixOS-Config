@@ -42,4 +42,4 @@ way or drop out — they never cause a system install. Per (program, host):
 Every throw happens at evaluation time (so the dry-build catches it) and
 names the user, the program, and the fix. Rationale for the
 filter-vs-throw split:
-[Install-way resolution](../explanation/install-way-resolution.md).
+[Install-way resolution](../../explanation/install-way-resolution.md).

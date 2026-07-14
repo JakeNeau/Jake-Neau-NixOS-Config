@@ -15,8 +15,10 @@ user's home a standalone home-manager configuration; underneath, the dendritic
 substrate on flake-parts auto-imports every `.nix` under `modules/` as a
 feature module. **Read `.agents/skills/nix-config/SKILL.md` before adding or
 changing anything** — it covers the declarations, the generated units, the
-`flake.modules.<class>.<name>` aspects, and the rules for writing them. The
-human-facing documentation is the Diátaxis tree under `docs/`.
+`flake.modules.<class>.<name>` aspects, and the rules for writing them. For how
+anything here works at a high level — flows, architecture, tasks — start at
+`docs/README.md` and consult the docs before the code (`reference/` for how the
+machinery works, `how-to/` for tasks); code is for low-level detail only.
 
 ## Conventions
 
@@ -96,7 +98,8 @@ functions yourself — see below.
 
 ## Related docs
 
-- `docs/` — the human-facing Diátaxis tree (tutorials, how-to, reference,
-  explanation); start at `docs/README.md`.
+- `docs/` — the Diátaxis tree (tutorials, how-to, reference, explanation): the
+  source of truth for how this repo works at a high level, for humans and
+  agents alike; start at `docs/README.md`.
 - `README.md` — project overview, install steps, roadmap, usage shortcuts.
 - `SKILLS.md` — how Claude Code skills are organized for this repo.

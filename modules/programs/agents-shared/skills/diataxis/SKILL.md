@@ -53,7 +53,9 @@ is a compass for deciding which kind you're writing.
   belong in a different quadrant.
 - **One page, one type.** Give each quadrant its own section/folder
   (`tutorials/`, `how-to/`, `reference/`, `explanation/`) so readers navigate by
-  need.
+  need. For organizing *within* a quadrant (earned subfolders) and the working
+  discipline around docs — docs-first reading and capturing gaps — see
+  [[skill:documentation]].
 
 ## The docs root explains the system
 
@@ -77,6 +79,8 @@ Official site: https://diataxis.fr
 
 ## Related skills
 
+- [[skill:documentation]] — the working discipline: docs-first reading, gap
+  capture, and earned subfolders within a quadrant.
 - [[agent:doc-writer]] / [[agent:doc-reader]] / [[agent:doc-reviewer]] — the agents that write,
   read, and review docs in this architecture.
 - [[skill:specs]] — the transient pre-implementation working documents whose durable

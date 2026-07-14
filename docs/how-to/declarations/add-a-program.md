@@ -2,8 +2,8 @@
 
 Declare a program once; the generator produces the installable units. Full
 field semantics: the
-[declaration schema reference](../reference/declaration-schema.md); what gets
-generated: the [generated-units reference](../reference/generated-units.md).
+[declaration schema reference](../../reference/declaration-schema.md); what gets
+generated: the [generated-units reference](../../reference/generated-units.md).
 
 ## 1. Write the declaration
 
