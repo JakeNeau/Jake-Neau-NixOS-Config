@@ -5,11 +5,6 @@
       `nr -s`/`--staged` flag (stages only `flake.lock` and stashes unstaged
       tracked changes; see `modules/programs/fish/functions/nr.fish`). Update
       the sentence to cover both modes. Low priority.
-- [ ] `nr` (`modules/programs/fish/functions/nr.fish`): support long commit
-      messages — the single short `<message>` argument only allows a subject
-      line; add a way to pass a multi-line body (e.g. a repeatable `-m` flag,
-      a body option, or reading stdin) so rebuild commits can carry full
-      commit messages.
 - [ ] Update the specs conventions so new specs never cite code by line number —
       cite file paths with durable content anchors (symbol names or short quoted
       phrases) instead, since line numbers rot as the tree changes under a spec's
@@ -360,6 +355,15 @@
       does not support listing/loading sessions") and model listing via
       `get_models` (else `<leader>am` finds no models). If omp lacks them,
       drop or rework those keymaps.
+- [ ] Add a `docs/reference/` page for the `nr` rebuild function's commit
+      mechanics: its flags (`-n/--no-git`, `-s/--staged`, `-f/--full-output`,
+      and the `-l/--long "<body>"` extended-description option) and the
+      `<host> Generation <N>: <message>` commit format. Today these are
+      documented only in the root README.md, AGENTS.md, and the Claude rules
+      file (`modules/programs/claude-code/config/rules/nr-nrr.md`) — the
+      Diátaxis tree at `docs/` has no reference coverage. Implementation:
+      `modules/programs/fish/functions/nr.fish`. Pre-existing gap noted by doc
+      review on 2026-07-14 when `-l/--long` landed. Low priority.
 
 ## Waiting on upstream
 

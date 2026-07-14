@@ -1,9 +1,21 @@
 function nr --description "Pulls, verifies every environment in the flake, commits and pushes, then rebuilds the system and your home. Aborts if any step fails"
-  argparse 'n/no-git' 's/staged' 'f/full-output' -- $argv
+  argparse 'n/no-git' 's/staged' 'f/full-output' 'l/long=' -- $argv
   or return 1
 
   if set -q _flag_staged; and set -q _flag_no_git
     echo "nr: --staged and --no-git contradict each other" >&2
+    return 1
+  end
+
+  # A body-only invocation would take the amend path, which has no place
+  # for a fresh body without a fresh subject
+  if set -q _flag_long; and test (count $argv) -eq 0
+    echo "nr: --long needs a short <message> too" >&2
+    return 1
+  end
+
+  if set -q _flag_long; and set -q _flag_no_git
+    echo "nr: --long is pointless with --no-git (no commit is made)" >&2
     return 1
   end
 
@@ -133,7 +145,14 @@ function nr --description "Pulls, verifies every environment in the flake, commi
       else
         set new_commit_message "$this_host Generation $new_generation: $last_commit_message"
       end
-      sudo git -C $flake commit --amend $git_quiet -m "$new_commit_message"
+      # --amend -m replaces the whole message, so carry the old body forward
+      set -l body_args
+      # string collect keeps a multi-paragraph body as one element
+      set -l last_body (git -C $flake log -1 --pretty=%b | string collect)
+      if test -n "$last_body"
+        set body_args -m "$last_body"
+      end
+      sudo git -C $flake commit --amend $git_quiet -m "$new_commit_message" $body_args
       or begin
         echo "nr: amending the last commit failed, aborting before the push and rebuild$stash_hint" >&2
         return 1
@@ -146,7 +165,12 @@ function nr --description "Pulls, verifies every environment in the flake, commi
     # Make a new commit if the message is specified
     else
       set new_commit_message "$this_host Generation $new_generation: $argv"
-      sudo git -C $flake commit $git_quiet -m "$new_commit_message"
+      # -l/--long supplies an extended description as a second -m paragraph
+      set -l body_args
+      if set -q _flag_long
+        set body_args -m "$_flag_long"
+      end
+      sudo git -C $flake commit $git_quiet -m "$new_commit_message" $body_args
       or begin
         echo "nr: git commit failed, aborting before the push and rebuild$stash_hint" >&2
         return 1

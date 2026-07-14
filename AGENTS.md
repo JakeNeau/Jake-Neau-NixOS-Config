@@ -88,8 +88,10 @@ functions yourself — see below.
   and `<N>` is the upcoming generation number predicted from
   `/nix/var/nix/profiles/system` (the commit happens just before the rebuild).
   Running `nr` with no message _amends_ the last commit with an updated
-  generation number. Match this convention if asked to commit, but default to
-  letting the user run the rebuild flow.
+  generation number. `nr` also accepts `-l`/`--long "<body>"` for an extended
+  description; keep `<message>` at 50 characters or fewer and use the body only
+  when the change genuinely needs one. Match this convention if asked to
+  commit, but default to letting the user run the rebuild flow.
 - **Secrets.** Managed with sops-nix + age. Never put plaintext secrets in
   `.nix` files; add them to `secrets/secrets.yaml` via sops. Never commit
   `secrets/keys.txt`; decryption needs that key present locally.

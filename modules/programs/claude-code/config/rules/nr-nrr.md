@@ -16,7 +16,17 @@ just `nr "Regular update"`, so it carries the same weight.
 ## How to run them
 
 They are fish autoloaded functions, absent from my zsh shell, so invoke them as
-`fish -c 'nrr'` or `fish -c 'nr "<message>"'`. They need the real network, `sudo`,
+`fish -c 'nrr'`, `fish -c 'nr "<message>"'`, or
+`fish -c 'nr "<message>" -l "<body>"'`. They need the real network, `sudo`,
 and git push, so they run with `dangerouslyDisableSandbox: true`. The
 `permissions.ask` rule in `settings.json` forces a harness prompt as a backstop.
 See [[skill:machine-layout]] for how a rebuild is applied.
+
+## Commit message guidance
+
+Keep `<message>` at 50 characters or fewer — `nr` prepends a
+`<host> Generation <NNN>: ` prefix (roughly 22 characters, depending on the
+host name), which keeps the full git subject near the conventional 72-character
+limit. If 50 characters says everything, use the short message alone. Reach for
+`-l`/`--long "<body>"` only when the change genuinely warrants explanation
+beyond the subject, and write the body in complete sentences.

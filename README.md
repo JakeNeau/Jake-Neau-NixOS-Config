@@ -144,8 +144,8 @@ The Niri Window Manager is used as the graphical interface for the system. Here 
 
 Additionally Fish is used for interactive shells. Here are some shortcuts I have configures with fish.
 - **nrr**: Run nr with a default update status message
-- **nr "message"**: Verify every environment in the flake (all systems and all homes), push to GitHub with the message "message" (a generation number is prepended), then rebuild the system and reactivate your own home
-- **nr**: The same, but amend the last commit with the same message and a new generation number
+- **nr "message"**: Verify every environment in the flake (all systems and all homes), push to GitHub with the message "message" (a generation number is prepended), then rebuild the system and reactivate your own home; add `-l "body"` for an extended commit description
+- **nr**: The same, but amend the last commit with the same message and a new generation number (preserving any existing body)
 - **hr**: Rebuild and activate your own home, and nothing else — every user's home is a standalone home-manager configuration, applied independently of the system rebuild (see [docs/how-to/rebuild-your-home.md](docs/how-to/rebuild-your-home.md))
 
 More autoloaded helpers live in [`modules/programs/fish/functions/`](modules/programs/fish/functions/) — among them the `mc-*` minecraft-server controls, the `np*` nix-package inspectors, `nc` (open the system flake in an editor), and `suu` (sudo as the current user).
