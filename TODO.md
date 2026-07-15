@@ -1,5 +1,21 @@
 # TODO
 
+- [ ] Resolve Home Manager's Yazi wrapper-name state-version warning in
+      `modules/programs/yazi/yazi.nix`: explicitly choose
+      `programs.yazi.shellWrapperName = "yy"` to preserve today's command or
+      `"y"` to adopt the 26.05 default, then verify the chosen wrapper works and
+      the warning is absent from Redwood and Spruce home evaluations.
+- [ ] Resolve Home Manager's deprecated implicit pointer-cursor generation in
+      `modules/nix/tools/stylix/stylix.nix`: explicitly enable
+      `home.pointerCursor` in the shared Linux home-manager Stylix aspect, then
+      verify both Linux homes retain the Bibata cursor and no longer emit the
+      `home.pointerCursor` warning.
+- [ ] Replace Minegrub on Redwood with a different GRUB theme packaged by
+      nixpkgs. Remove the `minegrub-theme` flake input and
+      `modules/nix/tools/minegrub/minegrub.nix`, regenerate `flake.nix`, and
+      preserve Redwood's custom boot entries, `configurationLimit = 15`, and
+      5120x1440 graphics modes. Done means the Redwood system dry-build passes
+      without Minegrub's nested-`buildInputs` warning.
 - [ ] When next touching `AGENTS.md`: the `nr`/`nrr` caution says
       the flow unconditionally runs `git add -A`, which under-describes the new
       `nr -s`/`--staged` flag (stages only `flake.lock` and stashes unstaged
@@ -21,9 +37,11 @@
       `development` (no extensions, no hardening). Apply Stylix theming to every
       profile except `development` by setting
       `stylix.targets.librewolf.profileNames` to work/strict/compatibility —
-      Linux only, since the macs have no stylix. Stylix doesn't theme librewolf
-      at all today, so the theming wiring only matters once these profiles
-      exist; stylix home-manager config is delivered via the Linux hosts'
+      Linux only, since the macs have no stylix. This must also eliminate the
+      current Stylix warning that
+      `config.stylix.targets.librewolf.profileNames` is unset. Stylix does not
+      theme LibreWolf today, so this wiring only matters once the profiles
+      exist; Stylix home-manager config is delivered through the Linux hosts'
       `baselines` (`modules/nix/tools/stylix/stylix.nix`).
 - [ ] Runtime theme switching:
       keep stylix and add one home-manager specialisation per color scheme —

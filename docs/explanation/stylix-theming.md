@@ -33,6 +33,10 @@ Because baselines pass through the boundary priority wrapper, stylix's
 settings land at priority 900 in each home — a user can restyle any of it
 by plain assignment.
 
+The home-manager aspect disables Stylix's Hyprland target because both Linux
+hosts use Niri; otherwise Stylix populates dead Hyprland settings and triggers
+Home Manager's Hyprland state-version warning.
+
 ## macOS: deliberately out of scope
 
 macOS theming was verified *possible* — the pinned stylix ships

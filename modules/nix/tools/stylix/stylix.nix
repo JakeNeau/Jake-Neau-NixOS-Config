@@ -48,8 +48,15 @@ in {
     stylix = theme pkgs;
   };
 
-  flake.modules.homeManager.stylix = {pkgs, ...}: {
+  flake.modules.homeManager.stylix = {
+    lib,
+    pkgs,
+    ...
+  }: {
     imports = [inputs.stylix.homeModules.stylix];
-    stylix = theme pkgs;
+    stylix = lib.mkMerge [
+      (theme pkgs)
+      {targets.hyprland.enable = false;}
+    ];
   };
 }
