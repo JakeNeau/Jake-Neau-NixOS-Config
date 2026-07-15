@@ -125,7 +125,7 @@ function nr --description "Pulls, verifies every environment in the flake, commi
   # so nothing is committed or pushed unless the build is known to succeed
   set -l this_host (hostname -s)
   echo "Building $this_class.$this_host..."
-  nix build "$flake#$this_class.$this_host.config.system.build.toplevel" --no-link $nix_quiet
+  nix build "$flake#$this_class.\"$this_host\".config.system.build.toplevel" --no-link $nix_quiet
   or begin
     echo "nr: the build for $this_host failed, aborting (nothing was committed or pushed)$stash_hint" >&2
     return 1

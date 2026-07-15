@@ -398,6 +398,14 @@
       of a broad July 2026 darwin breakage wave; the workaround mirrors the
       merged R fix nixpkgs#540940 (link with lld).
 
+- [ ] Re-add `freecad` to `modules/host-config/roles/desktop/desktop.nix`
+      (commented out 2026-07-14) once nixpkgs ships a `pdal` that builds
+      under GCC 15. Context: pdal 2.9.3's `pdal/private/gdal/Raster.cpp`
+      fails to compile with `invalid conversion from 'CSLConstList' {aka
+      'const char* const*'} to 'char**'`, which GCC 15 treats as a hard
+      error; pdal is pulled in via `vtk → freecad`, so it blocks the whole
+      system build.
+
 ## When I get a homelab
 
 - [ ] Shared binary cache / remote builder: e.g. harmonia or attic serving

@@ -32,6 +32,9 @@
         enable = true;
         device = "nodev";
         efiSupport = true;
+        # Bound /boot/kernels so the 511M partition never fills; older
+        # generations stay in the store but drop out of the GRUB menu.
+        configurationLimit = 15;
         minegrub-theme = {
           enable = true;
           splash = "I use NixOS BTW!!";

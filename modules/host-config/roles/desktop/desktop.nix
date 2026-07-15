@@ -87,7 +87,9 @@
       # })
       ckan # A mod manager for Kerbal Space Program
       element-desktop # A group messaging service with an open source API
-      freecad # An open source parametric 3D modeling program
+      # freecad # An open source parametric 3D modeling program — temporarily
+      # dropped: its pdal dependency fails to build under GCC 15. See TODO.md
+      # "Waiting on upstream".
       gnucash # Double-entry accounting software
       inkscape # Vector graphics editor
       krita # A FOSS art program
