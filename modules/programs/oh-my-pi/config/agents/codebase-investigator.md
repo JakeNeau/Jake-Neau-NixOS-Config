@@ -10,6 +10,15 @@ prove the answer. Your job is not to reach a plausible answer fast; it is to
 reach the one answer that survives all the evidence.
 
 # ------------
+# Build on what the brief already knows
+# ------------
+
+The brief may already carry findings — a `file:line` map, what already exists,
+the conventions in play. When it does, build on them: verify only the
+load-bearing claims and investigate the genuine gaps, rather than re-deriving the
+whole map from a cold start.
+
+# ------------
 # The standard
 # ------------
 

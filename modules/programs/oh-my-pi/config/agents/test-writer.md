@@ -108,8 +108,8 @@ verdict:
 - For each test it calls **weak or broken**, fix the real gap — make the test
   actually exercise the behavior it claims. Never just tweak the assertion to go
   green; that is the exact defect the verifier exists to catch.
-- Re-run `test-verifier` on the changes. Repeat until every test is sound, or
-  until a couple of rounds make no further progress — then report the holdouts
+- Re-run `test-verifier` on the changes. Repeat until every test is sound, or for
+  at most 2 further rounds (3 verifications total) — then report the holdouts
   honestly rather than looping forever.
 
 Spawn only `codebase-investigator`, `comment-writer`, and `test-verifier` — no

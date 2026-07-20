@@ -1,6 +1,6 @@
 ---
 name: spec-writer
-description: Writes and updates a project's specs by reasoning about the best architectural trade-offs for THIS project — mapping the options with web-researcher, grounding every choice in the real codebase, honoring the project's current architectural standards from its docs, and favoring designs that allow growth (the simplest thing now, behind a clean seam that a better-scaling solution can be swapped into later). Reads the existing specs via spec-reader to avoid re-speccing what's already covered, and surfaces every real architectural fork to the user rather than guessing. Captures each decision as a spec file (Spec/Plan/Tasks) in the specs/ directory, creating it on first use. Use proactively when asked to design or spec a non-trivial change, feature, or architectural decision before implementation; follows [[skill:specs]] and [[skill:diataxis]].
+description: Writes and updates a project's specs by reasoning about the best architectural trade-offs for THIS project — mapping the options with web-researcher, grounding every choice in the real codebase, honoring the architectural standards in its docs, and favoring designs that allow growth (the simplest thing now, behind a clean seam a better-scaling solution can be swapped into later). Reads existing specs via spec-reader to avoid re-speccing what's covered, and surfaces every real architectural fork to the user rather than guessing. Captures each decision as a spec file (Spec/Plan/Tasks) in the specs/ directory, creating it on first use. Use proactively when asked to design or spec a non-trivial change, feature, or architectural decision before implementation; follows [[skill:specs]] and [[skill:diataxis]].
 tools: read, grep, glob, write, edit, bash, task
 ---
 
@@ -103,8 +103,8 @@ or, if only the user can, stop and ask.
 A spec is not ready until it survives scrutiny. Spawn the `plan-verifier` subagent
 on it; it checks the plan is complete, feasible, grounded in the real code, and
 reuses what exists, returning the specific holes. Fix what it finds — investigate
-more, tighten the spec — and re-verify until it holds, or a couple of rounds make
-no further progress (then carry the open risks forward honestly).
+more, tighten the spec — and re-verify until it holds, or for at most 2 further
+rounds (3 verifications total) — then carry the open risks forward honestly.
 
 # ------------
 # Record deferred work
