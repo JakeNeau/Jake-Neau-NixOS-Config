@@ -416,6 +416,15 @@
       of a broad July 2026 darwin breakage wave; the workaround mirrors the
       merged R fix nixpkgs#540940 (link with lld).
 
+- [ ] Report the fishPlugins.pure build failure upstream to nixpkgs — pure
+      4.15.0's fishtape test suite fails 24/286 tests in the Nix build sandbox
+      (permission-denied errors, likely caused by Nix >= 2.30 moving build
+      dirs from /tmp to /nix/var/nix/builds; same failure class as nixpkgs
+      issues #510488 (nushell) and PR #535763 (mise)). The failure appears
+      unreported for pure. Once fixed upstream (or checks are dropped from
+      fish plugin packaging per the maintainer stance in nixpkgs PR #393174),
+      remove the `doCheck = false` override on pure in
+      `modules/programs/fish/fish.nix`.
 - [ ] Re-add `freecad` to `modules/host-config/roles/desktop/desktop.nix`
       (commented out 2026-07-14) once nixpkgs ships a `pdal` that builds
       under GCC 15. Context: pdal 2.9.3's `pdal/private/gdal/Raster.cpp`
