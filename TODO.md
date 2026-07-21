@@ -5,11 +5,6 @@
       `programs.yazi.shellWrapperName = "yy"` to preserve today's command or
       `"y"` to adopt the 26.05 default, then verify the chosen wrapper works and
       the warning is absent from Redwood and Spruce home evaluations.
-- [ ] Resolve Home Manager's deprecated implicit pointer-cursor generation in
-      `modules/nix/tools/stylix/stylix.nix`: explicitly enable
-      `home.pointerCursor` in the shared Linux home-manager Stylix aspect, then
-      verify both Linux homes retain the Bibata cursor and no longer emit the
-      `home.pointerCursor` warning.
 - [ ] Replace Minegrub on Redwood with a different GRUB theme packaged by
       nixpkgs. Remove the `minegrub-theme` flake input and
       `modules/nix/tools/minegrub/minegrub.nix`, regenerate `flake.nix`, and

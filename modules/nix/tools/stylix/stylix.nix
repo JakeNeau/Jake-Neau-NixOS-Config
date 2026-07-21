@@ -58,5 +58,6 @@ in {
       (theme pkgs)
       {targets.hyprland.enable = false;}
     ];
+    home.pointerCursor.enable = true;
   };
 }
