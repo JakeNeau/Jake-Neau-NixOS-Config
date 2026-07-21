@@ -395,17 +395,6 @@
       `modules/programs/claude-code/config/hooks/agents-md-context` and its
       `settingsPolicy.hooks.SessionStart` registration in
       `modules/programs/claude-code/claude-code.nix`.
-- [ ] Remove the transient cpplint workaround in
-      `modules/programs/nvf/nvf.nix` — the `nvim-lint.linters.cpplint.cmd =
-      lib.mkForce ...overridePythonAttrs (_: { doCheck = false; })` line in
-      the diagnostics block, which points nvf's cpplint diagnostics at the
-      same package with its check phase skipped — once nixpkgs ships a cpplint
-      whose test suite passes under Python 3.14. Context: cpplint 2.0.2's
-      tests fail under Python 3.14 because the new codecs.open()
-      DeprecationWarning breaks their exact-output assertions (17 of 222
-      tests); fixed upstream in cpplint/cpplint#405 (Nov 2025), but no release
-      past 2.0.2 exists yet and nixpkgs has neither patched nor disabled the
-      tests.
 - [ ] Remove the transient sioyek/qtspeech workaround in
       `modules/programs/sioyek/sioyek.nix` — the darwin-only
       `programs.sioyek.package` override that links both qtspeech and sioyek
@@ -425,13 +414,6 @@
       fish plugin packaging per the maintainer stance in nixpkgs PR #393174),
       remove the `doCheck = false` override on pure in
       `modules/programs/fish/fish.nix`.
-- [ ] Re-add `freecad` to `modules/host-config/roles/desktop/desktop.nix`
-      (commented out 2026-07-14) once nixpkgs ships a `pdal` that builds
-      under GCC 15. Context: pdal 2.9.3's `pdal/private/gdal/Raster.cpp`
-      fails to compile with `invalid conversion from 'CSLConstList' {aka
-      'const char* const*'} to 'char**'`, which GCC 15 treats as a hard
-      error; pdal is pulled in via `vtk → freecad`, so it blocks the whole
-      system build.
 
 ## When I get a homelab
 
