@@ -288,23 +288,6 @@
       Spec-consistent, so this may be fine as-is — but if yazi is wanted on the
       macs, it's one `globalPrograms` entry in each mac's host declaration or a
       `flake.users` programs line.
-- [ ] Declaration framework, stage 6: run `hr` once manually on the next
-      deliberate rebuild to confirm end-to-end home activation. Stage 6 shipped
-      the `hr` fish function and `nr`'s home-reactivation call
-      (`modules/programs/fish/functions/`), validated only by `fish -n`,
-      source-level proof of home-manager's flake-fragment quoting, and full
-      flake builds — no actual `home-manager switch` was run. First-time note:
-      `hr` itself is deployed by home activation, so the very first switch on a
-      machine must be the full command:
-      `home-manager switch -b backup --flake <repo>#<user>@<host>`. Migration
-      bridge (verified 2026-07-08): after merging, the `nr`/`hr` on disk are
-      still the pre-migration home generation's until a home activates once,
-      so the first activation on each machine must be that full command; on
-      cedar specifically the old `nr` aborts outright before rebuilding — its
-      unquoted verify fragment fails on the new dotted
-      `homeConfigurations."jake.neau@cedar"` output (proven by eval) — so run
-      the manual home switch there BEFORE the first `nr`.
-
 - [ ] Document when `matcher` may be omitted from a hook registration in
       `modules/programs/claude-code/config/skills/writing-hooks/SKILL.md` — it
       currently describes `matcher` as standard but doesn't say when omitting
