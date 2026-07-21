@@ -27,6 +27,14 @@ Add a comment only where it genuinely helps a competent reader. Obvious code
 needs none; noise is worse than silence. If you can't name a non-obvious why,
 write nothing.
 
+## Don't recite the error you silenced
+
+When a line exists to silence a warning, error, or deprecation, don't quote or
+paraphrase the message — the change itself shows what it fixed, and the wording
+rots as the tool changes. Keep the message only when it earns the line by
+stopping a future reader from reverting the fix (e.g. the fix looks redundant
+and the text names why it isn't). Otherwise give the why, or nothing.
+
 ## Concision
 
 The shortest wording that stays useful. No multi-line preambles, hedging, or
@@ -82,6 +90,9 @@ lines.
 - Reference only real dependencies (leaked consumer in a generic library):
   - `// 30s timeout — the checkout dashboard polls this every minute`
     → `// 30s timeout: callers should poll no faster than once a minute`
+- Don't recite the silenced error:
+  - `// silences "home.pointerCursor: relying on it to enable is deprecated"`
+    → *(delete — the `enable = true` it annotates already shows the fix)*
 - Proximity (split a top-of-function block into per-step comments):
 
       // Validate the input, normalize the path, then write the file and
