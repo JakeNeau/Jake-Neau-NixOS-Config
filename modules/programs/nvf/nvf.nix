@@ -14,18 +14,10 @@
     config,
     ...
   }: let
-    # Which AI agent plugin this home gets. The enable options only exist in
-    # homes that import the generated program unit, hence attrByPath. oh-my-pi
-    # wins if both are somehow enabled; a home with neither gets no AI plugin.
-    ompAi = lib.attrByPath ["programs" "oh-my-pi" "enable"] false config;
-    claudeAi = !ompAi && lib.attrByPath ["programs" "claude-code" "enable"] false config;
-
-    # The omp prompts point the agent at this config's source; the repo root
-    # differs per platform, so bake it in at build time.
-    repoRoot =
-      if pkgs.stdenv.isDarwin
-      then "/etc/nix-darwin"
-      else "/etc/nixos";
+    # Whether this home gets the Claude Code editor plugin. The enable option
+    # only exists in homes that import the generated program unit, hence
+    # attrByPath; a home without claude-code gets no AI plugin.
+    claudeAi = lib.attrByPath ["programs" "claude-code" "enable"] false config;
   in {
     imports = [inputs.nvf.homeManagerModules.default];
 
@@ -150,8 +142,8 @@
           enable = true; # Enable lazy loading for plugins to load in only when needed
           enableLznAutoRequire = true; # Builtin plugins need this, only turn off for debug
           plugins = {
-            # Claude Code IDE integration: spawns the `claude` CLI
-            # (claude-code homes only; oh-my-pi homes get codecompanion).
+            # Claude Code IDE integration: spawns the `claude` CLI in
+            # claude-code homes (the only AI plugin wired here today).
             "claudecode.nvim" = lib.mkIf claudeAi {
               package = pkgs.vimPlugins.claudecode-nvim;
               setupModule = "claudecode";
@@ -236,280 +228,6 @@
                   mode = "n";
                   action = "<cmd>ClaudeCodeDiffDeny<cr>";
                   desc = "Deny diff";
-                }
-              ];
-            };
-
-            # codecompanion.nvim: chat with the omp coding agent over ACP
-            # (oh-my-pi homes only; claude-code homes get claudecode.nvim
-            # above). omp routes edits through ACP's session/request_permission
-            # and owns auth (~/.omp/agent/agent.db), so nvim holds no API key.
-            #
-            # No inline-assistant keymap: codecompanion's inline interaction
-            # supports HTTP adapters only, not ACP (interactions/inline).
-            "codecompanion.nvim" = lib.mkIf ompAi {
-              package = pkgs.vimPlugins.codecompanion-nvim;
-              setupModule = "codecompanion";
-              setupOpts = {
-                # Custom ACP adapter running `omp acp`. Extending the shipped
-                # claude_code ACP adapter inherits its protocol plumbing
-                # (form_messages etc.); the auth override is required — the
-                # inherited handler fails without CLAUDE_CODE_OAUTH_TOKEN, and
-                # omp needs no token from the editor.
-                adapters.acp.omp = lib.generators.mkLuaInline ''
-                  function()
-                    return require("codecompanion.adapters").extend("claude_code", {
-                      name = "omp",
-                      formatted_name = "oh-my-pi",
-                      commands = {
-                        default = { "omp", "acp" },
-                        yolo = { "omp", "acp" },
-                      },
-                      handlers = {
-                        auth = function() return true end,
-                      },
-                    })
-                  end
-                '';
-                interactions.chat.adapter = "omp";
-
-                # The ak/aq/ah shortcut ports (see their keymaps below). The
-                # content functions build on the codecompanion_prompts helpers
-                # in luaConfigRC, which read the captured buffer context, not
-                # the live cursor — they may run after focus moved to the chat.
-                prompt_library = {
-                  "Explain why" = {
-                    interaction = "chat";
-                    description = "Explain the focused code — purpose and reasoning";
-                    opts = {
-                      alias = "why";
-                      auto_submit = true;
-                    };
-                    prompts = [
-                      {
-                        role = "user";
-                        content = lib.generators.mkLuaInline ''
-                          function(context)
-                            return "Explain WHY the focused code does what it does — its purpose and reasoning, not a line-by-line description.\n\nFocus on "
-                              .. require("codecompanion_prompts").focus(context)
-                          end
-                        '';
-                      }
-                    ];
-                  };
-
-                  # user_prompt: vim.ui.input collects the question, which
-                  # joins the chat as the final user message.
-                  "Ask about this code" = {
-                    interaction = "chat";
-                    description = "Ask a free-form question about the focused code";
-                    opts = {
-                      alias = "ask";
-                      auto_submit = true;
-                      user_prompt = true;
-                    };
-                    prompts = [
-                      {
-                        role = "user";
-                        content = lib.generators.mkLuaInline ''
-                          function(context)
-                            return "Answer the question that follows about "
-                              .. require("codecompanion_prompts").focus(context)
-                          end
-                        '';
-                      }
-                    ];
-                  };
-
-                  # Feeds the editor's live keymap/command corpus (runtime
-                  # truth beats reading config) plus a pointer to the config
-                  # source, which the omp agent can read/grep itself.
-                  "How do I…?" = {
-                    interaction = "chat";
-                    description = "How do I…? — answered from this editor's keymaps and commands";
-                    opts = {
-                      alias = "how";
-                      auto_submit = true;
-                      user_prompt = true;
-                    };
-                    prompts = [
-                      {
-                        role = "user";
-                        content = lib.generators.mkLuaInline ''
-                          function(context)
-                            local p = require("codecompanion_prompts")
-                            return "Answer the \"how do I…?\" question that follows using this configured Neovim's own keymaps and commands: name the exact keymap(s)/command(s) that do it, quoting the precise keys (e.g. <leader>e) or command (e.g. :Oil). Prefer the configured bindings; fall back to standard Neovim only when nothing configured fits."
-                              .. " The editor's config source lives at ${repoRoot}/modules/programs/nvf/nvf.nix — read or grep it when the corpus below isn't enough."
-                              .. "\n\nKeymaps:\n" .. p.keymap_corpus(context.bufnr)
-                              .. "\n\nCommands:\n" .. p.command_corpus(context.bufnr)
-                          end
-                        '';
-                      }
-                    ];
-                  };
-                };
-              };
-              cmd = [
-                "CodeCompanion"
-                "CodeCompanionChat"
-                "CodeCompanionActions"
-                "CodeCompanionCmd"
-              ];
-
-              keys = [
-                {
-                  key = "<leader>at";
-                  mode = "n";
-                  action = "<cmd>CodeCompanionChat Toggle<cr>";
-                  desc = "Toggle CodeCompanion";
-                }
-                {
-                  # Jump to the last chat's window, reopening it if hidden;
-                  # restore() focuses a visible chat instead of toggling it.
-                  key = "<leader>af";
-                  mode = "n";
-                  lua = true;
-                  action = ''
-                    function()
-                      local cc = require("codecompanion")
-                      local chat = cc.last_chat()
-                      if chat then cc.restore(chat.bufnr) else cc.chat() end
-                    end
-                  '';
-                  desc = "Focus CodeCompanion chat";
-                }
-                {
-                  # Open a fresh chat and run the /resume slash command (ACP
-                  # session/list + session/load — a picker of past omp
-                  # sessions). The ACP connection is created asynchronously
-                  # when the chat opens, so poll briefly until it's up.
-                  key = "<leader>ar";
-                  mode = "n";
-                  lua = true;
-                  action = ''
-                    function()
-                      local chat = require("codecompanion").chat()
-                      if not chat then return end
-                      local tries = 0
-                      local function attempt()
-                        if chat.acp_connection then
-                          require("codecompanion.interactions.chat.slash_commands").new():execute({
-                            label = "resume",
-                            config = require("codecompanion.config").interactions.chat.slash_commands.resume,
-                          }, chat)
-                        elseif tries < 50 then
-                          tries = tries + 1
-                          vim.defer_fn(attempt, 100)
-                        else
-                          vim.notify("omp ACP connection not ready; try /resume in the chat", vim.log.levels.WARN)
-                        end
-                      end
-                      attempt()
-                    end
-                  '';
-                  desc = "Resume an omp session";
-                }
-                {
-                  # ACP model picker (session-scoped): get_models() over the
-                  # live connection, then change_model on selection.
-                  key = "<leader>am";
-                  mode = "n";
-                  lua = true;
-                  action = ''
-                    function()
-                      local chat = require("codecompanion").last_chat()
-                      if not (chat and chat.acp_connection) then
-                        return vim.notify("No active CodeCompanion chat", vim.log.levels.WARN)
-                      end
-                      require("codecompanion.interactions.chat.keymaps.change_adapter").select_model(chat)
-                    end
-                  '';
-                  desc = "Select omp model";
-                }
-                {
-                  # Capture the path before touching the chat — creating or
-                  # focusing it changes the current buffer.
-                  key = "<leader>ab";
-                  mode = "n";
-                  lua = true;
-                  action = ''
-                    function()
-                      local path = vim.api.nvim_buf_get_name(0)
-                      -- special buffers (terminal, oil, …) have non-file names
-                      if path == "" or vim.bo.buftype ~= "" then
-                        return vim.notify("No file for this buffer", vim.log.levels.WARN)
-                      end
-                      local cc = require("codecompanion")
-                      local chat = cc.last_chat() or cc.chat()
-                      if not chat then return end
-                      require("codecompanion.interactions.chat.slash_commands").context(chat, "file", {
-                        path = path,
-                        description = "Added from <leader>ab",
-                      })
-                    end
-                  '';
-                  desc = "Add current buffer";
-                }
-                {
-                  key = "<leader>as";
-                  mode = "v";
-                  action = "<cmd>CodeCompanionChat Add<cr>";
-                  desc = "Send to CodeCompanion";
-                }
-                {
-                  # In oil, <leader>as adds the file under the cursor instead
-                  # of sending a selection (oil is this config's file
-                  # explorer; codecompanion has no tree integration of its
-                  # own, so resolve the path via oil's API).
-                  key = "<leader>as";
-                  mode = "n";
-                  ft = ["oil"];
-                  lua = true;
-                  action = ''
-                    function()
-                      local oil = require("oil")
-                      local entry = oil.get_cursor_entry()
-                      local dir = oil.get_current_dir()
-                      if not (entry and dir and (entry.type == "file" or entry.type == "link")) then
-                        return vim.notify("No file under cursor", vim.log.levels.WARN)
-                      end
-                      local cc = require("codecompanion")
-                      local chat = cc.last_chat() or cc.chat()
-                      if not chat then return end
-                      require("codecompanion.interactions.chat.slash_commands").context(chat, "file", {
-                        path = dir .. entry.name,
-                        description = "Added from oil",
-                      })
-                    end
-                  '';
-                  desc = "Add file";
-                }
-                {
-                  key = "<leader>aa";
-                  mode = "n";
-                  action = "<cmd>CodeCompanionActions<cr>";
-                  desc = "CodeCompanion actions";
-                }
-                # The prompt-library ports (prompt_library above). The `:`
-                # form (not <cmd>) so a visual selection passes its range to
-                # the command, which is how the prompt sees the selection.
-                {
-                  key = "<leader>ak";
-                  mode = ["n" "x"];
-                  action = ":CodeCompanion /why<cr>";
-                  desc = "Explain why (omp)";
-                }
-                {
-                  key = "<leader>aq";
-                  mode = ["n" "x"];
-                  action = ":CodeCompanion /ask<cr>";
-                  desc = "Ask about this code (omp)";
-                }
-                {
-                  key = "<leader>ah";
-                  mode = "n";
-                  action = ":CodeCompanion /how<cr>";
-                  desc = "How do I…? (omp)";
                 }
               ];
             };
@@ -942,11 +660,9 @@
             delay = 200; # ms of hesitation before the popup appears
 
             # Name the key groups so prefixes show a label instead of "+prefix".
-            # The <leader>a label follows the home's AI plugin; a home with
-            # neither agent registers no group.
+            # The <leader>a group appears only in claude-code homes.
             spec =
               lib.optional claudeAi (lib.generators.mkLuaInline ''{ "<leader>a", group = "AI/Claude Code" }'')
-              ++ lib.optional ompAi (lib.generators.mkLuaInline ''{ "<leader>a", group = "AI/CodeCompanion" }'')
               ++ [
                 (lib.generators.mkLuaInline ''{ "<leader>f", group = "Find" }'')
                 (lib.generators.mkLuaInline ''{ "<leader>g", group = "Git" }'')
@@ -1396,70 +1112,6 @@
             desc = "Git stash";
           }
         ];
-
-        # Helpers behind the codecompanion prompt-library entries (oh-my-pi
-        # homes only): the focused-code block the why/ask prompts share, and
-        # the live keymap/command corpora the how prompt feeds the agent.
-        # Exposed as the codecompanion_prompts module the prompt content
-        # functions require.
-        luaConfigRC.codecompanionPrompts = lib.mkIf ompAi ''
-          local M = {}
-
-          -- The focused code: the visual selection, else the symbol under the
-          -- cursor shown with nearby lines. Reads only the captured context
-          -- (bufnr, cursor_pos, selection), never the live cursor.
-          function M.focus(context)
-            local path = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(context.bufnr), ":.")
-            if context.is_visual then
-              return "this selection from " .. path .. " (lines " .. context.start_line .. "-" .. context.end_line .. "):\n```" .. context.filetype .. "\n" .. context.code .. "\n```"
-            end
-            local row, col = context.cursor_pos[1], context.cursor_pos[2]
-            local line = vim.api.nvim_buf_get_lines(context.bufnr, row - 1, row, false)[1] or ""
-            -- the keyword run covering the (0-based) cursor column
-            local word = vim.fn.matchstr(line:sub(1, col + 1), "\\k*$") .. vim.fn.matchstr(line:sub(col + 2), "^\\k*")
-            local what = word ~= "" and ("the symbol `" .. word .. "`") or "the code"
-            local from = math.max(1, row - 8)
-            local near = table.concat(vim.api.nvim_buf_get_lines(context.bufnr, from - 1, row + 8, false), "\n")
-            return what .. " on line " .. row .. " of " .. path .. ", shown with its surroundings:\n```" .. context.filetype .. "\n" .. near .. "\n```"
-          end
-
-          -- Labeled keymaps (global + context buffer) as model context,
-          -- deduped by (mode, lhs). keytrans turns the internal lhs back into
-          -- readable form (a literal space becomes <Space>). Maps with no
-          -- desc are plumbing the user wouldn't ask for by name.
-          function M.keymap_corpus(bufnr)
-            local out, seen = {}, {}
-            for _, mode in ipairs({ "n", "i", "v", "x", "t" }) do
-              local maps = vim.api.nvim_get_keymap(mode)
-              vim.list_extend(maps, vim.api.nvim_buf_get_keymap(bufnr, mode))
-              for _, m in ipairs(maps) do
-                local key = vim.fn.keytrans(m.lhsraw or m.lhs)
-                local id = mode .. "\t" .. key
-                if m.desc and m.desc ~= "" and not seen[id] then
-                  seen[id] = true
-                  out[#out + 1] = key .. " (" .. mode .. ") — " .. m.desc
-                end
-              end
-            end
-            return table.concat(out, "\n")
-          end
-
-          -- Ex commands (global + context buffer). Both APIs return a
-          -- name-keyed dict, so merge by key rather than concat.
-          function M.command_corpus(bufnr)
-            local cmds = vim.api.nvim_get_commands({})
-            cmds = vim.tbl_extend("force", cmds, vim.api.nvim_buf_get_commands(bufnr, {}))
-            local out = {}
-            for name, c in pairs(cmds) do
-              local def = c.definition and vim.trim(c.definition) or ""
-              out[#out + 1] = def ~= "" and (":" .. name .. " — " .. def) or (":" .. name)
-            end
-            table.sort(out)
-            return table.concat(out, "\n")
-          end
-
-          package.loaded["codecompanion_prompts"] = M
-        '';
 
         # Track each terminal's live cwd from the OSC 7 sequence the shell emits
         # (fish/Ghostty do) into a per-buffer osc7_dir, so <A-b> can :cd to it.

@@ -5,7 +5,7 @@
   # user declaration, not the aspect (which would put it on every machine).
   flake.users."jake.neau".hosts.cedar.programs = ["kubernetes"];
 
-  # The work user keeps claude-code (the personal user runs oh-my-pi —
+  # The work user keeps claude-code (the personal user runs pi —
   # see modules/users/jakeneau).
   flake.users."jake.neau".programs = ["claude-code"];
 

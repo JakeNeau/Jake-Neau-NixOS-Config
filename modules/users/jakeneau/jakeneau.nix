@@ -8,7 +8,7 @@
 
   # The coding agent on every personal machine (the work user keeps
   # claude-code — see modules/users/jake.neau).
-  flake.users.jakeneau.programs = ["oh-my-pi"];
+  flake.users.jakeneau.programs = ["pi"];
 
   flake.modules = lib.mkMerge [
     (inputs.self.factory.user "jakeneau" true)

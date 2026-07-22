@@ -294,17 +294,6 @@
       session-start sources (startup/resume/clear/compact) — confirmed via the
       installed Claude Code binary. Add a short note so future hook authors
       don't have to re-derive this from the binary.
-- [ ] omp gate hooks (`specs/omp-gates.md`): implement the spec when RULES.md /
-      agent-prompt discipline proves too soft in live omp use. The design is
-      settled and specced — a gates.ts extension in
-      `modules/programs/oh-my-pi/` replicating Claude Code's gate hooks
-      (write gate, code-writer/code-reviewer yield gates, plan-verifier gate,
-      plan-approval reminders); this entry is only the trigger.
-- [ ] omp migration follow-up (`specs/omp-migration/`): port the Claude Code
-      keybindings (alt+j/k scroll binds from
-      `home.file.".claude/keybindings.json"` in
-      `modules/programs/claude-code/claude-code.nix`) to oh-my-pi's keybinding
-      system, if the equivalent itch appears in omp's TUI. Low priority.
 - [ ] Clean superpowers out of live Claude Code state on cedar: `claude
       plugin uninstall superpowers@claude-plugins-official` to clear the
       cache, then jq-delete the
@@ -316,41 +305,25 @@
 - [ ] Remove the imperative Claude Code install from redwood entirely:
       uninstall the package however it was installed (likely npm or the
       native installer) and delete the `~/.claude` and `~/.claude.json`
-      state. Redwood's declared harness is oh-my-pi; the Claude Code install
+      state. Redwood's declared harness is pi; the Claude Code install
       was a scratch install that predates the superpowers removal.
-- [ ] Live-verify the omp flow-map extension
-      (`modules/programs/oh-my-pi/config/extensions/flow-map.ts`) fires on an
-      omp machine (redwood/spruce/aspen): the development-flow map should land
-      in the model context once per omp process on the first prompt
-      (`before_agent_start`; verified against the pinned 16.4.8 binary, but
-      never on a live session). If it misbehaves, fall back to deleting the
-      extension and its `home.file` line in
-      `modules/programs/oh-my-pi/oh-my-pi.nix` and moving the compact flow map
-      into `config/RULES.md`, which omp re-injects every turn.
-- [ ] omp migration follow-up (`specs/omp-migration/nvim-integration.md`): add
-      an inline-assistant keymap (`<leader>ai`) for codecompanion on the
-      oh-my-pi homes (`modules/programs/nvf/nvf.nix`) once upstream supports
-      it. At the pinned vimplugin-codecompanion.nvim-19.17.0, codecompanion's
-      inline interaction supports HTTP adapters only, not ACP
-      (`lua/codecompanion/interactions/inline/init.lua` warns "Only HTTP
-      adapters are supported for inline interactions"), so the keymap was
-      deliberately omitted rather than faked. Recheck when the nixpkgs pin
-      bumps the plugin.
-- [ ] omp migration follow-up (`specs/omp-migration/nvim-integration.md`):
-      `<leader>ac` ("continue most recent session") was omitted on the
-      omp/codecompanion branch (`modules/programs/nvf/nvf.nix`) —
-      codecompanion has no ACP continue-without-picker mechanism, so
-      `<leader>ar`'s native `/resume` slash command (ACP `session/list` +
-      `session/load` picker) is the only session-restore path. Revisit if
-      codecompanion grows a "load most recent session" API.
-- [ ] omp migration follow-up (`specs/omp-migration/nvim-integration.md`): on
-      first live use of nvim + omp on an omp machine (redwood/spruce/aspen),
-      verify omp's ACP agent actually advertises the optional capabilities the
-      new codecompanion keymaps (`modules/programs/nvf/nvf.nix`) rely on:
-      `session/list` + `session/load` (else `<leader>ar` warns "this agent
-      does not support listing/loading sessions") and model listing via
-      `get_models` (else `<leader>am` finds no models). If omp lacks them,
-      drop or rework those keymaps.
+- [ ] Investigate restoring `pi`'s in-editor AI integration for the Neovim
+      homes (`modules/programs/nvf/nvf.nix`, via nvf's codecompanion.nvim
+      plugin). The deleted oh-my-pi fork provided an ACP (Agent Client
+      Protocol — the JSON-RPC protocol codecompanion uses to drive an external
+      agent) mode that codecompanion drove over `omp acp`; upstream bare `pi`
+      has no `acp` subcommand, so that integration was removed and pi homes
+      currently get no in-editor AI plugin at all. Explore whether a `pi`
+      extension can expose an ACP endpoint (or another editor bridge)
+      codecompanion can drive. Done means either the pi homes get a working
+      in-editor agent again or it is confirmed unfeasible.
+      `docs/explanation/coding-agents.md` forward-references this item as
+      "tracked in TODO.md", so this entry must keep existing.
+- [ ] Fix a stale comment in
+      `modules/programs/claude-code/config/hooks/session-flow-map` line 4: the
+      parenthetical "(oh-my-pi ships it as an extension)" is now false since
+      oh-my-pi was removed and bare `pi` ships no such extension. Drop or
+      reword it. Low priority.
 - [ ] Add a `docs/reference/` page for the `nr` rebuild function's commit
       mechanics: its flags (`-n/--no-git`, `-s/--staged`, `-f/--full-output`,
       and the `-l/--long "<body>"` extended-description option) and the

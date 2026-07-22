@@ -22,5 +22,4 @@ extra files next to `SKILL.md` cannot be expressed this way without symlinking,
 which this setup deliberately avoids.
 
 `skills/` here holds only the Claude-specific skills; the portable ones live in
-`../../agents-shared/skills/` and are merged in by `claude-code.nix`, shared
-with the oh-my-pi module.
+`../../agents-shared/skills/` and are merged in by `claude-code.nix`.

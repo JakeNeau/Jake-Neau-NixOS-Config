@@ -111,8 +111,8 @@ Flake-level machinery and third-party tool wiring.
 One folder per program feature; converted ones carry a `flake.programs`
 declaration, the rest are hand-written aspects.
 
-- `agents-shared/` — agent-agnostic skill sources inlined by both the
-  claude-code and oh-my-pi config modules (no `.nix` files of its own). See
+- `agents-shared/` — agent-agnostic skill sources inlined by the claude-code
+  config module (no `.nix` files of its own; pi is installed bare). See
   [coding agents](../explanation/coding-agents.md).
 - `beekeeper-studio/` — cross-platform SQL client.
 - `blender/` — 3D modeling/art, with HIP GPU rendering on AMD hosts.
@@ -144,12 +144,11 @@ declaration, the rest are hand-written aspects.
 - `libreoffice/` — office suite.
 - `librewolf/` — privacy-hardened Firefox fork, Jake's daily browser.
 - `nvf/` — declarative Neovim, the same editor on every host.
-- `oh-my-pi/` — the omp coding agent; `jakeneau`'s agent, with declarative
-  `~/.omp/agent/` config and the numtide binary-cache aspect. See
-  [oh-my-pi](oh-my-pi.md), [coding
-  agents](../explanation/coding-agents.md).
 - `papirus-icon-theme/` — fallback icon set.
 - `pavucontrol/` — sound settings GUI.
+- `pi/` — the `pi` coding agent, installed bare (just the binary);
+  `jakeneau`'s agent, plus the numtide binary-cache aspect. See
+  [pi](pi.md), [coding agents](../explanation/coding-agents.md).
 - `podman/` — daemonless container engine.
 - `qpwgraph/` — pipewire patchbay.
 - `sioyek/` — keyboard-driven PDF reader.
@@ -172,4 +171,4 @@ factory instantiation, and per-user config.
 - `jake.neau/` — Jake's work user; cedar only; claude-code via `programs`,
   kubernetes via `hosts.cedar.programs`.
 - `jakeneau/` — Jake's personal user; the NixOS machines and the personal
-  MacBook; oh-my-pi via `programs`.
+  MacBook; pi via `programs`.
