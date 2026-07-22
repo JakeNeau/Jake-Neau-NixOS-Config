@@ -2,7 +2,7 @@
 
 Which coding agent runs where, and why the routing is per user. On every
 machine except cedar the agent is **`pi`** — Mario Zechner's minimal coding
-agent — installed **bare** (just the binary). cedar keeps **Claude Code**.
+agent — with focused declarative extensions. cedar keeps **Claude Code**.
 What the modules concretely manage: [the pi reference](../reference/pi.md),
 [the claude-code subsystem](claude-code-config.md).
 
@@ -24,14 +24,16 @@ a hand-written aspect into a `flake.programs.claude-code` declaration so that
 swapping agents is a one-line change to a user's `programs` list
 ([add a per-user program](../how-to/declarations/add-a-per-user-program.md)).
 
-## pi, with focused web access
+## pi, with focused extensions
 
-The pi module keeps upstream pi small while declaratively adding one coherent
-research stack:
+The pi module keeps upstream pi small while declaratively adding a research
+stack and typed-link navigation:
 
 - **pi-web-access** performs structured search and source extraction.
 - **pi-agent-browser-native** drives a real browser only when static retrieval
   cannot handle JavaScript or interaction.
+- **typed-links** resolves shared skills and project resources on demand without
+  placing their bodies in the startup context.
 
 Search is deliberately owned by one extension; the browser extension's
 companion search tool is disabled. Browser-cookie extraction is also disabled,
@@ -42,8 +44,9 @@ settings, auth, models, and sessions remain user-owned. See
 
 This remains intentionally narrower than the former **oh-my-pi (omp)** setup,
 which carried a full config tree of subagents, MCP servers, hooks, and skills.
-The upstream agent now has only the web capabilities needed for evidence-backed
-research; broader configuration can still be added incrementally when earned.
+The upstream agent now has the focused capabilities needed for evidence-backed
+research and progressively disclosed guidance; broader configuration can still
+be added incrementally when earned.
 
 ## Editor integration
 

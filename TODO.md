@@ -307,6 +307,26 @@
       native installer) and delete the `~/.claude` and `~/.claude.json`
       state. Redwood's declared harness is pi; the Claude Code install
       was a scratch install that predates the superpowers removal.
+- [ ] Bring the shared comment policy to Pi through the typed-link navigation
+      system. Expose
+      `modules/programs/agents-shared/skills/comments/SKILL.md` to Pi, add a
+      minimal always-on trigger, provide an explicit comment-review workflow,
+      and add an automatic edit gate only if testing shows agents still skip
+      the policy. Done means Pi reliably loads only the relevant comment
+      guidance, writes concise why-not-what comments, and passes a small
+      evaluation set covering unnecessary comments, workarounds, invariants,
+      and public API documentation.
+- [ ] Add an MCP adapter to Pi's typed-link registry for `[[mcp:<name>]]`
+      links. It must discover configured Model Context
+      Protocol servers, resolve each link to useful metadata, and invoke the
+      server through whichever reviewed Pi MCP extension is adopted. Until
+      then, MCP links must resolve as explicitly unsupported rather than fail
+      silently.
+- [ ] Extend the shared typed-link vocabulary with `[[extension:<name>]]` and
+      add a Pi adapter that resolves installed
+      extensions to their metadata and source. Update the extension-authoring
+      guidance so every new Pi extension considers whether it introduces a
+      reusable resource kind that needs its own typed link and adapter.
 - [ ] Investigate restoring `pi`'s in-editor AI integration for the Neovim
       homes (`modules/programs/nvf/nvf.nix`, via nvf's codecompanion.nvim
       plugin). The deleted oh-my-pi fork provided an ACP (Agent Client

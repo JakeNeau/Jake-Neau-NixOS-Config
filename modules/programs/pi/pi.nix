@@ -1,4 +1,23 @@
-{inputs, ...}: {
+{inputs, ...}: let
+  mkPiLinkRegistry = pkgs:
+    pkgs.runCommand "pi-link-registry.json" {
+      nativeBuildInputs = [pkgs.nodejs];
+    } ''
+      cp -R ${./extensions/typed-links} typed-links
+      chmod -R u+w typed-links
+      node --experimental-strip-types --test typed-links/tests/*.test.*
+      node ${./extensions/typed-links/registry.mjs} compile-global \
+        --skill-root ${../agents-shared/skills} \
+        --skill-root ${./config/skills} \
+        --command-root ${./config/prompts} \
+        --output "$out"
+      test -s "$out"
+    '';
+in {
+  perSystem = {pkgs, ...}: {
+    checks.pi-typed-links = mkPiLinkRegistry pkgs;
+  };
+
   # Pi itself comes from llm-agents.nix (numtide), whose binary cache avoids a
   # local Rust build. The two web extensions are source-pinned here and loaded
   # from immutable store paths by the home-manager config below.
@@ -58,7 +77,11 @@
       agent-browser
     ];
 
-    config = {pkgs, ...}: let
+    config = {
+      pkgs,
+      lib,
+      ...
+    }: let
       pi-web-access = pkgs.buildNpmPackage {
         pname = "pi-web-access";
         version = "0.13.0";
@@ -72,15 +95,31 @@
         dontNpmPrune = true;
       };
       pi-web-access-root = "${pi-web-access}/lib/node_modules/pi-web-access";
-    in {
-      home.file = {
+      linkRegistry = mkPiLinkRegistry pkgs;
+      promptFiles = lib.filterAttrs (
+        name: type: type == "regular" && lib.hasSuffix ".md" name
+      ) (builtins.readDir ./config/prompts);
+      promptHomeFiles =
+        lib.mapAttrs' (
+          name: _:
+            lib.nameValuePair ".pi/agent/prompts/${name}" {
+              source = ./config/prompts + "/${name}";
+            }
+        )
+        promptFiles;
+      fixedHomeFiles = {
         ".pi/agent/extensions/pi-web-access/index.ts".text = ''
           export { default } from "${pi-web-access-root}/index.ts";
         '';
         ".pi/agent/extensions/pi-agent-browser-native/index.ts".text = ''
           export { default } from "${inputs.pi-agent-browser-native}/extensions/agent-browser/index.ts";
         '';
+        ".pi/agent/extensions/typed-links/index.ts".text = ''
+          export { default } from "${./extensions/typed-links}/index.ts";
+        '';
         ".pi/agent/skills/pi-web-access".source = "${pi-web-access-root}/skills";
+        ".pi/agent/skills/writing-pi-extensions".source = ./config/skills/writing-pi-extensions;
+        ".pi/agent/link-registry.json".source = linkRegistry;
 
         # Unattended research should return raw evidence to the main agent, not
         # open the interactive curator or delegate synthesis to another model.
@@ -97,6 +136,8 @@
           webSearch.enabled = false;
         };
       };
+    in {
+      home.file = fixedHomeFiles // promptHomeFiles;
     };
   };
 

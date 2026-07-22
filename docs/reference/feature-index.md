@@ -111,9 +111,9 @@ Flake-level machinery and third-party tool wiring.
 One folder per program feature; converted ones carry a `flake.programs`
 declaration, the rest are hand-written aspects.
 
-- `agents-shared/` — agent-agnostic skill sources inlined by the claude-code
-  config module (no `.nix` files of its own). Pi's focused web stack does not
-  consume them. See [coding agents](../explanation/coding-agents.md).
+- `agents-shared/` — agent-agnostic skill sources inlined by Claude Code and
+  indexed for Pi's on-demand typed-link traversal (no `.nix` files of its own).
+  See [coding agents](../explanation/coding-agents.md).
 - `beekeeper-studio/` — cross-platform SQL client.
 - `blender/` — 3D modeling/art, with HIP GPU rendering on AMD hosts.
 - `candy-icons/` — gradient vector icon theme.

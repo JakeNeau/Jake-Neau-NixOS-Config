@@ -15,9 +15,10 @@ gets the same assistant and changes ride the normal rebuild flow. Today
 that is `jake.neau`'s `flake.users` entry — claude-code is cedar's agent,
 while the other machines run pi; why the split routes per user:
 [coding agents](coding-agents.md). Skills that aren't Claude-specific live
-in the shared source directory `modules/programs/agents-shared/skills/`
-and are merged with the module's own set at read time (pi, the other agent,
-is now installed bare and inlines nothing).
+in the shared source directory `modules/programs/agents-shared/skills/`.
+Claude merges them with its own set at read time; Pi indexes the same shared
+source for on-demand typed-link traversal without installing every skill
+natively.
 The config *directory* stays at its upstream default — `~/.claude`,
 untouched `configDir` — so live state (memory, project history) keeps
 working.
