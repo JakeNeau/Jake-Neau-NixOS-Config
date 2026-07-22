@@ -85,5 +85,5 @@ Official site: https://diataxis.fr
   read, and review docs in this architecture.
 - [[skill:specs]] — the transient pre-implementation working documents whose durable
   rationale graduates into these docs once a feature ships.
-- [[skill:documentation-tooling]] — (future) choosing a generator to publish Diátaxis
-  docs (MkDocs, mdBook, Zola)
+- **Documentation tooling** — identify the current project's documentation system
+  directly; its generator and publishing workflow vary by project.
