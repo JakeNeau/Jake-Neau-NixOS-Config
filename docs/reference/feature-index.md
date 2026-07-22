@@ -112,8 +112,8 @@ One folder per program feature; converted ones carry a `flake.programs`
 declaration, the rest are hand-written aspects.
 
 - `agents-shared/` — agent-agnostic skill sources inlined by the claude-code
-  config module (no `.nix` files of its own; pi is installed bare). See
-  [coding agents](../explanation/coding-agents.md).
+  config module (no `.nix` files of its own). Pi's focused web stack does not
+  consume them. See [coding agents](../explanation/coding-agents.md).
 - `beekeeper-studio/` — cross-platform SQL client.
 - `blender/` — 3D modeling/art, with HIP GPU rendering on AMD hosts.
 - `candy-icons/` — gradient vector icon theme.
@@ -146,9 +146,9 @@ declaration, the rest are hand-written aspects.
 - `nvf/` — declarative Neovim, the same editor on every host.
 - `papirus-icon-theme/` — fallback icon set.
 - `pavucontrol/` — sound settings GUI.
-- `pi/` — the `pi` coding agent, installed bare (just the binary);
-  `jakeneau`'s agent, plus the numtide binary-cache aspect. See
-  [pi](pi.md), [coding agents](../explanation/coding-agents.md).
+- `pi/` — `jakeneau`'s coding agent, with declarative web research and native
+  browser extensions, the matching browser CLI, and the numtide binary-cache
+  aspect. See [pi](pi.md), [coding agents](../explanation/coding-agents.md).
 - `podman/` — daemonless container engine.
 - `qpwgraph/` — pipewire patchbay.
 - `sioyek/` — keyboard-driven PDF reader.

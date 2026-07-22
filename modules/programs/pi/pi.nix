@@ -1,25 +1,103 @@
 {inputs, ...}: {
-  # pi: Mario Zechner's minimal `pi` coding agent, installed truly bare — just
-  # the binary. No skills, subagents, MCP, AGENTS.md/RULES.md, extensions, or
-  # config policy; pi's config dir (~/.pi/agent) is left for the user to layer
-  # home-manager config onto later.
-  #
-  # The package comes from llm-agents.nix (numtide), which bumps its agents
-  # daily and pushes builds to cache.numtide.com, so pi's Rust core is never
-  # compiled locally and the pin still moves only with flake.lock.
-  # Deliberately NOT `inputs.nixpkgs.follows = "nixpkgs"`: following our
-  # nixpkgs would rebuild pi against it and miss the binary cache, which only
-  # holds builds against the flake's own pin.
-  flake-file.inputs.llm-agents.url = "github:numtide/llm-agents.nix";
+  # Pi itself comes from llm-agents.nix (numtide), whose binary cache avoids a
+  # local Rust build. The two web extensions are source-pinned here and loaded
+  # from immutable store paths by the home-manager config below.
+  flake-file.inputs = {
+    llm-agents.url = "github:numtide/llm-agents.nix";
+    pi-agent-browser-native = {
+      url = "github:fitchmultz/pi-agent-browser-native/v0.2.71";
+      flake = false;
+    };
+    pi-web-access = {
+      url = "github:nicobailon/pi-web-access/v0.13.0";
+      flake = false;
+    };
+  };
 
-  # Per-user install on both platforms, for whichever users list pi in their
-  # flake.users.<name>.programs. No HM programs.pi module exists, so the
-  # generator supplies the enable toggle and installs pi behind it.
   flake.programs.pi = {
     install.linux = ["home"];
     install.macos = ["home"];
     hasEnableOption = false;
-    packages = pkgs: [inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi];
+
+    packages = pkgs: let
+      system = pkgs.stdenv.hostPlatform.system;
+      release = builtins.getAttr system {
+        x86_64-linux = {
+          name = "linux-x64";
+          hash = "sha256-ZmoRKS/xr7KBwCMhL2YguX+BAmy7SY4xTc+vZ+CpKck=";
+        };
+        aarch64-linux = {
+          name = "linux-arm64";
+          hash = "sha256-vMJPygfxJ5LjHxbLT7s4iT692cu+lEYxQ5sqVh1yX7w=";
+        };
+        x86_64-darwin = {
+          name = "darwin-x64";
+          hash = "sha256-RjD/d8b9vagJ/WKmzOgHhS4PH/qqPmCg/05GkZ9hiMo=";
+        };
+        aarch64-darwin = {
+          name = "darwin-arm64";
+          hash = "sha256-uVjIHCmwxr8EB0efk/7549VA6OFYi8QvdqzDP6GpKHo=";
+        };
+      };
+      agent-browser = pkgs.stdenvNoCC.mkDerivation {
+        pname = "agent-browser";
+        version = "0.32.2";
+        src = pkgs.fetchurl {
+          url = "https://github.com/vercel-labs/agent-browser/releases/download/v0.32.2/agent-browser-${release.name}";
+          inherit (release) hash;
+        };
+        dontUnpack = true;
+        nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [pkgs.autoPatchelfHook];
+        buildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [pkgs.stdenv.cc.cc.lib];
+        installPhase = ''
+          install -Dm755 "$src" "$out/bin/agent-browser"
+        '';
+      };
+    in [
+      inputs.llm-agents.packages.${system}.pi
+      agent-browser
+    ];
+
+    config = {pkgs, ...}: let
+      pi-web-access = pkgs.buildNpmPackage {
+        pname = "pi-web-access";
+        version = "0.13.0";
+        src = inputs.pi-web-access;
+        npmDepsHash = "sha256-8onTvv7nUrTXMGvwkMkPEYc+mtpxolzF6Z9EuuB9pbs=";
+        postPatch = ''
+          cp ${./pi-web-access-package-lock.json} package-lock.json
+        '';
+        npmInstallFlags = ["--legacy-peer-deps"];
+        dontNpmBuild = true;
+        dontNpmPrune = true;
+      };
+      pi-web-access-root = "${pi-web-access}/lib/node_modules/pi-web-access";
+    in {
+      home.file = {
+        ".pi/agent/extensions/pi-web-access/index.ts".text = ''
+          export { default } from "${pi-web-access-root}/index.ts";
+        '';
+        ".pi/agent/extensions/pi-agent-browser-native/index.ts".text = ''
+          export { default } from "${inputs.pi-agent-browser-native}/extensions/agent-browser/index.ts";
+        '';
+        ".pi/agent/skills/pi-web-access".source = "${pi-web-access-root}/skills";
+
+        # Unattended research should return raw evidence to the main agent, not
+        # open the interactive curator or delegate synthesis to another model.
+        ".pi/web-search.json".text = builtins.toJSON {
+          provider = "exa";
+          workflow = "none";
+          allowBrowserCookies = false;
+        };
+
+        # pi-web-access owns search; the browser extension is the interactive,
+        # JavaScript-capable fallback and must not register a duplicate tool.
+        ".pi/config/pi-agent-browser-native/config.json".text = builtins.toJSON {
+          version = 1;
+          webSearch.enabled = false;
+        };
+      };
+    };
   };
 
   # Numtide binary cache for the nix daemon. System-scoped, so hosts import

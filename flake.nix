@@ -23,6 +23,14 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nur.url = "github:nix-community/NUR";
     nvf.url = "github:notashelf/nvf";
+    pi-agent-browser-native = {
+      url = "github:fitchmultz/pi-agent-browser-native/v0.2.71";
+      flake = false;
+    };
+    pi-web-access = {
+      url = "github:nicobailon/pi-web-access/v0.13.0";
+      flake = false;
+    };
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";

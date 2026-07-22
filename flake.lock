@@ -417,11 +417,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1784702368,
-        "narHash": "sha256-cS5Rv01brbs95/a5NrNCxKLqMZWkFnRRZXdmz2NZnQs=",
+        "lastModified": 1784749362,
+        "narHash": "sha256-OjhdcboHA5TbrJTPjGn/FgDcl9gM1gU+HKW8z30uu00=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "6c650f7597e3f212395e4fdba754bf6537cc2298",
+        "rev": "ab8986f139a2f1f040a2062c76dd908e449ddeb3",
         "type": "github"
       },
       "original": {
@@ -738,11 +738,11 @@
         "nixpkgs": "nixpkgs_9"
       },
       "locked": {
-        "lastModified": 1784746748,
-        "narHash": "sha256-DoJ/ipC97h1GYFuIHVpJrRba3Yg/XRv9FZ6tDWduvOw=",
+        "lastModified": 1784749093,
+        "narHash": "sha256-8KrtZG+l19HmOrnXhYMUeuXe+RCia3iRNVvCEfgSeBw=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "8747481f244da4bc6ff87e8c3f33d9b8bad15216",
+        "rev": "859dc5ca9ad01498324539a736d3984d6769d497",
         "type": "github"
       },
       "original": {
@@ -796,6 +796,40 @@
         "type": "github"
       }
     },
+    "pi-agent-browser-native": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1784406670,
+        "narHash": "sha256-KoYqneQRb4FrkcRWyfZRNPDCWPT6b6erQm03k2z33X0=",
+        "owner": "fitchmultz",
+        "repo": "pi-agent-browser-native",
+        "rev": "159ea9e1a272bd24e76a2add239a06750d8cda46",
+        "type": "github"
+      },
+      "original": {
+        "owner": "fitchmultz",
+        "ref": "v0.2.71",
+        "repo": "pi-agent-browser-native",
+        "type": "github"
+      }
+    },
+    "pi-web-access": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1782373265,
+        "narHash": "sha256-TPtkurLY8Z9qxa597e0C5yWlNvgz4ywv2GdQstTB33A=",
+        "owner": "nicobailon",
+        "repo": "pi-web-access",
+        "rev": "7bdc30a65cf77273eb9c0034647b373bda4060d7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nicobailon",
+        "ref": "v0.13.0",
+        "repo": "pi-web-access",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-file": "flake-file",
@@ -811,6 +845,8 @@
         "nixpkgs": "nixpkgs_8",
         "nur": "nur",
         "nvf": "nvf",
+        "pi-agent-browser-native": "pi-agent-browser-native",
+        "pi-web-access": "pi-web-access",
         "sops-nix": "sops-nix",
         "stylix": "stylix"
       }

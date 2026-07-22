@@ -24,17 +24,26 @@ a hand-written aspect into a `flake.programs.claude-code` declaration so that
 swapping agents is a one-line change to a user's `programs` list
 ([add a per-user program](../how-to/declarations/add-a-per-user-program.md)).
 
-## pi, installed bare
+## pi, with focused web access
 
-The pi module installs **only the package** — no skills, subagents, MCP
-servers, `AGENTS.md`/`RULES.md`, extensions, or config policy. This is
-deliberate: the agent config was torn down to nothing, to be rebuilt
-incrementally later. pi's config dir (`~/.pi/agent`) is left untouched for the
-user to layer home-manager config onto. See [the pi reference](../reference/pi.md).
+The pi module keeps upstream pi small while declaratively adding one coherent
+research stack:
 
-This replaced **oh-my-pi (omp)**, a batteries-included fork of pi that had
-previously carried a full declarative config tree (subagents, MCP, skills, a
-config-policy merge). The teardown dropped all of it in favor of upstream pi.
+- **pi-web-access** performs structured search and source extraction.
+- **pi-agent-browser-native** drives a real browser only when static retrieval
+  cannot handle JavaScript or interaction.
+
+Search is deliberately owned by one extension; the browser extension's
+companion search tool is disabled. Browser-cookie extraction is also disabled,
+and unattended search returns raw evidence to the main agent instead of opening
+an interactive curator or invoking a second summarizing model. Pi's mutable
+settings, auth, models, and sessions remain user-owned. See
+[the pi reference](../reference/pi.md).
+
+This remains intentionally narrower than the former **oh-my-pi (omp)** setup,
+which carried a full config tree of subagents, MCP servers, hooks, and skills.
+The upstream agent now has only the web capabilities needed for evidence-backed
+research; broader configuration can still be added incrementally when earned.
 
 ## Editor integration
 
