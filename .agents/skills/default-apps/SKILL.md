@@ -1,6 +1,19 @@
 ---
 name: default-apps
-description: How to set a program as the default handler for a file type or URL scheme across NixOS and macOS in this repo. Linux uses home-manager's xdg.mimeApps; macOS has no declarative LaunchServices option, so a home.activation script drives `duti` — and MUST guard on the current handler, because macOS pops an anti-hijacking confirmation modal on every programmatic change to a protected type (pdf, http, https, mailto, html). The guard only sticks once the target app is registered with LaunchServices: Nix GUI apps reach `~/Applications` as nix-store symlinks that macOS refuses to register, so they need mac-app-util trampolines — without them `duti -s` writes an orphaned preference that never resolves, the guard never matches, and the modal re-pops on every rebuild. Use when making an app the default for an extension/MIME type/scheme, or when a rebuild keeps popping a "Do you want all documents … to open with …?" modal.
+description: >-
+  How to set a program as the default handler for a file type or URL scheme
+  across NixOS and macOS in this repo. Linux uses home-manager's xdg.mimeApps;
+  macOS has no declarative LaunchServices option, so a home.activation script
+  drives `duti` — and MUST guard on the current handler, because macOS pops an
+  anti-hijacking confirmation modal on every programmatic change to a protected
+  type (pdf, http, https, mailto, html). The guard only sticks once the target
+  app is registered with LaunchServices: Nix GUI apps reach `~/Applications` as
+  nix-store symlinks that macOS refuses to register, so they need mac-app-util
+  trampolines — without them `duti -s` writes an orphaned preference that never
+  resolves, the guard never matches, and the modal re-pops on every rebuild.
+  Use when making an app the default for an extension/MIME type/scheme, or when
+  a rebuild keeps popping a "Do you want all documents … to open with …?"
+  modal.
 ---
 
 # Setting default programs (NixOS + macOS)
