@@ -382,6 +382,10 @@
       darwin TTS plugin and sioyek's own app binary on aarch64-darwin, part
       of a broad July 2026 darwin breakage wave; the workaround mirrors the
       merged R fix nixpkgs#540940 (link with lld).
+- [ ] Remove the FreeCAD VTK patch override in
+      `modules/host-config/roles/desktop/desktop.nix` once nixpkgs#537721
+      reaches the nixos-unstable pin. VTK 9.5.2 otherwise fails to compile
+      against GDAL 3.13; FreeCAD's fish completions fail only transitively.
 
 - [ ] Report the fishPlugins.pure build failure upstream to nixpkgs — pure
       4.15.0's fishtape test suite fails 24/286 tests in the Nix build sandbox

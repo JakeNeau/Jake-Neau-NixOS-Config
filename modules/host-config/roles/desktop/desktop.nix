@@ -87,7 +87,22 @@
       # })
       ckan # A mod manager for Kerbal Space Program
       element-desktop # A group messaging service with an open source API
-      freecad # An open source parametric 3D modeling program
+      # Remove once nixos-unstable contains NixOS/nixpkgs#537721.
+      (freecad.override {
+        python3Packages = python3Packages.overrideScope (_: previous: {
+          vtk = previous.vtk.overrideAttrs (old: {
+            patches =
+              (old.patches or [])
+              ++ [
+                (fetchpatch {
+                  name = "fix-gdal-3.13-const-conversion.patch";
+                  url = "https://github.com/Kitware/VTK/commit/2395603fdddc40c29efc64c632ae98225ca2a58e.patch";
+                  hash = "sha256-Gcnt1JXWPkhfNLhtk9SXYqx/0cLkjO4xiRfR8YiaY8I=";
+                })
+              ];
+          });
+        });
+      }) # An open source parametric 3D modeling program
       gnucash # Double-entry accounting software
       inkscape # Vector graphics editor
       krita # A FOSS art program
