@@ -162,7 +162,9 @@ function nr --description "Pulls, verifies every environment in the flake, commi
         echo "nr: git push failed, aborting before the rebuild (the amended commit is still local)$stash_hint" >&2
         return 1
       end
-    # Make a new commit if the message is specified
+    else if git -C $flake diff --cached --quiet
+      echo "No changes to commit; rebuilding without a push"
+      set _flag_no_git
     else
       set new_commit_message "$this_host Generation $new_generation: $argv"
       # -l/--long supplies an extended description as a second -m paragraph
@@ -181,7 +183,9 @@ function nr --description "Pulls, verifies every environment in the flake, commi
         return 1
       end
     end
-    echo "Commit \"$new_commit_message\" pushed to GitHub"
+    if not set -q _flag_no_git
+      echo "Commit \"$new_commit_message\" pushed to GitHub"
+    end
   end
 
   # Everything is already built and verified, so the rebuild is mostly activation
