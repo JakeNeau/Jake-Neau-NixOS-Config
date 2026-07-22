@@ -55,6 +55,13 @@ makes the next hop easy to call without recursively opening it. Automatic graph
 walking was rejected because one highly connected skill could pull an
 unbounded chain into context and recreate the original context-pressure problem.
 
+The comment policy uses this boundary deliberately. Pi's global `AGENTS.md`
+contains only the `[[skill:comments]]` routing instruction and its canonical
+global registry ID. The router classifies
+a comment and exposes links to focused category policies, so an API contract does
+not pull workaround, provenance, directive, and task-marker guidance into the
+same turn. `/comment-review` traverses only the categories present in its scope.
+
 ## The vocabulary stays earned
 
 Pi initially adapts only its native or project-generic resource kinds: skills,

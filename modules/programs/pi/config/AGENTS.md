@@ -1,0 +1,1 @@
+Before adding or modifying any code comment, follow the global [[skill:comments]] policy with `follow_link global:skill:comments`, classify the comment, and load only the applicable linked comment skill.

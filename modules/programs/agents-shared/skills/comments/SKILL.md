@@ -1,119 +1,59 @@
 ---
 name: comments
-description: The house style for code comments in any language — why-not-what intent over restatement, ruthless concision, placement above (never below) the code, keeping each comment next to the exact line it explains (splitting big block comments and moving the pieces down), dashed-rule section labels, and referencing another file only when the file actually depends on it. Use when writing, placing, reviewing, or enforcing comments in any codebase, or deciding whether a comment earns its place and where it belongs.
+description: Routes every added or modified code comment through the house style by classifying its purpose, loading only the matching focused policy, and applying shared rules for sparsity, concision, placement, proximity, and real dependencies. Use before writing, changing, placing, or reviewing any code comment in any language.
 ---
 
-# Comment style
+# Comment style router
 
-The single source of truth for how comments are written and placed here. The
-[[agent:comment-writer]] adds comments to this style and the
-[[agent:comment-style-enforcer]] conforms existing comments to it.
+Comments are exceptional. Before adding or modifying one, classify it using the
+table below and follow only the matching focused skill. If no category justifies
+the comment, write nothing.
 
-# ------------
-# Principles
-# ------------
+## Shared rules
 
-## Why, not what
+- **Earn the line.** A comment must add information a competent reader cannot
+  recover from the code, names, types, or signature.
+- **Stay sparse.** Ordinary prose targets one line. Use a second only for a
+  necessary consequence or removal condition; never use a third.
+- **Keep one idea per comment.** Delete preambles, hedging, history, and filler.
+- **Place it locally.** Put a comment beside the exact code it explains.
+  Multi-line comments go above the code; terse same-line comments are fine.
+- **Split narration.** Break a top-level block covering several steps into the
+  smallest comments beside the relevant steps. Keep a high-level comment only
+  when it genuinely spans the whole unit.
+- **Name real dependencies only.** A reusable module describes its own contract,
+  not callers or downstream consumers it does not import or use.
+- **Preserve code.** A comment review may delete, rewrite, split, or relocate
+  comments, but must not change code logic.
 
-A good comment explains the non-obvious *why*: the intent, a constraint, a
-gotcha, a reason the code looks surprising. Delete any comment that merely
-restates what the code already says. BDD phase labels (Given/When/Then) that
-structure a test body are sanctioned structural markers, like section labels —
-keep them, don't delete them as what-restatement.
+## Classify, then follow
 
-## Earn the line
+| Purpose | Action |
+|---|---|
+| Restates code, names, types, or signatures | Follow [[skill:comment-redundant-narration]] |
+| Explains a non-obvious design choice | Follow [[skill:comment-intent-rationale]] |
+| States a condition that must remain true | Follow [[skill:comment-invariants]] |
+| Explains an external limitation or compatibility fix | Follow [[skill:comment-workarounds]] |
+| Documents a caller-visible contract | Follow [[skill:comment-api-contracts]] |
+| Marks a meaningful section or test phase | Follow [[skill:comment-structural-markers]] |
+| Carries machine-readable comment syntax | Follow [[skill:comment-functional-directives]] |
+| Carries legal, ownership, generated, or vendored metadata | Follow [[skill:comment-provenance]] |
+| Records deferred work with TODO, FIXME, or HACK | Follow [[skill:comment-task-markers]] |
+| Contains disabled source code | Follow [[skill:comment-disabled-code]] |
 
-Add a comment only where it genuinely helps a competent reader. Obvious code
-needs none; noise is worse than silence. If you can't name a non-obvious why,
-write nothing.
+A comment may have more than one purpose. Load each applicable skill, preserve
+functional or provenance text exactly, and classify adjacent human prose
+separately. Load each category at most once per task.
 
-## Don't recite the error you silenced
+## Related skills
 
-When a line exists to silence a warning, error, or deprecation, don't quote or
-paraphrase the message — the change itself shows what it fixed, and the wording
-rots as the tool changes. Keep the message only when it earns the line by
-stopping a future reader from reverting the fix (e.g. the fix looks redundant
-and the text names why it isn't). Otherwise give the why, or nothing.
-
-## Concision
-
-The shortest wording that stays useful. No multi-line preambles, hedging, or
-filler — a terse line or trailing note usually suffices.
-
-## Placement
-
-Multi-line comments go *above* the code they describe, never below. Terse
-same-line comments naming what something does and why are fine.
-
-## Keep comments next to what they describe
-
-A comment belongs as close as reasonable to the exact code it explains.
-Proximity beats centralization: break up a block comment that covers several
-steps and move each piece down to the line it explains, rather than narrating
-the whole unit from the top. Keep a comment high-level only when it genuinely
-spans the whole unit below it — a dashed-rule section label, or a one-line
-summary of a function's contract.
-
-## Reference only real dependencies
-
-A comment may name another file, module, or symbol only if the file actually
-depends on it — check the file's intended dependencies (its imports/uses)
-first, and never reference a file it does not depend on. A reusable module does
-not depend on its callers, so it must not name its specific consumers (a
-particular caller, service, screen, or end user); describe its own contract,
-not who happens to use it. This also forbids citing unrelated or downstream
-files.
-
-## Section labels
-
-Group a file's logical parts with a section label fenced in dashed rules, in the
-file's own comment syntax:
-
-    # ------------
-    # Section name
-    # ------------
-
-Don't over-segment — a handful of meaningful sections beats a label every few
-lines.
-
-# ------------
-# Examples
-# ------------
-
-- What → why:
-  - `// increment i` → *(delete)*
-  - `// loop over the users` → `// skip disabled users so they never get paged`
-- Concision:
-  - `// We do this here because otherwise the cache might be stale, which would`
-    `// cause problems for anything reading it afterwards`
-    → `// refresh first: the cache may be stale`
-- Reference only real dependencies (leaked consumer in a generic library):
-  - `// 30s timeout — the checkout dashboard polls this every minute`
-    → `// 30s timeout: callers should poll no faster than once a minute`
-- Don't recite the silenced error:
-  - `// silences "home.pointerCursor: relying on it to enable is deprecated"`
-    → *(delete — the `enable = true` it annotates already shows the fix)*
-- Proximity (split a top-of-function block into per-step comments):
-
-      // Validate the input, normalize the path, then write the file and
-      // return its size for the caller to log.
-      check(input);
-      const p = normalize(input.path);
-      write(p, input.data);
-      return size(p);
-
-  →
-
-      check(input);
-      // canonicalize so callers can pass relative paths
-      const p = normalize(input.path);
-      write(p, input.data);
-      return size(p); // size lets the caller log the bytes written
-
-# ------------
-# Related skills
-# ------------
-
-- [[agent:comment-writer]] — adds comments to this style.
-- [[agent:comment-style-enforcer]] — conforms existing comments to this style.
-- [[skill:diataxis]] — the parallel architecture for prose documentation.
+- [[skill:comment-redundant-narration]] — delete comments that merely say what code says.
+- [[skill:comment-intent-rationale]] — write concise reasons for surprising choices.
+- [[skill:comment-invariants]] — state constraints and their consequences.
+- [[skill:comment-workarounds]] — explain external limitations and removal conditions.
+- [[skill:comment-api-contracts]] — document caller-visible guarantees.
+- [[skill:comment-structural-markers]] — use section and test-phase markers sparingly.
+- [[skill:comment-functional-directives]] — preserve machine-readable directives.
+- [[skill:comment-provenance]] — preserve legal and generated notices.
+- [[skill:comment-task-markers]] — route deferred work to project tracking.
+- [[skill:comment-disabled-code]] — remove source code hidden in comments.

@@ -120,6 +120,7 @@ in {
         ".pi/agent/skills/pi-web-access".source = "${pi-web-access-root}/skills";
         ".pi/agent/skills/writing-pi-extensions".source = ./config/skills/writing-pi-extensions;
         ".pi/agent/link-registry.json".source = linkRegistry;
+        ".pi/agent/AGENTS.md".source = ./config/AGENTS.md;
 
         # Unattended research should return raw evidence to the main agent, not
         # open the interactive curator or delegate synthesis to another model.

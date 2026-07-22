@@ -48,24 +48,32 @@
         '';
       };
     in
-      # Linux-only: portals and mimeapps don't exist on Darwin and ghostty
-      # has no Darwin build.
-      lib.mkIf pkgs.stdenv.isLinux {
-        xdg.configFile."xdg-desktop-portal-termfilechooser/config".text = ''
-          [filechooser]
-          cmd=${lib.getExe wrapper}
-          default_dir=$HOME
-          open_mode=suggested
-          save_mode=suggested
-        '';
+      lib.mkMerge [
+        {
+          # Adopt Home Manager's 26.05 default explicitly so older home state
+          # versions do not retain the legacy `yy` wrapper or warn about it.
+          programs.yazi.shellWrapperName = "y";
+        }
 
-        # Claim the directory file-type default per-user, tied to the enable
-        # switch so opting out of yazi also releases the default.
-        xdg.mimeApps = lib.mkIf config.programs.yazi.enable {
-          enable = true;
-          defaultApplications."inode/directory" = "yazi.desktop";
-        };
-      };
+        # Linux-only: portals and mimeapps don't exist on Darwin and ghostty
+        # has no Darwin build.
+        (lib.mkIf pkgs.stdenv.isLinux {
+          xdg.configFile."xdg-desktop-portal-termfilechooser/config".text = ''
+            [filechooser]
+            cmd=${lib.getExe wrapper}
+            default_dir=$HOME
+            open_mode=suggested
+            save_mode=suggested
+          '';
+
+          # Claim the directory file-type default per-user, tied to the enable
+          # switch so opting out of yazi also releases the default.
+          xdg.mimeApps = lib.mkIf config.programs.yazi.enable {
+            enable = true;
+            defaultApplications."inode/directory" = "yazi.desktop";
+          };
+        })
+      ];
   };
 
   # --------------------------------------------

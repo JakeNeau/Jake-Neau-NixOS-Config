@@ -1,10 +1,5 @@
 # TODO
 
-- [ ] Resolve Home Manager's Yazi wrapper-name state-version warning in
-      `modules/programs/yazi/yazi.nix`: explicitly choose
-      `programs.yazi.shellWrapperName = "yy"` to preserve today's command or
-      `"y"` to adopt the 26.05 default, then verify the chosen wrapper works and
-      the warning is absent from Redwood and Spruce home evaluations.
 - [ ] Replace Minegrub on Redwood with a different GRUB theme packaged by
       nixpkgs. Remove the `minegrub-theme` flake input and
       `modules/nix/tools/minegrub/minegrub.nix`, regenerate `flake.nix`, and
@@ -267,15 +262,6 @@
       occurrence ghostty actually honors after the cutover; if the wrong one
       wins, pin the intended 0.9 with `lib.mkForce` in
       `modules/programs/ghostty/ghostty.nix`.
-- [ ] Yazi shell wrapper name (`modules/programs/yazi/yazi.nix`): decide
-      between `yy` (legacy) and `y` (new default) and set
-      `programs.yazi.shellWrapperName` in the yazi program declaration's
-      config field. Since the stage-4 conversion enabled home-manager's
-      `programs.yazi` per-user, every eval warns that the default changed
-      from `yy` to `y` and the legacy default applies while
-      `home.stateVersion` < 26.05. Setting either value silences the
-      warning; the name is a user choice — no user was using either command
-      before (yazi was system-installed without the HM wrapper).
 - [ ] Decide whether the macs (aspen, cedar) should get yazi back: after the
       stage-5 declaration-framework cutover they no longer receive yazi's
       per-user install (pre-cutover it arrived via the role-default homeManager
@@ -307,15 +293,6 @@
       native installer) and delete the `~/.claude` and `~/.claude.json`
       state. Redwood's declared harness is pi; the Claude Code install
       was a scratch install that predates the superpowers removal.
-- [ ] Bring the shared comment policy to Pi through the typed-link navigation
-      system. Expose
-      `modules/programs/agents-shared/skills/comments/SKILL.md` to Pi, add a
-      minimal always-on trigger, provide an explicit comment-review workflow,
-      and add an automatic edit gate only if testing shows agents still skip
-      the policy. Done means Pi reliably loads only the relevant comment
-      guidance, writes concise why-not-what comments, and passes a small
-      evaluation set covering unnecessary comments, workarounds, invariants,
-      and public API documentation.
 - [ ] Add an MCP adapter to Pi's typed-link registry for `[[mcp:<name>]]`
       links. It must discover configured Model Context
       Protocol servers, resolve each link to useful metadata, and invoke the

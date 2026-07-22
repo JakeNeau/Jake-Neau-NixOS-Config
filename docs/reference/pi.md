@@ -81,6 +81,23 @@ introduce a durable resource kind that needs a typed-link adapter. The registry'
 design rationale is documented in
 [Pi typed-link navigation](../explanation/pi-typed-links.md).
 
+## Comment policy
+
+The managed global context file `~/.pi/agent/AGENTS.md` contains one always-on
+instruction: before Pi adds or modifies a code comment, it follows
+`[[skill:comments]]` by its canonical `global:skill:comments` registry ID. That
+shared skill classifies the comment, then links to one
+focused policy for redundant narration, rationale, invariants, workarounds, API
+contracts, structural markers, functional directives, provenance, task markers,
+or disabled code. Category bodies load only when encountered. Ordinary prose
+targets one line and has a two-line ceiling.
+
+The global `/comment-review [scope]` prompt conforms comments automatically. Its
+default scope is comments added, deleted, or modified in `git diff HEAD`; a
+supplied path or range replaces that default, and naming a file reviews every
+comment in it. The workflow changes comments only, works deletion-first, and
+preserves functional directives and legal or generated provenance verbatim.
+
 ## Managed policy
 
 Home Manager owns two focused policy files:
@@ -98,8 +115,8 @@ environment. Add credentials through sops-nix when needed.
 
 Pi's mutable `~/.pi/agent/settings.json`, authentication, model catalog, and
 session state remain outside Nix. The module owns the extension entry points,
-global link manifest and prompts, librarian and extension-authoring skill links,
-and the two policy files above.
+global context, link manifest and prompts, librarian and extension-authoring
+skill links, and the two web policy files above.
 
 ## The numtide cache aspect
 
