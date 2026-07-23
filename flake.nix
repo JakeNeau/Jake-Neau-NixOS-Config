@@ -23,6 +23,10 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nur.url = "github:nix-community/NUR";
     nvf.url = "github:notashelf/nvf";
+    pi-acp = {
+      url = "github:svkozak/pi-acp";
+      flake = false;
+    };
     pi-agent-browser-native = {
       url = "github:fitchmultz/pi-agent-browser-native/v0.2.71";
       flake = false;

@@ -56,11 +56,10 @@ principle: the nvf module (`modules/programs/nvf/nvf.nix`) branches on the
 enable option only exists where the generated unit is imported.
 
 - **claude-code homes** get **claudecode.nvim**, spawning the `claude` CLI.
-- **pi homes** get **no in-editor AI plugin**. The previous omp integration —
-  codecompanion.nvim driving omp over ACP (the Agent Client Protocol) — was
-  removed because upstream pi has no ACP subcommand for codecompanion to drive.
-  Restoring pi's in-editor integration via pi extensions is tracked in
-  `TODO.md`.
+- **pi homes** get **codecompanion.nvim** over ACP. The `pi-acp` process
+  translates CodeCompanion's standard ACP transport to Pi's native RPC mode,
+  so the editor uses the same Pi binary, extensions, authentication, and
+  persistent sessions as the terminal.
 
 ## Removed along the way
 

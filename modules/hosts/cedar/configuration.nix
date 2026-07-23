@@ -5,7 +5,7 @@
     class = "darwin";
     system = "aarch64-darwin";
     users = ["jake.neau"];
-    globalPrograms = ["ghostty" "firefox" "fastfetch" "onedrive" "windows-app"];
+    globalPrograms = ["ghostty" "firefox" "fastfetch" "gh" "onedrive" "windows-app"];
     # The nix firefox package breaks against the org's SSO, so cedar takes
     # the cask; its users get the -config unit through the baseline.
     installOverrides.firefox = "cask";

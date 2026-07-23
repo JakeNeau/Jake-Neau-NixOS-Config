@@ -3,8 +3,9 @@
 `modules/programs/pi/pi.nix`: the `flake.programs.pi` declaration installing
 and configuring the `pi` coding agent per user. It supplies two web
 capabilities: structured research through **pi-web-access**, and real-browser
-fallback through **pi-agent-browser-native** plus the `agent-browser` CLI. Why
-pi, and why it routes per user: [coding agents](../explanation/coding-agents.md).
+fallback through **pi-agent-browser-native** plus the `agent-browser` CLI. It
+also installs the `pi-acp` adapter used by Neovim. Why pi, and why it routes per
+user: [coding agents](../explanation/coding-agents.md).
 
 ## The declaration
 
@@ -33,6 +34,21 @@ committed `pi-web-access-package-lock.json` and `npmDepsHash` make that build
 reproducible. Small generated `index.ts` files under
 `~/.pi/agent/extensions/` import each extension from its immutable store path.
 The bundled librarian skill is linked under `~/.pi/agent/skills/`.
+
+## Neovim ACP adapter
+
+The unversioned non-flake `pi-acp` input is commit-pinned by `flake.lock` and
+built with `buildNpmPackage`. Upstream Pi exposes `pi --mode rpc`, while
+codecompanion.nvim speaks the standard Agent Client Protocol; `pi-acp` bridges
+the two JSON protocols over stdio.
+
+The nvf module enables codecompanion.nvim only when the sibling `programs.pi`
+unit is enabled in the same home. Its custom `pi` ACP adapter launches
+`pi-acp`, enables embedded context, and makes Pi the default chat adapter.
+CodeCompanion receives streamed messages, tool activity, file diffs, model and
+thinking options, slash commands, and persistent Pi sessions. Pi continues to
+execute filesystem and shell tools locally; ACP filesystem and terminal
+delegation are not enabled.
 
 ## Typed-link navigation
 

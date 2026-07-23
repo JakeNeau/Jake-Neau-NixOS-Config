@@ -13,16 +13,29 @@
         --output "$out"
       test -s "$out"
     '';
+  mkPiAcp = pkgs:
+    pkgs.buildNpmPackage {
+      pname = "pi-acp";
+      version = inputs.pi-acp.shortRev or "unstable";
+      src = inputs.pi-acp;
+      npmDepsHash = "sha256-qN+b/tMbnJLkWjotl3XrA0nfZ3KT/mT6gM+n3Qiz8Wk=";
+      npmBuildScript = "build";
+    };
 in {
   perSystem = {pkgs, ...}: {
     checks.pi-typed-links = mkPiLinkRegistry pkgs;
+    packages.pi-acp = mkPiAcp pkgs;
   };
 
   # Pi itself comes from llm-agents.nix (numtide), whose binary cache avoids a
-  # local Rust build. The two web extensions are source-pinned here and loaded
-  # from immutable store paths by the home-manager config below.
+  # local Rust build. Extension and adapter sources stay immutable in the store.
   flake-file.inputs = {
     llm-agents.url = "github:numtide/llm-agents.nix";
+    # Pi exposes RPC but not ACP, so editors need this protocol adapter.
+    pi-acp = {
+      url = "github:svkozak/pi-acp";
+      flake = false;
+    };
     pi-agent-browser-native = {
       url = "github:fitchmultz/pi-agent-browser-native/v0.2.71";
       flake = false;
@@ -74,6 +87,7 @@ in {
       };
     in [
       inputs.llm-agents.packages.${system}.pi
+      inputs.self.packages.${system}.pi-acp
       agent-browser
     ];
 

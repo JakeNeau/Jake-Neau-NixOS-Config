@@ -14,10 +14,11 @@
     config,
     ...
   }: let
-    # Whether this home gets the Claude Code editor plugin. The enable option
-    # only exists in homes that import the generated program unit, hence
-    # attrByPath; a home without claude-code gets no AI plugin.
+    # AI plugins follow the agent selected by this home; absent program units
+    # do not declare their enable options, hence attrByPath.
     claudeAi = lib.attrByPath ["programs" "claude-code" "enable"] false config;
+    piAi = lib.attrByPath ["programs" "pi" "enable"] false config;
+    piAcp = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pi-acp;
   in {
     imports = [inputs.nvf.homeManagerModules.default];
 
@@ -135,6 +136,66 @@
           wrap = false; # Whether to wrap lines if they go off screen
         };
 
+        assistant.codecompanion-nvim = lib.mkIf piAi {
+          enable = true;
+          setupOpts = {
+            adapters = lib.generators.mkLuaInline ''
+              {
+                acp = {
+                  pi = function()
+                    local helpers = require("codecompanion.adapters.acp.helpers")
+                    return {
+                      name = "pi",
+                      formatted_name = "Pi",
+                      type = "acp",
+                      roles = {
+                        llm = "assistant",
+                        user = "user",
+                      },
+                      commands = {
+                        default = { "${piAcp}/bin/pi-acp" },
+                      },
+                      defaults = {
+                        mcpServers = {},
+                        timeout = 20000,
+                      },
+                      env = {
+                        PI_ACP_ENABLE_EMBEDDED_CONTEXT = "true",
+                      },
+                      parameters = {
+                        protocolVersion = 1,
+                        clientCapabilities = {
+                          fs = { readTextFile = true, writeTextFile = true },
+                        },
+                        clientInfo = {
+                          name = "CodeCompanion.nvim",
+                          version = "1.0.0",
+                        },
+                      },
+                      handlers = {
+                        setup = function(self)
+                          return true
+                        end,
+                        auth = function(self)
+                          return true
+                        end,
+                        form_messages = function(self, messages, capabilities)
+                          return helpers.form_messages(self, messages, capabilities)
+                        end,
+                        on_exit = function(self, code) end,
+                      },
+                    }
+                  end,
+                  opts = {
+                    show_presets = false,
+                  },
+                },
+              }
+            '';
+            interactions.chat.adapter = "pi";
+          };
+        };
+
         # ---------------------------------------
         # Lazy Loading and non-included plugins
         # ---------------------------------------
@@ -142,8 +203,29 @@
           enable = true; # Enable lazy loading for plugins to load in only when needed
           enableLznAutoRequire = true; # Builtin plugins need this, only turn off for debug
           plugins = {
-            # Claude Code IDE integration: spawns the `claude` CLI in
-            # claude-code homes (the only AI plugin wired here today).
+            codecompanion-nvim = lib.mkIf piAi {
+              keys = [
+                {
+                  key = "<leader>at";
+                  mode = "n";
+                  action = "<cmd>CodeCompanionChat Toggle<cr>";
+                  desc = "Toggle Pi chat";
+                }
+                {
+                  key = "<leader>aa";
+                  mode = ["n" "v"];
+                  action = "<cmd>CodeCompanionActions<cr>";
+                  desc = "Pi actions";
+                }
+                {
+                  key = "<leader>as";
+                  mode = "v";
+                  action = "<cmd>CodeCompanionChat Add<cr>";
+                  desc = "Add selection to Pi chat";
+                }
+              ];
+            };
+
             "claudecode.nvim" = lib.mkIf claudeAi {
               package = pkgs.vimPlugins.claudecode-nvim;
               setupModule = "claudecode";
@@ -660,9 +742,9 @@
             delay = 200; # ms of hesitation before the popup appears
 
             # Name the key groups so prefixes show a label instead of "+prefix".
-            # The <leader>a group appears only in claude-code homes.
             spec =
               lib.optional claudeAi (lib.generators.mkLuaInline ''{ "<leader>a", group = "AI/Claude Code" }'')
+              ++ lib.optional piAi (lib.generators.mkLuaInline ''{ "<leader>a", group = "AI/Pi" }'')
               ++ [
                 (lib.generators.mkLuaInline ''{ "<leader>f", group = "Find" }'')
                 (lib.generators.mkLuaInline ''{ "<leader>g", group = "Git" }'')

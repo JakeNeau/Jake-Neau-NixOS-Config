@@ -417,11 +417,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1784759171,
-        "narHash": "sha256-nVXdD2vwfqYVMENYE5M7ycP6RfnVt5DUdq7EPqWEAtk=",
+        "lastModified": 1784775708,
+        "narHash": "sha256-e4QD+UXlr52v9F9AZpdQgc1ylTF0jGMkCpnC531HpaM=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "2d2310b28d34bf4718124ec5699205b61be74337",
+        "rev": "bd95e8c6170a307c9c50353da245cbacdc58accb",
         "type": "github"
       },
       "original": {
@@ -532,11 +532,11 @@
         "systems": "systems_4"
       },
       "locked": {
-        "lastModified": 1784690860,
-        "narHash": "sha256-S0Y47eNLJ7lALoZG+UyZPwYeCE5NKKDJvNLOoSthYhQ=",
+        "lastModified": 1784777515,
+        "narHash": "sha256-hBzD1XzM/2cYWfgLvbiGDLDebE1SXHO+O6N4YOT0+W4=",
         "owner": "Infinidoge",
         "repo": "nix-minecraft",
-        "rev": "1a27d0ced3ba850505766464b8ccfcc069ec3338",
+        "rev": "3fc7a8a5d4640a5e6bf614e17e5c4c971edfc90a",
         "type": "github"
       },
       "original": {
@@ -738,11 +738,11 @@
         "nixpkgs": "nixpkgs_9"
       },
       "locked": {
-        "lastModified": 1784759509,
-        "narHash": "sha256-JalT4wPuLdoUV3+tjwsfe6DvaL3bKekW117SkDzDKak=",
+        "lastModified": 1784778050,
+        "narHash": "sha256-O9QZrhvMcX3pRJcD8dBcxW0agahp4DUshHhtPEgAYGs=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "ce47960eb4ed42b7bc9a7fc6d8039f81ca5faf2a",
+        "rev": "2acfa8f7c3e26762d777b50f64e848448b679fb2",
         "type": "github"
       },
       "original": {
@@ -796,6 +796,22 @@
         "type": "github"
       }
     },
+    "pi-acp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1781737992,
+        "narHash": "sha256-Psqz4VWCAqmg9uuLjiVq9D2ROvp9cTb8CYJxglnWBH4=",
+        "owner": "svkozak",
+        "repo": "pi-acp",
+        "rev": "49d6ec804d40b52317d873360654054c5d2387a3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "svkozak",
+        "repo": "pi-acp",
+        "type": "github"
+      }
+    },
     "pi-agent-browser-native": {
       "flake": false,
       "locked": {
@@ -845,6 +861,7 @@
         "nixpkgs": "nixpkgs_8",
         "nur": "nur",
         "nvf": "nvf",
+        "pi-acp": "pi-acp",
         "pi-agent-browser-native": "pi-agent-browser-native",
         "pi-web-access": "pi-web-access",
         "sops-nix": "sops-nix",

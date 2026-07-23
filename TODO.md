@@ -304,18 +304,6 @@
       extensions to their metadata and source. Update the extension-authoring
       guidance so every new Pi extension considers whether it introduces a
       reusable resource kind that needs its own typed link and adapter.
-- [ ] Investigate restoring `pi`'s in-editor AI integration for the Neovim
-      homes (`modules/programs/nvf/nvf.nix`, via nvf's codecompanion.nvim
-      plugin). The deleted oh-my-pi fork provided an ACP (Agent Client
-      Protocol — the JSON-RPC protocol codecompanion uses to drive an external
-      agent) mode that codecompanion drove over `omp acp`; upstream bare `pi`
-      has no `acp` subcommand, so that integration was removed and pi homes
-      currently get no in-editor AI plugin at all. Explore whether a `pi`
-      extension can expose an ACP endpoint (or another editor bridge)
-      codecompanion can drive. Done means either the pi homes get a working
-      in-editor agent again or it is confirmed unfeasible.
-      `docs/explanation/coding-agents.md` forward-references this item as
-      "tracked in TODO.md", so this entry must keep existing.
 - [ ] Fix a stale comment in
       `modules/programs/claude-code/config/hooks/session-flow-map` line 4: the
       parenthetical "(oh-my-pi ships it as an extension)" is now false since
