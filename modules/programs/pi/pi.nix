@@ -18,7 +18,8 @@
       pname = "pi-acp";
       version = inputs.pi-acp.shortRev or "unstable";
       src = inputs.pi-acp;
-      npmDepsHash = "sha256-qN+b/tMbnJLkWjotl3XrA0nfZ3KT/mT6gM+n3Qiz8Wk=";
+      npmDeps = pkgs.importNpmLock {npmRoot = inputs.pi-acp;};
+      npmConfigHook = pkgs.importNpmLock.npmConfigHook;
       npmBuildScript = "build";
     };
 in {
