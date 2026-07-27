@@ -370,6 +370,11 @@
       `modules/host-config/roles/desktop/desktop.nix` once nixpkgs#537721
       reaches the nixos-unstable pin. VTK 9.5.2 otherwise fails to compile
       against GDAL 3.13; FreeCAD's fish completions fail only transitively.
+- [ ] Remove the transient Niri dependency override in
+      `modules/host-config/roles/niri-desktop/niri-desktop.nix` once nixpkgs
+      commit c088236 reaches the nixos-unstable pin. Niri 26.04 rejects
+      libdisplay-info 0.4, so the override currently pins libdisplay-info 0.2;
+      restore `programs.niri` and greetd to `pkgs.niri` when removing it.
 
 - [ ] Report the fishPlugins.pure build failure upstream to nixpkgs — pure
       4.15.0's fishtape test suite fails 24/286 tests in the Nix build sandbox
