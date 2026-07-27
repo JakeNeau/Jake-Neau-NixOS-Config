@@ -1,1 +1,1 @@
-Before adding or modifying any code comment, follow the global [[skill:comments]] policy with `follow_link global:skill:comments`, classify the comment, and load only the applicable linked comment skill.
+Before writing or revising prose, call `follow_link global:skill:writing` and follow it. This applies to user-facing output, documentation, comments, plans, reviews, and interface text.

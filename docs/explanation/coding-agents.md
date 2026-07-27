@@ -34,6 +34,9 @@ stack and typed-link navigation:
   cannot handle JavaScript or interaction.
 - **typed-links** resolves shared skills and project resources on demand without
   placing their bodies in the startup context.
+- **the writing system** routes prose through controlled form and substantive
+  structure policies. See [Pi's writing system](pi-writing-system.md) for its
+  design.
 
 Search is deliberately owned by one extension; the browser extension's
 companion search tool is disabled. Browser-cookie extraction is also disabled,

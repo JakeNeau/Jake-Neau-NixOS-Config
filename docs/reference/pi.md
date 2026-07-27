@@ -97,16 +97,53 @@ introduce a durable resource kind that needs a typed-link adapter. The registry'
 design rationale is documented in
 [Pi typed-link navigation](../explanation/pi-typed-links.md).
 
+## Writing system
+
+The managed global context file `~/.pi/agent/AGENTS.md` contains one writing
+route. Pi follows `global:skill:writing` before it writes or revises prose. The
+route covers user output, documentation, comments, plans, reviews, and interface
+text.
+
+The router loads focused policy bodies through typed links:
+
+- `global:skill:writing-substance` controls purpose, claims, support, relations,
+  consequences, and artifact order.
+- `global:skill:controlled-writing` controls terms, vocabulary, sentences,
+  voice, lists, paragraphs, and protected text.
+- `global:skill:comments` controls whether a code comment exists and which
+  comment policy applies.
+- `global:skill:documentation` controls documentation architecture and
+  placement when those decisions are part of the task.
+
+The router contains links and classification rules only. Policy bodies remain
+outside startup context. Pi loads each selected body at most once per task.
+
+The `pi-writing-lint` command checks Markdown, plain text, or standard input. It
+returns `0` without diagnostics, `1` with diagnostics, and `2` for input errors.
+Use `--json` for structured output. Deterministic and heuristic diagnostics both
+produce exit code `1`. Heuristic diagnostics include a `candidate` marker.
+
+Pi runs the linter after it changes a supported standalone prose file. Embedded
+comments and interface strings use model review because a whole source file
+mixes code with prose. User output uses an internal final check because Pi has no
+safe revise-before-send event.
+
+The global `/writing-review [scope]` prompt reviews substance before form. Its
+default scope is prose changed in `git diff HEAD`. A supplied path, directory,
+or range replaces the default.
+
+The design rationale is in
+[Pi's writing system](../explanation/pi-writing-system.md).
+
 ## Comment policy
 
-The managed global context file `~/.pi/agent/AGENTS.md` contains one always-on
-instruction: before Pi adds or modifies a code comment, it follows
-`[[skill:comments]]` by its canonical `global:skill:comments` registry ID. That
-shared skill classifies the comment, then links to one
-focused policy for redundant narration, rationale, invariants, workarounds, API
-contracts, structural markers, functional directives, provenance, task markers,
-or disabled code. Category bodies load only when encountered. Ordinary prose
-targets one line and has a two-line ceiling.
+The writing router follows `global:skill:comments` before it applies general
+prose rules to a code comment. The shared comment skill classifies the comment,
+then links to one focused category policy. Categories cover redundant narration,
+rationale, invariants, workarounds, API contracts, structural markers,
+functional directives, provenance, task markers, and disabled code. Category
+bodies load only when encountered. Ordinary prose targets one line and has a
+two-line ceiling.
 
 The global `/comment-review [scope]` prompt conforms comments automatically. Its
 default scope is comments added, deleted, or modified in `git diff HEAD`; a
@@ -131,8 +168,8 @@ environment. Add credentials through sops-nix when needed.
 
 Pi's mutable `~/.pi/agent/settings.json`, authentication, model catalog, and
 session state remain outside Nix. The module owns the extension entry points,
-global context, link manifest and prompts, librarian and extension-authoring
-skill links, and the two web policy files above.
+global context, link manifest, prompts, writing linter, and focused skill links.
+It also owns the two web policy files above.
 
 ## The numtide cache aspect
 

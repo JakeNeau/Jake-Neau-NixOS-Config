@@ -1,6 +1,8 @@
 secrets/keys.txt
 results/
 result
+__pycache__/
+*.py[cod]
 
 # Claude Code's local/runtime state
 .claude/

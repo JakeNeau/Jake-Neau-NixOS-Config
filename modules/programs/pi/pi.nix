@@ -1,11 +1,15 @@
 {inputs, ...}: let
   rustToolsSource = ./extensions/rust-tools;
+  writingSource = ./writing;
   mkPiLinkRegistry = pkgs:
     pkgs.runCommand "pi-link-registry.json" {
       nativeBuildInputs = [pkgs.nodejs];
     } ''
       cp -R ${./extensions/typed-links} typed-links
       chmod -R u+w typed-links
+      export TEST_SHARED_SKILLS=${../agents-shared/skills}
+      export TEST_PI_SKILLS=${./config/skills}
+      export TEST_PI_COMMANDS=${./config/prompts}
       node --experimental-strip-types --test typed-links/tests/*.test.*
       node ${./extensions/typed-links/registry.mjs} compile-global \
         --skill-root ${../agents-shared/skills} \
@@ -66,6 +70,20 @@
       EOF
       touch "$out"
     '';
+  mkPiWritingLint = pkgs:
+    pkgs.writers.writePython3Bin "pi-writing-lint" {} (
+      builtins.readFile (writingSource + "/pi_writing_lint.py")
+    );
+  mkPiWritingCheck = pkgs:
+    pkgs.runCommand "pi-writing" {
+      nativeBuildInputs = [pkgs.python3];
+    } ''
+      cp -R ${writingSource} writing
+      chmod -R u+w writing
+      PYTHONPATH=writing python3 -m unittest discover -s writing/tests -v
+      printf 'The parser reads the file.\n' | ${mkPiWritingLint pkgs}/bin/pi-writing-lint
+      touch "$out"
+    '';
   mkPiAcp = pkgs:
     pkgs.buildNpmPackage {
       pname = "pi-acp";
@@ -80,8 +98,12 @@ in {
     checks = {
       pi-rust-tools = mkPiRustToolsCheck pkgs;
       pi-typed-links = mkPiLinkRegistry pkgs;
+      pi-writing = mkPiWritingCheck pkgs;
     };
-    packages.pi-acp = mkPiAcp pkgs;
+    packages = {
+      pi-acp = mkPiAcp pkgs;
+      pi-writing-lint = mkPiWritingLint pkgs;
+    };
   };
 
   # Pi itself comes from llm-agents.nix (numtide), whose binary cache avoids a
@@ -145,6 +167,7 @@ in {
     in [
       inputs.llm-agents.packages.${system}.pi
       inputs.self.packages.${system}.pi-acp
+      inputs.self.packages.${system}.pi-writing-lint
       agent-browser
     ];
 
