@@ -20,6 +20,28 @@ user: [coding agents](../explanation/coding-agents.md).
   supported Linux/macOS architecture. The module patches Linux binaries for
   NixOS.
 
+## Selectable questions
+
+The `ask-user` extension registers the `ask_user` tool. The agent calls this
+tool when progress requires one user decision from a short list. Pi pauses the
+tool call and shows a selection dialog instead of requiring a typed reply.
+
+Each call contains one question and between 2 and 12 distinct preset options.
+The question may contain up to 500 characters. Each preset option may contain
+up to 120 characters. The tool returns a preset answer with its one-based index.
+The tool runs sequentially, so parallel tool calls cannot open concurrent
+dialogs.
+
+The dialog always includes actions for a free-form answer and a clarifying
+question. Selecting either action opens a text input. Cancelling the input or
+submitting it empty returns to the answer list. A free-form answer completes the
+tool call. A clarifying question returns to the agent, which answers it before calling
+`ask_user` again. Cancelling the answer list returns no answer.
+
+The dialog works in TUI and RPC modes. In print and JSON modes, the tool directs
+the agent to ask through normal text. The extension does not support multiple
+selections or multiple questions in one call.
+
 ## Web extensions
 
 The module pins both extension sources as non-flake inputs:
@@ -89,6 +111,10 @@ Global and project registries remain separate. Links from a registered resource
 resolve inside its own layer. Pi reports an unqualified user link as ambiguous
 when it matches both layers. Ordinary `read` results containing supported links
 gain a compact footer with canonical targets, but no target loads automatically.
+
+At session startup, Pi reports the global and project entry counts and the
+registry diagnostic total. It uses a warning when that total is nonzero. The
+total combines scanner diagnostics with malformed or missing typed-link edges.
 
 `/links` reports registry counts, `/links unresolved` lists diagnostics,
 `/links <type>:<name>` inspects one resource, and `/links reload` reloads Pi's

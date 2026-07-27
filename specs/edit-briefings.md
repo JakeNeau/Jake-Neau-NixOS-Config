@@ -100,7 +100,8 @@ not render tightly above the prompt. Verified empirically at build time.
 - **Global scope.** Registered in `settingsPolicy.hooks.PreToolUse` in
   `modules/programs/claude-code/claude-code.nix`, active in **all** projects. The
   hook script ships under `modules/programs/claude-code/config/hooks/` alongside
-  the existing hooks, per the [[skill:claude-code-config]] skill.
+  the existing hooks, as required by the
+  [Claude Code configuration skill](../modules/programs/claude-code/config/skills/claude-code-config/SKILL.md).
 
 ### Growth seam
 

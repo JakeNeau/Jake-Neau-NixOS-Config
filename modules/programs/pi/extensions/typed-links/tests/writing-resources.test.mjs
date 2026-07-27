@@ -39,6 +39,14 @@ test("compiles the Pi policy graph", async () => {
     assert.ok(ids.has(id), `missing ${id}`);
   }
 
+  assert.deepEqual(
+    registry.entries.flatMap((entry) => entry.links.filter((link) => (
+      link.status !== "resolved"
+    )).map((link) => `${entry.id}: ${link.raw}`)),
+    [],
+    "Pi global resources must not contain unresolved typed links",
+  );
+
   const writing = registry.entries.find(
     (entry) => entry.id === "global:skill:writing",
   );

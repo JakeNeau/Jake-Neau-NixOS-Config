@@ -1,6 +1,10 @@
 ---
 name: writing-pi-extensions
-description: How to create and change Pi TypeScript extensions declaratively in this Nix configuration, including lifecycle events, tools, commands, testing, and deciding whether a durable resource introduced by an extension needs a new typed-link kind and adapter. Use before creating, editing, or reviewing any Pi extension.
+description: >
+  How to create and change Pi TypeScript extensions declaratively in this Nix
+  configuration. Covers lifecycle events, tools, commands, testing, and the
+  decision to add a typed-link kind and adapter. Use before creating, editing,
+  or reviewing any Pi extension.
 ---
 
 # Writing Pi extensions
@@ -8,7 +12,7 @@ description: How to create and change Pi TypeScript extensions declaratively in 
 Pi extensions are TypeScript modules managed from
 `modules/programs/pi/extensions/` in the Nix configuration and installed by
 `modules/programs/pi/pi.nix`. Never edit `~/.pi/agent/extensions/` directly.
-See [[skill:machine-layout]] for the configuration root on the current system.
+The repository root is `/etc/nixos` on NixOS and `/etc/nix-darwin` on macOS.
 
 ## Read Pi's extension contract first
 
@@ -19,8 +23,8 @@ pi_store=$(dirname "$(dirname "$(realpath "$(command -v pi)")")")
 pi_root="$pi_store/libexec/pi"
 ```
 
-Read all of `$pi_root/docs/extensions.md`, then read only the examples under
-`$pi_root/examples/extensions/` that match the APIs being used. Follow links to
+Read all of `$pi_root/docs/extensions.md`. Read only the examples under
+`$pi_root/examples/extensions/` that use the required APIs. Follow links to
 other Pi documentation when the extension contract points to them.
 
 Keep one responsibility per extension. Start background resources only from
@@ -46,9 +50,3 @@ should navigate by name.
 Write tests before production code and run them through Nix. Then run
 `nix flake check` and dry-build or evaluate all Pi homes without activating any
 home. Never invoke `hr`, `nr`, `nrr`, or a switch command.
-
-## Related skills
-
-- [[skill:using-skills]] — progressive disclosure and typed-link traversal
-- [[skill:writing-skills]] — authoring skills that document extensions
-- [[skill:machine-layout]] — locating and validating the Nix-managed source

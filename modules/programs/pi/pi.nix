@@ -1,4 +1,5 @@
 {inputs, ...}: let
+  askUserSource = ./extensions/ask-user;
   rustToolsSource = ./extensions/rust-tools;
   writingSource = ./writing;
   mkPiLinkRegistry = pkgs:
@@ -29,6 +30,25 @@
       pkgs.stdenv.cc
       pkgs.coreutils
     ];
+  mkPiAskUserCheck = pkgs:
+    pkgs.runCommand "pi-ask-user" {
+      nativeBuildInputs = [
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
+        pkgs.nodejs
+      ];
+    } ''
+      cp -R ${askUserSource} ask-user
+      chmod -R u+w ask-user
+      node --experimental-strip-types --test ask-user/tests/*.test.ts
+
+      export HOME="$TMPDIR/home"
+      mkdir -p "$HOME"
+      printf '{"type":"get_state"}\n' \
+        | pi --mode rpc --no-session --offline --no-extensions \
+          --extension ./ask-user/index.ts >rpc.jsonl
+      grep -q '"success":true' rpc.jsonl
+      touch "$out"
+    '';
   mkPiRustToolsCheck = pkgs:
     pkgs.runCommand "pi-rust-tools" {
       nativeBuildInputs = [
@@ -97,6 +117,7 @@
 in {
   perSystem = {pkgs, ...}: {
     checks = {
+      pi-ask-user = mkPiAskUserCheck pkgs;
       pi-rust-tools = mkPiRustToolsCheck pkgs;
       pi-typed-links = mkPiLinkRegistry pkgs;
       pi-writing = mkPiWritingCheck pkgs;
@@ -208,6 +229,9 @@ in {
         '';
         ".pi/agent/extensions/pi-agent-browser-native/index.ts".text = ''
           export { default } from "${inputs.pi-agent-browser-native}/extensions/agent-browser/index.ts";
+        '';
+        ".pi/agent/extensions/ask-user/index.ts".text = ''
+          export { default } from "${askUserSource}/index.ts";
         '';
         ".pi/agent/extensions/typed-links/index.ts".text = ''
           export { default } from "${./extensions/typed-links}/index.ts";
