@@ -107,6 +107,14 @@
             matcher = "Write|Edit|NotebookEdit";
             hooks = [(cmd "~/.claude/hooks/code-writer-gate")];
           }
+          # Annotates a subagent's edit prompt with a WHY/WHAT/WHERE/RELATES
+          # briefing (edit-briefing spec). Appended here, not a standalone entry:
+          # the jq `*` merge replaces arrays wholesale, so a separate PreToolUse
+          # registration would drop the two hooks above.
+          {
+            matcher = "Edit|Write";
+            hooks = [(cmd "~/.claude/hooks/edit-briefing")];
+          }
         ];
         PostToolUse = [
           {

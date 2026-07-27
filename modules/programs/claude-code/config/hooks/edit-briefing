@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+# PreToolUse briefing on Edit|Write: prints a compact WHY/WHAT/WHERE/RELATES
+# briefing above a subagent's accept/deny prompt. Pure plumbing — the WHY comes
+# from the session ledger the acting agent appended (see the edit-briefing-ledger
+# rule); the rest is deterministic rg/git evidence. Never blocks or fails an edit:
+# every error path exits 0 with no output (fail-open).
+set -uo pipefail
+
+input=$(cat)
+
+jq_bin=$(command -v jq || true)
+[ -n "$jq_bin" ] || exit 0
+
+j() { "$jq_bin" -r "$1 // empty" <<<"$input" 2>/dev/null || true; }
+
+agent_type=$(j '.agent_type')
+permission_mode=$(j '.permission_mode')
+tool_name=$(j '.tool_name')
+file_path=$(j '.tool_input.file_path')
+old_string=$(j '.tool_input.old_string')
+new_string=$(j '.tool_input.new_string')
+content=$(j '.tool_input.content')
+
+# --- Gate: only a subagent edit that will actually raise a prompt ---
+# agent_type is empty for main-session edits (already blocked by code-writer-gate).
+[ -n "$agent_type" ] || exit 0
+# Whitelist "default": only that mode raises a prompt — acceptEdits/bypassPermissions/
+# plan auto-approve (a briefing there is noise), and an unreadable mode must stay
+# quiet too, since a "ask" payload would force a prompt inside an auto-approve run.
+[ "$permission_mode" = "default" ] || exit 0
+[ -n "$file_path" ] || exit 0
+
+L=""
+root=""
+rel=""
+where=""
+rels=""
+why=""
+
+count_lines() { [ -z "$1" ] && echo 0 || printf '%s\n' "$1" | wc -l | tr -d ' '; }
+
+# --- WHAT: change shape ---
+src="${new_string:-$content}"
+added=$(count_lines "$src")
+removed=$(count_lines "$old_string")
+if [ "$tool_name" = "Write" ]; then
+  [ -f "$file_path" ] && shape="overwrites existing file (${added} lines)" \
+    || shape="creates new file (${added} lines)"
+elif [ -z "$old_string" ]; then
+  shape="inserts ${added} line(s)"
+else
+  shape="modifies: +${added} / -${removed} line(s)"
+fi
+
+# --- WHERE: anchor line + nearest enclosing section (single forward awk pass) ---
+# Best-effort: matches only old_string's FIRST line, so a repeated first line can
+# report an earlier location. Evidence-only — never affects whether the edit runs.
+if [ "$tool_name" = "Edit" ] && [ -f "$file_path" ] && [ -n "$old_string" ]; then
+  first_line=$(printf '%s\n' "$old_string" | head -1)
+  L=$(grep -nF -m1 -e "$first_line" "$file_path" 2>/dev/null | cut -d: -f1 || true)
+  if [ -n "$L" ]; then
+    sec=$(awk -v L="$L" '
+      NR>L{exit}
+      /^[[:space:]]*#[[:space:]]*-{3,}/{s=$0}
+      /^[[:space:]]*[A-Za-z_][A-Za-z0-9_.-]*[[:space:]]*=/{s=$0}
+      /^[[:space:]]*(def|fn|func|fun|class)[[:space:]]/{s=$0}
+      /^#{1,6}[[:space:]]/{s=$0}
+      END{if(s)print s}' "$file_path" 2>/dev/null | sed 's/^[[:space:]]*//' || true)
+    where="line ${L}${sec:+, in: ${sec}}"
+  fi
+fi
+
+# --- WHERE (provenance): last change to the file + blame on the anchor line ---
+root=$(git -C "$(dirname "$file_path")" rev-parse --show-toplevel 2>/dev/null || true)
+if [ -n "$root" ]; then
+  rel=${file_path#"$root"/}
+  last=$(git -C "$root" log -1 --format='%h %s (%cr)' -- "$rel" 2>/dev/null || true)
+  [ -n "$last" ] && where="${where:+$where; }last change: ${last}"
+  if [ -n "$L" ] && [ "$tool_name" = "Edit" ]; then
+    bl=$(git -C "$root" blame -L "${L},${L}" -- "$rel" 2>/dev/null | head -1 | cut -c1-72 || true)
+    [ -n "$bl" ] && where="${where}; blame: ${bl}"
+  fi
+fi
+
+# --- RELATES: top identifiers from the new text, grepped outside the edited file ---
+rg_bin=$(command -v rg || true)
+if [ -n "$rg_bin" ] && [ -n "$src" ] && [ -n "$root" ]; then
+  idents=$(printf '%s\n' "$src" | grep -oE '[A-Za-z_][A-Za-z0-9_]{3,}' \
+    | sort -u | awk '{print length, $0}' | sort -rn | awk '{print $2}' \
+    | grep -vE '^(true|false|null|import|return|const|function|config|inherit|lib|pkgs|with|then|else|self|type|name|args|command)$' \
+    | head -3 || true)
+  # Exclude the edited file only when it is under $root (else the prefix strip
+  # leaves rel absolute and the glob would fail to exclude it).
+  [ "$rel" != "$file_path" ] && exclude=(-g '!'"$rel") || exclude=()
+  hits=""
+  while IFS= read -r id; do
+    [ -n "$id" ] || continue
+    h=$("$rg_bin" -n --max-count=2 -F -e "$id" "$root" "${exclude[@]}" 2>/dev/null | head -2 || true)
+    [ -n "$h" ] && hits="${hits}${h}"$'\n'
+  done <<<"$idents"
+  rels=$(printf '%s' "$hits" | head -5)
+fi
+
+# --- WHY: first ledger line for this path; consume it and prune entries >12h ---
+led="${CLAUDE_CODE_TMPDIR:-${TMPDIR:-/tmp}}/claude-edit-briefings/ledger.tsv"
+if [ -f "$led" ]; then
+  why=$(awk -F'\t' -v p="$file_path" '$2==p{print $3; exit}' "$led" 2>/dev/null || true)
+  cutoff=$(( $(date +%s) - 43200 ))
+  tmp="${led}.$$"
+  if awk -F'\t' -v p="$file_path" -v c="$cutoff" '
+      BEGIN{done=0}
+      { if(!done && $2==p){done=1; next} if($1+0 >= c) print }' "$led" > "$tmp" 2>/dev/null; then
+    mv "$tmp" "$led" 2>/dev/null || rm -f "$tmp"
+  else
+    rm -f "$tmp"
+  fi
+fi
+
+# --- Assemble and surface (single formatter — the growth seam) ---
+briefing="Edit briefing (${agent_type})"
+[ -n "$why" ]   && briefing="${briefing}"$'\n'"WHY: ${why}"
+briefing="${briefing}"$'\n'"WHAT: ${shape}"
+[ -n "$where" ] && briefing="${briefing}"$'\n'"WHERE: ${file_path} (${where})"
+[ -n "$rels" ]  && briefing="${briefing}"$'\n'"RELATES:"$'\n'"${rels}"
+
+"$jq_bin" -n --arg r "$briefing" \
+  '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"ask",permissionDecisionReason:$r}}'
+exit 0

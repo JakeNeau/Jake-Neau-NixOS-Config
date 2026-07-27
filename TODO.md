@@ -323,6 +323,27 @@
       Diátaxis tree at `docs/` has no reference coverage. Implementation:
       `modules/programs/fish/functions/nr.fish`. Pre-existing gap noted by doc
       review on 2026-07-14 when `-l/--long` landed. Low priority.
+- [ ] Backfill a committed regression test for the `edit-briefing` PreToolUse
+      hook (`modules/programs/claude-code/config/hooks/edit-briefing`) once a
+      bash test harness for this repo's Claude Code hooks exists — none does
+      today (no existing hook is tested), and the hook was verified only by 11
+      ad-hoc synthetic-stdin checks during implementation. The test must cover:
+      emits `permissionDecision:"ask"` for a default-mode subagent Edit/Write;
+      stays silent (exit 0) on `acceptEdits`/`bypassPermissions`/`plan` and for
+      main-session edits (no `agent_type`); surfaces the WHY from the ledger and
+      consumes it FIFO; prunes ledger lines older than 12h; and is fail-open
+      (exit 0, no output) on malformed/empty stdin.
+- [ ] Interactive post-rebuild render check for the edit-briefings feature
+      (user-owned, per Task 6 of `specs/edit-briefings.md`). After the next
+      system rebuild, confirm the four-part briefing renders immediately above
+      the Edit/Write accept-deny prompt via `permissionDecision:"ask"` +
+      `permissionDecisionReason`. If it double-prompts or misbehaves where Edit
+      is allow-listed, switch the hook's final jq output to a `systemMessage`
+      payload (the documented fallback in `specs/edit-briefings.md`) and
+      rebuild. The hook lives at
+      `modules/programs/claude-code/config/hooks/edit-briefing`. The spec
+      `specs/edit-briefings.md` is intentionally kept (not retired) until this
+      check passes.
 
 ## Waiting on upstream
 
