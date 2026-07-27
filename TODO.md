@@ -293,6 +293,11 @@
       native installer) and delete the `~/.claude` and `~/.claude.json`
       state. Redwood's declared harness is pi; the Claude Code install
       was a scratch install that predates the superpowers removal.
+- [ ] On aspen, run the Pi Rust tooling live aarch64-darwin verification:
+      `nix build .#checks.aarch64-darwin.pi-rust-tools --no-link` and dry-build
+      `homeConfigurations."jakeneau@aspen".activationPackage`. Linux has passed
+      the full rust-analyzer and CodeLLDB integration suite; Darwin currently
+      has evaluation coverage only. Remove this entry once both builds pass.
 - [ ] Add an MCP adapter to Pi's typed-link registry for `[[mcp:<name>]]`
       links. It must discover configured Model Context
       Protocol servers, resolve each link to useful metadata, and invoke the

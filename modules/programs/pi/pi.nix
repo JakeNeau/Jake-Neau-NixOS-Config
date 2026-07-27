@@ -1,4 +1,5 @@
 {inputs, ...}: let
+  rustToolsSource = ./extensions/rust-tools;
   mkPiLinkRegistry = pkgs:
     pkgs.runCommand "pi-link-registry.json" {
       nativeBuildInputs = [pkgs.nodejs];
@@ -13,6 +14,58 @@
         --output "$out"
       test -s "$out"
     '';
+  codeLldbPath = pkgs: let
+    extension = pkgs.vscode-extensions.vadimcn.vscode-lldb;
+  in "${extension}/share/vscode/extensions/vadimcn.vscode-lldb/adapter/codelldb";
+  rustToolPath = pkgs:
+    pkgs.lib.makeBinPath [
+      pkgs.cargo
+      pkgs.rustc
+      pkgs.stdenv.cc
+      pkgs.coreutils
+    ];
+  mkPiRustToolsCheck = pkgs:
+    pkgs.runCommand "pi-rust-tools" {
+      nativeBuildInputs = [
+        pkgs.nodejs
+        pkgs.cargo
+        pkgs.rustc
+        pkgs.rust-analyzer
+        pkgs.vscode-extensions.vadimcn.vscode-lldb
+        pkgs.stdenv.cc
+      ];
+    } ''
+      cp -R ${rustToolsSource} rust-tools
+      chmod -R u+w rust-tools
+      export HOME="$TMPDIR/home"
+      mkdir -p "$HOME"
+      export TEST_CARGO=${pkgs.cargo}/bin/cargo
+      export TEST_RUSTC=${pkgs.rustc}/bin/rustc
+      export TEST_RUST_ANALYZER=${pkgs.rust-analyzer}/bin/rust-analyzer
+      export TEST_CODELLDB=${codeLldbPath pkgs}
+      export TEST_NIX=${pkgs.nix}/bin/nix
+      node --experimental-strip-types --test rust-tools/tests/*.test.ts
+      cat > rust-intelligence.ts <<'EOF'
+      import { createRustIntelligence } from "${rustToolsSource}/intelligence.ts";
+      export default createRustIntelligence({
+        rustAnalyzerPath: "${pkgs.rust-analyzer}/bin/rust-analyzer",
+        cargoPath: "${pkgs.cargo}/bin/cargo",
+        rustcPath: "${pkgs.rustc}/bin/rustc",
+      });
+      EOF
+      cat > rust-debugger.ts <<'EOF'
+      import { createRustDebugger } from "${rustToolsSource}/debugger.ts";
+      export default createRustDebugger({
+        codeLldbPath: "${codeLldbPath pkgs}",
+        cargoPath: "${pkgs.cargo}/bin/cargo",
+        rustcPath: "${pkgs.rustc}/bin/rustc",
+      });
+      EOF
+      node --experimental-strip-types --input-type=module - <<'EOF'
+      await Promise.all([import("./rust-intelligence.ts"), import("./rust-debugger.ts")]);
+      EOF
+      touch "$out"
+    '';
   mkPiAcp = pkgs:
     pkgs.buildNpmPackage {
       pname = "pi-acp";
@@ -24,7 +77,10 @@
     };
 in {
   perSystem = {pkgs, ...}: {
-    checks.pi-typed-links = mkPiLinkRegistry pkgs;
+    checks = {
+      pi-rust-tools = mkPiRustToolsCheck pkgs;
+      pi-typed-links = mkPiLinkRegistry pkgs;
+    };
     packages.pi-acp = mkPiAcp pkgs;
   };
 
@@ -131,6 +187,28 @@ in {
         '';
         ".pi/agent/extensions/typed-links/index.ts".text = ''
           export { default } from "${./extensions/typed-links}/index.ts";
+        '';
+        ".pi/agent/extensions/rust-intelligence/index.ts".text = ''
+          import { createRustIntelligence } from "${rustToolsSource}/intelligence.ts";
+
+          export default createRustIntelligence({
+            rustAnalyzerPath: "${pkgs.rust-analyzer}/bin/rust-analyzer",
+            cargoPath: "${pkgs.cargo}/bin/cargo",
+            rustcPath: "${pkgs.rustc}/bin/rustc",
+            nixPath: "${pkgs.nix}/bin/nix",
+            toolPath: "${rustToolPath pkgs}",
+          });
+        '';
+        ".pi/agent/extensions/rust-debugger/index.ts".text = ''
+          import { createRustDebugger } from "${rustToolsSource}/debugger.ts";
+
+          export default createRustDebugger({
+            codeLldbPath: "${codeLldbPath pkgs}",
+            cargoPath: "${pkgs.cargo}/bin/cargo",
+            rustcPath: "${pkgs.rustc}/bin/rustc",
+            nixPath: "${pkgs.nix}/bin/nix",
+            toolPath: "${rustToolPath pkgs}",
+          });
         '';
         ".pi/agent/skills/pi-web-access".source = "${pi-web-access-root}/skills";
         ".pi/agent/skills/writing-pi-extensions".source = ./config/skills/writing-pi-extensions;
