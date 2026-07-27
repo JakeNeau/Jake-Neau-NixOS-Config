@@ -1,67 +1,117 @@
 ---
 name: documentation
-description: The working discipline for project documentation — docs are the source of truth for high-level flow (consult them before the code; code is for low-level detail only), needing code to learn a high-level flow is a docs defect to capture, and the two gap types (reference gap and how-to gap) have a capture flow — note gaps when hit, surface them at the task's end, ask the user before updating, dispatch doc-writer on yes. Also covers organizing a docs section into earned subfolders of arbitrary depth. Architecture-agnostic, with Diátaxis as the default via [[skill:diataxis]]. Use when debugging, investigating a codebase, or about to read code to understand how something works at a high level; when you've just discovered a generally applicable procedure worth writing down; and when writing, organizing, or placing documentation pages — deciding where a page goes or whether a subfolder is warranted.
+description: >
+  Governs documentation-first navigation, gap reporting, stale-documentation
+  correction, post-code documentation, and documentation placement. Use before
+  code investigation, after code changes, or when writing and reviewing project
+  documentation.
 ---
 
-# The documentation discipline
+# Project documentation discipline
 
-**Docs are the source of truth for high-level flow.** For any question about how
-a system works at a high level — its flows, its architecture, how to perform a
-task with it — consult the project's documentation *before* the code. Code is for
-low-level detail only. Needing the code to learn a high-level flow means the
-documentation failed; that is a defect to be captured, not shrugged off.
+## Navigate from documentation to code
 
-## Gate: does a docs system exist?
+Treat project documentation as the source of truth for high-level behavior.
+This behavior includes architecture, system flows, interfaces, and operating
+procedures.
 
-The discipline applies where a real documentation system exists — the same test
-the doc agents use: a structured docs tree (a `docs/` directory with quadrant
-folders or several pages) or a docs generator config, not a lone README. Where
-none exists, note that and move on — never invent a docs system unprompted.
+Before reading code for those subjects:
 
-## The two gap types
+1. Find the documentation root, generator configuration, and main index.
+2. Read the relevant pages and their local navigation.
+3. Use code only for low-level implementation details.
 
-- **Reference gap** — you had to read code to learn a high-level flow or
-  structure. The reference section should have covered it.
-- **How-to gap** — while debugging or working you discovered a generally
-  applicable procedure (e.g. how to exercise a behavior across the network, how
-  to access and modify the database, how to test something). The how-to section
-  should have covered it.
+Low-level details include exact symbols, algorithms, data structures, and
+control flow. If code reveals missing high-level information, record a
+documentation gap immediately.
 
-## The capture flow
+Record these facts for each gap:
 
-1. **Note each gap the moment you hit it** — what you needed, where you ended up
-   finding it, and which section should have carried it.
-2. **At the natural end of the task, surface the gaps to the user and ask
-   whether to update the docs.** Never update silently, never drop the gaps
-   silently.
-3. **On yes, dispatch [[agent:doc-writer]]** with the gap list — it places pages
-   per the project's architecture and hands off to doc-reviewer.
+- the missing information
+- the code or test that supplied it
+- the documentation section that should contain it
 
-Subagents that hit gaps can't ask the user — they report gaps in their findings
-so the dispatcher can ask.
+Tell the user about every gap at the task's natural end. State that the missing
+information belongs in the project documentation.
 
-## Organizing sections: earned subfolders, arbitrary depth
+## Respect the project's documentation system
 
-Within a docs section, group pages into subfolders along logical seams — by
-action type in how-to (canonical: `how-to/debugging/`), by subsystem in
-reference. Nesting may go arbitrarily deep, but **every level must be earned**:
+Use the project's existing documentation architecture, terms, style, and
+tooling. Read its root page and contribution guidance before you place content.
+Do not migrate an existing system to Diátaxis unless the user requests that
+migration.
 
-- Create a folder only when several pages (≈3+) share a theme.
-- Never a single-file folder; never an empty folder made in anticipation.
-- Prefer flat until grouping genuinely aids navigation — be wary of
-  subsectioning too much.
-- Keep the docs root's index in step with any reorganization.
+A lone README still documents the project. Read it before code, and
+extend its established structure when that structure fits the required content.
 
-## Default architecture
+When no existing architecture determines placement, use Diátaxis through
+[[skill:diataxis]]. Create only the pages and folders required by the current
+change. Do not create speculative empty sections.
 
-Unless the project already uses a different documentation system, the default is
-Diátaxis — see [[skill:diataxis]] for the four kinds and their separation. The
-discipline above applies whatever the architecture; only the section names
-change.
+Do not create a documentation system during a read-only investigation. Report
+that the project has no documentation system. The post-code requirement below
+is different because new code requires durable documentation.
+
+## Handle documentation defects
+
+Classify documentation defects by their effect:
+
+- **Reference gap:** You needed code to discover high-level behavior or
+  structure.
+- **How-to gap:** Work revealed a reusable procedure that the documentation
+  omitted.
+- **Stale documentation:** Verified behavior contradicts the documentation.
+- **Misplaced documentation:** Correct content appears in the wrong section for
+  the project's architecture.
+
+Do not assume that code wins when code and documentation disagree. Use tests,
+project policy, and the task's requirements to determine intended behavior.
+
+If the evidence proves that documentation is wrong, amend it in the same task.
+If intended behavior remains unclear, report the conflict instead of silently
+changing either source.
+
+For a gap found during read-only work, ask before adding documentation. If the
+current task already changes code or documentation, close relevant gaps during
+the required documentation pass.
+
+## Complete every code change with documentation
+
+After you write code, review and update the documentation before completion.
+Documentation is part of the code change, not optional follow-up work.
+
+1. Review the changed capability and its intended effect.
+2. Update existing pages that describe affected behavior.
+3. Add durable coverage for each new capability.
+4. Remove or revise documentation for removed behavior.
+5. Update indexes and cross-links when navigation changes.
+6. Verify the documentation against the final code and tests.
+
+Document the high-level purpose, behavior, constraints, and procedures. Keep
+symbol-level and algorithm-level details in the code unless readers need them
+to use a public interface.
+
+If no documentation system exists, create the minimum Diátaxis structure needed
+for the new capability. Include a root page that explains the available
+sections and project-specific conventions.
+
+## Apply the writing standard
+
+Before drafting or revising documentation, follow the active writing policy and
+the project's local style. Pi must call `global:skill:writing` unless it already
+loaded that skill for the task.
+
+For Pi, run this command after changing Markdown or plain text:
+
+```sh
+pi-writing-lint <changed-file>
+```
+
+Resolve valid findings. Report heuristic exceptions instead of weakening
+accurate content. Other agents must use their active writing checks. Run the
+project's documentation build or checks when they exist.
 
 ## Related skills
 
-- [[skill:diataxis]] — the default documentation architecture: the four kinds and keeping them separate
-- [[agent:doc-reader]] — reads what the docs already say about a topic
-- [[agent:doc-writer]] — writes the pages that close a captured gap
-- [[agent:doc-reviewer]] — proves coverage, accuracy, and placement
+- [[skill:diataxis]]: the default architecture when the project has no existing
+  documentation system

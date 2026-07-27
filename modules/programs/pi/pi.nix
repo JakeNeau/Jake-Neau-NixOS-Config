@@ -8,6 +8,7 @@
       cp -R ${./extensions/typed-links} typed-links
       chmod -R u+w typed-links
       export TEST_SHARED_SKILLS=${../agents-shared/skills}
+      export TEST_CLAUDE_SKILLS=${../claude-code/config/skills}
       export TEST_PI_SKILLS=${./config/skills}
       export TEST_PI_COMMANDS=${./config/prompts}
       node --experimental-strip-types --test typed-links/tests/*.test.*

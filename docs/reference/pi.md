@@ -9,45 +9,46 @@ user: [coding agents](../explanation/coding-agents.md).
 
 ## The declaration
 
-- `install.linux = ["home"]`, `install.macos = ["home"]` — per-user on both
+- `install.linux = ["home"]`, `install.macos = ["home"]`: per-user on both
   platforms. Delivered by `flake.users.jakeneau.programs`.
-- `hasEnableOption = false` + `packages` — the generator supplies the enable
+- `hasEnableOption = false` + `packages`: the generator supplies the enable
   toggle and installs both pi and `agent-browser` behind it.
 - Pi comes from `inputs.llm-agents.packages.<system>.pi`, via
   **llm-agents.nix** (`github:numtide/llm-agents.nix`). The input deliberately
   does not follow this flake's nixpkgs, preserving numtide's binary-cache hit.
-- `agent-browser` is the upstream release binary, selected and hash-pinned per
-  supported Linux/macOS architecture. Linux binaries are patched for NixOS.
+- `agent-browser` uses the upstream release binary with a hash for each
+  supported Linux/macOS architecture. The module patches Linux binaries for
+  NixOS.
 
 ## Web extensions
 
 The module pins both extension sources as non-flake inputs:
 
-- `pi-web-access` `v0.13.0` — `web_search`, content extraction, PDFs, GitHub,
+- `pi-web-access` `v0.13.0`: `web_search`, content extraction, PDFs, GitHub,
   video handling, and its librarian skill.
-- `pi-agent-browser-native` `v0.2.71` — the native `agent_browser` tool for
+- `pi-agent-browser-native` `v0.2.71`: the native `agent_browser` tool for
   JavaScript rendering and interactive browser workflows. It targets the
   installed `agent-browser` `0.32.2` release.
 
-pi-web-access's runtime dependencies are built with `buildNpmPackage`; the
+Pi uses `buildNpmPackage` for pi-web-access's runtime packages. The
 committed `pi-web-access-package-lock.json` and `npmDepsHash` make that build
 reproducible. Small generated `index.ts` files under
 `~/.pi/agent/extensions/` import each extension from its immutable store path.
-The bundled librarian skill is linked under `~/.pi/agent/skills/`.
+Home Manager links the bundled librarian skill under `~/.pi/agent/skills/`.
 
 ## Neovim ACP adapter
 
-The unversioned non-flake `pi-acp` input is commit-pinned by `flake.lock` and
-built with `buildNpmPackage`. Upstream Pi exposes `pi --mode rpc`, while
-codecompanion.nvim speaks the standard Agent Client Protocol; `pi-acp` bridges
+`flake.lock` pins the unversioned non-flake `pi-acp` input to a commit.
+`buildNpmPackage` builds the input. Upstream Pi exposes `pi --mode rpc`, while
+codecompanion.nvim speaks the standard Agent Client Protocol. `pi-acp` bridges
 the two JSON protocols over stdio.
 
-The nvf module enables codecompanion.nvim only when the sibling `programs.pi`
-unit is enabled in the same home. Its custom `pi` ACP adapter launches
+When the sibling home has `programs.pi.enable = true`, the nvf module enables
+codecompanion.nvim. Its custom `pi` ACP adapter launches
 `pi-acp`, enables embedded context, and makes Pi the default chat adapter.
 CodeCompanion receives streamed messages, tool activity, file diffs, model and
 thinking options, slash commands, and persistent Pi sessions. Pi continues to
-execute filesystem and shell tools locally; ACP filesystem and terminal
+execute filesystem and shell tools locally. ACP filesystem and terminal
 delegation are not enabled.
 
 ## Typed-link navigation
@@ -55,23 +56,26 @@ delegation are not enabled.
 The `typed-links` extension resolves the shared `[[type:name]]` convention
 through the `follow_link` tool. Pi supports four link types:
 
-- `skill` — loads a skill body and optional arguments.
-- `command` — expands a Pi prompt template and its arguments.
-- `spec` — loads a project specification.
-- `doc` — loads a project documentation page.
+- `skill`: loads a skill body and optional arguments.
+- `command`: expands a Pi prompt template and its arguments.
+- `spec`: loads a project specification.
+- `doc`: loads a project documentation page.
 
-Claude-specific types are treated as foreign and never guessed. Typed-link
-examples inside Markdown code spans and fences are ignored. MCP and extension
-adapters are not implemented.
+Pi treats Claude-specific types as foreign and never guesses their targets. It
+ignores typed-link examples inside Markdown code spans and fences. Pi does not
+implement MCP or extension adapters.
 
 Home Manager builds the global registry at
 `~/.pi/agent/link-registry.json` from:
 
-- `modules/programs/agents-shared/skills/`
-- `modules/programs/pi/config/skills/`
-- `modules/programs/pi/config/prompts/`
+- shared writing, comment, and documentation policies under
+  `modules/programs/agents-shared/skills/`
+- Pi-specific skills under `modules/programs/pi/config/skills/`
+- Pi prompt templates under `modules/programs/pi/config/prompts/`
 
-The manifest contains metadata and immutable source paths, not resource bodies.
+Claude-only skills under `modules/programs/claude-code/config/skills/` are not
+part of Pi's registry. The manifest contains metadata and immutable source paths,
+not resource bodies.
 The same dependency-free compiler scans these project paths after Pi trusts the
 project:
 
@@ -82,20 +86,44 @@ project:
 - `docs/**/*.md`
 
 Global and project registries remain separate. Links from a registered resource
-resolve inside its own layer; an unqualified user link matching both layers is
-reported as ambiguous. Ordinary `read` results containing supported links gain
-a compact footer with canonical targets, but no target loads automatically.
+resolve inside its own layer. Pi reports an unqualified user link as ambiguous
+when it matches both layers. Ordinary `read` results containing supported links
+gain a compact footer with canonical targets, but no target loads automatically.
 
 `/links` reports registry counts, `/links unresolved` lists diagnostics,
 `/links <type>:<name>` inspects one resource, and `/links reload` reloads Pi's
 resources and rescans the project. Tool output follows Pi's standard truncation
 limits and points to the full source path when truncated.
 
-The global `writing-pi-extensions` skill is installed under
+Home Manager installs the global `writing-pi-extensions` skill under
 `~/.pi/agent/skills/`. It requires extension designs to decide whether they
-introduce a durable resource kind that needs a typed-link adapter. The registry's
-design rationale is documented in
-[Pi typed-link navigation](../explanation/pi-typed-links.md).
+introduce a durable resource kind that needs a typed-link adapter.
+[Pi typed-link navigation](../explanation/pi-typed-links.md) explains the
+registry's design.
+
+## Documentation workflow
+
+The managed `~/.pi/agent/AGENTS.md` requires Pi to load
+`global:skill:documentation` before using code for high-level project
+navigation. Pi reads the project's documentation first and uses code for
+low-level implementation details.
+
+The documentation skill defines these requirements:
+
+- Existing project architecture, terms, style, and tooling take precedence.
+- Diátaxis supplies the default architecture when no existing system applies.
+- Missing high-level information found in code becomes a reported
+  documentation gap.
+- Pi corrects verified documentation errors during the same task.
+- Every code change receives a documentation pass before completion.
+- Each new capability receives durable documentation in the same task.
+- A project without documentation receives the minimum required Diátaxis
+  structure after Pi adds code.
+
+Pi applies `global:skill:writing` before editing documentation. It runs
+`pi-writing-lint` on changed Markdown and plain-text files. The global
+`global:skill:diataxis` skill defines the four documentation types and their
+placement rules.
 
 ## Writing system
 
@@ -146,8 +174,8 @@ bodies load only when encountered. Ordinary prose targets one line and has a
 two-line ceiling.
 
 The global `/comment-review [scope]` prompt conforms comments automatically. Its
-default scope is comments added, deleted, or modified in `git diff HEAD`; a
-supplied path or range replaces that default, and naming a file reviews every
+default scope is comments added, deleted, or modified in `git diff HEAD`. A
+supplied path or range replaces that default. Naming a file reviews every
 comment in it. The workflow changes comments only, works deletion-first, and
 preserves functional directives and legal or generated provenance verbatim.
 
@@ -159,7 +187,7 @@ Home Manager owns two focused policy files:
   `workflow = "none"`, and forbids browser-cookie extraction. This makes
   unattended runs return raw evidence to the main agent.
 - `~/.pi/config/pi-agent-browser-native/config.json` disables that extension's
-  companion search tool. pi-web-access owns search; `agent_browser` remains the
+  companion search tool. pi-web-access owns search. `agent_browser` remains the
   JavaScript-capable fallback.
 
 API keys are not stored in Nix. pi-web-access reads `EXA_API_KEY`,
@@ -175,5 +203,5 @@ It also owns the two web policy files above.
 
 `flake.modules.generic.numtide-cache`, in the same file, appends
 `https://cache.numtide.com` and its trusted key to the daemon settings. Hosts
-import it at system scope; homes never do. It reaches the daemon on the next
+import it at system scope. Homes never do. It reaches the daemon on the next
 system rebuild.

@@ -21,5 +21,6 @@ Note on skills: only each skill's `SKILL.md` is inlined. A skill that ships
 extra files next to `SKILL.md` cannot be expressed this way without symlinking,
 which this setup deliberately avoids.
 
-`skills/` here holds only the Claude-specific skills; the portable ones live in
-`../../agents-shared/skills/` and are merged in by `claude-code.nix`.
+`skills/` here holds only Claude-specific skills. Writing, comment, and
+documentation policies live in `../../agents-shared/skills/` because Pi also
+uses them. `claude-code.nix` merges both sources.

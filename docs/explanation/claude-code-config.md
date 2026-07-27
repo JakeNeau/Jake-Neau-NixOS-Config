@@ -6,22 +6,21 @@ sandbox policy — is managed as a subsystem of this flake
 
 ## The goal: one config, wherever it's used
 
-Claude Code's config normally accretes per machine under `~/.claude`. Here
-the durable parts are authored as plain files in the repo
-(`modules/programs/claude-code/config/`: `agents/`, `commands/`, `rules/`,
-`hooks/`, `skills/`, `CLAUDE.md`) and carried by the
-`flake.programs.claude-code` declaration, so every home that requests it
-gets the same assistant and changes ride the normal rebuild flow. Today
-that is `jake.neau`'s `flake.users` entry — claude-code is cedar's agent,
-while the other machines run pi; why the split routes per user:
-[coding agents](coding-agents.md). Skills that aren't Claude-specific live
-in the shared source directory `modules/programs/agents-shared/skills/`.
-Claude merges them with its own set at read time; Pi indexes the same shared
-source for on-demand typed-link traversal without installing every skill
-natively.
-The config *directory* stays at its upstream default — `~/.claude`,
-untouched `configDir` — so live state (memory, project history) keeps
-working.
+Claude Code normally stores its configuration under `~/.claude` on each
+machine. This repository stores the durable files under
+`modules/programs/claude-code/config/`. The `flake.programs.claude-code`
+declaration installs them for each home that requests Claude Code.
+
+The `jake.neau` user declaration requests Claude Code on cedar. The other
+machines run Pi. See [coding agents](coding-agents.md) for the per-user routing.
+
+Writing, comment, and documentation policies live under
+`modules/programs/agents-shared/skills/` because both agents use them. Claude
+merges those policies with its own skills. Pi indexes only the shared policies
+and its own skills.
+
+The config directory remains at `~/.claude`. The module leaves `configDir`
+unchanged so that live state and project history continue to work.
 
 ## Inline content, not symlinked directories
 

@@ -1,89 +1,80 @@
 ---
 name: diataxis
-description: The Diátaxis architecture for organizing technical documentation — four distinct types (tutorials for learning, how-to guides for tasks, reference for information, explanation for understanding) arranged on two axes (action vs cognition, acquisition vs application), the discipline of keeping them separate, and the docs-root page that explains both this system and the project's own documentation setup. Use when writing, structuring, or reviewing documentation; deciding what kind of doc a page should be; untangling docs that mix tutorial/how-to/reference/explanation; laying out a docs site's top-level sections; or writing a docs tree's root/landing page.
+description: >
+  Defines the four Diátaxis documentation types and their placement rules. It
+  separates tutorials, how-to guides, reference, and explanation by reader
+  need. Use when no existing project architecture determines documentation
+  placement.
 ---
 
-# Diátaxis: a documentation architecture
+# Diátaxis documentation architecture
 
-There are **four distinct kinds of documentation**, each serving a different
-need. Keep them separate — most bad docs are bad because they blur these
-together (e.g. a tutorial that keeps detouring into reference). Separate them and
-each one gets better. Diátaxis (Greek: *dia* "across" + *taxis* "arrangement")
-is a compass for deciding which kind you're writing.
+Diátaxis organizes documentation by the reader's need. Preserve an existing
+project architecture. When no architecture exists, use Diátaxis as the default.
 
 ## The four types
 
-- **Tutorial** — *learning-oriented.* A lesson that takes a beginner through
-  doing something end-to-end. Goal: the reader gains confidence and skill. You
-  decide what they do; you're the teacher.
-- **How-to guide** — *task-oriented.* A recipe to accomplish a specific goal the
-  reader already has ("how to deploy to staging"). Assumes competence; just the
-  steps, no teaching.
-- **Reference** — *information-oriented.* Dry, complete, accurate description of
-  the machinery: APIs, config options, flags. Mirrors the structure of the
-  thing. Describes; does not explain.
-- **Explanation** — *understanding-oriented.* Discursive background: *why* it
-  works this way, design rationale, alternatives, trade-offs. Read to understand,
-  not to do.
+- **Tutorial:** Teach a beginner through a complete lesson. The author chooses
+  the path so the reader gains skill and confidence.
+- **How-to guide:** Give a competent reader the steps for one practical goal.
+  Include necessary conditions, actions, and expected results.
+- **Reference:** Describe interfaces, options, commands, and behavior. Keep the
+  description accurate, complete, and free from rationale.
+- **Explanation:** Explain design reasons, alternatives, relationships, and
+  trade-offs. Help the reader understand the system. Do not add task steps.
 
-## The two axes that generate them
+## The two axes
 
-|                              | **Action** (doing) | **Cognition** (knowing) |
-| ---------------------------- | ------------------ | ----------------------- |
-| **Acquisition** (studying)   | Tutorial           | Explanation             |
-| **Application** (working)    | How-to guide       | Reference               |
+|                              | **Action** | **Knowledge** |
+| ---------------------------- | ---------- | ------------- |
+| **Learning**                  | Tutorial   | Explanation   |
+| **Working**                   | How-to     | Reference     |
 
-- Vertical: is the reader **learning** (acquiring skill) or **working**
-  (applying it)?
-- Horizontal: is the content **practical steps** or **theoretical knowledge**?
+Use these questions to classify content:
 
-## The confusions to avoid
+1. Is the reader learning or applying existing knowledge?
+2. Does the reader need actions or understanding?
 
-- **Tutorial vs how-to** — a tutorial serves a learner who doesn't yet know what
-  to ask; a how-to serves a doer with a specific goal. Mixing them serves
-  neither.
-- **Reference vs explanation** — reference says what the thing *is* (factual,
-  complete); explanation says *why* it is (discursive). Don't smuggle rationale
-  into reference or facts into explanation.
+The answers identify one documentation type.
 
-## How to apply it
+## Keep the types separate
 
-- It's a **compass, not a rigid map** — you don't redesign all docs top-down.
-- For any page, ask **"which of the four is this?"** and split out the parts that
-  belong in a different quadrant.
-- **One page, one type.** Give each quadrant its own section/folder
-  (`tutorials/`, `how-to/`, `reference/`, `explanation/`) so readers navigate by
-  need. For organizing *within* a quadrant (earned subfolders) and the working
-  discipline around docs — docs-first reading and capturing gaps — see
-  [[skill:documentation]].
+A tutorial serves a learner who does not yet know which questions to ask. A
+how-to guide serves a reader who already has a specific goal.
 
-## The docs root explains the system
+Reference states what the system does. Explanation states why the system works
+that way. Do not place rationale in reference content.
 
-The root page of the docs tree (`docs/README.md`, `index.md`, or the site's
-landing page) always carries two things, so a reader — or a future agent — can
-navigate and extend the docs without prior knowledge:
+Use one type for each page. When a topic needs several types, create separate
+pages and cross-link them.
 
-1. **How Diátaxis works** — a short orientation: the four types, the need each
-   serves, and where each lives in this tree; link to https://diataxis.fr for
-   the full theory.
-2. **This project's documentation setup** — whatever is specific to the
-   project: the generator/tooling and how to build or preview the docs, the
-   folder layout, naming conventions, and any local carve-outs.
+## Apply Diátaxis
 
-Write this page first when creating a docs tree; when working in docs whose
-root lacks either part, add the missing part.
+1. Read the project's documentation root and local conventions.
+2. Preserve any established architecture and naming system.
+3. Identify the reader's immediate need.
+4. Choose the matching Diátaxis type when no existing placement applies.
+5. Split content that serves a different need.
+6. Update indexes and cross-links after adding or moving pages.
 
-## Reference
+Treat Diátaxis as a placement guide, not a reason for a broad migration. Create
+only the folders and pages that current documentation requires.
 
-Official site: https://diataxis.fr
+Within a type, create a subfolder only when several pages share a clear theme.
+Do not create a single-page folder or an empty speculative folder.
+
+## Define the documentation root
+
+When creating a Diátaxis tree, its root page must contain two kinds of
+information:
+
+1. Define the four types and link each type to its location.
+2. Describe the project's tooling, structure, naming, and local exceptions.
+
+Link to <https://diataxis.fr> for the complete Diátaxis theory. Create only the
+quadrant folders that contain current pages.
 
 ## Related skills
 
-- [[skill:documentation]] — the working discipline: docs-first reading, gap
-  capture, and earned subfolders within a quadrant.
-- [[agent:doc-writer]] / [[agent:doc-reader]] / [[agent:doc-reviewer]] — the agents that write,
-  read, and review docs in this architecture.
-- [[skill:specs]] — the transient pre-implementation working documents whose durable
-  rationale graduates into these docs once a feature ships.
-- **Documentation tooling** — identify the current project's documentation system
-  directly; its generator and publishing workflow vary by project.
+- [[skill:documentation]]: documentation-first navigation, defect handling,
+  and post-code updates

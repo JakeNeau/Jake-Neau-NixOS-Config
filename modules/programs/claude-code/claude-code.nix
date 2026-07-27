@@ -31,8 +31,7 @@
       # Source tree for the declarative config (see ./config/README.md).
       configSrc = ./config;
 
-      # Agent-agnostic skills shared across the agent modules; only
-      # Claude-specific skills remain under ./config/skills.
+      # Keep Pi's shared writing policies separate from Claude-only workflows.
       sharedSkillsSrc = ../agents-shared/skills;
 
       # Markdown folders (agents, commands, rules): map each `<name>.md` to
