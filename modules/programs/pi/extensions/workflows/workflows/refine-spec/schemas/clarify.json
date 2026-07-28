@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["artifactKind", "outcome", "summary", "payload"],
+  "properties": {
+    "artifactKind": { "enum": ["clarification"] },
+    "outcome": { "enum": ["answered"] },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["answer", "questionStillApplies"],
+      "properties": {
+        "answer": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "questionStillApplies": { "type": "boolean" }
+      }
+    }
+  }
+}

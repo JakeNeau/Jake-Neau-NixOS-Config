@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["artifactKind", "outcome", "summary", "payload"],
+  "properties": {
+    "artifactKind": { "enum": ["evidence-synthesis"] },
+    "outcome": { "enum": ["ready"] },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["facts", "constraints", "conflicts", "openQuestions", "integrationPoints"],
+      "properties": {
+        "facts": { "type": "array", "maxItems": 30, "items": { "type": "string", "maxLength": 1000 } },
+        "constraints": { "type": "array", "maxItems": 30, "items": { "type": "string", "maxLength": 1000 } },
+        "conflicts": { "type": "array", "maxItems": 20, "items": { "type": "string", "maxLength": 1000 } },
+        "openQuestions": { "type": "array", "maxItems": 20, "items": { "type": "string", "maxLength": 1000 } },
+        "integrationPoints": { "type": "array", "maxItems": 20, "items": { "type": "string", "maxLength": 1000 } }
+      }
+    }
+  }
+}

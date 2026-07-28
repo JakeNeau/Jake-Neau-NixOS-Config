@@ -1,6 +1,7 @@
 {inputs, ...}: let
   askUserSource = ./extensions/ask-user;
   rustToolsSource = ./extensions/rust-tools;
+  workflowSource = ./extensions/workflows;
   writingSource = ./writing;
   mkPiLinkRegistry = pkgs:
     pkgs.runCommand "pi-link-registry.json" {
@@ -47,6 +48,42 @@
         | pi --mode rpc --no-session --offline --no-extensions \
           --extension ./ask-user/index.ts >rpc.jsonl
       grep -q '"success":true' rpc.jsonl
+      touch "$out"
+    '';
+  mkPiWorkflowCheck = pkgs:
+    pkgs.runCommand "pi-workflows" {
+      nativeBuildInputs = [
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
+        pkgs.nodejs
+      ];
+    } ''
+      mkdir extensions
+      cp -R ${workflowSource} extensions/workflows
+      chmod -R u+w extensions
+      node --experimental-strip-types --test extensions/workflows/tests/*.test.ts
+
+      export HOME="$TMPDIR/home"
+      mkdir -p "$HOME"
+      printf '%s\n' \
+        '{"type":"get_state"}' \
+        '{"type":"get_commands"}' \
+        '{"type":"prompt","message":"/workflow status"}' \
+        | pi --mode rpc --no-session --offline --no-extensions \
+          --extension ./extensions/workflows/index.ts >rpc.jsonl
+      grep -q '"success":true' rpc.jsonl
+      grep -q '"name":"refine-spec"' rpc.jsonl
+
+      printf '{"type":"object","properties":{}}\n' >schema.json
+      printf '{"catalog":[],"artifacts":{}}\n' >manifest.json
+      printf '{"type":"get_state"}\n' \
+        | PI_WORKFLOW_CHILD=1 \
+          PI_WORKFLOW_SCHEMA="$PWD/schema.json" \
+          PI_WORKFLOW_ARTIFACT_MANIFEST="$PWD/manifest.json" \
+          PI_WORKFLOW_READ_ONLY=1 \
+          PI_WORKFLOW_APPROVED_PATHS='[]' \
+          pi --mode rpc --no-session --offline --no-extensions \
+            --extension ./extensions/workflows/index.ts >child-rpc.jsonl
+      grep -q '"success":true' child-rpc.jsonl
       touch "$out"
     '';
   mkPiRustToolsCheck = pkgs:
@@ -119,6 +156,7 @@ in {
     checks = {
       pi-ask-user = mkPiAskUserCheck pkgs;
       pi-rust-tools = mkPiRustToolsCheck pkgs;
+      pi-workflows = mkPiWorkflowCheck pkgs;
       pi-typed-links = mkPiLinkRegistry pkgs;
       pi-writing = mkPiWritingCheck pkgs;
     };
@@ -233,6 +271,9 @@ in {
         ".pi/agent/extensions/ask-user/index.ts".text = ''
           export { default } from "${askUserSource}/index.ts";
         '';
+        ".pi/agent/extensions/workflows/index.ts".text = ''
+          export { default } from "${workflowSource}/index.ts";
+        '';
         ".pi/agent/extensions/typed-links/index.ts".text = ''
           export { default } from "${./extensions/typed-links}/index.ts";
         '';
@@ -261,6 +302,9 @@ in {
         ".pi/agent/skills/pi-web-access".source = "${pi-web-access-root}/skills";
         ".pi/agent/skills/writing-pi-extensions".source = ./config/skills/writing-pi-extensions;
         ".pi/agent/link-registry.json".source = linkRegistry;
+        ".pi/agent/keybindings.json".text = builtins.toJSON {
+          "app.thinking.cycle" = "ctrl+tab";
+        };
         ".pi/agent/AGENTS.md".source = ./config/AGENTS.md;
 
         # Unattended research should return raw evidence to the main agent, not

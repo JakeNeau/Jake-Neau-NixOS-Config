@@ -42,6 +42,28 @@ The dialog works in TUI and RPC modes. In print and JSON modes, the tool directs
 the agent to ask through normal text. The extension does not support multiple
 selections or multiple questions in one call.
 
+## Workflow manager
+
+The `workflows` extension adds exclusive, artifact-driven workflow modes.
+`Shift+Tab` cycles through `normal` and discovered workflows. Home Manager moves
+Pi's thinking-level cycle to `Ctrl+Tab`.
+
+Each agent stage runs in a fresh RPC child process with the user's selected
+model and thinking level. The parent session stores validated stage artifacts as
+non-context custom entries. Global workflows live with the extension. Trusted
+projects may add declarative definitions under `.pi/workflows/`.
+
+The bundled `/refine-spec [idea or area]` workflow discovers the project's
+specification practice and gathers parallel evidence. It asks one decision at a
+time, requires proposal approval, restricts writes, and verifies the result.
+Calling `/refine-spec` without input audits all active specifications.
+
+[Pi workflow reference](pi-workflows.md) defines commands, definition fields,
+stages, artifacts, safety rules, and limits. [The workflow
+explanation](../explanation/pi-workflows.md) describes the architecture.
+[Add a project-local Pi workflow](../how-to/add-a-pi-workflow.md) gives the
+authoring procedure.
+
 ## Web extensions
 
 The module pins both extension sources as non-flake inputs:
