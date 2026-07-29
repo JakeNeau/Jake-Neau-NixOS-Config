@@ -23,7 +23,10 @@
   #   sudo chgrp -R config .
   #   sudo chmod -R g+w .
   #   sudo find . -type d -exec chmod g+s {} +
-  #   sudo chmod -R +a "group:config allow read,write,execute,file_inherit,directory_inherit" .
+  #   # spell every right out: "read,write,execute" silently omits delete_child
+  #   # and add_subdirectory, leaving members able to create a file but not
+  #   # rename, delete, or mkdir — see docs/how-to/bootstrap-machine.md
+  #   sudo chmod -R +a "group:config allow read,write,execute,append,delete,delete_child,readattr,writeattr,readextattr,writeextattr,file_inherit,directory_inherit" .
   # (No keys.txt re-lock: the sops age key lives outside the repo on macOS.)
 
   flake.modules.nixos.config-group = {

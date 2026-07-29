@@ -54,6 +54,9 @@ export interface RustAnalyzerStartOptions {
   cwd: string;
   env?: NodeJS.ProcessEnv;
   timeoutMs?: number;
+  // Milliseconds for each startup step (initialize, then readiness), which a slow
+  // machine can exceed while every later request stays fast; defaults to timeoutMs.
+  readyTimeoutMs?: number;
 }
 
 interface LspPosition {
@@ -167,6 +170,7 @@ export class RustAnalyzerSession {
         range: range(item.range),
       })));
     });
+    const readyTimeoutMs = options.readyTimeoutMs ?? options.timeoutMs ?? 30_000;
     try {
       await connection.request("initialize", {
         processId: process.pid,
@@ -183,9 +187,8 @@ export class RustAnalyzerSession {
           experimental: { serverStatusNotification: true },
         },
         workspaceFolders: [{ uri: pathToFileURL(options.cwd).href, name: options.cwd.split("/").at(-1) }],
-      });
+      }, { timeoutMs: readyTimeoutMs });
       await connection.notify("initialized", {});
-      const readyTimeoutMs = options.timeoutMs ?? 30_000;
       let readyTimer: NodeJS.Timeout | undefined;
       await Promise.race([
         ready,

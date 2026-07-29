@@ -3,7 +3,7 @@ import { access, cp, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { test } from "node:test";
+import { test, type TestContext } from "node:test";
 
 import { CodeLldbSession } from "../dap.ts";
 import { createRustDebugger } from "../debugger.ts";
@@ -48,6 +48,43 @@ function resultText(result: any): string {
   return result.content.find((item: any) => item.type === "text")?.text ?? "";
 }
 
+// macOS grants permission to debug another process only to an interactive session,
+// so a Nix build, running unattended as a build user, cannot debug at all.
+const authorizationRefused = /cannot get permission to debug/i;
+
+let probe: Promise<string | undefined> | undefined;
+
+function debugSkipReason(): Promise<string | undefined> {
+  probe ??= (async () => {
+    const session = await CodeLldbSession.start({
+      executable: required("TEST_CODELLDB"),
+      cwd: fixture,
+      env: process.env,
+      timeoutMs: 30_000,
+    });
+    try {
+      // Passing a breakpoint turns stopOnEntry off, so the launch must really start
+      // the debuggee — the point where macOS refuses authorization.
+      await session.launch({
+        program: process.execPath,
+        cwd: fixture,
+        args: ["--version"],
+        env: {},
+        breakpoints: [{ path: source, line: 6 }],
+      });
+      return undefined;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      // Only that one refusal earns a skip; any other launch failure is a real defect.
+      if (!authorizationRefused.test(message)) throw error;
+      return `real CodeLLDB debugging is UNVERIFIED in this environment: a probe launch was refused — ${message}`;
+    } finally {
+      await session.close();
+    }
+  })();
+  return probe;
+}
+
 test("real rust-analyzer resolves Rust structure and diagnostics", { timeout: 180_000 }, async (context) => {
   const root = await mkdtemp(join(tmpdir(), "pi-rust-analyzer-"));
   await cp(fixture, root, { recursive: true });
@@ -85,6 +122,8 @@ test("real rust-analyzer resolves Rust structure and diagnostics", { timeout: 18
 });
 
 test("real CodeLLDB stops in a Cargo test and reads the decisive value", { timeout: 180_000 }, async (context) => {
+  const skip = await debugSkipReason();
+  if (skip) return context.skip(skip);
   const project = await discoverRustProject({ cwd: fixture, runtime: runtime() });
   const built = await buildDebugTarget(project, {
     package: "demo",
@@ -127,7 +166,7 @@ test("real CodeLLDB stops in a Cargo test and reads the decisive value", { timeo
   assert.equal(resumed.terminated, true);
 });
 
-test("real extension factories provide focused context and autonomous debugging", { timeout: 240_000 }, async (context) => {
+function startExtensions(context: TestContext) {
   const pi = fakePi();
   createRustIntelligence({
     rustAnalyzerPath: required("TEST_RUST_ANALYZER"),
@@ -147,7 +186,11 @@ test("real extension factories provide focused context and autonomous debugging"
   context.after(async () => {
     for (const handler of pi.handlers.get("session_shutdown") ?? []) await handler({}, {});
   });
+  return pi;
+}
 
+test("real extension factories provide focused context", { timeout: 240_000 }, async (context) => {
+  const pi = startExtensions(context);
   const rustCode = pi.tools.find((item) => item.name === "rust_code")!;
   const codeContext = await rustCode.execute("code", {
     action: "context",
@@ -155,6 +198,12 @@ test("real extension factories provide focused context and autonomous debugging"
   }, undefined, undefined, { cwd: fixture, isProjectTrusted: () => true });
   assert.match(resultText(codeContext), /Debugging the regression/);
   assert.equal(codeContext.details.symbols.some((item: any) => item.name === "debug_value"), true);
+});
+
+test("real extension factories provide autonomous debugging", { timeout: 240_000 }, async (context) => {
+  const skip = await debugSkipReason();
+  if (skip) return context.skip(skip);
+  const pi = startExtensions(context);
 
   const debugStart = pi.tools.find((item) => item.name === "rust_debug_start")!;
   const toolContext = { cwd: fixture, isProjectTrusted: () => true };

@@ -1,4 +1,4 @@
-{
+{inputs, ...}: {
   # Claude Code: Anthropic's terminal coding assistant.
   #
   # Cross-platform: nixpkgs builds claude-code on both Linux and macOS, so
@@ -30,9 +30,6 @@
     }: let
       # Source tree for the declarative config (see ./config/README.md).
       configSrc = ./config;
-
-      # Keep Pi's shared writing policies separate from Claude-only workflows.
-      sharedSkillsSrc = ../agents-shared/skills;
 
       # Markdown folders (agents, commands, rules): map each `<name>.md` to
       # { <name> = <file contents> }. `.gitkeep` and any non-markdown file are
@@ -293,8 +290,12 @@
         commands = readMarkdown (configSrc + "/commands");
         rules = readMarkdown (configSrc + "/rules");
         hooks = readHooks (configSrc + "/hooks");
-        skills = readSkills sharedSkillsSrc // readSkills (configSrc + "/skills");
+        skills = readSkills (configSrc + "/skills");
       };
+
+      # Writing skills invoke `claude-writing-lint`, so it must be on PATH. The
+      # declaration's `packages` applies only when hasEnableOption = false.
+      home.packages = [inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.claude-writing-lint];
 
       # MCP servers (flow into Claude via enableMcpIntegration above). mcp-nixos:
       # live search of nixpkgs packages and NixOS/home-manager/nix-darwin options,

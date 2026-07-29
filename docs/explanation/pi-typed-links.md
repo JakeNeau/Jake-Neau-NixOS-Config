@@ -65,8 +65,8 @@ same turn. `/comment-review` traverses only the categories present in its scope.
 ## The vocabulary stays earned
 
 Pi initially adapts only its native or project-generic resource kinds: skills,
-commands, specs, and docs. Claude-specific agents, memories, hooks, and rules
-remain annotations when they appear in shared prose. MCP and Pi-extension link
+commands, specs, and docs. Every other type in the convention, such as an agent,
+memory, hook, or rule, remains an annotation. MCP and Pi-extension link
 adapters are deferred in `TODO.md` until those capabilities earn concrete
 semantics.
 

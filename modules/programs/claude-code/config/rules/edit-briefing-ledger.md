@@ -4,7 +4,7 @@ Before **every** `Edit` or `Write` tool call, first append a one-line rationale 
 the session edit-briefing ledger with a Bash command. A global `PreToolUse` hook
 (`edit-briefing`) reads that line and shows it as the WHY above the user's
 accept/deny prompt for the edit. This surfaces the what/where/why you already state
-before each edit (CLAUDE.md §5) at the exact moment the user judges it.
+before each edit (CLAUDE.md §6) at the exact moment the user judges it.
 
 ## How
 

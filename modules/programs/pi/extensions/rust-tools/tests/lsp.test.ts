@@ -18,6 +18,8 @@ async function start(timeoutMs = 500) {
     cwd: join(here, "fixtures", "workspace"),
     env: { ...process.env, FAKE_SOURCE_URI: pathToFileURL(source).href },
     timeoutMs,
+    // A generous startup budget keeps a tiny timeoutMs scoped to the request under test.
+    readyTimeoutMs: 30_000,
   });
 }
 

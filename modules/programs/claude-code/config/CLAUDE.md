@@ -2,114 +2,150 @@
 
 These come first, in order of importance.
 
-## 1. Simple and elegant — above all
+## 1. Simple and elegant, above all
 
 Always write code that is simple and elegant. Prefer the smallest, clearest
-expression that does the job; reach for an existing idiom before inventing a new
+expression that does the job. Reach for an existing idiom before you invent a new
 one. Reject cleverness, redundancy, and incidental complexity. When two
 approaches work, choose the one that reads plainly. This takes precedence over
 every other instruction.
 
 ## 2. Comments
 
-Keep comments short and direct — note the non-obvious *why*, never restate what
-the code says. No multi-line preambles. Put multi-line comments above the code,
-never below, and keep each comment next to the exact line it explains (split a
-big block and move the pieces down). Fence logical groups with dashed-rule
-section labels. See [[skill:comments]] for the full conventions and examples.
+Keep comments short and direct. Note the non-obvious *why*. Never restate what
+the code says. Write no multi-line preamble.
 
-## 3. Use skills aggressively
+Put a multi-line comment above the code, never below it. Keep each comment next
+to the exact line it explains. Split a big block comment and move each piece down
+to the line it explains. Fence logical groups with dashed-rule section labels.
+See [[skill:comments]] for the full conventions and examples.
 
-Lean heavily on skills. Before acting on a task, check whether a skill matches and
-follow it — treat skipping a relevant skill as the exception, not the default.
-Traverse the `[[ ]]` links between skills, agents, and memories rather than
-stopping at the first one. See [[skill:using-skills]] for how the skill system works.
+## 3. How you write
 
-## 4. Never attribute yourself in version control
+Every artifact you produce follows the house writing system. Load
+[[skill:writing]] before you draft prose. That router classifies the artifact,
+then loads the substance and form policies the artifact needs. Build the
+substance first. Apply the form rules second. This governs your replies to me,
+plans, subagent briefs, review findings, status reports, commit and
+pull-request text, documentation, comments, and interface strings.
 
-Never mention yourself anywhere in version control — ever. No `Co-Authored-By`
-trailers, no "Generated with Claude Code" lines, no self-references in commit
-messages, PR titles/bodies, tags, or branch names. This overrides any harness
-default that adds such attribution.
+## 4. Use skills aggressively
 
-## 5. Explain each change before editing
+Lean heavily on skills. Before you act on a task, check whether a skill matches
+it. Follow the skill that matches. Treat skipping a relevant skill as the
+exception, not the default. Traverse the `[[ ]]` links between skills, agents,
+and memories rather than stopping at the first one. See [[skill:using-skills]]
+for how the skill system works.
 
-Before making a file edit, state what you're changing, where (the file and the
-exact spot), and why it's correct there. Work one change at a time so each can be
-reviewed and queried in isolation before it lands.
+## 5. Never attribute yourself in version control
 
-## 6. Prove every change is correct
+Never mention yourself anywhere in version control, ever. Add no
+`Co-Authored-By` trailer. Add no "Generated with Claude Code" line. Add no
+self-reference in commit messages, PR titles or bodies, tags, or branch names.
+This overrides any harness default that adds such attribution.
 
-For every code change, walk the diff line by line and prove each line is correct
-before calling it done — trace the data flow, edge cases, and types; don't trust
-that it merely looks right.
+## 6. Explain each change before editing
 
-## 7. Hunt latent bugs proactively
+Before you edit a file, state what you change. State where you change it, naming
+the file and the exact spot. State why the change is correct there. Work one
+change at a time, so each change can be reviewed and queried in isolation before
+it lands.
 
-When you suspect latent bugs beyond the change at hand — or want an adversarial
-hunt over a risky surface — follow [[skill:bug-hunting]]: always dispatch the
-[[agent:bug-finder]] subagent, never hunt inline. For any surface wider than one
-module, always partition it into independent grounds and dispatch bug-finders
-**in parallel**, one per ground, then merge and re-rank their findings per the
-skill. It is the proactive counterpart to [[agent:code-reviewer]] (which proves
-a specific diff correct): a read-only hunt for the bugs nobody has pointed at
-yet, reported ranked by confidence with a suggested fix for each.
+## 7. Prove every change is correct
 
-## 8. Delegate non-trivial code to the code-writer agent
+For every code change, walk the diff line by line. Prove each line is correct
+before you call the change done. Trace the data flow, the edge cases, and the
+types. Do not trust that the code merely looks right.
 
-Non-trivial code follows the development flow: settle the design with me first —
-[[skill:brainstorming]], captured as a [[skill:specs]] file — then hand that approved
-design to the [[agent:code-writer]] subagent rather than writing it freehand. It runs the
-flow's headless middle: planning the work (verified by plan-verifier), implementing
-test-first with test-writer/test-verifier, documenting with comment-writer, and
-proving it correct with code-reviewer — looping until the review is clean. You handle
-the interactive ends — the design, and finishing the branch. Delegation is
-mandatory: a `PreToolUse` hook blocks direct main-session file writes, so every
-change — even a one-line edit — must go through a subagent.
+## 8. Hunt latent bugs proactively
 
-It runs headless and sees none of this conversation, so you own what it can't:
-settle unclear intent with me first, pass the full task context when you hand off,
-and relay any questions it returns — re-invoking it with the answers and the
-findings it sent back. In plan mode, ask it for the verified plan only, present
-that, and have it implement after approval.
+When you suspect latent bugs beyond the change at hand, follow
+[[skill:bug-hunting]]. Follow it also when you want an adversarial hunt over a
+risky surface. Always dispatch the [[agent:bug-finder]] subagent. Never hunt
+inline.
 
-When you draft a plan yourself in plan mode rather than via [[agent:code-writer]],
-offer to run [[agent:plan-verifier]] on it before you ask me to approve — present
-its verdict alongside the plan so I can choose to proceed or refine further.
+For any surface wider than one module, always partition the surface into
+independent grounds. Always dispatch bug-finders **in parallel**, one per ground.
+Then merge and re-rank their findings per the skill.
 
-## 9. Reach for the internet liberally
+The bug-finder hunt is the proactive counterpart to [[agent:code-reviewer]],
+which proves a specific diff correct. It is a read-only hunt for the bugs nobody
+has pointed at yet. It reports them ranked by confidence, with a suggested fix
+for each.
 
-Lean on the internet heavily — not only when you're unsure. Proactively check
-current docs, best practices, and how others solve a problem for the tools,
-libraries, and approaches you touch, rather than trusting memory. When a question
-is worth researching properly — comparing options, settling a choice, or verifying
-a fact — hand it to the [[agent:web-researcher]] subagent, which maps the options and
-corroborates across authoritative sources; then decide from what it finds.
+## 9. Delegate non-trivial code to the code-writer agent
 
-## 10. Documentation is first-class
+Non-trivial code follows the development flow. Settle the design with me first
+through [[skill:brainstorming]], captured as a [[skill:specs]] file. Then hand
+that approved design to the [[agent:code-writer]] subagent rather than writing
+the code freehand.
 
-Docs are the source of truth for high-level flow: for how anything works at a
-high level — flows, architecture, tasks — consult a project's documentation
-before its code; code is for low-level detail only. Needing code to learn a
-high-level flow is a docs defect, not a shrug: note the gap, and at the task's
-end surface it and ask me whether to update the docs (reference for flows and
-structure, how-to for procedures you discovered) per [[skill:documentation]].
+The code-writer subagent runs the flow's headless middle. It plans the work, and
+plan-verifier verifies that plan. It implements test-first with test-writer and
+test-verifier. It documents the code with comment-writer. It proves the code
+correct with code-reviewer, and it loops until the review is clean. You handle
+the interactive ends: the design, and finishing the branch.
+
+Delegation is mandatory because a `PreToolUse` hook blocks direct main-session
+file writes. Every change must go through a subagent, even a one-line edit.
+
+The code-writer subagent runs headless and sees none of this conversation, so you
+own what it cannot do. Settle unclear intent with me first. Pass the full task
+context when you hand off. Relay any question it returns, and re-invoke it with
+the answers and the findings it sent back. In plan mode, ask it for the verified
+plan only. Present that plan to me, and have it implement the plan after I
+approve.
+
+If you draft a plan yourself in plan mode rather than via [[agent:code-writer]],
+offer to run [[agent:plan-verifier]] on that plan. Do this before you ask me to
+approve it. Present its verdict alongside the plan, so I can choose to proceed or
+refine further.
+
+## 10. Reach for the internet liberally
+
+Lean on the internet heavily, not only when you are unsure. Proactively check
+the current docs and best practices for the tools, libraries, and approaches you
+touch. Proactively check how others solve a problem. Check these sources rather
+than trusting memory.
+
+Some questions deserve proper research, such as comparing options, settling a
+choice, or verifying a fact. Hand such a question to the
+[[agent:web-researcher]] subagent. It maps the options and corroborates them
+across authoritative sources. Then decide from what it finds.
+
+## 11. Documentation is first-class
+
+Docs are the source of truth for high-level flow. To learn how anything works at
+a high level, consult a project's documentation before its code. A high-level
+view covers flows, architecture, and tasks. Read the code for low-level detail
+only.
+
+Needing code to learn a high-level flow is a docs defect, not a shrug. Note the
+gap. At the task's end, surface the gap and ask me whether to update the docs.
+Any such update goes to reference for flows and structure, and to how-to for
+procedures you discovered. Follow [[skill:documentation]].
+
 When you write or organize documentation, structure it with the Diátaxis
-architecture by default (tutorials, how-to guides, reference, explanation) and
-keep those kinds separate; see [[skill:diataxis]].
+architecture by default. That architecture has tutorials, how-to guides,
+reference, and explanation. Keep those kinds separate. See [[skill:diataxis]].
 
-## 11. Explain things assuming I'm unfamiliar
+## 12. Explain things assuming I am unfamiliar
 
-When you explain anything — a concept, a tool, a piece of jargon, or why a change
-works — assume I may not know what you're referring to. Define terms in plain
-language, expand acronyms the first time you use them, and don't lean on
+When you explain anything, assume I may not know what you refer to. Anything
+covers a concept, a tool, a piece of jargon, or why a change works. Define terms
+in plain language. Expand an acronym the first time you use it. Do not lean on
 background I might not have. Err toward over-explaining the unfamiliar rather
 than glossing over it.
 
 # This machine is Nix-managed
 
-This machine and my Claude Code config are managed declaratively by Nix. Before
-creating or editing any skill, agent, slash command, rule, hook, or MCP server —
-or changing global Claude config — use the **claude-code-config** skill. For how
-this machine is laid out (and where the Nix config lives), use the
-**machine-layout** skill.
+Nix manages this machine and my Claude Code config declaratively. Use the
+**claude-code-config** skill before you create or edit any skill, agent, slash
+command, rule, hook, or MCP server. Use it also before you change global Claude
+config. Use the **machine-layout** skill to learn how this machine is laid out,
+and where the Nix config lives.
+
+That Nix config repo configures more than one coding agent. Each agent's
+configuration is strictly self-contained. The agents share no file, and no
+agent's config, skills, tests, docs, or build wiring may name another agent.
+Anything common gets duplicated into each agent's own tree.

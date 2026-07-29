@@ -63,6 +63,24 @@ execution, or shell evaluation. Builds and protocol requests have explicit
 timeouts, and every abort, reload, exit, or session shutdown tears down the
 adapter and debuggee process tree.
 
+What the automated check proves is narrower than it first looks. The
+`pi-rust-tools` flake check exercises the Debug Adapter Protocol client against a
+mock adapter, not against a real debugger. Two integration tests drive a real
+debuggee under CodeLLDB, and they skip themselves when the environment cannot
+obtain macOS permission to debug a process. Each skip prints its reason: real
+CodeLLDB debugging remains UNVERIFIED in that environment.
+
+The cause is the build environment rather than the platform or the Nix sandbox,
+which this machine leaves disabled. Only an interactive session can obtain macOS
+permission to debug a process, and a Nix build runs unattended as a build user.
+The same launch succeeds when the user runs those tests interactively on the same
+machine. A probe launch detects the refusal, and the tests skip only on that
+error. Any other launch failure still fails the check.
+
+So a green check is evidence about the client and its wiring, not about the
+debugger. Trusting real CodeLLDB debugging on a machine needs an interactive run
+of the same tests there.
+
 ## Declarative ownership
 
 The extensions, tests, `rust-analyzer`, CodeLLDB, Cargo, rustc, LLVM runtime,

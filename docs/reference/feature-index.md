@@ -111,16 +111,15 @@ Flake-level machinery and third-party tool wiring.
 One folder per program feature; converted ones carry a `flake.programs`
 declaration, the rest are hand-written aspects.
 
-- `agents-shared/`: writing, comment, and documentation policies shared by
-  Claude Code and Pi. Claude Code inlines them, while Pi indexes them for
-  on-demand typed-link traversal. This folder has no `.nix` files. See
-  [coding agents](../explanation/coding-agents.md).
 - `beekeeper-studio/` — cross-platform SQL client.
 - `blender/` — 3D modeling/art, with HIP GPU rendering on AMD hosts.
 - `candy-icons/` — gradient vector icon theme.
 - `claude-code/` — Anthropic's terminal coding assistant, declaratively
-  configured; `jake.neau`'s agent. See [claude-code
-  config](../explanation/claude-code-config.md), [coding
+  configured; `jake.neau`'s agent. Its `config/skills/` carries every skill it
+  loads, including its writing, comment, and documentation policies, and
+  `writing-lint.nix` packages the `claude-writing-lint` binary from `writing/`.
+  See [claude-code config](../explanation/claude-code-config.md), [Claude Code's
+  writing system](../explanation/claude-code-writing-system.md), [coding
   agents](../explanation/coding-agents.md).
 - `cli-tools/` — cross-platform command-line tools via home-manager.
 - `clipse/` — clipboard manager with a TUI history picker.
@@ -135,7 +134,10 @@ declaration, the rest are hand-written aspects.
 - `fuzzel/` — wayland application launcher.
 - `ghostty/` — GPU-accelerated terminal; Linux home install, macOS cask
   with home-manager config.
-- `git/` — git identity at both the per-user and system level.
+- `git/` — git identity at both the per-user and system level. The home-manager
+  half also allowlists this repo's paths in `safe.directory`, scopes
+  `core.sharedRepository = "group"` to it via `gitdir:` includes, and warns at
+  activation about an unmanaged `~/.gitconfig`.
 - `homebrew/` — the Homebrew cask list for packages that work better
   outside nixpkgs.
 - `jujutsu/` — jj, a git-compatible VCS, configured through home-manager.
@@ -149,7 +151,11 @@ declaration, the rest are hand-written aspects.
 - `pavucontrol/` — sound settings GUI.
 - `pi/` — `jakeneau`'s coding agent, with declarative web research and native
   browser extensions, the matching browser CLI, and the numtide binary-cache
-  aspect. See [pi](pi.md), [coding agents](../explanation/coding-agents.md).
+  aspect. Its `config/skills/` carries every skill it indexes, including its
+  writing, comment, and documentation policies, and `writing/` holds the
+  `pi-writing-lint` source. See [pi](pi.md), [Pi's writing
+  system](../explanation/pi-writing-system.md), [coding
+  agents](../explanation/coding-agents.md).
 - `podman/` — daemonless container engine.
 - `qpwgraph/` — pipewire patchbay.
 - `sioyek/` — keyboard-driven PDF reader.

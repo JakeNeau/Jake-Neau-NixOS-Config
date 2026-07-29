@@ -124,6 +124,11 @@ New files are invisible to flake evaluation until staged:
 sudo git add modules/hosts/<host>/
 ```
 
+The commands below are the first you run as yourself rather than through `sudo`.
+So let git open the root-owned repo first, with one command from the
+[bootstrap guide](../how-to/bootstrap-machine.md#let-git-open-the-root-owned-repo-per-user).
+Without it every `nix` command here fails on repository ownership.
+
 Then prove the new host evaluates and builds without activating anything:
 
 ```sh

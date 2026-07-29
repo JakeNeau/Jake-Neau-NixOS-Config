@@ -177,7 +177,7 @@ built-in Explore/Plan agents skip them). Every edit-making agent here
 (code-writer, test-writer, doc-writer, comment-writer, spec-writer,
 comment-style-enforcer, test-verifier) is custom, so one rule reaches all of them
 — no per-agent edits, and it matches the existing rule pattern
-(`config/rules/nr-nrr.md`). The user's global CLAUDE.md §5 already makes agents
+(`config/rules/nr-nrr.md`). The user's global CLAUDE.md §6 already makes agents
 state what/where/why before each edit, so the rule captures reasoning they already
 produce.
 
@@ -407,7 +407,7 @@ Before **every** `Edit` or `Write` tool call, first append a one-line rationale 
 the session edit-briefing ledger with a Bash command. A global `PreToolUse` hook
 (`edit-briefing`) reads that line and shows it as the WHY above the user's
 accept/deny prompt for the edit. This surfaces the what/where/why you already state
-before each edit (CLAUDE.md §5) at the exact moment the user judges it.
+before each edit (CLAUDE.md §6) at the exact moment the user judges it.
 
 ## How
 

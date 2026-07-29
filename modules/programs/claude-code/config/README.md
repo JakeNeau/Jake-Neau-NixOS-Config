@@ -21,6 +21,14 @@ Note on skills: only each skill's `SKILL.md` is inlined. A skill that ships
 extra files next to `SKILL.md` cannot be expressed this way without symlinking,
 which this setup deliberately avoids.
 
-`skills/` here holds only Claude-specific skills. Writing, comment, and
-documentation policies live in `../../agents-shared/skills/` because Pi also
-uses them. `claude-code.nix` merges both sources.
+`skills/` is self-contained. Every skill Claude Code loads lives in this folder.
+That includes the writing policies (`writing`, `writing-substance`,
+`controlled-writing`), the comment policies, and the documentation policies.
+`claude-code.nix` reads no skill from outside this directory.
+
+`skills/LICENSE` records upstream provenance for the comment and documentation
+policies. The importer reads only the subdirectories of `skills/`, so it ignores
+that file.
+
+`../writing-lint.nix` builds the `claude-writing-lint` command from
+`../writing/`. The writing policies name that command.

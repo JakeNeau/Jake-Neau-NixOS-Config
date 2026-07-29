@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Injects the development-flow map at session start: which entry-point skill
-# governs which moment. The map lives here rather than in CLAUDE.md so both
-# harnesses can inject the identical text (oh-my-pi ships it as an extension).
+# governs which moment. It is a static reference table, so it lives here rather
+# than in CLAUDE.md, which carries standing preferences.
 set -euo pipefail
 
 cat >/dev/null # payload unused (the map is static); drain stdin anyway

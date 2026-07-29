@@ -105,21 +105,23 @@ through the `follow_link` tool. Pi supports four link types:
 - `spec`: loads a project specification.
 - `doc`: loads a project documentation page.
 
-Pi treats Claude-specific types as foreign and never guesses their targets. It
-ignores typed-link examples inside Markdown code spans and fences. Pi does not
-implement MCP or extension adapters.
+Pi treats every other type as foreign and never guesses its targets. It ignores
+typed-link examples inside Markdown code spans and fences. Pi does not implement
+MCP or extension adapters.
 
 Home Manager builds the global registry at
 `~/.pi/agent/link-registry.json` from:
 
-- shared writing, comment, and documentation policies under
-  `modules/programs/agents-shared/skills/`
-- Pi-specific skills under `modules/programs/pi/config/skills/`
+- Pi skills under `modules/programs/pi/config/skills/`, which hold the writing,
+  comment, and documentation policies as well as the Pi-specific skills
 - Pi prompt templates under `modules/programs/pi/config/prompts/`
 
-Claude-only skills under `modules/programs/claude-code/config/skills/` are not
-part of Pi's registry. The manifest contains metadata and immutable source paths,
-not resource bodies.
+These two roots are the only sources. The `pi-typed-links` check pins the
+complete set of global resource ids. It also requires an empty scanner
+diagnostic list. It then asserts that the compiler read every entry from inside
+one of those roots. Any resource that Pi does not own therefore fails the check.
+The manifest contains metadata and immutable source paths, not resource bodies.
+
 The same dependency-free compiler scans these project paths after Pi trusts the
 project:
 

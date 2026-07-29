@@ -34,9 +34,9 @@ way to find related guidance.**
 | `spec`, `doc` | project-local only — these have no global instances |
 
 A harness may implement only part of this shared vocabulary. Unsupported types
-remain annotations: never guess a path or act as though an adapter exists. Pi's
-`follow_link` resolver currently supports `skill`, `command`, `spec`, and `doc`;
-its generated link cards omit the other types.
+remain annotations: never guess a path or act as though an adapter exists. In
+Claude Code the `skill` type resolves through the `Skill` tool. Follow every
+other type by reading the file it names.
 
 - **Always type the link.** Never write a bare `[[name]]`; the type is what makes
   the edge unambiguous and checkable.
@@ -54,9 +54,8 @@ The graph splits into two layers, and `[[type:name]]` edges must stay inside one
 
 - **Global** — the skills and agents (and the global rules, commands, hooks, MCP
   servers) shipped to every machine by the Nix flake. Available in any repo.
-- **Project-local** — a repo's own skills and agents (under its agent-tool config
-  directory, e.g. `.claude/` or `.pi/`, plus its specs and docs); exists only in
-  that repo.
+- **Project-local** — a repo's own skills and agents (under `.claude/`, plus its
+  specs and docs). These exist only in that repo.
 
 A global skill that links a project-local one breaks in every *other* repo (the
 target isn't there); a local skill that links outward couples the repo to

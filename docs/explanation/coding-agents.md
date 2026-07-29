@@ -32,7 +32,7 @@ stack and typed-link navigation:
 - **pi-web-access** performs structured search and source extraction.
 - **pi-agent-browser-native** drives a real browser only when static retrieval
   cannot handle JavaScript or interaction.
-- **typed-links** resolves shared skills and project resources on demand without
+- **typed-links** resolves global skills and project resources on demand without
   placing their bodies in the startup context.
 - **the writing system** routes prose through controlled form and substantive
   structure policies. See [Pi's writing system](pi-writing-system.md) for its

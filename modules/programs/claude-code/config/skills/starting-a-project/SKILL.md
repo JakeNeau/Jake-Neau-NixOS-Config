@@ -68,7 +68,7 @@ my-project/
 
 ## On this user's machines, `AGENTS.md` is already seen
 
-Tools that read `AGENTS.md` natively (oh-my-pi, Codex, Cursor, …) discover the
+Tools that read `AGENTS.md` natively (Codex, Cursor, …) discover the
 root file themselves, and on this user's machines Claude Code gets it too: a
 global `SessionStart` hook (`agents-md-context`) auto-injects a root `AGENTS.md`
 and each `.agents/skills/` skill's frontmatter into every Claude Code session.

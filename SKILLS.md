@@ -20,12 +20,12 @@ useful for sharing with others, heavier-weight than personal skills.)
 
 ## Syncing global skills across machines (nix)
 
-The claude-code feature manages global skills declaratively. Author
-Claude-specific skills under `modules/programs/claude-code/config/skills/`.
-Writing, comment, and documentation policies shared with Pi live under
-`modules/programs/agents-shared/skills/`. Both sources land in
-`~/.claude/skills/` on every applicable machine. See
-[the Claude Code configuration explanation](docs/explanation/claude-code-config.md).
+The claude-code feature manages global skills declaratively. Author every global
+skill under `modules/programs/claude-code/config/skills/`, which is Claude Code's
+only skill source and holds its writing, comment, and documentation policies
+alongside the rest. They land in `~/.claude/skills/` on every applicable machine.
+See [the Claude Code configuration
+explanation](docs/explanation/claude-code-config.md).
 
 ## Project skills
 

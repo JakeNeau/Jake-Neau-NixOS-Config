@@ -61,6 +61,27 @@ Interpretation:
 - **Group missing (1)** or **tree not `config`-owned / no ACL (2,3)** → not set up
   on this machine. Tell the user and offer the steps below; don't keep
   sudo-editing.
+- **macOS, ACL present but narrow** → on a directory the ACE must name both
+  `add_subdirectory` and `delete_child`, as in
+  `list,add_file,search,delete,add_subdirectory,delete_child,…`. If it stops at
+  `list,add_file,search,file_inherit,directory_inherit`, the tree was set up with
+  the old short `read,write,execute` form, which grants neither. Writes then
+  succeed while renames, deletes, and `mkdir` fail on any directory that has lost
+  its group-write mode bit — so editors saving via temp-file-plus-rename fail and
+  strand the temp file. Repair it in two steps:
+  - **Immediate:** `sudo chmod -R g+w .` restores the mode bits.
+  - **Durable:** run the strip-then-reapply procedure in
+    [`docs/how-to/bootstrap-machine.md`](../../../docs/how-to/bootstrap-machine.md)
+    under "Repair a machine bootstrapped before the corrected ACL" — `chmod -R -N`
+    first, then one corrected `chmod -R +a`. Do **not** just re-run `chmod +a`. It
+    merges only into an *explicit* entry for the same group, never into an
+    inherited one. So every node that inherited the narrow entry keeps it beside
+    the new one — 677 of cedar's 796 nodes. The next audit then cannot tell a
+    repaired tree from a broken one. Never delete the
+    leftover with `chmod -R -a "<the old ACE string>"` either: `-a` subtracts the
+    rights you name rather than removing an entry, so it strips
+    `read,write,execute` and breaks group access outright. A repaired node shows
+    exactly **one** `group:config` entry. Two means the strip was skipped.
 - **Set up but step 4 says `member-INACTIVE`** → setup is done but this session
   predates the group. On **NixOS** the user must **log out / back in** (and relaunch
   Claude). On **macOS** membership is evaluated dynamically (via `dsmemberutil`), so

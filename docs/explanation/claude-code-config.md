@@ -14,10 +14,15 @@ declaration installs them for each home that requests Claude Code.
 The `jake.neau` user declaration requests Claude Code on cedar. The other
 machines run Pi. See [coding agents](coding-agents.md) for the per-user routing.
 
-Writing, comment, and documentation policies live under
-`modules/programs/agents-shared/skills/` because both agents use them. Claude
-merges those policies with its own skills. Pi indexes only the shared policies
-and its own skills.
+This subsystem is self-contained. Every skill Claude Code loads lives under
+`modules/programs/claude-code/config/skills/`, including its writing, comment,
+and documentation policies. `writing-lint.nix` builds its prose linter from
+`modules/programs/claude-code/writing/`. This subsystem reads nothing from
+another agent's tree, and no other agent's configuration reads from this one.
+Each agent keeps its own copy of any policy that more than one agent wants, so
+neither depends on the other's layout. See [Claude Code's writing
+system](claude-code-writing-system.md) for the reasoning behind the writing
+policies.
 
 The config directory remains at `~/.claude`. The module leaves `configDir`
 unchanged so that live state and project history continue to work.

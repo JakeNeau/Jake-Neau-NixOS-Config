@@ -350,6 +350,149 @@
       `modules/programs/claude-code/config/hooks/edit-briefing`. The spec
       `specs/edit-briefings.md` is intentionally kept (not retired) until this
       check passes.
+- [ ] Give the agent-isolation rule a canonical home in `docs/`. The rule —
+      neither coding agent's configuration may reference the other, so a policy
+      that applies to both is duplicated per agent rather than shared — is
+      currently stated only in
+      `modules/programs/claude-code/config/CLAUDE.md` (as a runtime instruction
+      to Claude), `modules/programs/claude-code/config/README.md`, and partially
+      in `docs/explanation/claude-code-config.md`; Pi states it only for its
+      typed-link registry. `docs/explanation/coding-agents.md` owns the
+      two-agent architecture and never states it, so a contributor adding a new
+      policy has no page telling them to duplicate it. Deferred from the
+      agent-config split, which kept `coding-agents.md` out of scope.
+- [ ] Even up reference coverage between the two coding agents. Pi's linter CLI
+      contract and its `/writing-review` command are documented at
+      `docs/reference/pi.md:198-210`, but Claude Code's identical surface — the
+      `claude-writing-lint` exit codes and `--json` output, and its own
+      `/writing-review` command — has no reference page. Add
+      `docs/reference/claude-code.md`, or a section in an existing Claude
+      reference page.
+- [ ] Add a Claude writing-system bullet to
+      `docs/explanation/coding-agents.md`. It links
+      `docs/explanation/pi-writing-system.md` at line 38 but has no counterpart
+      for `docs/explanation/claude-code-writing-system.md`, which is currently
+      reachable only from `docs/explanation/claude-code-config.md` and
+      `docs/reference/feature-index.md`. Same deferral reason as the
+      agent-isolation-rule entry above.
+- [ ] Decide whether to rewrite `modules/programs/claude-code/config/CLAUDE.md`
+      to obey its own form policy. Its `## 3. How you write` section requires no
+      em dashes, no semicolons, no contractions, one claim per sentence, and a
+      25-word sentence limit — but sections 1-2 and 4-12 are full of em dashes,
+      semicolons, contractions, and much longer sentences. The prose predates
+      section 3; section 3 is what made the file self-inconsistent. User's call
+      whether to rewrite those sections or narrow the policy.
+- [ ] Split the multi-claim `test()` block in
+      `modules/programs/pi/extensions/typed-links/tests/writing-resources.test.mjs`
+      into one `test()` per claim, so the first failure stops masking the rest.
+      Context: a tautological assertion (`link.targetId?.startsWith("global:")`,
+      which can never fail because `compileGlobalRegistry` hardcodes
+      `layer: "global"`) was removed from that file on 2026-07-28; the packing
+      problem it sat in remains.
+- [ ] Consider neutralizing the cross-agent mentions in the two user
+      declarations' explanatory comments: `modules/users/jakeneau/jakeneau.nix`
+      lines 10-11 and `modules/users/jake.neau/jake.neau.nix` lines 8-10 each
+      name both coding agents, though the `programs` lists themselves name only
+      that user's own agent. These files sit outside both agents' trees, so the
+      agent-config split left them alone — reword only if consistency with the
+      agent-isolation rule is wanted there too. Low priority.
+- [ ] Guard the dangling stop-waiter in `CodeLldbSession.resume()` in
+      `modules/programs/pi/extensions/rust-tools/dap.ts` — it has the same defect
+      already fixed in `launch()`: it creates `const stopped =
+      this.waitForStop();` and then awaits `this.connection.request(command,
+      args)`. If that request rejects, no event ever settles `stopped`, so
+      `close()` later rejects it with "debug session closed" and it surfaces as
+      an unhandled rejection — which under Node's default
+      `--unhandled-rejections=throw` can be blamed on an unrelated test or kill
+      a live Pi session. Apply the same one-line `stopped.catch(() => {});`
+      immediately after `waitForStop()` that `launch()` now uses. Done means a
+      failing resume request produces only the wrapped `${label} failed: ...`
+      error, with no unhandled rejection when the session closes. Deferred from
+      the pi-rust-tools aarch64-darwin check fix, whose scope was three tests
+      plus the minimum production change.
+- [ ] Give the one direct `RustAnalyzerSession.start` call in
+      `modules/programs/pi/extensions/rust-tools/tests/lsp.test.ts` (the
+      "synchronizes source changes after a document is opened" test) an explicit
+      `readyTimeoutMs`. It still passes only `timeoutMs: 500`, so the startup
+      handshake and every subsequent request share a single 500ms budget. The
+      shared `start()` helper in the same file already passes an explicit
+      generous `readyTimeoutMs: 30_000` — the option added to
+      `RustAnalyzerStartOptions` in `lsp.ts`, which defaults to `timeoutMs` so
+      existing callers are unchanged. Done means this call cannot become
+      load-flaky the way the "times out unanswered language-server requests"
+      test did (it failed roughly 1 run in 5 with `initialize request timed out
+      after 30ms`). Low priority.
+- [ ] User action, aspen: re-run the config-group ACL using the
+      strip-then-reapply procedure in `docs/how-to/bootstrap-machine.md`, under
+      "Repair a machine bootstrapped before the corrected ACL". Use that
+      procedure, not a bare second `chmod +a`. Adding the corrected entry on top
+      of the old one leaves the known-broken narrow ACE as a second entry per
+      node. Aspen's live ACL is still the narrow
+      `list,add_file,search,file_inherit,directory_inherit`, which is what let
+      root-owned non-group-writable files break `nr`/git in the first place.
+      Until this runs on aspen, the breakage can recur. Cedar no longer needs
+      it: its 2026-07-28 repair verified clean, with 0 stale ACEs, 0 doubled
+      ACEs, and all 273 directories correct.
+- [ ] Explain the git module's repo-path-scoped config in
+      `docs/explanation/config-group.md`. No page in `docs/` explains why
+      `modules/programs/git/git.nix` carries `gitdir:` includes;
+      `docs/reference/feature-index.md` only records that it does. They gate
+      `core.sharedRepository = "group"`, through `programs.git.includes`, on
+      `gitdir:/etc/nixos/` and `gitdir:/private/etc/nix-darwin/`, so git creates
+      new `.git` entries group-writable. That is the git-side half of keeping the
+      tree writable by the `config` group; the trust-model page covers the ACL
+      half and libgit2's allowlist, not this one. Cover both path-matching rules
+      on that page, because they differ, and collapsing them into one rule has
+      already produced wrong conclusions in both directions. A `gitdir:`
+      condition matches against the repository's resolved real path, so on
+      macOS — where `/etc` is a symlink to `/private/etc` — only the `/private`
+      spelling matches, and it matches under every access form: both `git -C`
+      spellings, a working directory at the repo root, and any subdirectory.
+      Linux has no such symlink, so `/etc/nixos` resolves to itself. libgit2's
+      `safe.directory` allowlist likewise needs the resolved `/private` spelling
+      — already covered under "Why libgit2 needs the `/private` path on macOS" —
+      but for a different reason, so state the two mechanisms separately. The
+      trailing slash is mandatory on either condition. High priority: this is the
+      gap a future reader hits first.
+- [ ] Move the config-group ACL rationale out of the how-to. The 11-line
+      paragraph explaining why each ACL right must be spelled out currently sits
+      in `docs/how-to/bootstrap-machine.md`, but `docs/README.md`'s own Diátaxis
+      rule says a how-to holds procedure, not explanation. Move the rationale
+      into `docs/explanation/config-group.md` and leave the how-to with a
+      one-line pointer to it. Medium priority.
+- [ ] Verify and fix the NixOS side of `core.sharedRepository`: the
+      `gitdir:/etc/nixos/` include does NOT reach root-run git on NixOS. Proven
+      on redwood — its generated sudoers
+      (`/nix/store/2s8b1ql4qw5k4wc9fj83yg2xagxdw9vw-sudoers`) has no
+      `env_keep HOME`, so the `sudo git -C /etc/nixos` calls in
+      `modules/programs/fish/functions/nr.fish` read root's gitconfig, not the
+      user's home-manager one. macOS escapes this only because Apple's
+      `/etc/sudoers` carries `env_keep += "HOME MAIL"`. If NixOS hosts show the
+      same `.git` permission decay, the fix needs a different mechanism — set
+      `core.sharedRepository` in root's own gitconfig, or add a system-level
+      `/etc/gitconfig` `includeIf` in `flake.modules.nixos.git`. Unverified on a
+      real Linux host (no Linux builder on the macs).
+- [ ] Delete the stopgap `/Users/jake.neau/.gitconfig` once the next rebuild has
+      activated the managed git config, leaving home-manager the single source of
+      truth. Whether to fold it in is settled: its `user.name`/`user.email` were
+      redundant and are gone, and its one remaining line,
+      `[safe] directory = /private/etc/nix-darwin`, is now declared in
+      `modules/programs/git/git.nix`. The file survives only until that managed
+      entry is live, because `nix` needs the allowlist to read the flake at all.
+      Verify the removal with `nix flake metadata /private/etc/nix-darwin`, not
+      with `git status` — the CLI succeeds either way, so only a libgit2 consumer
+      proves the managed entry is doing the work. Home activation warns about the
+      file on every `hr` until it is gone, and anything left in it silently
+      overrides `~/.config/git/config`.
+- [ ] Cross-link the unmanaged-`~/.gitconfig` cleanup from
+      `docs/how-to/rebuild-your-home.md`. `modules/programs/git/git.nix` prints an
+      activation warning on every `hr` while that file exists, but the rebuild
+      how-to never mentions the warning and links nothing that explains it. The
+      cleanup lives in `docs/how-to/bootstrap-machine.md` under "First home
+      activation (per user)". Done means a reader who hits the warning during `hr`
+      can find from that page what it means and how to clear it. The bootstrap
+      guide's own `safe.directory` content is now current, so only this
+      cross-link remains.
 
 ## Waiting on upstream
 

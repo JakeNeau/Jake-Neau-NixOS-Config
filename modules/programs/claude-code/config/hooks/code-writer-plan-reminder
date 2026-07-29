@@ -6,7 +6,7 @@ cat <<'EOF'
 {
   "hookSpecificOutput": {
     "hookEventName": "PostToolUse",
-    "additionalContext": "Plan approved — now implement it by dispatching the code-writer subagent, NOT via direct main-session edits. Direct writes are blocked by a PreToolUse hook (CLAUDE.md §7), so delegation is mandatory. Hand code-writer the full task context, since it sees none of this conversation."
+    "additionalContext": "Plan approved — now implement it by dispatching the code-writer subagent, NOT via direct main-session edits. Direct writes are blocked by a PreToolUse hook (CLAUDE.md §9), so delegation is mandatory. Hand code-writer the full task context, since it sees none of this conversation."
   }
 }
 EOF

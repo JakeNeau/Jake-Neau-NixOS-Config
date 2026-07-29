@@ -183,6 +183,8 @@ async function cargoMetadata(manifestPath: string, runtime: RustRuntime): Promis
 
 async function collectMarkdownFiles(root: string): Promise<string[]> {
   const paths: string[] = [];
+  // Instruction files a project may ship: project context, so these filenames
+  // are incidental, not references to another tool's config.
   for (const name of ["AGENTS.md", "CLAUDE.md", "README.md"]) {
     const path = join(root, name);
     try {

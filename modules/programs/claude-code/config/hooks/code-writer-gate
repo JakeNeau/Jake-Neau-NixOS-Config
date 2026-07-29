@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PreToolUse gate on Write|Edit|NotebookEdit enforcing CLAUDE.md §7. The hook
+# PreToolUse gate on Write|Edit|NotebookEdit enforcing CLAUDE.md §9. The hook
 # stdin carries agent_type only for a subagent's call, so its presence means a
 # delegated write (allow) and its absence a direct main-session write (block).
 set -euo pipefail
@@ -29,7 +29,7 @@ esac
 cat >&2 <<'EOF'
 Direct writes from the main session are blocked.
 
-Every file write must go through a subagent (CLAUDE.md §7). Dispatch the
+Every file write must go through a subagent (CLAUDE.md §9). Dispatch the
 code-writer subagent to make this change — hand it the full task context, since
 it sees none of this conversation.
 EOF

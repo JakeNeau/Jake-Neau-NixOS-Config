@@ -163,9 +163,13 @@ export class CodeLldbSession {
       stopOnEntry: options.breakpoints.length === 0,
       sourceLanguages: ["rust"],
     });
+    // Anything throwing before `await launch` abandons it, and close() then rejects it.
+    launch.catch(() => {});
     await initialized;
     for (const breakpoint of options.breakpoints) await this.setBreakpoint(breakpoint.path, breakpoint.line);
     const stopped = this.waitForStop();
+    // A failed launch never stops, so close() rejects this waiter — claim it now to avoid an unhandled rejection.
+    stopped.catch(() => {});
     await this.connection.request("configurationDone", {});
     await launch;
     return stopped;

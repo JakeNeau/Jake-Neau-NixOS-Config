@@ -1,42 +1,74 @@
 import assert from "node:assert/strict";
+import { realpath } from "node:fs/promises";
+import { isAbsolute, relative, sep } from "node:path";
 import test from "node:test";
 
 import { compileGlobalRegistry } from "../registry.mjs";
 
-const sharedSkills = process.env.TEST_SHARED_SKILLS;
-const claudeSkills = process.env.TEST_CLAUDE_SKILLS;
 const piSkills = process.env.TEST_PI_SKILLS;
 const piCommands = process.env.TEST_PI_COMMANDS;
 
+// Pi's complete global surface. Kept exhaustive on purpose: a foreign resource
+// dropped into one of Pi's own roots sits at a legitimate path, so the path
+// check below cannot see it and only this list will fail.
+const EXPECTED_IDS = [
+  "global:command:comment-review",
+  "global:command:writing-review",
+  "global:skill:comment-api-contracts",
+  "global:skill:comment-disabled-code",
+  "global:skill:comment-functional-directives",
+  "global:skill:comment-intent-rationale",
+  "global:skill:comment-invariants",
+  "global:skill:comment-provenance",
+  "global:skill:comment-redundant-narration",
+  "global:skill:comment-structural-markers",
+  "global:skill:comment-task-markers",
+  "global:skill:comment-workarounds",
+  "global:skill:comments",
+  "global:skill:controlled-writing",
+  "global:skill:diataxis",
+  "global:skill:documentation",
+  "global:skill:writing",
+  "global:skill:writing-pi-extensions",
+  "global:skill:writing-substance",
+];
+
+function isUnder(root, target) {
+  const rel = relative(root, target);
+  return rel !== "" && rel !== ".." && !rel.startsWith(`..${sep}`) && !isAbsolute(rel);
+}
+
 test("compiles the Pi policy graph", async () => {
-  assert.ok(sharedSkills);
-  assert.ok(claudeSkills);
   assert.ok(piSkills);
   assert.ok(piCommands);
 
   const registry = await compileGlobalRegistry({
-    skillRoots: [sharedSkills, piSkills],
+    skillRoots: [piSkills],
     commandRoots: [piCommands],
   });
-  const ids = new Set(registry.entries.map((entry) => entry.id));
-  const claudeRegistry = await compileGlobalRegistry({
-    skillRoots: [claudeSkills],
-    commandRoots: [],
-  });
 
-  for (const entry of claudeRegistry.entries) {
-    assert.equal(ids.has(entry.id), false, `Claude-only resource leaked into Pi: ${entry.id}`);
-  }
+  // The scanner reports an unreadable resource as a diagnostic and then skips
+  // it, so without this the checks below pass over a silently dropped file.
+  assert.deepEqual(registry.diagnostics, []);
 
-  for (const id of [
-    "global:skill:writing",
-    "global:skill:writing-substance",
-    "global:skill:controlled-writing",
-    "global:skill:documentation",
-    "global:skill:diataxis",
-    "global:command:writing-review",
-  ]) {
-    assert.ok(ids.has(id), `missing ${id}`);
+  assert.deepEqual(
+    registry.entries.map((entry) => entry.id),
+    EXPECTED_IDS,
+    "Pi's global surface changed. Add the intended id, or remove the intruder.",
+  );
+
+  // Every entry must also live inside a declared root. This catches a resource
+  // reached through a root but stored elsewhere, through a symlink for example,
+  // because registry.mjs records the realpath. Resolve the roots the same way
+  // or every store path looks like an escape.
+  const roots = await Promise.all(
+    [piSkills, piCommands].map((root) => realpath(root)),
+  );
+  for (const entry of registry.entries) {
+    assert.ok(
+      roots.some((root) => isUnder(root, entry.path)),
+      `resource outside Pi's own roots: ${entry.id} at ${entry.path}`,
+    );
   }
 
   assert.deepEqual(
@@ -52,9 +84,6 @@ test("compiles the Pi policy graph", async () => {
   );
   assert.ok(writing.links.length >= 3);
   assert.ok(writing.links.every((link) => link.status === "resolved"));
-  assert.ok(
-    writing.links.every((link) => link.targetId?.startsWith("global:")),
-  );
 
   const documentation = registry.entries.find(
     (entry) => entry.id === "global:skill:documentation",
