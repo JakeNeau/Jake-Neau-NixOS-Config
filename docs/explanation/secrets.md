@@ -30,11 +30,24 @@ secret to `/run/secrets/<name>` at activation and features reference the
 *path*. Secrets needed before user creation (the hashed login password)
 are flagged `neededForUsers`.
 
-## Scope: NixOS only
+## Scope: editable everywhere, consumed only on NixOS
 
-Only the NixOS side consumes secrets today — the sops aspect is
-`flake.modules.nixos.secrets` (`modules/nix/tools/sops/sops.nix`), wired
-into `role-default`'s nixos imports, and no darwin secrets module exists.
-The macs carry no declared secrets; the fact is worth knowing before
-reaching for a secret in darwin or home-manager config, where the flow
-simply isn't plumbed.
+Both halves live in the `secrets-management` program
+(`modules/programs/secrets-management/secrets-management.nix`). The
+tooling half is a plain per-user declaration — `sops` and `age` install
+into the home of any user who lists `secrets-management` in their
+`flake.users.<u>.programs`, on both platforms. Both users do today, so a
+secret can be edited from any machine, once that user's home is
+activated.
+
+Consumption is narrower. The decryption wiring is the hand-written
+`flake.modules.nixos.secrets-management` aspect (hence the declaration's
+`handWritten = ["nixos"]`), imported by `role-default`'s nixos imports,
+and no darwin equivalent exists. The macs carry no declared secrets; the
+fact is worth knowing before reaching for a secret in darwin or
+home-manager config, where the flow simply isn't plumbed.
+
+`.sops.yaml` and `secrets/` stay at the repo root, not beside the
+program: the `sops` CLI discovers `.sops.yaml` by walking up from the
+working directory, and its `creation_rules` match on
+`path_regex: secrets/secrets.yaml$`.

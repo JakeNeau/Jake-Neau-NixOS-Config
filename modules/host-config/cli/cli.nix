@@ -10,7 +10,6 @@
       grc # Generic text colorizer
       jdk21 # Java Development Kit
       python313 # Python ≥3.10 for security-guidance's LLM review hooks (sg-python.sh probes python3.13)
-      sops # CLI tools for secrets management
       tldr # Summarize man pages for commands
       unzip # CLI file unzipping
       wget # Download web files from the command line

@@ -3,7 +3,8 @@
 Secrets are managed with sops-nix + age. Plaintext never lives in `.nix`
 files or in git: encrypted values go in `secrets/secrets.yaml`, and NixOS
 hosts decrypt them at activation with the age key at
-`/etc/nixos/secrets/keys.txt` (wired in `modules/nix/tools/sops/sops.nix`).
+`/etc/nixos/secrets/keys.txt` (wired in
+`modules/programs/secrets-management/secrets-management.nix`).
 Only NixOS consumes secrets today — no darwin secrets module exists.
 
 ## 1. Have the age key available
@@ -20,12 +21,18 @@ decrypt the file to re-encrypt it). The matching recipient is pinned in
 
 ## 2. Edit the secrets file
 
-The `sops` CLI ships on every host (the `cli` aspect). From the repo root:
+The `sops` and `age` CLIs come from the `secrets-management` program,
+declared today by both users (`modules/users/*/`), so they arrive with a
+user's home activation — not with the system switch. From the repo root:
 
 ```sh
 sudo SOPS_AGE_KEY_FILE=/etc/nixos/secrets/keys.txt sops secrets/secrets.yaml   # Linux
 sops secrets/secrets.yaml                                                      # macOS (key in the default location)
 ```
+
+The Linux form works because sudo here defines no `secure_path` and so
+inherits your PATH. A root login shell (`sudo -i`, single-user mode) has
+neither binary; run the command as yourself, as above.
 
 sops opens the decrypted YAML in your editor; add your key/value, save, and
 it re-encrypts against the recipients in `.sops.yaml`.
@@ -33,7 +40,8 @@ it re-encrypts against the recipients in `.sops.yaml`.
 ## 3. Declare and consume it
 
 Declare the secret so sops-nix decrypts it, in
-`modules/nix/tools/sops/sops.nix` (or in the feature that uses it):
+`modules/programs/secrets-management/secrets-management.nix` (or in the
+feature that uses it):
 
 ```nix
 # add neededForUsers = true; inside the braces only for secrets read

@@ -6,9 +6,9 @@
   # Jake's personal user. Lives on the NixOS desktop + laptop and the personal
   # MacBook. Admin everywhere.
 
-  # The coding agent on every personal machine (the work user keeps
+  # pi is the coding agent on every personal machine (the work user keeps
   # claude-code — see modules/users/jake.neau).
-  flake.users.jakeneau.programs = ["pi"];
+  flake.users.jakeneau.programs = ["pi" "secrets-management"];
 
   flake.modules = lib.mkMerge [
     (inputs.self.factory.user "jakeneau" true)

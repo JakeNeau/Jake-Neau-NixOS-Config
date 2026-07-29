@@ -82,7 +82,7 @@ docs/            # the Diátaxis documentation tree
 modules/
   nix/
     flake-parts/ # flake machinery: declarations/{programs,hosts,users}.nix, dendritic-tools
-    tools/       # one feature per Nix tool (home-manager, sops, stylix, …)
+    tools/       # one feature per Nix tool (home-manager, nixpkgs, stylix, …)
   hosts/         # one folder per machine: flake.hosts declaration + quirks aspect
   users/         # one folder per user: factory stamping + flake.users declaration + overrides
   programs/      # one folder per program: its flake.programs declaration (and any hand-written aspects)

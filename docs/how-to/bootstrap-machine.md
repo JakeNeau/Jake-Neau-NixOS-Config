@@ -30,12 +30,16 @@ sudo chmod 600 /etc/nixos/secrets/keys.txt
 ```
 
 The NixOS build needs it to decrypt `secrets/secrets.yaml`
-(`modules/nix/tools/sops/sops.nix` reads it from
+(`modules/programs/secrets-management/secrets-management.nix` reads it from
 `/etc/nixos/secrets/keys.txt`).
 
 **macOS:** no placement step. The darwin hosts consume no sops secrets at
 build time; keep the key outside the repo, needed only to
 [edit secrets](declarations/add-a-secret.md).
+
+Placing the key needs only `cp` and `chmod`. The `sops` CLI itself is a
+per-user install, so it appears only after the home activation below, not
+after the system switch.
 
 ## The config-group ACL sequence
 

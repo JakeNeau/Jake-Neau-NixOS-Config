@@ -6,7 +6,7 @@
       (with inputs.self.modules.nixos; [
         role-minimal
         host-constants
-        secrets
+        secrets-management
         nur
         config-group
         yazi

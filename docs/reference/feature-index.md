@@ -59,7 +59,7 @@ Machine-level config: what needs root, shared by all users.
   - `minimal/` — `role-minimal`: baseline settings every system and home
     needs (nix daemon settings, `home.stateVersion`, ...).
   - `default/` — `role-default`: minimal plus the tooling used everywhere
-    (secrets, config-group, git, direnv, printing, ...).
+    (secrets-management, config-group, git, direnv, printing, ...).
   - `desktop/` — `role-desktop`: the coarse desktop layer shared by every
     workstation.
   - `niri-desktop/` — the complete niri wayland desktop in one import
@@ -102,7 +102,6 @@ Flake-level machinery and third-party tool wiring.
   - `nixpkgs/` — the package set everything builds from.
   - `nur/` — the Nix User Repository overlay (community packages, e.g.
     browser addons).
-  - `sops/` — sops-nix + age secret management.
   - `stylix/` — system-wide theming. See [stylix
     theming](../explanation/stylix-theming.md).
 
@@ -158,6 +157,11 @@ declaration, the rest are hand-written aspects.
   agents](../explanation/coding-agents.md).
 - `podman/` — daemonless container engine.
 - `qpwgraph/` — pipewire patchbay.
+- `secrets-management/` — sops-nix + age: the `sops`/`age` CLIs per user on
+  both platforms, plus the hand-written `nixos` aspect that decrypts
+  `secrets/secrets.yaml` at activation. See [Add a
+  secret](../how-to/declarations/add-a-secret.md),
+  [secrets](../explanation/secrets.md).
 - `sioyek/` — keyboard-driven PDF reader.
 - `spotify/` — Spotify, wrapped to launch with `--in-process-gpu`.
 - `swaybg/` — wayland wallpaper setter.
@@ -175,7 +179,7 @@ declaration, the rest are hand-written aspects.
 Each holds the user's `flake.users` declaration (where one exists), the
 factory instantiation, and per-user config.
 
-- `jake.neau/` — Jake's work user; cedar only; claude-code via `programs`,
-  kubernetes via `hosts.cedar.programs`.
+- `jake.neau/` — Jake's work user; cedar only; claude-code and
+  secrets-management via `programs`, kubernetes via `hosts.cedar.programs`.
 - `jakeneau/` — Jake's personal user; the NixOS machines and the personal
-  MacBook; pi via `programs`.
+  MacBook; pi and secrets-management via `programs`.

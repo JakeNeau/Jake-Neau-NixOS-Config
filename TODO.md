@@ -482,6 +482,30 @@
       can find from that page what it means and how to clear it. The bootstrap
       guide's own `safe.directory` content is now current, so only this
       cross-link remains.
+- [ ] Extend sops secret consumption to the macs (aspen, cedar). Today only the
+      NixOS side decrypts secrets: the hand-written
+      `flake.modules.nixos.secrets-management` aspect has no darwin equivalent,
+      and the `secrets-management` program's `install.macos`
+      (`modules/programs/secrets-management/secrets-management.nix`) covers only
+      the `sops`/`age` CLIs, not any decryption wiring. Done means a darwin
+      counterpart decrypts secrets on the macs the way the NixOS aspect does.
+      Deliberately deferred when the program was created.
+- [ ] Decide whether `secrets-management` should be a host `globalPrograms`
+      entry rather than a per-user `flake.users.<u>.programs` entry. It is
+      currently declared by both users individually
+      (`modules/users/jakeneau/jakeneau.nix`,
+      `modules/users/jake.neau/jake.neau.nix`). Going global per host would give
+      any new user the `sops`/`age` CLIs automatically and remove three
+      documentation caveats that must otherwise be stated by hand: that the CLIs
+      reach only users who declare the program, that they arrive at home
+      activation rather than at the system switch, and that a new user who edits
+      secrets must add the program. A design question for the user to decide,
+      not a defect.
+- [ ] Update `specs/feature-unification.md:185`, which still names the secrets
+      aspect `secrets` in its forward-looking list of plumbing aspects to
+      convert. That conversion is done and the aspect is now
+      `secrets-management` — rename the reference or mark the item complete.
+      Cosmetic only.
 
 ## Waiting on upstream
 

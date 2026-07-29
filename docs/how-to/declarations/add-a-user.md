@@ -26,6 +26,10 @@ this folder. Layer per-user extras on top with `lib.mkMerge` — see
 `modules/users/jakeneau/jakeneau.nix` for the pattern (it adds a
 sops-managed password on NixOS).
 
+A user who will edit `secrets/secrets.yaml` needs `"secrets-management"`
+in their `flake.users.<user>.programs` — that is what puts the `sops` and
+`age` CLIs in their home. See [Add a secret](add-a-secret.md).
+
 ## 3. List the user on their host(s)
 
 In each host's `flake.hosts.<host>` declaration
