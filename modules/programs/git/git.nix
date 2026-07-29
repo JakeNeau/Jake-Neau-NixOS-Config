@@ -10,9 +10,9 @@
       };
       # nix runs as the user against the root-owned config repo; without this
       # allowlist libgit2 refuses to open it. libgit2 matches only the *resolved*
-      # real path — /private/etc/nix-darwin on macOS, where /etc is a symlink to
-      # /private/etc. The /etc spellings stay for the git CLI, which also accepts
-      # the path as typed. Linux has no such indirection, hence no /private/etc/nixos.
+      # real path, so macOS needs /private/etc/nix-darwin — /etc is a symlink to
+      # /private/etc. Linux has no such indirection, so /etc/nixos is already the
+      # real path there.
       settings.safe.directory = [
         "/etc/nixos"
         "/etc/nix-darwin"
@@ -21,8 +21,9 @@
       # git creates .git files at umask 022 — no group-write — leaving the tree's
       # ACL the only grant of config-group access. New files only; existing ones
       # still need a chmod g+w. Root-run `nr` git reads this config only when sudo
-      # keeps HOME: macOS sudo does, NixOS sudo resets it, so there this covers
-      # user-run git only.
+      # keeps HOME: macOS sudo does; NixOS's generated sudoers has no
+      # `env_keep HOME`, so there this is expected to cover user-run git only —
+      # unverified here, which would take root on a NixOS host.
       includes = [
         {
           condition = "gitdir:/etc/nixos/"; # trailing slash: without it nothing matches
@@ -38,9 +39,8 @@
       ];
     };
 
-    # ~/.gitconfig is read after the managed ~/.config/git/config, so it silently
-    # wins on every key it sets — but it is the user's file, so warn, never act.
-    # Activation runs under `set -eu`: neither the test nor the printf may fail it.
+    # ~/.gitconfig is the user's file, so warn, never act. The `|| true` below
+    # keeps a failed write from aborting activation, which runs under `set -eu`.
     home.activation.warnUnmanagedGitconfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
       if [ -e "$HOME/.gitconfig" ]; then
         printf '%s\n' \

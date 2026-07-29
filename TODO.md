@@ -433,27 +433,16 @@
       Until this runs on aspen, the breakage can recur. Cedar no longer needs
       it: its 2026-07-28 repair verified clean, with 0 stale ACEs, 0 doubled
       ACEs, and all 273 directories correct.
-- [ ] Explain the git module's repo-path-scoped config in
-      `docs/explanation/config-group.md`. No page in `docs/` explains why
-      `modules/programs/git/git.nix` carries `gitdir:` includes;
-      `docs/reference/feature-index.md` only records that it does. They gate
-      `core.sharedRepository = "group"`, through `programs.git.includes`, on
-      `gitdir:/etc/nixos/` and `gitdir:/private/etc/nix-darwin/`, so git creates
-      new `.git` entries group-writable. That is the git-side half of keeping the
-      tree writable by the `config` group; the trust-model page covers the ACL
-      half and libgit2's allowlist, not this one. Cover both path-matching rules
-      on that page, because they differ, and collapsing them into one rule has
-      already produced wrong conclusions in both directions. A `gitdir:`
-      condition matches against the repository's resolved real path, so on
-      macOS — where `/etc` is a symlink to `/private/etc` — only the `/private`
-      spelling matches, and it matches under every access form: both `git -C`
-      spellings, a working directory at the repo root, and any subdirectory.
-      Linux has no such symlink, so `/etc/nixos` resolves to itself. libgit2's
-      `safe.directory` allowlist likewise needs the resolved `/private` spelling
-      — already covered under "Why libgit2 needs the `/private` path on macOS" —
-      but for a different reason, so state the two mechanisms separately. The
-      trailing slash is mandatory on either condition. High priority: this is the
-      gap a future reader hits first.
+- [ ] Check whether the `/etc/nix-darwin` entry in `settings.safe.directory`
+      (`modules/programs/git/git.nix`) is redundant, and remove it if so.
+      `/private/etc/nix-darwin` is the repository's resolved real path, which
+      satisfies libgit2 and the git CLI alike. So the unresolved spelling may
+      carry no weight, while `/etc/nixos` stays either way as the real path on
+      Linux. The 2026-07-28 comment-only pass over that file deliberately left
+      this out, since dropping an allowlist entry is a behavior change needing
+      its own verification. Confirm with
+      `nix flake metadata /private/etc/nix-darwin`, not with `git status`,
+      because only a libgit2 consumer proves the allowlist does the work.
 - [ ] Move the config-group ACL rationale out of the how-to. The 11-line
       paragraph explaining why each ACL right must be spelled out currently sits
       in `docs/how-to/bootstrap-machine.md`, but `docs/README.md`'s own Diátaxis

@@ -48,9 +48,12 @@ clone.
 ## Why the ACL repair strips before it reapplies
 
 macOS `chmod +a` appends an entry rather than editing an existing one.
-Re-running it with the corrected rights leaves two entries on every node. The
-new explicit one lands beside the old narrow one, still present as an inherited
-entry. Both are `allow` entries, so their rights union and access works.
+Re-running it with the corrected rights leaves two entries on every node whose
+old entry was inherited. An explicit entry for the same identity merges
+instead. The original grant relied on inheritance, so doubling is the normal
+case here. The new explicit entry lands beside the old narrow one, still
+present as an inherited entry. Both are `allow` entries, so their rights union
+and access works.
 
 What breaks is the audit. The known-broken `list,add_file,search` grant still
 sits in the output of `ls -lde`, so the next reader cannot tell a repaired tree
@@ -86,3 +89,55 @@ anything left behind silently overrides the declarative git config. A stray
 `~/.gitconfig` here duplicated `user.name` and `user.email` for weeks before
 anyone noticed, which is why home activation now warns whenever the file
 exists.
+
+## Why git keeps new `.git` entries group-writable
+
+The ACL fixes the tree as it stands. It does not govern what git writes next.
+Every commit and fetch creates fresh files under `.git`. Each one lands under
+the umask of the process that wrote it. The `nr` flow runs its git calls as
+root through `sudo`, and root's umask 022 clears the group-write bit. So the
+tree decays on every rebuild, until some member meets a file they cannot write.
+
+`core.sharedRepository = "group"` is git's own answer. It makes git set the
+group-write bit on what it creates inside `.git`, whatever the umask says.
+Under umask 022 a new `.git/objects/<xx>` comes out `drwxrwxr-x` with the
+setting and `drwxr-xr-x` without. The git module
+(`modules/programs/git/git.nix`) therefore sets it, but only for these
+repositories. Set globally, it would loosen permissions on every repository the
+user owns. `includes` with a `gitdir:` condition supplies that scoping.
+
+### The two path rules are not the same rule
+
+Both the `gitdir:` conditions and libgit2's `safe.directory` allowlist need the
+`/private` spelling on macOS, which makes them look like one fact. They are
+two, with separate mechanisms. Reasoning from either to the other gives wrong
+answers.
+
+Git matches a `gitdir:` condition against the repository's resolved real path.
+On macOS `/etc` is a symlink to `/private/etc`, so the real path is
+`/private/etc/nix-darwin`, and only that spelling matches. It then matches
+under every way of reaching the repository: the `sudo git -C /etc/nix-darwin`
+form `nr` uses, a working directory at the repo root, and any subdirectory. On
+Linux `/etc/nixos` is a real directory, so it resolves to itself. The trailing
+slash is mandatory either way. Without it the condition has to match the `.git`
+path itself rather than stand as a directory prefix, and nothing matches.
+
+The `safe.directory` rule is a different question, covered above under "Why
+libgit2 needs the `/private` path on macOS". It governs which process may open
+the repository at all, libgit2 enforces it rather than the git CLI, and the CLI
+accepts either spelling. Keep the two apart when changing either list.
+
+### What the setting does not do
+
+Three boundaries matter when reading a permission problem in this tree. The
+setting only touches files git creates under `.git`, leaving the working tree
+to the umask and the ACL. It only applies at creation time, so a file that is
+already group-unwritable stays that way until someone runs `chmod g+w` over it.
+And it is inert unless the git process reads a config file that sets it.
+
+That last boundary splits by platform. The setting lives in the user's
+home-manager git config, so root-run git picks it up only when `sudo` preserves
+`HOME`. macOS `/etc/sudoers` carries `env_keep += "HOME MAIL"`, so it does. The
+sudoers NixOS generates has no `env_keep HOME`. Root-run git there reads root's
+own config and this include never fires. That is why the NixOS half is tracked
+as unfinished rather than assumed to work.
