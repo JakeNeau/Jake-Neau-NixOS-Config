@@ -537,6 +537,20 @@
       commit c088236 reaches the nixos-unstable pin. Niri 26.04 rejects
       libdisplay-info 0.4, so the override currently pins libdisplay-info 0.2;
       restore `programs.niri` and greetd to `pkgs.niri` when removing it.
+- [ ] Remove the `nix-homebrew` `brew-src` input override that pins Homebrew at
+      tag `6.0.13` in `modules/nix/tools/nix-homebrew/nix-homebrew.nix` once
+      `nix-homebrew` upstream pins 6.0.13 or newer — it pins `b48c7994b5f0`,
+      which builds Homebrew 6.0.12. Homebrew resolves casks from its JSON API,
+      which now serves definitions calling the Cask DSL method
+      `command_wrapper`, so activation on cedar failed with `Error: Cask
+      'firefox' definition is invalid: undefined method 'command_wrapper' for
+      Cask 'firefox'`; the 6.0.12 source tree has no
+      `cask/artifact/command_wrapper.rb` and the 6.0.13 tree does. The locked
+      revision `b2cfc03346d482f79886de108fee5dc49a6efc10` matches upstream's
+      `refs/tags/6.0.13` exactly. Caveat: the build and `nix flake check` pass,
+      but a build only proves evaluation — whether 6.0.13 parses the current
+      firefox cask is decided at activation, so the next successful `nr` on
+      cedar is the real test.
 
 - [ ] Report the fishPlugins.pure build failure upstream to nixpkgs — pure
       4.15.0's fishtape test suite fails 24/286 tests in the Nix build sandbox
