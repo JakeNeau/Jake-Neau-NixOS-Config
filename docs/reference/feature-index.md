@@ -119,7 +119,8 @@ declaration, the rest are hand-written aspects.
   `writing-lint.nix` packages the `claude-writing-lint` binary from `writing/`.
   See [claude-code config](../explanation/claude-code-config.md), [Claude Code's
   writing system](../explanation/claude-code-writing-system.md), [coding
-  agents](../explanation/coding-agents.md).
+  agents](../explanation/coding-agents.md), [the /pr-review-guide
+  command](../explanation/pr-review-guide-command.md).
 - `cli-tools/` — cross-platform command-line tools via home-manager.
 - `clipse/` — clipboard manager with a TUI history picker.
 - `davinci-resolve/` — professional video editor, with Rusticl OpenCL on
