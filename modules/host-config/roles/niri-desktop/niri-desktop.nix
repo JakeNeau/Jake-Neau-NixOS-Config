@@ -3,13 +3,10 @@
   # its portals, the greetd session that launches it, and (via home-manager) all the
   # per-user wayland plumbing. NixOS-only; niri does not exist on macOS.
 
-  flake.modules.nixos.niri-desktop = {pkgs, ...}: let
-    # niri 26.04 rejects libdisplay-info 0.4; remove after nixos-unstable contains nixpkgs@c088236.
-    niriPackage = pkgs.niri.override {libdisplay-info = pkgs.libdisplay-info_0_2;};
-  in {
+  flake.modules.nixos.niri-desktop = {pkgs, ...}: {
     programs.niri = {
       enable = true;
-      package = niriPackage;
+      package = pkgs.niri;
     };
 
     xdg.portal = {
@@ -25,7 +22,7 @@
       enable = true;
       settings = rec {
         initial_session = {
-          command = "${niriPackage}/bin/niri-session -l";
+          command = "${pkgs.niri}/bin/niri-session -l";
           user = "jakeneau";
         };
         default_session = initial_session;
