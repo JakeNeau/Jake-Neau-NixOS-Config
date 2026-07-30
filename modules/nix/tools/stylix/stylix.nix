@@ -43,9 +43,16 @@ in {
     stylix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  flake.modules.nixos.stylix = {pkgs, ...}: {
+  flake.modules.nixos.stylix = {
+    lib,
+    pkgs,
+    ...
+  }: {
     imports = [inputs.stylix.nixosModules.stylix];
-    stylix = theme pkgs;
+    stylix = lib.mkMerge [
+      (theme pkgs)
+      {targets.regreet.enable = false;}
+    ];
   };
 
   flake.modules.homeManager.stylix = {

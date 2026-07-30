@@ -6,42 +6,45 @@ why macOS is deliberately out of scope
 
 ## One theme function, two aspects
 
-Stylix themes two module systems that no longer share an eval: the NixOS
-system layer and each standalone home. If the theme were stated in one
-aspect and imported by the other, the layers could drift; if stated twice,
-they *would* drift. So the theme values — scheme, polarity, wallpaper,
-cursor, fonts — live in one `let`-bound function at the top of the file, a
-function of `pkgs` because the cursor and fonts reference packages, and
-are spliced into both aspects:
+Stylix themes the NixOS system layer and each standalone home. These module
+systems no longer share an evaluation. Separate theme declarations could drift.
 
-- `flake.modules.nixos.stylix` — imports stylix's NixOS module; themes the
-  system layer (console, greeter, boot-adjacent surfaces).
-- `flake.modules.homeManager.stylix` — imports stylix's home-manager
-  module; themes standalone homes.
+A `let`-bound `theme` function holds the scheme, polarity, wallpaper, cursor,
+and fonts. The function accepts `pkgs` because the cursor and fonts reference
+packages. Both aspects use this function:
 
-Both state the identical theme by construction.
+- `flake.modules.nixos.stylix` imports Stylix's NixOS module and themes the
+  system layer.
+- `flake.modules.homeManager.stylix` imports Stylix's Home Manager module and
+  themes standalone homes.
+
+Both aspects therefore state the same theme.
 
 ## Linux-only delivery
 
-The home-manager aspect rides the Linux hosts' baselines only. Before
-standalone homes, per-user theming arrived implicitly — stylix's NixOS
-module auto-imported its home-manager module through the home-manager
-system module; that path died with the system module, so the explicit
-baseline delivery replaces it.
+Only the Linux host baselines include the Home Manager aspect. Before
+standalone homes, Stylix's NixOS module imported its Home Manager module
+through the Home Manager system module. Removing that system module also
+removed the implicit delivery. The explicit baseline delivery replaces it.
 
-Because baselines pass through the boundary priority wrapper, stylix's
-settings land at priority 900 in each home — a user can restyle any of it
-by plain assignment.
+Baselines pass through the boundary priority wrapper. Stylix's settings
+therefore use priority 900 in each home. A user can override them with a plain
+assignment.
+
+The NixOS aspect disables Stylix's ReGreet target because both Linux hosts
+launch Niri directly through greetd and do not use ReGreet. Otherwise, Stylix
+populates inactive display-manager settings.
 
 The home-manager aspect disables Stylix's Hyprland target because both Linux
-hosts use Niri; otherwise Stylix populates dead Hyprland settings and triggers
+hosts use Niri. Otherwise, Stylix populates dead Hyprland settings and triggers
 Home Manager's Hyprland state-version warning.
 
 ## macOS: deliberately out of scope
 
-macOS theming was verified *possible* — the pinned stylix ships
-`darwinModules.stylix`, and its home-manager module is platform-generic —
-but is deliberately not wired: the macs theme nvf directly (see
-`modules/programs/nvf`), and both macOS theming and runtime theme
-switching are tracked in `TODO.md` as future work. The Linux-only shape is
-a scope decision, not a limitation.
+The current Stylix input contains `darwinModules.stylix`. Its Home Manager
+module also supports macOS. This repo deliberately does not connect either
+module on macOS.
+
+The Macs theme nvf directly through `modules/programs/nvf`. `TODO.md` tracks
+macOS theming and runtime theme switching as future work. The Linux-only design
+is a scope decision, not a technical limitation.
