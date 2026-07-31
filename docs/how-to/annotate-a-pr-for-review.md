@@ -55,7 +55,4 @@ inline annotations: it adds new ones, updates changed ones, and deletes obsolete
 ones. It never touches a human's review threads, and a re-run creates no
 duplicate comments.
 
-The guide opens with a preamble: a fixed transparency disclaimer and a wry
-"slop"-swapped movie quote drawn from a small pool. The command picks the quote
-at random only on the first run. A re-run keeps whatever quote the guide already
-holds, so you see the same one on every push, not a new one.
+The guide opens with a preamble: a fixed transparency disclaimer.

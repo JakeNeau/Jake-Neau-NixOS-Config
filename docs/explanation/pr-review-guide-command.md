@@ -79,21 +79,13 @@ push while it keeps ordering and grouping current.
 
 ## The preamble is protected text
 
-The top-level guide opens with a two-part preamble: a short transparency
-disclaimer, then a wry "slop"-swapped movie quote. The preamble is boilerplate,
-not generated prose. The command exempts it from the controlled-English drafting
-pass and the controlled-English verification pass. It appears only in the
-top-level guide, never in an inline annotation.
+The top-level guide opens with a preamble: a short transparency disclaimer. The
+preamble is boilerplate, not generated prose. The command exempts it from the
+controlled-English drafting pass and the controlled-English verification pass.
+It appears only in the top-level guide, never in an inline annotation.
 
 The disclaimer paragraph is fixed. The command inserts the same text verbatim on
-every post. The quote is not fixed. The command keeps a small pool of quotes and
-picks one at random on the first run. The pick adds a deliberate bit of levity,
-and it still respects the idempotent-update design.
-
-The chosen quote lives inside the stored comment body, like the rest of the
-preamble. So on an update-mode edit the command reads that quote back and keeps
-it unchanged. It never re-rolls. A reviewer therefore sees one stable quote
-across every push, not a new one each time.
+every post.
 
 ## What the command reuses, and its limits
 

@@ -273,8 +273,8 @@ After posting, refresh the marker's base SHA to head.
 
 ## The top-level guide's preamble
 
-The top-level comment body has, top to bottom: the hidden marker; the preamble
-(two parts); Section 1 (Changelog); Section 2 (Review walkthrough).
+The top-level comment body has, top to bottom: the hidden marker; the preamble;
+Section 1 (Changelog); Section 2 (Review walkthrough).
 
 The preamble is boilerplate, not AI-generated. Whichever text it holds is
 **protected exact text**: reproduce it **verbatim**, exempt from the `writing`
@@ -283,22 +283,9 @@ verification pass (step 9). Do not improve, rephrase, reflow, or correct its
 spelling. The preamble appears only in the top-level guide comment, never in an
 inline annotation.
 
-Part 1 — a short intro/disclaimer paragraph (visible), always exactly this text:
+The preamble is a short intro/disclaimer paragraph (visible), always exactly
+this text:
 
 ```
 I am experimenting with making pull request review guides with AI to make the review on your end easier. I have tested and verified this on my own. Please tell me if this made your job easier or harder.
-```
-
-Part 2 — immediately below it, a Markdown blockquote (visible in the rendered
-comment) holding **one** quote from the pool below. On a first run, pick one
-quote at random and vary the choice across invocations. On an update-mode edit,
-keep whichever quote the existing comment already holds — never re-roll it.
-Reproduce the chosen quote verbatim, including its leading `> `. The pool:
-
-```
-> Do not, my friends, become addicted to slop. It will take hold of you, and you will resent its absence!
-```
-
-```
-> You merely adopted the slop. I was born in it, molded by it.
 ```
