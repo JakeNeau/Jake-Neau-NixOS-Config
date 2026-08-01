@@ -4,7 +4,10 @@
   # per-user wayland plumbing. NixOS-only; niri does not exist on macOS.
 
   flake.modules.nixos.niri-desktop = {pkgs, ...}: {
-    imports = [inputs.self.modules.nixos.hyprlock];
+    imports = with inputs.self.modules.nixos; [
+      hyprlock
+      monitor-power
+    ];
 
     programs.niri = {
       enable = true;
@@ -43,6 +46,7 @@
       clipse
       fuzzel
       hyprlock
+      monitor-power
       udiskie
       xwayland-satellite
       candy-icons

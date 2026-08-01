@@ -51,6 +51,7 @@ Machine-level config: what needs root, shared by all users.
   facts](../explanation/host-facts.md).
 - `key-repeat/` — key-repeat timing declared once, shared across
   platforms.
+- `monitor-power/` — coordinates Niri DPMS with DDC/CI monitor power control.
 - `network/` — hostname wiring from `hostConstants.hostName` on both
   platforms.
 - `printing/` — CUPS with avahi/mDNS discovery on NixOS; print-dialog

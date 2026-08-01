@@ -303,7 +303,7 @@ layout {
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
 spawn-at-startup "waybar"
-spawn-sh-at-startup "sleep 1; niri msg action power-on-monitors"
+spawn-sh-at-startup "sleep 1; monitor-power on"
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
 // spawn-sh-at-startup "qs -c ~/source/qs/MyAwesomeShell"
@@ -632,9 +632,9 @@ binds {
     Mod+Shift+Semicolon hotkey-overlay-title="Lock" { spawn "hyprlock"; }
     Mod+Alt+Semicolon hotkey-overlay-title="Log Out" { quit; }
 
-    Mod+Apostrophe hotkey-overlay-title="Suspend Then Hibernate" { spawn-sh "niri msg action power-off-monitors; sleep 1; systemctl suspend-then-hibernate; niri msg action power-on-monitors"; }
-    Mod+Shift+Apostrophe hotkey-overlay-title="Hibernate" { spawn-sh "niri msg action power-off-monitors; sleep 1; systemctl hibernate; niri msg action power-on-monitors"; }
-    Mod+Ctrl+Apostrophe hotkey-overlay-title="Reboot" { spawn-sh "niri msg action power-off-monitors; sleep 1; exec systemctl reboot"; }
-    Mod+Ctrl+Shift+Apostrophe hotkey-overlay-title="Shut Down" { spawn-sh "niri msg action power-off-monitors; sleep 1; exec systemctl poweroff"; }
+    Mod+Apostrophe hotkey-overlay-title="Suspend Then Hibernate" { spawn-sh "monitor-power off; sleep 1; systemctl suspend-then-hibernate; monitor-power on"; }
+    Mod+Shift+Apostrophe hotkey-overlay-title="Hibernate" { spawn-sh "monitor-power off; sleep 1; systemctl hibernate; monitor-power on"; }
+    Mod+Ctrl+Apostrophe hotkey-overlay-title="Reboot" { spawn-sh "monitor-power off; sleep 1; exec systemctl reboot"; }
+    Mod+Ctrl+Shift+Apostrophe hotkey-overlay-title="Shut Down" { spawn-sh "monitor-power off; sleep 1; exec systemctl poweroff"; }
 
 }
