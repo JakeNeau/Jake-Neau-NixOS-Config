@@ -628,7 +628,7 @@ binds {
     Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
 
-    Mod+Semicolon hotkey-overlay-title="Turn Off Monitors" { power-off-monitors; }
+    Mod+Semicolon repeat=false hotkey-overlay-title="Turn Off Monitors" { spawn "monitor-power-screen-off"; }
     Mod+Shift+Semicolon hotkey-overlay-title="Lock" { spawn "hyprlock"; }
     Mod+Alt+Semicolon hotkey-overlay-title="Log Out" { quit; }
 

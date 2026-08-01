@@ -177,6 +177,20 @@
         systemctl "$1"
         ${lib.getExe monitorPower} on
       '';
+    screenOffCommand =
+      if cfg.screenOff.wakeOnInput.enable
+      then ''
+        systemctl --user start swayidle.service
+        # Let the shortcut keys release before swayidle watches for resume input.
+        sleep 0.25
+        systemctl --user kill --signal=SIGUSR1 swayidle.service
+      ''
+      else ''exec niri msg action power-off-monitors'';
+    monitorPowerScreenOff = pkgs.writeShellApplication {
+      name = "monitor-power-screen-off";
+      runtimeInputs = [pkgs.coreutils pkgs.niri pkgs.systemd];
+      text = screenOffCommand;
+    };
     monitorPowerTransition = pkgs.writeShellApplication {
       name = "monitor-power-transition";
       runtimeInputs = [pkgs.coreutils pkgs.systemd];
@@ -219,10 +233,11 @@
         description = "Additional monitor-power backend packages keyed by device name.";
       };
       resumeAfterSleep.enable = lib.mkEnableOption "monitor restoration after system sleep";
+      screenOff.wakeOnInput.enable = lib.mkEnableOption "firmware monitor wake on input after manual screen-off";
     };
 
     config = lib.mkMerge [
-      {home.packages = [monitorPower monitorPowerTransition];}
+      {home.packages = [monitorPower monitorPowerScreenOff monitorPowerTransition];}
       (lib.mkIf cfg.resumeAfterSleep.enable {
         systemd.user.services.monitor-power-resume = {
           Unit.Description = "Restore monitors after system sleep";
@@ -231,6 +246,19 @@
             ExecStart = "${lib.getExe monitorPower} on";
             TimeoutStartSec = 60;
           };
+        };
+      })
+      (lib.mkIf cfg.screenOff.wakeOnInput.enable {
+        services.swayidle = {
+          enable = true;
+          extraArgs = ["-w"];
+          timeouts = [
+            {
+              timeout = 2147483647;
+              command = "${lib.getExe monitorPower} off";
+              resumeCommand = "${lib.getExe monitorPower} on";
+            }
+          ];
         };
       })
     ];

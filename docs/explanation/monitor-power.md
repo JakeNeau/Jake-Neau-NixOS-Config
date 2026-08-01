@@ -65,5 +65,9 @@ Network access and the monitor's remote-control setting must be available at
 those points. Backend failures produce a warning but do not block the system
 transition.
 
-The ordinary `Mod+Semicolon` binding remains Niri DPMS-only. Any input can then
-restore the output without requiring the Samsung API.
+On Redwood, `Mod+Semicolon` signals swayidle to enter its idle state. Swayidle
+runs `monitor-power off`, then runs `monitor-power on` after the next mouse or
+keyboard input. A short delay prevents the shortcut's key release from
+immediately waking the monitor. The configured timeout is effectively
+unreachable, so inactivity alone does not turn off the monitors. Other hosts
+retain Niri's DPMS-only behavior.

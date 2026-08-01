@@ -22,6 +22,7 @@
       ddc.enable = true;
       backends.redwoodSamsungOdysseyG9 = redwoodSamsungOdysseyG9Power;
       resumeAfterSleep.enable = true;
+      screenOff.wakeOnInput.enable = true;
     };
   };
 
