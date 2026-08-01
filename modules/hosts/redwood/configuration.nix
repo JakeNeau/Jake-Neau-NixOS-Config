@@ -81,7 +81,10 @@
     boot.kernelParams = ["video=5120x1440"];
 
     # Redwood's firmware supports S3, while s2idle wedges the AMD resume path.
-    systemd.sleep.settings.Sleep.MemorySleepMode = "deep";
+    systemd.sleep.settings.Sleep = {
+      MemorySleepMode = "deep";
+      SuspendState = "mem";
+    };
     monitorPower.resumeUsers = ["jakeneau"];
 
     boot.kernelPatches = [
