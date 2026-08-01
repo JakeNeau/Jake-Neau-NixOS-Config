@@ -1,10 +1,9 @@
 import importlib.util
 import json
 import os
-from pathlib import Path
 import unittest
+from pathlib import Path
 from unittest.mock import patch
-
 
 MODULE_PATH = Path(
     os.environ.get(
@@ -43,12 +42,14 @@ class SamsungTizenPowerTest(unittest.TestCase):
         self.assertEqual(MODULE.read_power_state(HOSTNAME), "on")
         urlopen.assert_called_once_with(
             f"http://{HOSTNAME}:8001/api/v2/",
-            timeout=MODULE.TIMEOUT,
+            timeout=MODULE.STATE_TIMEOUT,
         )
 
     @patch.object(MODULE, "SamsungTVWS")
     @patch.object(MODULE, "read_power_state", return_value="on")
-    def test_power_off_sends_power_key_when_monitor_is_on(self, _read_power_state, samsung_tv):
+    def test_power_off_sends_power_key_when_monitor_is_on(
+        self, _read_power_state, samsung_tv
+    ):
         remote = samsung_tv.return_value.__enter__.return_value
 
         MODULE.power_off(HOSTNAME, TOKEN_FILE, REMOTE_NAME)
@@ -57,30 +58,54 @@ class SamsungTizenPowerTest(unittest.TestCase):
             host=HOSTNAME,
             port=8002,
             token_file=TOKEN_FILE,
-            timeout=MODULE.TIMEOUT,
+            timeout=MODULE.REMOTE_TIMEOUT,
             name=REMOTE_NAME,
         )
         remote.send_key.assert_called_once_with("KEY_POWER")
 
     @patch.object(MODULE, "SamsungTVWS")
     @patch.object(MODULE, "read_power_state", return_value="standby")
-    def test_power_off_does_not_toggle_a_standby_monitor_on(self, _read_power_state, samsung_tv):
+    def test_power_off_does_not_toggle_a_standby_monitor_on(
+        self, _read_power_state, samsung_tv
+    ):
         MODULE.power_off(HOSTNAME, TOKEN_FILE, REMOTE_NAME)
 
         samsung_tv.assert_not_called()
 
     @patch.object(MODULE, "SamsungTVWS")
     @patch.object(MODULE, "read_power_state", return_value="standby")
-    def test_power_on_sends_power_key_when_monitor_is_standby(self, _read_power_state, samsung_tv):
+    def test_power_on_sends_power_key_when_monitor_is_standby(
+        self, _read_power_state, samsung_tv
+    ):
         remote = samsung_tv.return_value.__enter__.return_value
 
         MODULE.power_on(HOSTNAME, TOKEN_FILE, REMOTE_NAME)
 
         remote.send_key.assert_called_once_with("KEY_POWER")
 
+    @patch.object(MODULE.time, "sleep")
+    @patch.object(MODULE, "SamsungTVWS")
+    @patch.object(
+        MODULE,
+        "read_power_state",
+        side_effect=(OSError("network unavailable"), "standby"),
+    )
+    def test_power_on_retries_until_the_monitor_api_is_available(
+        self, read_power_state, samsung_tv, sleep
+    ):
+        remote = samsung_tv.return_value.__enter__.return_value
+
+        MODULE.power_on(HOSTNAME, TOKEN_FILE, REMOTE_NAME)
+
+        self.assertEqual(read_power_state.call_count, 2)
+        sleep.assert_called_once_with(MODULE.POWER_ON_RETRY_DELAY)
+        remote.send_key.assert_called_once_with("KEY_POWER")
+
     @patch.object(MODULE, "SamsungTVWS")
     @patch.object(MODULE, "read_power_state", return_value="on")
-    def test_power_on_does_not_toggle_an_on_monitor_off(self, _read_power_state, samsung_tv):
+    def test_power_on_does_not_toggle_an_on_monitor_off(
+        self, _read_power_state, samsung_tv
+    ):
         MODULE.power_on(HOSTNAME, TOKEN_FILE, REMOTE_NAME)
 
         samsung_tv.assert_not_called()

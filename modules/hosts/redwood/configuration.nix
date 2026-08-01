@@ -21,6 +21,7 @@
     monitorPower = {
       ddc.enable = true;
       backends.redwoodSamsungOdysseyG9 = redwoodSamsungOdysseyG9Power;
+      resumeAfterSleep.enable = true;
     };
   };
 
@@ -80,6 +81,7 @@
 
     # Redwood's firmware supports S3, while s2idle wedges the AMD resume path.
     systemd.sleep.settings.Sleep.MemorySleepMode = "deep";
+    monitorPower.resumeUsers = ["jakeneau"];
 
     boot.kernelPatches = [
       {

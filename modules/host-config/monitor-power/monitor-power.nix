@@ -30,7 +30,43 @@
     '';
 
   flake.modules.nixos.monitor-power = {
-    hardware.i2c.enable = true;
+    config,
+    lib,
+    pkgs,
+    ...
+  }: let
+    cfg = config.monitorPower;
+    sleepTargets = [
+      "suspend.target"
+      "hibernate.target"
+      "suspend-then-hibernate.target"
+    ];
+  in {
+    options.monitorPower.resumeUsers = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Users whose monitor-power resume service starts after system sleep.";
+    };
+
+    config = lib.mkMerge [
+      {hardware.i2c.enable = true;}
+      (lib.mkIf (cfg.resumeUsers != []) {
+        systemd.services.monitor-power-resume-users = {
+          description = "Restore user monitors after system sleep";
+          wantedBy = sleepTargets;
+          after = sleepTargets;
+          path = [pkgs.systemd];
+          serviceConfig.Type = "oneshot";
+          script =
+            lib.concatMapStringsSep "\n" (user: ''
+              if ! systemctl --user --machine=${lib.escapeShellArg "${user}@"} start monitor-power-resume.service; then
+                echo "monitor-power: failed to start the resume service for ${lib.escapeShellArg user}" >&2
+              fi
+            '')
+            cfg.resumeUsers;
+        };
+      })
+    ];
   };
 
   flake.modules.homeManager.monitor-power = {
@@ -42,7 +78,7 @@
     cfg = config.monitorPower;
     backendCommands = lib.concatStringsSep "\n" (
       lib.mapAttrsToList (name: backend: ''
-        if ! timeout 5s ${lib.escapeShellArg (lib.getExe backend)} "$action"; then
+        if ! timeout "$backendTimeout" ${lib.escapeShellArg (lib.getExe backend)} "$action"; then
           echo "monitor-power: backend ${lib.escapeShellArg name} failed" >&2
         fi
       '')
@@ -103,7 +139,13 @@
 
         run_backends() {
           local action="$1"
-          : "$action"
+          local backendTimeout=5s
+
+          if [[ "$action" == on ]]; then
+            backendTimeout=35s
+          fi
+
+          : "$backendTimeout"
           ${backendCommands}
         }
 
@@ -128,6 +170,42 @@
         esac
       '';
     };
+    sleepTransitionCommand =
+      if cfg.resumeAfterSleep.enable
+      then ''exec systemctl "$1"''
+      else ''
+        systemctl "$1"
+        ${lib.getExe monitorPower} on
+      '';
+    monitorPowerTransition = pkgs.writeShellApplication {
+      name = "monitor-power-transition";
+      runtimeInputs = [pkgs.coreutils pkgs.systemd];
+      text = ''
+        if (( $# != 1 )); then
+          echo "usage: monitor-power-transition {suspend-then-hibernate|hibernate|reboot|poweroff}" >&2
+          exit 2
+        fi
+
+        case "$1" in
+          suspend-then-hibernate|hibernate)
+            ${lib.getExe monitorPower} off
+            sleep 1
+            ${sleepTransitionCommand}
+            ;;
+
+          reboot|poweroff)
+            ${lib.getExe monitorPower} off
+            sleep 1
+            exec systemctl "$1"
+            ;;
+
+          *)
+            echo "usage: monitor-power-transition {suspend-then-hibernate|hibernate|reboot|poweroff}" >&2
+            exit 2
+            ;;
+        esac
+      '';
+    };
   in {
     options.monitorPower = {
       ddc.enable = lib.mkOption {
@@ -140,8 +218,21 @@
         default = {};
         description = "Additional monitor-power backend packages keyed by device name.";
       };
+      resumeAfterSleep.enable = lib.mkEnableOption "monitor restoration after system sleep";
     };
 
-    config.home.packages = [monitorPower];
+    config = lib.mkMerge [
+      {home.packages = [monitorPower monitorPowerTransition];}
+      (lib.mkIf cfg.resumeAfterSleep.enable {
+        systemd.user.services.monitor-power-resume = {
+          Unit.Description = "Restore monitors after system sleep";
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${lib.getExe monitorPower} on";
+            TimeoutStartSec = 60;
+          };
+        };
+      })
+    ];
   };
 }
