@@ -54,11 +54,15 @@ manager. The user service runs `monitor-power on` with the Niri session
 environment. Other hosts retain the direct transition behavior unless they
 enable both resume services.
 
-The Samsung backend retries the monitor state API for up to 30 seconds during
-power-on. This delay allows networking and mDNS to recover after resume. Reboot
-and shutdown rely on the Niri startup command in the next session. Network
-access and the monitor's remote-control setting must be available at those
-points. Backend failures produce a warning but do not block the system
+Before standby, the Samsung backend resolves the monitor hostname and caches
+its network address in the user's cache directory. Power-on uses that address
+because a standby monitor may stop advertising its mDNS hostname. The backend
+also retries the monitor state API for up to 30 seconds while host networking
+recovers after resume.
+
+Reboot and shutdown rely on the Niri startup command in the next session.
+Network access and the monitor's remote-control setting must be available at
+those points. Backend failures produce a warning but do not block the system
 transition.
 
 The ordinary `Mod+Semicolon` binding remains Niri DPMS-only. Any input can then

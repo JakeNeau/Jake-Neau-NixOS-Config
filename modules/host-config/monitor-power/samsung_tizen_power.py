@@ -1,6 +1,9 @@
 import argparse
 import json
+import os
+import socket
 import time
+from pathlib import Path
 from urllib.request import urlopen
 
 from samsungtvws import SamsungTVWS
@@ -14,6 +17,31 @@ POWER_ON_RETRY_DELAY = 0.5
 def read_power_state(hostname):
     with urlopen(f"http://{hostname}:8001/api/v2/", timeout=STATE_TIMEOUT) as response:
         return json.loads(response.read())["device"]["PowerState"].lower()
+
+
+def address_cache_path(remote_name):
+    cache_home = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
+    return cache_home / "monitor-power" / f"{remote_name}.address"
+
+
+def resolve_and_cache_address(hostname, remote_name):
+    address = socket.gethostbyname(hostname)
+    path = address_cache_path(remote_name)
+
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"{address}\n")
+    except OSError:
+        pass
+
+    return address
+
+
+def read_cached_address(remote_name):
+    try:
+        return address_cache_path(remote_name).read_text().strip() or None
+    except OSError:
+        return None
 
 
 def read_power_state_with_retry(hostname):
@@ -40,13 +68,15 @@ def send_power_key(hostname, token_file, remote_name):
 
 
 def power_off(hostname, token_file, remote_name):
-    if read_power_state(hostname) == "on":
-        send_power_key(hostname, token_file, remote_name)
+    address = resolve_and_cache_address(hostname, remote_name)
+    if read_power_state(address) == "on":
+        send_power_key(address, token_file, remote_name)
 
 
 def power_on(hostname, token_file, remote_name):
-    if read_power_state_with_retry(hostname) == "standby":
-        send_power_key(hostname, token_file, remote_name)
+    address = read_cached_address(remote_name) or hostname
+    if read_power_state_with_retry(address) == "standby":
+        send_power_key(address, token_file, remote_name)
 
 
 def main():
