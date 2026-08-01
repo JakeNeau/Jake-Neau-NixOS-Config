@@ -6,7 +6,22 @@
     system = "x86_64-linux";
     users = ["jakeneau"];
     globalPrograms = ["ghostty" "yazi" "fastfetch" "gh"];
-    baselines = ["role-desktop" "niri-desktop" "stylix"];
+    baselines = ["role-desktop" "niri-desktop" "redwood-monitor-power" "stylix"];
+  };
+
+  flake.modules.homeManager.redwood-monitor-power = {pkgs, ...}: let
+    redwoodSamsungOdysseyG9Power = inputs.self.lib.monitorPower.samsungTizen {
+      inherit pkgs;
+      name = "redwood-samsung-odyssey-g9-power";
+      hostname = "samsung.local";
+      tokenFile = "/run/secrets/redwoodSamsungOdysseyG9Token";
+      remoteName = "redwood-monitor-power";
+    };
+  in {
+    monitorPower = {
+      ddc.enable = true;
+      backends.redwoodSamsungOdysseyG9 = redwoodSamsungOdysseyG9Power;
+    };
   };
 
   flake.modules.nixos.redwood = {pkgs, ...}: {
@@ -19,6 +34,8 @@
       ++ [inputs.self.modules.generic.numtide-cache];
 
     hostConstants.hostName = "redwood";
+
+    sops.secrets.redwoodSamsungOdysseyG9Token.owner = "jakeneau";
 
     # Host facts features branch on (e.g. the graphics vendor modules).
     hostConstants.graphicsType = "amd";

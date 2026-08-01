@@ -51,7 +51,10 @@ Machine-level config: what needs root, shared by all users.
   facts](../explanation/host-facts.md).
 - `key-repeat/` — key-repeat timing declared once, shared across
   platforms.
-- `monitor-power/` — coordinates Niri DPMS with DDC/CI monitor power control.
+- `monitor-power/` — coordinates Niri DPMS with pluggable firmware backends.
+  It controls monitors through DDC/CI by default. It also provides the generic
+  Samsung Tizen factory that Redwood configures. See [monitor power
+  control](../explanation/monitor-power.md).
 - `network/` — hostname wiring from `hostConstants.hostName` on both
   platforms.
 - `printing/` — CUPS with avahi/mDNS discovery on NixOS; print-dialog
@@ -74,8 +77,8 @@ quirks aspect.
 
 - `aspen/` — Jake's personal MacBook (darwin).
 - `cedar/` — the macOS work laptop (darwin).
-- `redwood/` — the NixOS desktop (plus its generated hardware config and
-  the minecraft server definitions).
+- `redwood/` — the NixOS desktop, its generated hardware config, its Minecraft
+  server definitions, and its Samsung Odyssey monitor power backend.
 - `spruce/` — the NixOS laptop (placeholder hardware config until the
   machine exists).
 
