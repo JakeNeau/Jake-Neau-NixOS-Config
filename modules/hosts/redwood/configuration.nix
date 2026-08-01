@@ -78,6 +78,9 @@
 
     boot.kernelParams = ["video=5120x1440"];
 
+    # Redwood's firmware supports S3, while s2idle wedges the AMD resume path.
+    systemd.sleep.settings.Sleep.MemorySleepMode = "deep";
+
     boot.kernelPatches = [
       {
         # Patches for running steamVR

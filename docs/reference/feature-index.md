@@ -77,8 +77,9 @@ quirks aspect.
 
 - `aspen/` — Jake's personal MacBook (darwin).
 - `cedar/` — the macOS work laptop (darwin).
-- `redwood/` — the NixOS desktop, its generated hardware config, its Minecraft
-  server definitions, and its Samsung Odyssey monitor power backend.
+- `redwood/` — the NixOS desktop, its generated hardware config, deep-only S3
+  suspend policy, Minecraft server definitions, and Samsung Odyssey monitor
+  power backend.
 - `spruce/` — the NixOS laptop (placeholder hardware config until the
   machine exists).
 
