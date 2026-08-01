@@ -140,6 +140,7 @@ declaration, the rest are hand-written aspects.
   activation about an unmanaged `~/.gitconfig`.
 - `homebrew/` — the Homebrew cask list for packages that work better
   outside nixpkgs.
+- `hyprlock/` — styled screen locker for niri sessions.
 - `jujutsu/` — jj, a git-compatible VCS, configured through home-manager.
 - `karabiner/` — the macOS key-remapping daemon (app from homebrew).
 - `kubernetes/` — install-only declaration: kubectl + k9s behind a
