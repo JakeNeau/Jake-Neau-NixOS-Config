@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# PreToolUse on mcp__clickup__*. ClickUp's MCP grant is OAuth-only and always
+# workspace read/write — it offers no read-only scope — so writes are gated on
+# this side instead. A read tool is auto-approved; everything else escalates to
+# the user. Permission rules cannot express this: deny and ask both outrank
+# allow regardless of specificity, so a `deny`/`ask` glob over the server admits
+# no read-tool exception.
+set -euo pipefail
+
+# Without jq the tool name is unreadable, so make no decision and let the normal
+# permission flow run. MCP tools prompt by default there, which errs toward
+# asking rather than toward a silent write.
+jq_bin=$(command -v jq || true)
+[ -n "$jq_bin" ] || exit 0
+
+input=$(cat)
+tool=$("$jq_bin" -r '.tool_name // empty' <<<"$input" 2>/dev/null || true)
+
+# The registered matcher already scopes this hook, but a decision that reaches
+# another server's tools would be a serious misfire. Re-check rather than trust it.
+case "$tool" in
+mcp__clickup__*) ;;
+*) exit 0 ;;
+esac
+
+name=${tool#mcp__clickup__}
+lower=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]')
+
+# Split camelCase and snake_case into space-delimited words so a verb can be
+# matched as a whole token. A raw substring scan cannot: "readDocument" contains
+# "add", and "getTaskSettings" contains "set".
+words=" $(printf '%s' "$name" |
+	sed 's/\([a-z0-9]\)\([A-Z]\)/\1 \2/g' |
+	tr '[:upper:]' '[:lower:]' |
+	tr '_-' '  ') "
+
+# ---- classify --------------------------------------------------------------
+
+# Anything unrecognized falls through as `ask`, so a tool ClickUp adds later is
+# never silently allowed.
+decision=ask
+reason="ClickUp tool '$name' is not on the read-only allowlist. Approve only if you intend to modify the workspace."
+
+# Two independent disqualifiers back each other up. Whole-token matching catches
+# the normal naming (searchAndCreateTask), while the substring scan catches a
+# run-together name no tokenizer can split (getupdatetask). The substring list
+# holds only verbs long enough that they cannot hide inside an innocent word.
+mutating_token=" create update delete remove add set move copy archive assign post edit write upload duplicate merge bulk import start stop "
+has_mutating_token=false
+for word in $words; do
+	[[ $mutating_token == *" $word "* ]] && has_mutating_token=true && break
+done
+
+if [[ $lower =~ ^(get|list|search|read|find|describe|fetch|query|view) ]] &&
+	[[ $has_mutating_token == false ]] &&
+	! [[ $lower =~ (create|update|delete|remove|archive|duplicate|upload) ]]; then
+	decision=allow
+	reason="Read-only ClickUp tool."
+fi
+
+# ---- emit the decision -----------------------------------------------------
+
+"$jq_bin" -n --arg d "$decision" --arg r "$reason" \
+	'{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: $d, permissionDecisionReason: $r}}'

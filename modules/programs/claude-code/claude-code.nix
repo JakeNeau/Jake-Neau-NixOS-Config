@@ -101,6 +101,13 @@
             matcher = "Edit|Write";
             hooks = [(cmd "~/.claude/hooks/edit-briefing")];
           }
+          # Auto-approves ClickUp's read tools and escalates every other one to
+          # the user. Unlike the briefings above this one does decide, because
+          # ClickUp grants no read-only scope of its own.
+          {
+            matcher = "mcp__clickup__.*";
+            hooks = [(cmd "~/.claude/hooks/clickup-read-only")];
+          }
         ];
         # Restates the code-writing-flow order once the plan is approved.
         PostToolUse = [
@@ -287,6 +294,11 @@
       programs.mcp = {
         enable = true;
         servers.nixos.command = lib.getExe pkgs.mcp-nixos;
+
+        # ClickUp's first-party remote server. Auth is OAuth-only (it rejects
+        # personal API tokens), so no secret belongs here — authorize once per
+        # machine with `/mcp` in a Claude Code session.
+        servers.clickup.url = "https://mcp.clickup.com/mcp";
       };
 
       # Merge our policy into the live settings.json rather than owning the file:
