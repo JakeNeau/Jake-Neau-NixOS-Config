@@ -313,6 +313,20 @@
         mv "$tmp" "$settings"
       '';
 
+      # Claude Code loads a plugin from every subdirectory of skills/, and a
+      # home-manager backup keeps the plugin.json name it copied — so a backup
+      # left beside the managed plugin shadows it, and the MCP servers the
+      # plugin carries vanish with no error. Move any backup out of the tree
+      # rather than deleting it: the clashing content may not be reproducible.
+      home.activation.claudeCodeSkillBackups = lib.hm.dag.entryAfter ["linkGeneration"] ''
+        for backup in "$HOME"/.claude/skills/*.backup; do
+          [ -e "$backup" ] || continue
+          mkdir -p "$HOME/.claude/skill-backups"
+          # Timestamped, so a later clash cannot nest inside an earlier backup
+          mv "$backup" "$HOME/.claude/skill-backups/$(basename "$backup").$(date +%s)"
+        done
+      '';
+
       # keybindings.json, unlike settings.json, is read-only to Claude Code (it
       # never rewrites it), so a declarative Nix-store symlink is safe here.
       # alt+j/k scroll by line and alt+shift+j/k by half page, in both the

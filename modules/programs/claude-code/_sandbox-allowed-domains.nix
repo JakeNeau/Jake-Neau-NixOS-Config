@@ -64,4 +64,7 @@
   "claude.ai"
   "claude.com"
   "*.claude.com"
+  # Work tools
+  "clickup.com"
+  "*.clickup.com"
 ]

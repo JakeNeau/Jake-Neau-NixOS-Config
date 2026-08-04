@@ -50,6 +50,14 @@ The subsystem splits `~/.claude` by who writes it:
   hook event must list its complete set.
 - **`keybindings.json` is read-only to Claude Code**, so it *is* a plain
   declarative file, like the status-line script.
+- **The MCP and LSP servers arrive as a plugin**, which home-manager links as
+  one symlink at `~/.claude/skills/claude-code-home-manager`. Claude Code
+  loads a plugin from *every* subdirectory of `skills/`, and a backup keeps
+  the `plugin.json` name it copied — so a backup left beside the managed
+  plugin shadows it and the servers it carries disappear with no error. Since
+  `hr` passes `-b backup`, the `claudeCodeSkillBackups` activation entry moves
+  any `*.backup` out to `~/.claude/skill-backups/`, rather than deleting
+  content that may not be reproducible.
 
 ## Sandbox and hooks as policy
 
