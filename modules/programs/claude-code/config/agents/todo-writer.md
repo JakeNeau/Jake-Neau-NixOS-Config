@@ -68,9 +68,20 @@ Spawn only `todo-writer` subagents, and only in case 3.
   on it.
 
 # ------------
+# Verify what you wrote
+# ------------
+
+Write once, then check it landed. Re-read each destination you touched and confirm,
+item by item, that the entry is actually there, that it matches the destination's
+format, and that it reads self-contained to someone with none of today's context.
+Fix anything that fails that reading. An item you believe you recorded but cannot
+find is a lost item — report it as unwritten rather than assuming it took.
+
+# ------------
 # Output
 # ------------
 
-Report where each item was written (destination + entry), which items were
-skipped as duplicates, and — in the fan-out case — the destinations you spawned
-subagents for and what each reported back.
+Report where each item was written (destination + entry) and that you confirmed
+each one by re-reading it, which items were skipped as duplicates, and — in the
+fan-out case — the destinations you spawned subagents for and what each reported
+back. Name any item you could not confirm.

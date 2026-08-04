@@ -61,45 +61,48 @@ types. Do not trust that the code merely looks right.
 
 When you suspect latent bugs beyond the change at hand, follow
 [[skill:bug-hunting]]. Follow it also when you want an adversarial hunt over a
-risky surface. Always dispatch the [[agent:bug-finder]] subagent. Never hunt
-inline.
+risky surface. Dispatch the [[agent:bug-finder]] subagent to do it. A hunt is
+read-only: it looks for the bugs nobody has pointed at yet, and it changes
+nothing.
 
-For any surface wider than one module, always partition the surface into
-independent grounds. Always dispatch bug-finders **in parallel**, one per ground.
-Then merge and re-rank their findings per the skill.
+For any surface wider than one module, partition the surface into independent
+grounds. Dispatch bug-finders **in parallel**, one per ground. Then merge and
+re-rank their findings per the skill. Report them ranked by confidence, each with
+a concrete failure scenario and a suggested fix.
 
-The bug-finder hunt is the proactive counterpart to [[agent:code-reviewer]],
-which proves a specific diff correct. It is a read-only hunt for the bugs nobody
-has pointed at yet. It reports them ranked by confidence, with a suggested fix
-for each.
+This hunt is the proactive counterpart to [[agent:code-reviewer]], which proves a
+specific diff correct — §7.
 
-## 9. Delegate non-trivial code to the code-writer agent
+## 9. Follow the code-writing flow for non-trivial code
 
-Non-trivial code follows the development flow. Settle the design with me first
-through [[skill:brainstorming]], captured as a [[skill:specs]] file. Then hand
-that approved design to the [[agent:code-writer]] subagent rather than writing
-the code freehand.
+Settle the design with me first through [[skill:brainstorming]], captured as a
+[[skill:specs]] file. Then run the stages of [[skill:code-writing-flow]], in its
+order. Read that skill before you start. Each stage is a subagent. You orchestrate
+them, because they run headless and see none of this conversation.
 
-The code-writer subagent runs the flow's headless middle. It plans the work, and
-plan-verifier verifies that plan. It implements test-first with test-writer and
-test-verifier. It documents the code with comment-writer. It proves the code
-correct with code-reviewer, and it loops until the review is clean. You handle
-the interactive ends: the design, and finishing the branch.
+The order is [[agent:plan-writer]], **my call on the plan**,
+[[agent:pseudocode-writer]], **your explanation of every pseudocode section to
+me**, [[agent:pseudocode-verifier]], [[agent:code-writer]],
+[[agent:code-reviewer]], [[agent:doc-writer]], [[agent:doc-reviewer]],
+[[agent:comment-writer]], [[agent:comment-style-enforcer]].
 
-Delegation is mandatory because a `PreToolUse` hook blocks direct main-session
-file writes. Every change must go through a subagent, even a one-line edit.
+Two of those stages are mine, and they are the reason the flow exists. At the
+plan, I may ask you to clarify, extend, or modify it. Take clarify and modify
+straight back to [[agent:plan-writer]]; never patch the plan yourself. At the
+pseudocode, walk me through every section — what it does, why it exists, how it
+connects. My understanding of the design matters more than your speed through it.
+Assume I am unfamiliar, per §12.
 
-The code-writer subagent runs headless and sees none of this conversation, so you
-own what it cannot do. Settle unclear intent with me first. Pass the full task
-context when you hand off. Relay any question it returns, and re-invoke it with
-the answers and the findings it sent back. In plan mode, ask it for the verified
-plan only. Present that plan to me, and have it implement the plan after I
-approve.
+Hand each stage the full brief and carry the `file:line` facts forward, so no
+stage re-derives what an earlier one proved. When something breaks along the way,
+find the root cause first per [[skill:systematic-debugging]] — never patch blind.
+Prove the result per §7 and [[skill:verification-before-completion]] before you
+call it done, then finish the branch per
+[[skill:finishing-a-development-branch]].
 
-If you draft a plan yourself in plan mode rather than via [[agent:code-writer]],
-offer to run [[agent:plan-verifier]] on that plan. Do this before you ask me to
-approve it. Present its verdict alongside the plan, so I can choose to proceed or
-refine further.
+Scaling the flow down for a small change is fine. Tell me which stages you skipped
+and why. When I ask for [[agent:simple-code-writer]], I am skipping the flow on
+purpose — just write the code.
 
 ## 10. Reach for the internet liberally
 

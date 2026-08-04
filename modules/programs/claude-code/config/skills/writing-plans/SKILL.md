@@ -1,6 +1,6 @@
 ---
 name: writing-plans
-description: How to write an implementation plan rigorous enough for an engineer with zero context on the codebase — map the file structure first, break the work into bite-sized tasks with exact paths, complete code, and exact commands, forbid placeholders, and self-review the plan against the spec. The result fills the Plan and Tasks sections of the specs/ file per [[skill:specs]], and the approved plan is handed to [[agent:code-writer]] to execute. Use when a design or spec exists for a multi-step task and you need the implementation plan, before touching code.
+description: How to write an implementation plan rigorous enough for an engineer with zero context on the codebase — map the file structure first, break the work into bite-sized tasks with exact paths, complete code, and exact commands, forbid placeholders, and self-review the plan against the spec. The result fills the Plan and Tasks sections of the specs/ file per [[skill:specs]], and is written by [[agent:plan-writer]] as the first stage of [[skill:code-writing-flow]]. Use when a design or spec exists for a multi-step task and you need the implementation plan, before touching code.
 ---
 
 # Writing plans
@@ -172,9 +172,11 @@ and returns the specific holes to fix.
 
 ## Execution handoff
 
-Once the plan is verified and the user approves it, hand it to
-[[agent:code-writer]] to implement — it executes the plan task by task,
-test-first, and proves the result with [[agent:code-reviewer]].
+The plan is written by [[agent:plan-writer]] and verified by
+[[agent:plan-verifier]]. Once the user approves it, it does **not** go straight to
+code: the next stage is [[agent:pseudocode-writer]], whose per-section
+explanations are what the user builds their mental model from. See
+[[skill:code-writing-flow]] for the whole order.
 
 *Adapted from [Superpowers](https://github.com/obra/superpowers) by Jesse
 Vincent (MIT).*
@@ -184,5 +186,7 @@ Vincent (MIT).*
 - [[skill:specs]] — the file whose `## Plan` / `## Tasks` sections this skill fills
 - [[skill:brainstorming]] — produces the approved design this plan implements
 - [[skill:test-driven-development]] — the test-first cycle every task encodes
+- [[skill:code-writing-flow]] — the stage order the approved plan feeds into
+- [[agent:plan-writer]] — the agent that writes this plan
 - [[agent:plan-verifier]] — adversarial verification before execution
-- [[agent:code-writer]] — executes the approved plan
+- [[agent:pseudocode-writer]] — the stage that renders the approved plan next

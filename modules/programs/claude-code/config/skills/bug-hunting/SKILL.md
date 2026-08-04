@@ -131,8 +131,8 @@ The hunt is read-only on the repo. Use the shell only to inspect — `git`
 diff/log/blame/show, searches, builds, running the existing tests to observe
 behavior — and to run repros in the scratch or tmp directory, never a tracked
 file. Calibrate effort to risk, going deepest where a bug would hurt most. Hand
-a bug off to [[agent:code-writer]] to fix — the hunter finds and proves, it
-does not repair.
+a proven bug back to whichever stage owns that code — [[agent:code-writer]] for
+code the flow just produced — the hunter finds and proves, it does not repair.
 
 ## Output
 

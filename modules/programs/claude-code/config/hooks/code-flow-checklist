@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+# Stop hook. Audits the session transcript: if code was edited but a stage of the
+# code-writing flow never ran, name the missing stages. Advisory only — it emits
+# additionalContext and always exits 0, so the session continues either way. The
+# gates this replaced blocked with exit 2; a soft gate informs and lets the session
+# decide, because a deliberately scaled-down flow is legitimate.
+set -euo pipefail
+
+input=$(cat)
+
+# Tolerate jq being absent — without it there is no reliable way to read the
+# transcript, so stay silent rather than guess.
+jq_bin=$(command -v jq || true)
+[ -n "$jq_bin" ] || exit 0
+
+transcript=$("$jq_bin" -r '.transcript_path // empty' <<<"$input" 2>/dev/null || true)
+stop_hook_active=$("$jq_bin" -r '.stop_hook_active // false' <<<"$input" 2>/dev/null || true)
+
+# Already fired once this stop — say it once, never twice. Spelled as an `if`
+# rather than `test && exit`, whose failure status would trip `set -e`.
+if [ "$stop_hook_active" = "true" ]; then exit 0; fi
+
+# Missing or unreadable transcript — nothing to audit.
+[ -f "$transcript" ] || exit 0
+
+# Every Write/Edit target in the session. Claude's own working files under
+# ~/.claude (plans, memory, task state) are not project code, so a session that
+# only touched those has written no code and needs no checklist.
+edited=$("$jq_bin" -r '
+  .message.content[]?
+  | select(.type=="tool_use" and (.name=="Write" or .name=="Edit" or .name=="NotebookEdit"))
+  | .input.file_path // empty
+' "$transcript" 2>/dev/null || true)
+
+code_edited=false
+while IFS= read -r path; do
+  [ -n "$path" ] || continue
+  case "$path" in
+    "$HOME"/.claude/*) ;;
+    *) code_edited=true; break ;;
+  esac
+done <<<"$edited"
+
+[ "$code_edited" = "true" ] || exit 0
+
+# simple-code-writer is the sanctioned way to skip the flow, so its presence means
+# the user already opted out — stay quiet.
+dispatched=$("$jq_bin" -r '
+  .message.content[]?
+  | select(.type=="tool_use" and .name=="Agent")
+  | .input.subagent_type // empty
+' "$transcript" 2>/dev/null || true)
+
+if grep -qx 'simple-code-writer' <<<"$dispatched"; then exit 0; fi
+
+# One line per stage that never ran, in flow order. code-writer is deliberately
+# absent: writing code directly is legitimate, so its absence is not a skipped
+# stage and flagging it would fire on every hand edit.
+missing=""
+for stage in \
+  "plan-writer|plan-writer (fill the spec's Plan and Tasks)" \
+  "pseudocode-writer|pseudocode-writer (and explain every section to the user)" \
+  "pseudocode-verifier|pseudocode-verifier (prove the pseudocode matches the plan)" \
+  "code-reviewer|code-reviewer (prove the diff correct)" \
+  "doc-writer|doc-writer (document the change, retire the consumed spec)" \
+  "doc-reviewer|doc-reviewer (prove doc coverage and accuracy)" \
+  "comment-writer|comment-writer (add the comments, listed one by one)" \
+  "comment-style-enforcer|comment-style-enforcer (conform every comment to the house style)"
+do
+  name=${stage%%|*}
+  grep -qx "$name" <<<"$dispatched" || missing="${missing}
+  - ${stage#*|}"
+done
+
+# Every stage ran — nothing worth saying.
+[ -n "$missing" ] || exit 0
+
+context="This session edited code. These code-writing-flow stages never ran:${missing}
+
+Skipping stages is allowed — a small change does not earn the full flow, and the user may have asked for less. But say which you skipped and why, rather than leaving it unsaid. See [[skill:code-writing-flow]]."
+
+"$jq_bin" -n --arg ctx "$context" '{
+  hookSpecificOutput: {
+    hookEventName: "Stop",
+    additionalContext: $ctx
+  }
+}'

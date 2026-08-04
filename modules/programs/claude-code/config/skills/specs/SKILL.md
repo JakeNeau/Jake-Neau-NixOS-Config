@@ -44,12 +44,15 @@ Every spec file has the same three sections:
 
 A spec is not a permanent source of truth; it is consumed:
 
-1. **Write** — [[agent:spec-writer]] reasons about the architecture and writes the spec.
-2. **Implement** — [[agent:code-writer]] finds the applicable spec (via [[agent:spec-reader]])
-   and builds it.
+1. **Write** — [[agent:spec-writer]] reasons about the architecture and writes the
+   `## Spec`; [[agent:plan-writer]] then fills `## Plan` and `## Tasks`.
+2. **Implement** — the stages of [[skill:code-writing-flow]] consume it: the
+   pseudocode goes into a `## Pseudocode` section, then [[agent:code-writer]]
+   builds it.
 3. **Document** — the durable *why* graduates into the project's Diátaxis docs
    (an explanation page or ADR — see [[skill:diataxis]]).
-4. **Delete** — the consumed spec is removed; a whole file when fully implemented,
+4. **Delete** — [[agent:doc-writer]] removes the consumed spec once that
+   documentation exists; a whole file when fully implemented,
    just the consumed sections when partial.
 
 So **match a spec's durability to the change it describes**: it exists to get the
@@ -79,13 +82,16 @@ that keeps the future open wins.
   fork to the user instead of guessing.
 - **[[agent:spec-reader]]** — reads the `specs/` directory to report what is already
   specced, quoting the relevant passages.
-- **[[agent:code-writer]]** — consumes an applicable spec, then retires it after the
-  documentation step.
+- **[[agent:plan-writer]]** — fills the spec's `## Plan` and `## Tasks` once the
+  design in `## Spec` is approved.
+- **[[agent:doc-writer]]** — retires the spec after its rationale reaches the docs.
 
 ## Related skills
 
 - [[skill:diataxis]] — where a spec's durable rationale graduates to; specs are the
   transient pre-implementation counterpart to those lasting docs.
-- [[agent:spec-writer]] — the agent that writes and verifies specs.
-- [[agent:spec-reader]] — the agent that reads them.
-- [[agent:code-writer]] — the agent that implements a spec and retires it.
+- [[skill:code-writing-flow]] — the stages that consume a spec, in order.
+- [[agent:spec-writer]] — the agent that writes and verifies the `## Spec`.
+- [[agent:plan-writer]] — the agent that fills `## Plan` and `## Tasks`.
+- [[agent:spec-reader]] — the agent that reads specs.
+- [[agent:doc-writer]] — the agent that retires a consumed spec.

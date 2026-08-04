@@ -94,31 +94,27 @@
           timeout = 10;
         };
       in {
+        # Annotates an edit's accept/deny prompt with a WHY/WHAT/WHERE/RELATES
+        # briefing (edit-briefing spec). Advisory only — it never blocks an edit.
         PreToolUse = [
-          {
-            matcher = "ExitPlanMode";
-            hooks = [(cmd "~/.claude/hooks/plan-verifier-gate")];
-          }
-          {
-            matcher = "Write|Edit|NotebookEdit";
-            hooks = [(cmd "~/.claude/hooks/code-writer-gate")];
-          }
-          # Annotates a subagent's edit prompt with a WHY/WHAT/WHERE/RELATES
-          # briefing (edit-briefing spec). Appended here, not a standalone entry:
-          # the jq `*` merge replaces arrays wholesale, so a separate PreToolUse
-          # registration would drop the two hooks above.
           {
             matcher = "Edit|Write";
             hooks = [(cmd "~/.claude/hooks/edit-briefing")];
           }
         ];
+        # Restates the code-writing-flow order once the plan is approved.
         PostToolUse = [
           {
             matcher = "ExitPlanMode";
-            hooks = [
-              (cmd "~/.claude/hooks/comment-style-enforcer-reminder")
-              (cmd "~/.claude/hooks/code-writer-plan-reminder")
-            ];
+            hooks = [(cmd "~/.claude/hooks/code-flow-reminder")];
+          }
+        ];
+        # Names any code-writing-flow stage that never ran. Both of these are soft
+        # gates: they only inject context, so neither can block a stop or a tool
+        # call the way the gates they replaced did.
+        Stop = [
+          {
+            hooks = [(cmd "~/.claude/hooks/code-flow-checklist")];
           }
         ];
         SessionStart = [
@@ -128,18 +124,6 @@
               (cmd "~/.claude/hooks/agents-md-context")
               # development-flow map (the hook explains why it lives there, not in CLAUDE.md)
               (cmd "~/.claude/hooks/session-flow-map")
-            ];
-          }
-        ];
-        # SubagentStop gates for code-review enforcement (code-review-gates spec).
-        # Both hooks self-filter by agent_type; matchers are omitted per spec design.
-        # NOTE: jq's `*` replaces arrays wholesale in the policy merge, so removal of
-        # these hooks later requires a manual jq-delete from ~/.claude/settings.json.
-        SubagentStop = [
-          {
-            hooks = [
-              (cmd "~/.claude/hooks/code-review-writer-gate")
-              (cmd "~/.claude/hooks/code-review-comments-gate")
             ];
           }
         ];

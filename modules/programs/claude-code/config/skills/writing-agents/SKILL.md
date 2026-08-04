@@ -50,14 +50,24 @@ trusting a snapshot, since fields change.
 ## Worked examples
 
 This config already ships a family of agents — read them as templates for the shape
-above. [[agent:code-writer]] is the orchestrator that turns a task into proven code; it
-leans on the code-verification family — [[agent:code-reviewer]] (the capstone),
-[[agent:test-writer]], [[agent:test-verifier]], [[agent:codebase-investigator]], [[agent:comment-writer]],
-and [[agent:comment-style-enforcer]] — plus [[agent:plan-verifier]] to vet its spec and the
-standalone [[agent:web-researcher]]. A documentation family mirrors it — [[agent:doc-writer]]
-(authors docs), [[agent:doc-reader]] (read-only retrieval), and [[agent:doc-reviewer]] (the
-coverage/accuracy capstone), all following [[skill:diataxis]]. Each is a
-single-responsibility prompt with a least-privilege tool set.
+above. Most of them are stages of [[skill:code-writing-flow]], which the main
+session drives in order: [[agent:plan-writer]], [[agent:pseudocode-writer]],
+[[agent:pseudocode-verifier]], [[agent:code-writer]], [[agent:code-reviewer]],
+[[agent:doc-writer]], [[agent:doc-reviewer]], [[agent:comment-writer]], and
+[[agent:comment-style-enforcer]]. [[agent:simple-code-writer]] is the deliberate
+escape hatch from that flow.
+
+They lean on a supporting cast: [[agent:codebase-investigator]] and
+[[agent:web-researcher]] to establish facts, [[agent:test-writer]] and
+[[agent:test-verifier]] for the test cycle, [[agent:plan-verifier]] to vet a plan,
+[[agent:spec-writer]] and [[agent:spec-reader]] for [[skill:specs]],
+[[agent:doc-reader]] for read-only doc retrieval, [[agent:bug-finder]] for the
+adversarial hunt, [[agent:todo-writer]] to record deferred work, and
+[[agent:git-vcs]] / [[agent:jujutsu-vcs]] for version control.
+
+Read them for the pattern rather than the roster. Each is a single-responsibility
+prompt with a least-privilege tool set, and each names the stages before and after
+it so the flow composes without any one agent owning the whole of it.
 
 ## Reference
 

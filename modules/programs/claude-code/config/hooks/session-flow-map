@@ -13,10 +13,11 @@ flow_map=$(cat <<'EOF'
 Development flow — the entry-point skill for each moment:
 - Creative work ahead (a feature, design, or architecture choice): settle the
   design interactively via [[skill:brainstorming]]; capture it in a [[skill:specs]] file.
-- Turning an approved design into an implementation plan: [[skill:writing-plans]]
-  fills the spec's ## Plan / ## Tasks; verify with the plan-verifier agent.
-- Implementing: delegate non-trivial code to the code-writer agent; code written
-  directly follows [[skill:test-driven-development]] (RED-GREEN-REFACTOR).
+- Building non-trivial code from that design: [[skill:code-writing-flow]] — you
+  drive the stages in order (plan, your call on it, pseudocode, explain it to me,
+  verify, code, review, docs, doc review, comments, comment style).
+- Implementing directly, or inside the code stage: [[skill:test-driven-development]]
+  (RED-GREEN-REFACTOR).
 - A bug or unexpected failure: [[skill:systematic-debugging]] — find the root
   cause before any fix, never patch blind.
 - Code-review feedback arrives: [[skill:receiving-code-review]] — verify before

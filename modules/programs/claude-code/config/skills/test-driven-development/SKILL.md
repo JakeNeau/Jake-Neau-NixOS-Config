@@ -12,10 +12,10 @@ tests the right thing.
 
 **Violating the letter of the rules is violating the spirit of the rules.**
 
-Non-trivial implementation work runs through [[agent:code-writer]], which
-executes this cycle with its test-writer and test-verifier subagents; this
-skill governs any code you write directly — the discipline is identical either
-way.
+Non-trivial implementation work reaches this cycle through the implementation
+stage of [[skill:code-writing-flow]]: [[agent:code-writer]] runs RED-GREEN-REFACTOR
+with its test-writer subagent. This skill governs any code you write directly —
+the discipline is identical either way.
 
 ## When to use
 
@@ -350,6 +350,7 @@ Vincent (MIT).*
 
 - [[skill:systematic-debugging]] — root cause before the failing test, for bug fixes
 - [[skill:verification-before-completion]] — evidence before claiming the work done
-- [[agent:code-writer]] — runs this cycle end to end for non-trivial changes
+- [[skill:code-writing-flow]] — the stage order this cycle sits inside
+- [[agent:code-writer]] — the implementation stage, which runs this cycle
 - [[agent:test-writer]] — writes the failing test (RED) for a stated behavior
 - [[agent:test-verifier]] — proves a test genuinely bites

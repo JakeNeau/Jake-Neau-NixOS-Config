@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # PreToolUse briefing on Edit|Write: prints a compact WHY/WHAT/WHERE/RELATES
-# briefing above a subagent's accept/deny prompt. Pure plumbing — the WHY comes
+# briefing above the accept/deny prompt, whether the edit comes from the main
+# session or from a subagent stage. Pure plumbing — the WHY comes
 # from the session ledger the acting agent appended (see the edit-briefing-ledger
 # rule); the rest is deterministic rg/git evidence. Never blocks or fails an edit:
 # every error path exits 0 with no output (fail-open).
@@ -21,9 +22,7 @@ old_string=$(j '.tool_input.old_string')
 new_string=$(j '.tool_input.new_string')
 content=$(j '.tool_input.content')
 
-# --- Gate: only a subagent edit that will actually raise a prompt ---
-# agent_type is empty for main-session edits (already blocked by code-writer-gate).
-[ -n "$agent_type" ] || exit 0
+# --- Gate: only an edit that will actually raise a prompt ---
 # Whitelist "default": only that mode raises a prompt — acceptEdits/bypassPermissions/
 # plan auto-approve (a briefing there is noise), and an unreadable mode must stay
 # quiet too, since a "ask" payload would force a prompt inside an auto-approve run.
@@ -117,7 +116,8 @@ if [ -f "$led" ]; then
 fi
 
 # --- Assemble and surface (single formatter — the growth seam) ---
-briefing="Edit briefing (${agent_type})"
+# agent_type is empty for a main-session edit, so the bare label is the fallback.
+briefing="Edit briefing${agent_type:+ ($agent_type)}"
 [ -n "$why" ]   && briefing="${briefing}"$'\n'"WHY: ${why}"
 briefing="${briefing}"$'\n'"WHAT: ${shape}"
 [ -n "$where" ] && briefing="${briefing}"$'\n'"WHERE: ${file_path} (${where})"

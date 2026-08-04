@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# PostToolUse on ExitPlanMode. Plan approval is the moment the code-writing flow
+# starts, so restate its order here. A hook runs only shell and cannot dispatch a
+# subagent, so it injects the order as context and leaves the choice to Claude —
+# advisory by design, unlike the blocking gates this replaced.
+cat <<'EOF'
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PostToolUse",
+    "additionalContext": "Plan approved — this is the start of the code-writing flow ([[skill:code-writing-flow]]). Read that skill now if you have not. You orchestrate; each stage is a headless subagent that sees only the brief you hand it. The order is: pseudocode-writer, then EXPLAIN every pseudocode section to the user and answer their questions (their mental model is the point of that gate — do not skim it), then pseudocode-verifier, code-writer, code-reviewer, doc-writer (which also retires the consumed spec), doc-reviewer, comment-writer, and finally comment-style-enforcer. Carry the file:line facts from stage to stage so no stage re-locates the same code. Scale the flow down for a small change if you say which stages you are skipping and why; the user asks for simple-code-writer when they want the flow skipped entirely."
+  }
+}
+EOF
