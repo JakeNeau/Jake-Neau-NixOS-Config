@@ -12,21 +12,26 @@
   flake.modules.homeManager.sioyek = {
     pkgs,
     lib,
+    options,
     ...
   }:
     lib.mkMerge [
       {
         programs.sioyek = {
           enable = true;
-          # Next/previous page bound to vim-style Ctrl+J / Ctrl+K. Sioyek has no
-          # clean per-key unbind, so these layer on top of any built-in keys for
-          # these commands, which keep working too.
           bindings = {
+            # Override Sioyek's modal highlight binding with Vim-style movement.
+            "move_right" = "h";
             "next_page" = "<C-j>";
             "previous_page" = "<C-k>";
           };
         };
       }
+
+      (lib.optionalAttrs (options ? stylix.targets.sioyek.enable) {
+        # Stylix enables Sioyek's image-distorting custom-color shader at startup.
+        stylix.targets.sioyek.enable = false;
+      })
 
       # Linux: register sioyek as the default PDF handler via XDG mimeapps.
       (lib.mkIf pkgs.stdenv.isLinux {

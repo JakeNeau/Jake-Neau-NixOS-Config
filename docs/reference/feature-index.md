@@ -169,7 +169,9 @@ declaration, the rest are hand-written aspects.
   `secrets/secrets.yaml` at activation. See [Add a
   secret](../how-to/declarations/add-a-secret.md),
   [secrets](../explanation/secrets.md).
-- `sioyek/` — keyboard-driven PDF reader.
+- `sioyek/` — keyboard-driven PDF reader. Its home configuration disables the
+  Stylix target because Sioyek's custom-color shader distorts PDF colors, and
+  maps `h` to Vim-style movement instead of the upstream highlight command.
 - `spotify/` — Spotify, wrapped to launch with `--in-process-gpu`.
 - `swaybg/` — wayland wallpaper setter.
 - `udiskie/` — automatic removable-media mounting.
