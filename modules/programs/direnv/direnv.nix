@@ -9,6 +9,10 @@
     programs.direnv = {
       enable = true;
       nix-direnv.enable = true;
+
+      # A nix devshell exports well over a hundred variables, so the default
+      # env diff buries the load messages worth reading on every cd.
+      settings.global.hide_env_diff = true;
     };
   };
 
