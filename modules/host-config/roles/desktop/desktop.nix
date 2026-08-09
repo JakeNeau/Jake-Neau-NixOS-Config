@@ -136,6 +136,7 @@
   flake.modules.darwin.role-desktop = {
     imports = with inputs.self.modules.darwin; [
       role-default
+      ac-power
       fish
       graphics
       homebrew

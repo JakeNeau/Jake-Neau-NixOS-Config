@@ -33,6 +33,7 @@ compose: [the flake machinery](../explanation/flake-machinery.md).
 
 Machine-level config: what needs root, shared by all users.
 
+- `ac-power/` prevents idle system sleep on macOS while connected to AC power.
 - `audio/` — the NixOS sound stack: pipewire (alsa/pulse/jack bridges) and
   rtkit, plus the GUI tools to operate it.
 - `caps-dual-role/` — caps lock as ctrl-when-held / escape-when-tapped on
