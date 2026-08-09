@@ -74,9 +74,9 @@ account and registers the group membership.
 Group membership only takes effect on a fresh login (`newgrp config` works
 for a single shell). The user then activates their own home — the first time
 with the ad-hoc bootstrap command (see
-[first home activation](../bootstrap-machine.md#first-home-activation-per-user)),
-`hr` from then on. Before that first command they must run
-[let git open the root-owned repo](../bootstrap-machine.md#let-git-open-the-root-owned-repo-per-user).
+[platform bootstrap procedure](../bootstrap-machine.md)),
+`hr` from then on. Before that first command they must add the root-owned
+repository to Git's safety list as shown in the same procedure.
 Without it their first `nix` command against the flake fails on repository
 ownership. Point them at the
 [first home rebuild tutorial](../../tutorials/first-home-rebuild.md).

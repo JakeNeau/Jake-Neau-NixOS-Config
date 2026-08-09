@@ -9,9 +9,9 @@ Only NixOS consumes secrets today — no darwin secrets module exists.
 
 ## 1. Have the age key available
 
-Editing `secrets/secrets.yaml` requires the age *private* key (sops must
-decrypt the file to re-encrypt it). The matching recipient is pinned in
-`.sops.yaml` at the repo root.
+Editing `secrets/secrets.yaml` requires an age *private* key that matches one
+authorized recipient. SOPS must decrypt the file before re-encrypting it.
+`.sops.yaml` lists the authorized public recipients.
 
 - **Linux hosts:** the key is already at `/etc/nixos/secrets/keys.txt`
   (root-only). Point sops at it for the edit.

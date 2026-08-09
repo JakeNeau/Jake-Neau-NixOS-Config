@@ -71,9 +71,8 @@ Interpretation:
   strand the temp file. Repair it in two steps:
   - **Immediate:** `sudo chmod -R g+w .` restores the mode bits.
   - **Durable:** run the strip-then-reapply procedure in
-    [`docs/how-to/bootstrap-machine.md`](../../../docs/how-to/bootstrap-machine.md)
-    under "Repair a machine bootstrapped before the corrected ACL" — `chmod -R -N`
-    first, then one corrected `chmod -R +a`. Do **not** just re-run `chmod +a`. It
+    [`docs/how-to/repair-config-group-access.md`](../../../docs/how-to/repair-config-group-access.md).
+    Run `chmod -R -N` first, then one corrected `chmod -R +a`. Do **not** just re-run `chmod +a`. It
     merges only into an *explicit* entry for the same group, never into an
     inherited one. So every node that inherited the narrow entry keeps it beside
     the new one — 677 of cedar's 796 nodes. The next audit then cannot tell a

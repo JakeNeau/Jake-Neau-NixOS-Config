@@ -1,9 +1,9 @@
 # The config-group trust model
 
 Why repo write access works the way it does
-(`modules/host-config/config-group/config-group.nix`). The one-time ACL
-setup, and the repair procedure for machines that predate its correction, live
-in the [bootstrap guide](../how-to/bootstrap-machine.md).
+(`modules/host-config/config-group/config-group.nix`). The [bootstrap guide](../how-to/bootstrap-machine.md) contains the one-time ACL
+setup. The [repair procedure](../how-to/repair-config-group-access.md) covers
+machines that predate its correction.
 
 ## The problem
 
