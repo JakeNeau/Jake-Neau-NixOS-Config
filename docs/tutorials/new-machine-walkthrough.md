@@ -1,90 +1,82 @@
 # New-machine walkthrough
 
-In this lesson you'll take a machine from a bare operating system to its first
-successful rebuild from this flake, declaring it as a new host along the way.
-By the end the machine is fully managed: system config from Nix, your home
-from home-manager, and the repo editable without `sudo`.
+This lesson takes a machine from an installed operating system to its first successful rebuild from this flake.
 
-The macOS and NixOS paths differ at the start (getting Nix and the repo in
-place) and converge once the host is declared. Follow the section for your
-platform, then continue from [Declare the host](#2-declare-the-host).
+You will declare a new host, activate its system, activate its user home, and grant repository access.
 
-Pick a hostname before you start — the repo names machines after trees
-(aspen, cedar, redwood, spruce). We'll write `<host>` throughout.
+Choose a tree name for `<host>`. Use the existing macOS account name or NixOS user declaration for `<user>`.
 
-## 1a. Bare OS to repo — NixOS
+## 1. Reach the repository
 
-1. Install NixOS from an [image](https://nixos.org/download/). Flash it onto a
-   USB stick — on a *nix system:
+Follow the platform procedure through the repository clone:
 
-   ```sh
-   dd if=/path/to/your/isofile of=/your/usb/disk bs=8M status=progress
-   ```
+- [NixOS installation and clone](../how-to/bootstrap-machine.md#nixos)
+- [macOS installation and clone](../how-to/bootstrap-machine.md#macos)
 
-2. After the installer finishes, replace the generated config with a clone of
-   this repo:
+On NixOS, the clone procedure preserves the generated hardware file at:
 
-   ```sh
-   cd /etc/nixos/
-   sudo rm -f configuration.nix
-   sudo git clone https://github.com/jakeneau/Jake-Neau-NixOS-Config.git
-   sudo sh -c 'mv ./Jake-Neau-NixOS-Config/* . && mv ./Jake-Neau-NixOS-Config/.* . 2>/dev/null; rm -rf ./Jake-Neau-NixOS-Config'
-   ```
+```text
+/etc/nixos-installer/hardware-configuration.nix
+```
 
-3. Place the sops age key at `secrets/keys.txt` (copied from another machine
-   or your key backup — it is never in git) and lock it down:
+Do not delete that directory before creating the host hardware module.
 
-   ```sh
-   sudo chmod 600 /etc/nixos/secrets/keys.txt
-   ```
+Set the repository path for the remaining commands:
 
-   Without it the build cannot decrypt `secrets/secrets.yaml` (user password
-   hashes live there).
+```sh
+# NixOS
+cd /etc/nixos
+# macOS uses this path instead.
+# cd /etc/nix-darwin
+```
 
-4. Capture the machine's hardware config. The installer already generated
-   one:
+## 2. Confirm the user declaration
 
-   ```sh
-   cat /etc/nixos/hardware-configuration.nix
-   ```
+Use Nix-provided ripgrep to find the account name:
 
-   Keep this output — in step 2 you'll fold it into the host's `hardware.nix`.
+```sh
+sudo nix --extra-experimental-features 'nix-command flakes' run nixpkgs#ripgrep -- \
+  'flake\.users\.<user>|flake\.users\."<user>"' modules/users
+```
 
-## 1b. Bare OS to repo — macOS
+If the command finds no declaration, create its directory and follow [Add a user](../how-to/declarations/add-a-user.md):
 
-1. Install [Nix](https://nixos.org/download/) with flakes enabled (the
-   standard multi-user installation).
+```sh
+sudo mkdir -p modules/users/<user>
+```
 
-2. Clone the repo to `/etc/nix-darwin`:
+A NixOS administrator must have a SOPS-managed password hash before the first activation. NixOS locks an immutable account that has no hash.
 
-   ```sh
-   sudo git clone https://github.com/jakeneau/Jake-Neau-NixOS-Config.git /etc/nix-darwin
-   ```
+On macOS, create the account in System Settings first. nix-darwin records existing macOS accounts but never creates them.
 
-   No sops key step: the darwin hosts don't consume sops secrets at build
-   time (the key stays outside the repo on macOS and is only needed to *edit*
-   secrets).
+Before the first system activation, edit every repository file with `sudo`. The `config` group does not exist yet.
 
-3. Make sure your macOS account exists and note its short name — on macOS the
-   account itself is created in System Settings, never by Nix; nix-darwin only
-   records its home directory.
+A fresh machine can open a temporary editor through Nix:
 
-## 2. Declare the host
+```sh
+sudo nix --extra-experimental-features 'nix-command flakes' run nixpkgs#vim -- <file>
+```
 
-Every host is two things in one file,
-`modules/hosts/<host>/configuration.nix`: a `flake.hosts.<host>` declaration
-(the structured facts the generator wires everything from) and a hand-written
-aspect (the machine's quirks). Model yours on the closest existing host —
-`spruce` for a Linux laptop, `aspen` for a Mac. A minimal macOS example:
+## 3. Declare the host
+
+Create the host directory:
+
+```sh
+sudo mkdir -p modules/hosts/<host>
+```
+
+Open `modules/hosts/<host>/configuration.nix` with the temporary editor. Model it on `spruce` for NixOS or `aspen` for macOS.
+
+A minimal macOS host has this shape:
 
 ```nix
 {inputs, ...}: {
   flake.hosts.<host> = {
-    class = "darwin";                                # or "nixos"
-    system = "aarch64-darwin";                       # the platform
-    users = ["<you>"];                               # accounts on this machine
+    class = "darwin";
+    system = "aarch64-darwin";
+    users = ["<user>"];
     globalPrograms = ["ghostty" "firefox" "fastfetch"];
-    baselines = ["role-desktop" "mac-app-util"];     # homeManager aggregates
+    baselines = ["role-desktop" "mac-app-util"];
   };
 
   flake.modules.darwin.<host> = {
@@ -94,102 +86,199 @@ aspect (the machine's quirks). Model yours on the closest existing host —
     hostConstants.isLaptop = true;
     hostConstants.graphicsType = "apple";
 
-    # repo write without sudo; the group itself comes from
-    # modules/host-config/config-group
-    users.groups.config.members = ["<you>"];
+    users.groups.config.members = ["<user>"];
   };
 }
 ```
 
-Notes as you adapt it:
-
-- `hostConstants.hostName` and `hostConstants.graphicsType` have no defaults —
-  every host must declare them.
-- **NixOS only:** the hand-written aspect also needs
-  `system.stateVersion = "<the release you're installing>";`, and the hardware
-  config from step 1a goes in `modules/hosts/<host>/hardware.nix` as a second
-  contribution to the same `flake.modules.nixos.<host>` aspect (see
-  `modules/hosts/spruce/hardware.nix` for the exact shape). The `config`
-  group's member list on NixOS is central, in
-  `modules/host-config/config-group/config-group.nix`, not per-host.
-- The declaration fields are covered in the
-  [adding-a-host guide](../how-to/declarations/add-a-host.md) and the
-  [declaration schema reference](../reference/declaration-schema.md).
-
-## 3. Stage and dry-build
-
-New files are invisible to flake evaluation until staged:
+Check the machine architecture:
 
 ```sh
-sudo git add modules/hosts/<host>/
+uname -m
 ```
 
-The commands below are the first you run as yourself rather than through `sudo`.
-So let git open the root-owned repo first, with one command from the
-[bootstrap guide](../how-to/bootstrap-machine.md).
-Without it every `nix` command here fails on repository ownership.
+Use `x86_64-linux` or `aarch64-linux` on NixOS. Use `x86_64-darwin` for an Intel Mac and `aarch64-darwin` for Apple silicon.
 
-Then prove the new host evaluates and builds without activating anything:
+Adapt these required values:
+
+- Set `class` to `"nixos"` or `"darwin"`.
+- Set `system` to the matching Nix platform.
+- Set `users` to declared accounts that belong on this host.
+- Set `hostConstants.hostName` and `hostConstants.graphicsType`.
+- Set `system.stateVersion` for NixOS.
+- Add the macOS account to `users.groups.config.members`.
+- Add the NixOS account centrally in `modules/host-config/config-group/config-group.nix`.
+
+The [host declaration guide](../how-to/declarations/add-a-host.md) defines every required host field.
+
+## 4. Add NixOS hardware configuration
+
+Skip this section on macOS.
+
+Read the preserved installer output:
 
 ```sh
-nix flake check
-nix build .#darwinConfigurations.<host>.system --no-link          # macOS
-nix build .#nixosConfigurations.<host>.config.system.build.toplevel --no-link  # NixOS
+cat /etc/nixos-installer/hardware-configuration.nix
 ```
 
-Fix anything that fails before going further — a throw here names the
-declaration at fault and the fix.
+Open `modules/hosts/<host>/hardware.nix`. Convert the generated module into a contribution to the host aspect.
 
-## 4. First rebuild
+Use `modules/hosts/spruce/hardware.nix` as the structural example. The result must have this outer shape:
 
-macOS (the first run bootstraps `darwin-rebuild` itself; afterwards plain
-`darwin-rebuild switch --flake /etc/nix-darwin` works):
+```nix
+{
+  flake.modules.nixos.<host> = {
+    config,
+    lib,
+    modulesPath,
+    ...
+  }: {
+    # Copy the generated imports, boot, filesystem, swap, and platform settings here.
+  };
+}
+```
+
+Copy the generated hardware values exactly. Do not reuse another host's device UUIDs.
+
+## 5. Format and stage the host
+
+Format the new Nix files with a temporary Alejandra package:
 
 ```sh
-sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake /etc/nix-darwin#<host>
+sudo nix --extra-experimental-features 'nix-command flakes' run nixpkgs#alejandra -- \
+  modules/hosts/<host>
 ```
 
-NixOS:
+Stage every new declaration before evaluation. Nix ignores untracked files in a Git flake.
 
 ```sh
-sudo nixos-rebuild switch --flake /etc/nixos#<host>
+sudo nix --extra-experimental-features 'nix-command flakes' run nixpkgs#git -- \
+  -C "$PWD" add modules/hosts/<host>/ modules/host-config/config-group/config-group.nix modules/users/<user>/
 ```
 
-When this finishes, the machine is running your declared configuration — and
-the `config` group now exists on the system.
+Git ignores unchanged paths. The command also stages any user or NixOS group declaration created during this walkthrough.
 
-## 5. Make the repo editable without sudo
+## 6. Complete platform prerequisites
 
-Run the one-time ACL sequence from the
-[bootstrap guide](../how-to/bootstrap-machine.md) — it hands the repo tree to
-the `config` group so members edit it directly. Then log out and back in (or
-`newgrp config`) so your membership takes effect.
+On NixOS, complete [Create and authorize an age key](../how-to/bootstrap-machine.md#3-create-and-authorize-an-age-key).
 
-## 6. Activate your home
+macOS does not consume SOPS secrets during system builds.
 
-Your home configuration is separate from the system and is activated by you.
-The very first activation is a bootstrap: the `home-manager` CLI (and the `hr`
-function that wraps it) are themselves delivered *by* your home, so neither
-exists yet. Run home-manager ad hoc this once:
+## 7. Allow user-level Nix evaluation
+
+The repository is still root-owned. Add the correct path to the current user's temporary Git safety configuration.
+
+On NixOS:
 
 ```sh
-nix run github:nix-community/home-manager -- switch -b backup --flake /etc/nix-darwin#<you>@<host>
+nix --extra-experimental-features 'nix-command flakes' run nixpkgs#git -- \
+  config --global --add safe.directory /etc/nixos
 ```
 
-(`/etc/nixos` on Linux.) From now on your home ships the CLI and the fish
-`hr` function, so every later rebuild is just:
+On macOS:
 
 ```sh
-hr
+nix --extra-experimental-features 'nix-command flakes' run nixpkgs#git -- \
+  config --global --add safe.directory /private/etc/nix-darwin
 ```
 
-Log out and in once more for a fully clean slate, and you're done: system and
-home both build from the flake, and you can edit the repo in place.
+libgit2 requires the `/private` spelling on macOS.
+
+## 8. Check and build
+
+Run every flake check:
+
+```sh
+nix --extra-experimental-features 'nix-command flakes' flake check
+```
+
+Build the new host without activating it.
+
+On NixOS:
+
+```sh
+nix --extra-experimental-features 'nix-command flakes' build \
+  .#nixosConfigurations.<host>.config.system.build.toplevel --no-link
+```
+
+On macOS:
+
+```sh
+nix --extra-experimental-features 'nix-command flakes' build \
+  .#darwinConfigurations.<host>.system --no-link
+```
+
+Fix every error before activation.
+
+## 9. Activate the system
+
+On NixOS:
+
+```sh
+sudo env NIX_CONFIG='experimental-features = nix-command flakes' \
+  nixos-rebuild switch --flake /etc/nixos#<host>
+```
+
+On macOS:
+
+```sh
+sudo nix --extra-experimental-features 'nix-command flakes' run \
+  nix-darwin/master#darwin-rebuild -- \
+  switch --flake /etc/nix-darwin#<host>
+```
+
+The activation creates the `config` group and applies the declared account membership.
+
+## 10. Grant repository access
+
+Run the platform's **Grant repository access** section in the [bootstrap guide](../how-to/bootstrap-machine.md).
+
+Log out and back in after the permission commands. Confirm the new session contains the group:
+
+```sh
+groups | grep -w config
+```
+
+## 11. Activate the user home
+
+Run Home Manager once through Nix.
+
+On NixOS:
+
+```sh
+nix run github:nix-community/home-manager -- switch -b backup \
+  --flake '/etc/nixos#"<user>@<host>"'
+```
+
+On macOS:
+
+```sh
+nix run github:nix-community/home-manager -- switch -b backup \
+  --flake '/etc/nix-darwin#"<user>@<host>"'
+```
+
+The activation installs the managed `home-manager`, `git`, `hr`, and `nr` commands.
+
+Delete the temporary unmanaged Git configuration:
+
+```sh
+rm -f ~/.gitconfig
+```
+
+## 12. Configure push access
+
+Complete [Configure GitHub push access](../how-to/bootstrap-machine.md#configure-github-push-access).
+
+Commit, verify, push, and rebuild the declared machine:
+
+```sh
+nr "Bootstrap <host>"
+```
+
+The machine is now fully managed. Future home rebuilds use `hr`, and verified system changes use `nr`.
 
 ## Where to next
 
-- Commit the new host and let `nr` (the full verify-commit-push-rebuild flow)
-  take over day-to-day rebuilds.
-- Your first at-home change: [Your first home rebuild](first-home-rebuild.md).
-- macOS extras that need one-time manual approval (Karabiner):
-  [bootstrap guide](../how-to/bootstrap-machine.md).
+- Make an at-home change with [Your first home rebuild](first-home-rebuild.md).
+- Review all host fields in [Add a host](../how-to/declarations/add-a-host.md).
+- Repair old repository permissions with [Repair config-group repository access](../how-to/repair-config-group-access.md).

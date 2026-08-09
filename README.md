@@ -105,30 +105,17 @@ for a guided lesson from bare OS to first rebuild, see
 
 ### Prerequisites
 
-**NixOS:** install from an [image file](https://nixos.org/download/). You will need a usb to flash the image onto, and a program to etch the image onto the USB. On *nix systems, dd can be used:
-```sh
-  dd if=/path/to/your/isofile of=/your/usb/disk bs=8M status=progress
-```
+Start with an installed NixOS or macOS system, internet access, and an administrator account.
 
-**macOS:** install [Nix](https://nixos.org/download/) (multi-user, with flakes enabled).
+A NixOS bootstrap also requires one authorized age private key from another machine or secure backup.
 
 ### Installation
 
-1. Clone the repo into `/etc/nixos/` (NixOS) or `/etc/nix-darwin/` (macOS)
-   ```sh
-   cd /etc/nixos/
-   rm -f configuration.nix
-   git clone https://github.com/jakeneau/Jake-Neau-NixOS-Config.git
-   mv ./Jake-Neau-NixOS-Config/* .
-   rm -rf ./Jake-Neau-NixOS-Config
-   ```
-2. Copy keys.txt into secrets/ to decrypt password hash (NixOS only; the darwin hosts consume no sops secrets)
-3. Build the system
-   ```sh
-   sudo nixos-rebuild switch --flake /etc/nixos/      # NixOS
-   sudo darwin-rebuild switch --flake /etc/nix-darwin # macOS
-   ```
-4. Run the one-time steps in the [bootstrap guide](docs/how-to/bootstrap-machine.md) (ACLs are not recorded by git, so a fresh clone needs them re-run)
+Follow the complete [bootstrap guide](docs/how-to/bootstrap-machine.md) for a declared host.
+
+Follow the [new-machine walkthrough](docs/tutorials/new-machine-walkthrough.md) when the host is not declared yet.
+
+Both procedures use Nix-provided tools. A fresh machine does not need Git or an editor installed first.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

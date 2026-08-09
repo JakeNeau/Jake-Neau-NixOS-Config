@@ -1,48 +1,80 @@
 # Bootstrap a machine
 
-Use the section for your operating system. Follow the [new-machine walkthrough](../tutorials/new-machine-walkthrough.md) first for an undeclared host.
+Use the section for your operating system. The NixOS path starts from installation media. The macOS path starts from Setup Assistant.
 
-Replace `<host>` and `<user>` with the names declared in this flake.
+Before you begin, confirm these requirements:
+
+- The machine has internet access.
+- You have an administrator account with `sudo` access.
+- `<host>` and `<user>` already exist in this flake.
+- The account name matches the declared `<user>` exactly.
+- A NixOS machine can access one authorized age private key.
+
+Follow the [new-machine walkthrough](../tutorials/new-machine-walkthrough.md) first when the host is not declared.
+
+Replace every `<host>`, `<user>`, path, and email placeholder before running a command. Do not type the angle brackets.
+
+Commands before the first system activation enable `nix-command` and flakes explicitly. The activated configuration enables them permanently.
 
 ## NixOS
 
-Install the system, activate its configuration, grant repository access, and activate the user's home.
+### 1. Install NixOS
 
-### 1. Put the repository in `/etc/nixos`
+On another computer, download the [NixOS graphical ISO](https://nixos.org/download/). Write it to a USB drive with an image-writing tool.
 
-Move the installer configuration aside, then use Nix to clone the root-owned repository.
+Boot the target machine from that USB drive. Complete the graphical installer, remove the USB drive, and reboot into the installed system.
+
+Keep the installer-generated `/etc/nixos` directory. It contains the hardware configuration for this machine.
+
+Confirm that Nix and the network work:
 
 ```sh
-# Preserve the configuration created by the NixOS installer.
+whoami
+nix --version
+getent hosts github.com
+```
+
+Stop and restore network access if the second command prints nothing.
+
+### 2. Put the repository in `/etc/nixos`
+
+Move `/etc/nixos` aside. Then use Nix-provided Git to clone the root-owned repository.
+
+```sh
+# Preserve the installer configuration and hardware data.
 sudo mv /etc/nixos /etc/nixos-installer
-# Clone this flake as a root-owned checkout with Nix-provided Git.
-sudo nix run nixpkgs#git -- clone https://github.com/jakeneau/Jake-Neau-NixOS-Config.git /etc/nixos
+# Clone without requiring Git to be installed globally.
+sudo nix --extra-experimental-features 'nix-command flakes' run nixpkgs#git -- \
+  clone https://github.com/jakeneau/Jake-Neau-NixOS-Config.git /etc/nixos
 ```
 
 Skip this step when `/etc/nixos` already contains a fresh clone.
 
-### 2. Create and authorize an age key
+For a new host, keep `/etc/nixos-installer/hardware-configuration.nix` available while following the [new-machine walkthrough](../tutorials/new-machine-walkthrough.md).
 
-Generate a new private key for this machine, then use some old private key from a different machine once to grant the new key access to every existing secret.
+### 3. Create and authorize an age key
 
-You must retrieve the old private key from the old machine or a backup. Without one existing private key, nobody can decrypt or re-key the secrets.
+Generate a private key for this machine. Use an authorized private key from another machine or backup once to re-key the secrets.
+
+Without one authorized private key, nobody can decrypt or re-key the existing secrets.
 
 ```sh
-# Copy the old private key temporarily from its mounted backup or transfer location.
+# Copy the old key from its mounted backup or transfer location.
 sudo cp /path/to/old-private-key.txt /tmp/old-age-key.txt
-# Restrict the temporary old key to root.
 sudo chmod 600 /tmp/old-age-key.txt
-# Generate the new private key where this NixOS configuration expects it.
-sudo nix shell nixpkgs#age -c age-keygen -o /etc/nixos/secrets/keys.txt
-# Restrict the new private key to root.
+# Generate the new machine key in the path used by this configuration.
+sudo nix --extra-experimental-features 'nix-command flakes' shell nixpkgs#age -c \
+  age-keygen -o /etc/nixos/secrets/keys.txt
 sudo chmod 600 /etc/nixos/secrets/keys.txt
-# Print the new public recipient that must be added to .sops.yaml.
-sudo nix shell nixpkgs#age -c age-keygen -y /etc/nixos/secrets/keys.txt
-# Open the SOPS recipient configuration with a Nix-provided editor.
-sudo nix run nixpkgs#vim -- /etc/nixos/.sops.yaml
+# Print the new public recipient.
+sudo nix --extra-experimental-features 'nix-command flakes' shell nixpkgs#age -c \
+  age-keygen -y /etc/nixos/secrets/keys.txt
+# Edit the recipient configuration with a temporary editor.
+sudo nix --extra-experimental-features 'nix-command flakes' run nixpkgs#vim -- \
+  /etc/nixos/.sops.yaml
 ```
 
-Add the printed `age1...` recipient beside the existing recipient and reference both keys in the creation rule:
+Add the printed `age1...` recipient beside the existing recipient. Reference both keys in the creation rule:
 
 ```yaml
 keys:
@@ -56,179 +88,210 @@ creation_rules:
           - *new-machine
 ```
 
-Authorize and test the new key from the repository root:
+Authorize and test the new key:
 
 ```sh
-# Enter the repository so SOPS finds .sops.yaml.
 cd /etc/nixos
-# Use the old key to encrypt the secrets data key for every configured recipient.
-sudo SOPS_AGE_KEY_FILE=/tmp/old-age-key.txt nix run nixpkgs#sops -- updatekeys secrets/secrets.yaml
-# Prove that the new private key can decrypt every secret without saving plaintext.
-sudo SOPS_AGE_KEY_FILE=/etc/nixos/secrets/keys.txt nix run nixpkgs#sops -- decrypt secrets/secrets.yaml >/dev/null
-# Remove the temporary copy of the old private key.
+# Encrypt the secrets data key for every configured recipient.
+sudo env SOPS_AGE_KEY_FILE=/tmp/old-age-key.txt \
+  nix --extra-experimental-features 'nix-command flakes' run nixpkgs#sops -- \
+  updatekeys secrets/secrets.yaml
+# Prove that the new key can decrypt the file without saving plaintext.
+sudo env SOPS_AGE_KEY_FILE=/etc/nixos/secrets/keys.txt \
+  nix --extra-experimental-features 'nix-command flakes' run nixpkgs#sops -- \
+  decrypt secrets/secrets.yaml >/dev/null
 sudo rm -f /tmp/old-age-key.txt
 ```
 
-After bootstrap, commit `.sops.yaml` and `secrets/secrets.yaml`. Both files contain only public or encrypted data.
+The repository ignores `secrets/keys.txt`. Never add that private key to Git.
 
-### 3. Check and build the system
+Commit `.sops.yaml` and `secrets/secrets.yaml` after you configure GitHub access. Both files contain only public or encrypted data.
 
-Evaluate the flake and dry-build the host before activating it.
+### 4. Check and build the system
+
+Evaluate the flake and dry-build the declared host:
 
 ```sh
-# Evaluate every flake check supported by this machine.
-sudo nix flake check /etc/nixos
-# Build the selected NixOS system without activating it or creating a result link.
-sudo nix build '/etc/nixos#nixosConfigurations.<host>.config.system.build.toplevel' --no-link
+sudo nix --extra-experimental-features 'nix-command flakes' flake check /etc/nixos
+sudo nix --extra-experimental-features 'nix-command flakes' build \
+  '/etc/nixos#nixosConfigurations.<host>.config.system.build.toplevel' --no-link
 ```
 
-### 4. Activate the system
+Fix every error before activation.
 
-Switch to the built configuration so NixOS creates the declared users and `config` group.
+### 5. Activate the system
+
+Activate the host so NixOS creates the declared users and `config` group:
 
 ```sh
-# Activate the selected host configuration.
-sudo nixos-rebuild switch --flake /etc/nixos#<host>
+sudo env NIX_CONFIG='experimental-features = nix-command flakes' \
+  nixos-rebuild switch --flake /etc/nixos#<host>
 ```
 
-### 5. Grant the `config` group repository access
+### 6. Grant repository access
 
-Set group ownership, writable modes, inheritance, and ACLs so declared members can edit without `sudo`.
+Set ownership, writable modes, inheritance, and ACLs for the `config` group:
 
 ```sh
-# Enter the repository before applying relative permission commands.
 cd /etc/nixos
-# Assign the repository tree to the config group.
 sudo chgrp -R config .
-# Let config group members modify existing entries.
 sudo chmod -R g+w .
-# Make new entries inherit the config group.
 sudo find . -type d -exec chmod g+s {} +
-# Grant the config group access to every existing entry.
 sudo nix shell nixpkgs#acl -c setfacl -R -m g:config:rwX .
-# Make new entries inherit the config group ACL.
 sudo nix shell nixpkgs#acl -c setfacl -R -d -m g:config:rwX .
 # Remove group access from the private age key.
 sudo chmod 600 secrets/keys.txt
 ```
 
-### 6. Refresh group membership
+Log out and back in so the current session receives `config` group membership.
 
-Log out and back in so the new login session includes the `config` group.
-
-### 7. Allow Nix to read the root-owned repository
-
-Add the repository to this user's temporary safety list with Nix-provided Git.
+Confirm the membership before continuing:
 
 ```sh
-# Allow libgit2 to read this root-owned repository.
+groups | grep -w config
+```
+
+### 7. Allow Nix to read the repository
+
+The checkout is root-owned. Add its path to this user's temporary Git safety configuration:
+
+```sh
 nix run nixpkgs#git -- config --global --add safe.directory /etc/nixos
 ```
 
 ### 8. Activate the user's home
 
-Run Home Manager through Nix once to install the managed home and the later `hr` command.
+Run Home Manager through Nix once. This activation installs the managed `home-manager`, `git`, `hr`, and `nr` commands.
 
 ```sh
-# Activate the selected standalone Home Manager configuration.
-nix run github:nix-community/home-manager -- switch -b backup --flake /etc/nixos#<user>@<host>
+nix run github:nix-community/home-manager -- switch -b backup \
+  --flake '/etc/nixos#"<user>@<host>"'
 ```
 
 ### 9. Remove the temporary Git configuration
 
-Delete the bootstrap file because Home Manager now supplies the Git settings.
+The managed Git configuration now contains the safe repository path. Remove the temporary file:
 
 ```sh
-# Remove the temporary safety entry and any duplicate unmanaged Git settings.
 rm -f ~/.gitconfig
 ```
 
 Future home rebuilds use `hr`.
 
+Continue with [Configure GitHub push access](#configure-github-push-access) before running `nr`.
+
 ## macOS
 
-Install Nix, activate nix-darwin, grant repository access, and activate the user's home.
+### 1. Prepare macOS
 
-### 1. Install Nix
+If the disk has no operating system, [reinstall macOS from Recovery](https://support.apple.com/guide/mac-help/reinstall-macos-mchlp1599/mac).
 
-Install [Nix](https://nixos.org/download/) in multi-user mode with flakes enabled.
+Finish Setup Assistant and create an administrator account. Its short account name must match the declared `<user>`.
 
-### 2. Put the repository in `/etc/nix-darwin`
-
-Clone with Nix-provided Git and `sudo` to keep the checkout owned by root.
+Open Terminal and confirm internet access:
 
 ```sh
-# Clone this flake as a root-owned checkout with Nix-provided Git.
-sudo nix run nixpkgs#git -- clone https://github.com/jakeneau/Jake-Neau-NixOS-Config.git /etc/nix-darwin
+whoami
+dscacheutil -q host -a name github.com
+```
+
+Stop and restore network access if this command prints nothing.
+
+### 2. Install Nix
+
+Install Nix in the recommended multi-user mode:
+
+```sh
+curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install | \
+  sh -s -- --daemon
+```
+
+Close Terminal after the installer completes. Open a new Terminal so its shell can find Nix.
+
+Confirm the installation:
+
+```sh
+nix --version
+```
+
+### 3. Put the repository in `/etc/nix-darwin`
+
+Use Nix-provided Git to clone the root-owned repository:
+
+```sh
+sudo nix --extra-experimental-features 'nix-command flakes' run nixpkgs#git -- \
+  clone https://github.com/jakeneau/Jake-Neau-NixOS-Config.git /etc/nix-darwin
 ```
 
 Skip this step when `/etc/nix-darwin` already contains a fresh clone.
 
-### 3. Check and build the system
+### 4. Check and build the system
 
-Evaluate the flake and dry-build the host before activating it.
+Evaluate the flake and dry-build the declared host:
 
 ```sh
-# Evaluate every flake check supported by this machine.
-sudo nix flake check /etc/nix-darwin
-# Build the selected nix-darwin system without activating it or creating a result link.
-sudo nix build '/etc/nix-darwin#darwinConfigurations.<host>.system' --no-link
+sudo nix --extra-experimental-features 'nix-command flakes' flake check /etc/nix-darwin
+sudo nix --extra-experimental-features 'nix-command flakes' build \
+  '/etc/nix-darwin#darwinConfigurations.<host>.system' --no-link
 ```
 
-### 4. Activate the system
+Fix every error before activation.
 
-Run nix-darwin through Nix once so it installs `darwin-rebuild` and creates the `config` group.
+### 5. Activate the system
+
+Run nix-darwin through Nix once. This command installs `darwin-rebuild` and creates the `config` group:
 
 ```sh
-# Bootstrap darwin-rebuild and activate the selected host configuration.
-sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake /etc/nix-darwin#<host>
+sudo nix --extra-experimental-features 'nix-command flakes' run \
+  nix-darwin/master#darwin-rebuild -- \
+  switch --flake /etc/nix-darwin#<host>
 ```
 
-### 5. Grant the `config` group repository access
+### 6. Grant repository access
 
-Set group ownership, writable modes, inheritance, and complete macOS ACL rights.
+Set ownership, writable modes, inheritance, and complete macOS ACL rights:
 
 ```sh
-# Enter the repository before applying relative permission commands.
 cd /etc/nix-darwin
-# Assign the repository tree to the config group.
 sudo chgrp -R config .
-# Let config group members modify existing entries.
 sudo chmod -R g+w .
-# Make new entries inherit the config group.
 sudo find . -type d -exec chmod g+s {} +
-# Grant complete create, rename, delete, and inheritance rights to the config group.
-sudo chmod -R +a "group:config allow read,write,execute,append,delete,delete_child,readattr,writeattr,readextattr,writeextattr,file_inherit,directory_inherit" .
+sudo chmod -R +a \
+  "group:config allow read,write,execute,append,delete,delete_child,readattr,writeattr,readextattr,writeextattr,file_inherit,directory_inherit" .
 ```
 
-### 6. Refresh group membership
+Log out and back in so the current session receives `config` group membership.
 
-Log out and back in so the new login session includes the `config` group.
-
-### 7. Allow Nix to read the root-owned repository
-
-Add the real macOS path to this user's temporary safety list with Nix-provided Git.
+Confirm the membership before continuing:
 
 ```sh
-# Allow libgit2 to read the root-owned repository through its real macOS path.
+groups | grep -w config
+```
+
+### 7. Allow Nix to read the repository
+
+The checkout is root-owned. Add its real path to this user's temporary Git safety configuration:
+
+```sh
 nix run nixpkgs#git -- config --global --add safe.directory /private/etc/nix-darwin
 ```
 
+libgit2 requires the `/private` spelling because it resolves the macOS path differently from Git.
+
 ### 8. Activate the user's home
 
-Run Home Manager through Nix once to install the managed home and the later `hr` command.
+Run Home Manager through Nix once. This activation installs the managed `home-manager`, `git`, `hr`, and `nr` commands.
 
 ```sh
-# Activate the selected standalone Home Manager configuration.
-nix run github:nix-community/home-manager -- switch -b backup --flake /etc/nix-darwin#<user>@<host>
+nix run github:nix-community/home-manager -- switch -b backup \
+  --flake '/etc/nix-darwin#"<user>@<host>"'
 ```
 
 ### 9. Remove the temporary Git configuration
 
-Delete the bootstrap file because Home Manager now supplies the Git settings.
+The managed Git configuration now contains the safe repository path. Remove the temporary file:
 
 ```sh
-# Remove the temporary safety entry and any duplicate unmanaged Git settings.
 rm -f ~/.gitconfig
 ```
 
@@ -239,3 +302,83 @@ Future home rebuilds use `hr`.
 Approve Karabiner's driver and Input Monitoring access in **System Settings → Privacy & Security**.
 
 These approvals allow Karabiner-Elements to receive keys and use its virtual keyboard driver.
+
+Continue with [Configure GitHub push access](#configure-github-push-access) before running `nr`.
+
+## Configure GitHub push access
+
+The public HTTPS clone needs no credentials. The `nr` command does need authenticated push access.
+
+Reuse an existing GitHub SSH private key from a secure backup when possible:
+
+```sh
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+install -m 600 /path/to/backed-up-id_ed25519 ~/.ssh/id_ed25519
+nix shell nixpkgs#openssh -c ssh-keygen -y -f ~/.ssh/id_ed25519 \
+  >~/.ssh/id_ed25519.pub
+chmod 644 ~/.ssh/id_ed25519.pub
+```
+
+Otherwise, create a key:
+
+```sh
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+nix shell nixpkgs#openssh -c ssh-keygen -t ed25519 \
+  -f ~/.ssh/id_ed25519 -C '<GitHub email>'
+chmod 600 ~/.ssh/id_ed25519
+```
+
+For a new key, add `~/.ssh/id_ed25519.pub` to **GitHub → Settings → SSH and GPG keys**. A restored key should already appear there.
+
+Load the key into the current session.
+
+On NixOS, start an agent in the managed Fish shell:
+
+```fish
+eval (nix shell nixpkgs#openssh -c ssh-agent -c)
+nix shell nixpkgs#openssh -c ssh-add ~/.ssh/id_ed25519
+```
+
+Load the key again after a login when the new session has no SSH agent identity.
+
+On macOS:
+
+```sh
+ssh-add --apple-use-keychain ~/.ssh/id_ed25519
+```
+
+Before each `nr` run, confirm that the current agent holds the key:
+
+```sh
+nix shell nixpkgs#openssh -c ssh-add -l
+```
+
+Reload the key with the platform command above if this check reports no identities.
+
+Change the checkout to the SSH remote:
+
+```sh
+# Use /etc/nix-darwin on macOS.
+nix run nixpkgs#git -- -C /etc/nixos remote set-url origin \
+  git@github.com:JakeNeau/Jake-Neau-NixOS-Config.git
+```
+
+The `nr` command runs Git through `sudo`. Prepare root's SSH host-key file and test that exact authentication path:
+
+```sh
+sudo -H sh -c 'mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"'
+sudo -H env SSH_AUTH_SOCK="$SSH_AUTH_SOCK" \
+  nix shell nixpkgs#openssh -c ssh -T git@github.com
+```
+
+On the first connection, verify GitHub's host fingerprint before accepting it.
+
+GitHub confirms the SSH key. The command returns status 1 because GitHub provides no shell.
+
+Commit the bootstrap changes with the normal verified flow:
+
+```sh
+nr "Bootstrap <host>"
+```
