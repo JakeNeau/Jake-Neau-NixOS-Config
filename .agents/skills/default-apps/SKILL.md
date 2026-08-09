@@ -88,8 +88,8 @@ Several types for one app (browser) — loop so the guard applies to each:
   home.activation.librewolfDefaultBrowser =
     lib.hm.dag.entryAfter ["writeBoundary"] ''
       for type in http https public.html; do
-        if [ "$(${lib.getExe pkgs.duti} -d "$type" 2>/dev/null)" != "org.mozilla.librewolf" ]; then
-          $DRY_RUN_CMD ${lib.getExe pkgs.duti} -s org.mozilla.librewolf "$type" all || true
+        if [ "$(${lib.getExe pkgs.duti} -d "$type" 2>/dev/null)" != "org.nixos.librewolf" ]; then
+          $DRY_RUN_CMD ${lib.getExe pkgs.duti} -s org.nixos.librewolf "$type" all || true
         fi
       done
     '';
@@ -153,7 +153,7 @@ mdls -name kMDItemContentType somefile.pdf         # the UTI of a real file
 
 Common values: PDF UTI `com.adobe.pdf`; HTML UTI `public.html`; URL schemes are
 the bare scheme (`http`, `https`, `mailto`). Bundle ids seen here:
-`info.sioyek.sioyek`, `org.mozilla.librewolf`, `com.apple.Preview`.
+`info.sioyek.sioyek`, `org.nixos.librewolf`, `com.apple.Preview`.
 
 ## Validating
 

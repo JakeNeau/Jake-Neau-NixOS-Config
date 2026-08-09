@@ -339,8 +339,8 @@
         home.packages = [pkgs.duti];
         home.activation.librewolfDefaultBrowser = lib.hm.dag.entryAfter ["writeBoundary"] ''
           for type in http https public.html; do
-            if [ "$(${lib.getExe pkgs.duti} -d "$type" 2>/dev/null)" != "org.mozilla.librewolf" ]; then
-              $DRY_RUN_CMD ${lib.getExe pkgs.duti} -s org.mozilla.librewolf "$type" all || true
+            if [ "$(${lib.getExe pkgs.duti} -d "$type" 2>/dev/null)" != "org.nixos.librewolf" ]; then
+              $DRY_RUN_CMD ${lib.getExe pkgs.duti} -s org.nixos.librewolf "$type" all || true
             fi
           done
         '';
