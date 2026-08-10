@@ -136,8 +136,9 @@ declaration, the rest are hand-written aspects.
 - `firefox/` — the multi-way declaration: home-manager install by default,
   macOS cask via `installOverrides` where the nix package breaks.
 - `fish/` — the default interactive shell, plus the autoloaded functions
-  (`nr`, `hr`, `mc-*`, ...).
+  (`nr`, `hr`, `mc-*`, ...). See the [`nr` reference](nr.md).
 - `fuzzel/` — wayland application launcher.
+- `gh/`: cross-platform GitHub CLI through Home Manager.
 - `ghostty/` — GPU-accelerated terminal; Linux home install, macOS cask
   with home-manager config.
 - `git/` — git identity at both the per-user and system level. The home-manager
@@ -154,6 +155,7 @@ declaration, the rest are hand-written aspects.
 - `libreoffice/` — office suite.
 - `librewolf/` — privacy-hardened Firefox fork, Jake's daily browser.
 - `nvf/` — declarative Neovim, the same editor on every host.
+- `onedrive/`: macOS OneDrive app installed through a Homebrew cask.
 - `papirus-icon-theme/` — fallback icon set.
 - `pavucontrol/` — sound settings GUI.
 - `pi/` — `jakeneau`'s coding agent, with declarative web research and native
@@ -177,6 +179,7 @@ declaration, the rest are hand-written aspects.
 - `swaybg/` — wayland wallpaper setter.
 - `udiskie/` — automatic removable-media mounting.
 - `ungoogled-chromium/` — Chromium with Google integration removed.
+- `windows-app/`: macOS Windows App installed through a Homebrew cask.
 - `wl-clip-persist/` — keeps clipboard contents alive after the source
   window closes.
 - `wl-clipboard/` — command-line copy/paste for wayland.

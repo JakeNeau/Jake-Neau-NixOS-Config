@@ -3,8 +3,9 @@
 Which coding agent runs where, and why the routing is per user. On every
 machine except cedar the agent is **`pi`** — Mario Zechner's minimal coding
 agent — with focused declarative extensions. cedar keeps **Claude Code**.
-What the modules concretely manage: [the pi reference](../reference/pi.md),
-[the claude-code subsystem](claude-code-config.md).
+What the modules concretely manage: [the Pi reference](../reference/pi.md),
+[the Claude Code reference](../reference/claude-code.md), and
+[the Claude Code subsystem](claude-code-config.md).
 
 ## The structural insight: a pure per-user swap
 
@@ -23,6 +24,16 @@ Both agents ride the same declaration channel: claude-code was converted from
 a hand-written aspect into a `flake.programs.claude-code` declaration so that
 swapping agents is a one-line change to a user's `programs` list
 ([add a per-user program](../how-to/declarations/add-a-per-user-program.md)).
+
+## Self-contained policy trees
+
+Neither coding agent's configuration may reference the other agent. Each agent
+keeps its own copy of a policy that applies to both. This isolation lets either
+agent change or disappear without breaking the other.
+
+Both agents use the same writing architecture without sharing files. See
+[Pi's writing system](pi-writing-system.md) and
+[Claude Code's writing system](claude-code-writing-system.md).
 
 ## pi, with focused extensions
 

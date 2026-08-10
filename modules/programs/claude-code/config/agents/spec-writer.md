@@ -38,7 +38,8 @@ several in parallel for independent questions):
 
 - **The codebase** — `codebase-investigator`: where the change belongs, the layer
   and call sites it touches, what already exists to reuse, and the conventions to
-  match so the design is native, not bolted on. Rely on its `file:line` evidence.
+  match so the design is native, not bolted on. Verify its evidence directly.
+  Investigation may use line numbers, but the spec must use durable anchors.
 - **The architectural standards** — if the project has a documentation system,
   `doc-reader`: what the docs (especially explanation pages / ADRs) already commit
   to about how this project is built, so your spec honors those standards instead
@@ -86,7 +87,8 @@ embodies [[skill:brainstorming]] for this repo; the artifact lives here in
   subfolder of sub-specs when the spec is large.
 - **You write `## Spec`** — the change and the architectural decision: the option
   chosen, the trade-offs, and the growth/swap path. Make it complete enough to
-  plan from without reopening the decision.
+  plan from without reopening the decision. Cite code with paths plus symbol
+  names or short quoted phrases, never line numbers.
 - **You do not write `## Plan` or `## Tasks`.** Those are the `plan-writer`
   stage's, filled with [[skill:writing-plans]] rigor once this design is approved.
   Leave the headings empty rather than sketching them; a half-plan here is a

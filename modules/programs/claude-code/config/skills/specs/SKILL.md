@@ -28,6 +28,12 @@ specs/
 - **Subfolder for a large spec.** When one spec splits into smaller sub-specs,
   give it a folder holding an overview file plus the sub-specs.
 
+## Durable source anchors
+
+A spec may cite a source path, symbol name, or short quoted phrase. It must not
+cite code by line number. Implementation changes move line numbers during the
+spec's lifetime, while symbols and content anchors remain searchable.
+
 ## File anatomy — three sections
 
 Every spec file has the same three sections:

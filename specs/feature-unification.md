@@ -182,7 +182,7 @@ implementation touches it:
 - The host declaration's `baselines` field is **retired**: hosts list
   role-features in their global list (`globalPrograms`, renamed to match the
   features vocabulary — e.g. `globalFeatures`).
-- Plumbing aspects that were never programs (secrets, network, printing,
+- Plumbing aspects that were never programs (secrets-management, network, printing,
   config-group) receive **minimal feature declarations** (marking classes
   `handWritten` where the aspect stays hand-authored), so roles import only
   features — one mechanism, no special cases.

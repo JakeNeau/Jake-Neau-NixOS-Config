@@ -61,7 +61,7 @@ https://github.com/user-attachments/assets/fbb78d00-4d93-4653-9067-c7595167a16f
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#work-tracking">Work Tracking</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -124,36 +124,31 @@ Both procedures use Nix-provided tools. A fresh machine does not need Git or an 
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-The Niri Window Manager is used as the graphical interface for the system. Here are a few of the common shortcuts I have configured
-- **Mod + Space**: Open application launcher
-- **Mod + q**: Open new terminal emulator
-- **Mod + c**: Close focused window
+The NixOS hosts use the Niri window manager. These common shortcuts are configured:
 
-Additionally Fish is used for interactive shells. Here are some shortcuts I have configures with fish.
-- **nrr**: Run nr with a default update status message
-- **nr "message"**: Verify every environment in the flake (all systems and all homes), push to GitHub with the message "message" (a generation number is prepended), then rebuild the system and reactivate your own home; add `-l "body"` for an extended commit description
-- **nr**: The same, but amend the last commit with the same message and a new generation number (preserving any existing body)
-- **hr**: Rebuild and activate your own home, and nothing else — every user's home is a standalone home-manager configuration, applied independently of the system rebuild (see [docs/how-to/rebuild-your-home.md](docs/how-to/rebuild-your-home.md))
+- **Mod + Space**: Open the application launcher.
+- **Mod + q**: Open a terminal.
+- **Mod + c**: Close the focused window.
 
-More autoloaded helpers live in [`modules/programs/fish/functions/`](modules/programs/fish/functions/) — among them the `mc-*` minecraft-server controls, the `np*` nix-package inspectors, `nc` (open the system flake in an editor), and `suu` (sudo as the current user).
+Fish provides these rebuild helpers:
+
+- **nrr**: Run `nr "Regular update"`.
+- **nr "message"**: Verify every environment, commit and push the change, rebuild the system, and reactivate the invoking user's home.
+- **nr**: Amend the last commit with the next generation number, then push and rebuild.
+- **hr**: Rebuild and activate only the invoking user's standalone Home Manager configuration.
+
+See the [`nr` reference](docs/reference/nr.md) for flags, staging behavior, and commit mechanics. See [Rebuild your home](docs/how-to/rebuild-your-home.md) for `hr`.
+
+More autoloaded helpers live in [`modules/programs/fish/functions/`](modules/programs/fish/functions/). They include the `mc-*` Minecraft controls, `np*` package inspectors, `nc`, and `suu`.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
-<!-- ROADMAP -->
-## Roadmap
+<!-- WORK TRACKING -->
+## Work Tracking
 
-- [ ] Get the Niri Window Manager looking nicer
-  - [ ] Find a way to make screens take up an exactly 16:9 form factor on ultrawides
-  - [ ] Re-enable [Noctalia Shell](https://github.com/noctalia-dev/noctalia-shell) for beautiful bars and widgets
-  - [ ] Fix wallpapers that broke after moving from Hyprland
-- [x] Move repository to the Dendritic Pattern (done — and since built on by the declaration framework; see [docs/explanation/declaration-framework.md](docs/explanation/declaration-framework.md))
-- [ ] The hardware-configuration.nix file needs to be tracked despite being different on different machines, find a way around this for multi-environment
-- [ ] Configure a cut-down environment for laptops
-- [x] Configure [Nix Darwin](https://github.com/nix-darwin/nix-darwin) environment for MacOS development (done — aspen and cedar)
-- [ ] Configure [NixOS-WSL](https://nix-community.github.io/NixOS-WSL/install.html) environment for Windows development (still debating this one)
-- [x] Document the SOPS workflow (done — see [docs/how-to/declarations/add-a-secret.md](docs/how-to/declarations/add-a-secret.md))
+[`TODO.md`](TODO.md) is the only work tracker for this repository. It contains every open task and removes completed work.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

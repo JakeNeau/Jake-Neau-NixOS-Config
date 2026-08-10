@@ -51,3 +51,7 @@ no system rebuild, nobody else's home.
   facts through the host's evaluated system config, so the system config must
   evaluate too. If someone left the repo non-evaluating, that has to be fixed
   first.
+- **Home activation warns about `~/.gitconfig`:** remove that temporary file
+  after the managed Git configuration is active. Follow the "Remove the
+  temporary Git configuration" step in the
+  [bootstrap guide](bootstrap-machine.md).

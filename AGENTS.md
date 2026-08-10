@@ -77,12 +77,13 @@ functions yourself — see below.
   without `sudo` (owner stays `root`; only members get write). If edits still
   fail on permissions, surface it rather than silently retrying.
 - **`nr` / `nrr` auto-commit AND push to GitHub.** These fish functions pull,
-  update flake inputs, verify every environment in the flake (all systems and
-  all homes), then `git add -A`, commit, and `git push` (sometimes
-  `--force-with-lease`) to the public repo before rebuilding the system and
-  reactivating the invoking user's home via `hr`. Never invoke them — or replicate
-  their push behavior — unless the user explicitly asks. A rebuild here is
-  system-wide and outward-facing.
+  update flake inputs, and verify every environment in the flake. The default
+  mode runs `git add -A`. The `-s`/`--staged` mode stages only `flake.lock` and
+  temporarily stashes unstaged tracked changes. Both modes commit and push to
+  the public repo before rebuilding the system and reactivating the invoking
+  user's home via `hr`. Never invoke them or replicate their push behavior
+  unless the user explicitly asks. A rebuild here is system-wide and
+  outward-facing.
 - **Commit message format.** Generation commits are
   `<host> Generation <N>: <message>`, where `<host>` is the rebuilding machine
   and `<N>` is the upcoming generation number predicted from

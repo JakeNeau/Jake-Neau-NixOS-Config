@@ -14,11 +14,11 @@ machines through the flake.
 1. **Ship the script.** `config/hooks/<name>` → `~/.claude/hooks/<name>`, written
    verbatim and marked executable. See [[skill:claude-code-config]] for the edit →
    `git add` → rebuild flow.
-2. **Register it.** A shipped script does nothing until it is registered. Add an
-   entry to the `settingsPolicy.hooks` attrset in `claude-code.nix` under
-   `<Event>` with a matcher and a `command` pointing at `~/.claude/hooks/<name>`;
-   activation deep-merges `settingsPolicy` into the runtime `settings.json` (the
-   same path that ships `sandbox` and `enabledPlugins`).
+2. **Register it.** Registration activates the shipped script. Add an entry to
+   the `settingsPolicy.hooks` attrset in `claude-code.nix` under
+   `<Event>`. Give it a `command` pointing at `~/.claude/hooks/<name>`. Add a
+   matcher when the event supports useful registration-time filtering.
+   Activation deep-merges `settingsPolicy` into the runtime `settings.json`.
 
 **Array gotcha:** the merge is jq's `*`, which replaces arrays wholesale rather
 than appending. Each event's value is an array, so `settingsPolicy.hooks.<Event>`
@@ -39,8 +39,12 @@ docs for the current full list.
   - exit `0` — success; JSON on stdout can add context or a decision.
   - exit `2` — **block** the action; stderr is shown to Claude/user.
   - other — non-blocking error; stderr shown as a notice.
-- **Matcher** (in the `settingsPolicy.hooks` registration) selects which
-  tools/events fire the hook (`Bash`, `Edit|Write`, regex like `mcp__.*`).
+- **Matcher** selects which tools or event variants fire the hook. Examples
+  include `Bash`, `Edit|Write`, and `mcp__.*`.
+- **Omit `matcher`** when the hook must receive every variant of an event. An
+  absent `SessionStart` matcher covers startup, resume, clear, and compact.
+  A hook may also omit it when the script must self-filter from payload fields,
+  such as `agent_type` on `SubagentStop`.
 
 ## Best practices
 

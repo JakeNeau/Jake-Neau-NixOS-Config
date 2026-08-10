@@ -6,20 +6,6 @@
       preserve Redwood's custom boot entries, `configurationLimit = 15`, and
       5120x1440 graphics modes. Done means the Redwood system dry-build passes
       without Minegrub's nested-`buildInputs` warning.
-- [ ] When next touching `AGENTS.md`: the `nr`/`nrr` caution says
-      the flow unconditionally runs `git add -A`, which under-describes the new
-      `nr -s`/`--staged` flag (stages only `flake.lock` and stashes unstaged
-      tracked changes; see `modules/programs/fish/functions/nr.fish`). Update
-      the sentence to cover both modes. Low priority.
-- [ ] Update the specs conventions so new specs never cite code by line number —
-      cite file paths with durable content anchors (symbol names or short quoted
-      phrases) instead, since line numbers rot as the tree changes under a spec's
-      multi-stage implementation. Land it in the specs-writing guidance:
-      `modules/programs/claude-code/config/skills/specs/SKILL.md` and/or
-      `modules/programs/claude-code/config/agents/spec-writer.md`. Context:
-      `specs/declaration-framework.md` had ~98 `file:line` citations, several of
-      which drifted within a few generations; replaced with content anchors on
-      2026-07-06.
 - [ ] Restructure librewolf into four profiles in
       `modules/programs/librewolf/librewolf.nix` (currently a single `default`
       profile): `work` (relaxed hardening), `strict` (strict hardening — today's
@@ -269,17 +255,6 @@
       Spec-consistent, so this may be fine as-is — but if yazi is wanted on the
       macs, it's one `globalPrograms` entry in each mac's host declaration or a
       `flake.users` programs line.
-- [ ] Document when `matcher` may be omitted from a hook registration in
-      `modules/programs/claude-code/config/skills/writing-hooks/SKILL.md` — it
-      currently describes `matcher` as standard but doesn't say when omitting
-      it is valid. Two precedents now exist, differently reasoned: the
-      existing SubagentStop hook comment self-filters via `agent_type` instead
-      of a matcher, while the new SessionStart `agents-md-context` entry
-      (`modules/programs/claude-code/claude-code.nix`) omits matcher
-      intentionally because an absent SessionStart matcher fires on all four
-      session-start sources (startup/resume/clear/compact) — confirmed via the
-      installed Claude Code binary. Add a short note so future hook authors
-      don't have to re-derive this from the binary.
 - [ ] Clean superpowers out of live Claude Code state on cedar: `claude
       plugin uninstall superpowers@claude-plugins-official` to clear the
       cache, then jq-delete the
@@ -315,20 +290,6 @@
       extensions to their metadata and source. Update the extension-authoring
       guidance so every new Pi extension considers whether it introduces a
       reusable resource kind that needs its own typed link and adapter.
-- [ ] Fix a stale comment in
-      `modules/programs/claude-code/config/hooks/session-flow-map` line 4: the
-      parenthetical "(oh-my-pi ships it as an extension)" is now false since
-      oh-my-pi was removed and bare `pi` ships no such extension. Drop or
-      reword it. Low priority.
-- [ ] Add a `docs/reference/` page for the `nr` rebuild function's commit
-      mechanics: its flags (`-n/--no-git`, `-s/--staged`, `-f/--full-output`,
-      and the `-l/--long "<body>"` extended-description option) and the
-      `<host> Generation <N>: <message>` commit format. Today these are
-      documented only in the root README.md, AGENTS.md, and the Claude rules
-      file (`modules/programs/claude-code/config/rules/nr-nrr.md`) — the
-      Diátaxis tree at `docs/` has no reference coverage. Implementation:
-      `modules/programs/fish/functions/nr.fish`. Pre-existing gap noted by doc
-      review on 2026-07-14 when `-l/--long` landed. Low priority.
 - [ ] Backfill a committed regression test for the `edit-briefing` PreToolUse
       hook (`modules/programs/claude-code/config/hooks/edit-briefing`) once a
       bash test harness for this repo's Claude Code hooks exists — none does
@@ -350,31 +311,6 @@
       `modules/programs/claude-code/config/hooks/edit-briefing`. The spec
       `specs/edit-briefings.md` is intentionally kept (not retired) until this
       check passes.
-- [ ] Give the agent-isolation rule a canonical home in `docs/`. The rule —
-      neither coding agent's configuration may reference the other, so a policy
-      that applies to both is duplicated per agent rather than shared — is
-      currently stated only in
-      `modules/programs/claude-code/config/CLAUDE.md` (as a runtime instruction
-      to Claude), `modules/programs/claude-code/config/README.md`, and partially
-      in `docs/explanation/claude-code-config.md`; Pi states it only for its
-      typed-link registry. `docs/explanation/coding-agents.md` owns the
-      two-agent architecture and never states it, so a contributor adding a new
-      policy has no page telling them to duplicate it. Deferred from the
-      agent-config split, which kept `coding-agents.md` out of scope.
-- [ ] Even up reference coverage between the two coding agents. Pi's linter CLI
-      contract and its `/writing-review` command are documented at
-      `docs/reference/pi.md:198-210`, but Claude Code's identical surface — the
-      `claude-writing-lint` exit codes and `--json` output, and its own
-      `/writing-review` command — has no reference page. Add
-      `docs/reference/claude-code.md`, or a section in an existing Claude
-      reference page.
-- [ ] Add a Claude writing-system bullet to
-      `docs/explanation/coding-agents.md`. It links
-      `docs/explanation/pi-writing-system.md` at line 38 but has no counterpart
-      for `docs/explanation/claude-code-writing-system.md`, which is currently
-      reachable only from `docs/explanation/claude-code-config.md` and
-      `docs/reference/feature-index.md`. Same deferral reason as the
-      agent-isolation-rule entry above.
 - [ ] Decide whether to rewrite `modules/programs/claude-code/config/CLAUDE.md`
       to obey its own form policy. Its `## 3. How you write` section requires no
       em dashes, no semicolons, no contractions, one claim per sentence, and a
@@ -422,9 +358,8 @@
       load-flaky the way the "times out unanswered language-server requests"
       test did (it failed roughly 1 run in 5 with `initialize request timed out
       after 30ms`). Low priority.
-- [ ] User action, aspen: re-run the config-group ACL using the
-      strip-then-reapply procedure in `docs/how-to/bootstrap-machine.md`, under
-      "Repair a machine bootstrapped before the corrected ACL". Use that
+- [ ] User action, aspen: re-run the config-group ACL using
+      `docs/how-to/repair-config-group-access.md`. Use that strip-then-reapply
       procedure, not a bare second `chmod +a`. Adding the corrected entry on top
       of the old one leaves the known-broken narrow ACE as a second entry per
       node. Aspen's live ACL is still the narrow
@@ -443,12 +378,6 @@
       its own verification. Confirm with
       `nix flake metadata /private/etc/nix-darwin`, not with `git status`,
       because only a libgit2 consumer proves the allowlist does the work.
-- [ ] Move the config-group ACL rationale out of the how-to. The 11-line
-      paragraph explaining why each ACL right must be spelled out currently sits
-      in `docs/how-to/bootstrap-machine.md`, but `docs/README.md`'s own Diátaxis
-      rule says a how-to holds procedure, not explanation. Move the rationale
-      into `docs/explanation/config-group.md` and leave the how-to with a
-      one-line pointer to it. Medium priority.
 - [ ] Verify and fix the NixOS side of `core.sharedRepository`: the
       `gitdir:/etc/nixos/` include does NOT reach root-run git on NixOS. Proven
       on redwood — its generated sudoers
@@ -473,15 +402,6 @@
       proves the managed entry is doing the work. Home activation warns about the
       file on every `hr` until it is gone, and anything left in it silently
       overrides `~/.config/git/config`.
-- [ ] Cross-link the unmanaged-`~/.gitconfig` cleanup from
-      `docs/how-to/rebuild-your-home.md`. `modules/programs/git/git.nix` prints an
-      activation warning on every `hr` while that file exists, but the rebuild
-      how-to never mentions the warning and links nothing that explains it. The
-      cleanup lives in `docs/how-to/bootstrap-machine.md` under "First home
-      activation (per user)". Done means a reader who hits the warning during `hr`
-      can find from that page what it means and how to clear it. The bootstrap
-      guide's own `safe.directory` content is now current, so only this
-      cross-link remains.
 - [ ] Extend sops secret consumption to the macs (aspen, cedar). Today only the
       NixOS side decrypts secrets: the hand-written
       `flake.modules.nixos.secrets-management` aspect has no darwin equivalent,
@@ -501,11 +421,6 @@
       activation rather than at the system switch, and that a new user who edits
       secrets must add the program. A design question for the user to decide,
       not a defect.
-- [ ] Update `specs/feature-unification.md:185`, which still names the secrets
-      aspect `secrets` in its forward-looking list of plumbing aspects to
-      convert. That conversion is done and the aspect is now
-      `secrets-management` — rename the reference or mark the item complete.
-      Cosmetic only.
 
 ## Waiting on upstream
 
