@@ -9,7 +9,11 @@ import {
 
 const question = {
   question: "Which database should this service use?",
-  options: ["PostgreSQL", "SQLite", "None"],
+  options: [
+    { label: "PostgreSQL", preview: "```sql\nSELECT 1;\n```" },
+    { label: "SQLite" },
+    { label: "None" },
+  ],
 };
 
 const menu = [
@@ -46,7 +50,10 @@ test("returns the selected option and its one-based index", async () => {
 
 test("returns a free-form answer", async () => {
   const result = await runAskUser(question, {
-    select: async () => FREE_FORM_CHOICE,
+    select: async (_prompt, options) => {
+      assert.deepEqual(options, menu);
+      return FREE_FORM_CHOICE;
+    },
     input: async (title, placeholder) => {
       assert.equal(title, "Free-form answer");
       assert.equal(placeholder, "Type your answer");
@@ -68,7 +75,10 @@ test("returns a free-form answer", async () => {
 
 test("returns a clarifying question and directs the agent to ask again", async () => {
   const result = await runAskUser(question, {
-    select: async () => CLARIFICATION_CHOICE,
+    select: async (_prompt, options) => {
+      assert.deepEqual(options, menu);
+      return CLARIFICATION_CHOICE;
+    },
     input: async (title, placeholder) => {
       assert.equal(title, "Clarifying question");
       assert.equal(placeholder, "Ask what you need to know");
@@ -80,7 +90,7 @@ test("returns a clarifying question and directs the agent to ask again", async (
     content: [
       {
         type: "text",
-        text: "User asked: Does this service need concurrent writes? Answer the question, then call ask_user again.",
+        text: "User asked: Does this service need concurrent writes? Answer the question. Pi will then reopen the pending question.",
       },
     ],
     details: {
@@ -105,6 +115,7 @@ test("returns to the answer menu when text input is cancelled", async () => {
 
   assert.equal(selections, 2);
   assert.equal(result.details.answer, "PostgreSQL");
+  assert.deepEqual(result.details.options, question.options);
 });
 
 test("reports cancellation without inventing an answer", async () => {

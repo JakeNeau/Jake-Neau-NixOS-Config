@@ -27,20 +27,38 @@ tool when progress requires one user decision from a short list. Pi pauses the
 tool call and shows a selection dialog instead of requiring a typed reply.
 
 Each call contains one question and between 2 and 12 distinct preset options.
-The question may contain up to 500 characters. Each preset option may contain
-up to 120 characters. The tool returns a preset answer with its one-based index.
-The tool runs sequentially, so parallel tool calls cannot open concurrent
-dialogs.
+The question may contain up to 500 characters. Each option contains a label of
+up to 120 characters and an optional Markdown preview of up to 4,000
+characters. The tool returns the selected label with its one-based index. The
+tool runs sequentially, so parallel tool calls cannot open concurrent dialogs.
+
+The agent must omit previews by default. It may add a preview when code,
+commands, configuration, or another concrete example materially helps the user
+compare options. It must not use a preview to repeat the label, add generic
+explanation, or restate the question.
+
+The TUI shows the preview for the highlighted option in a bordered panel. Arrow
+keys change the highlighted option and preview. The panel renders Markdown and
+shows at most 16 content lines. Pi marks truncated previews. The extension does
+not support physical mouse-pointer hover because Pi's extension TUI API does not
+expose mouse events.
 
 The dialog always includes actions for a free-form answer and a clarifying
-question. Selecting either action opens a text input. Cancelling the input or
-submitting it empty returns to the answer list. A free-form answer completes the
-tool call. A clarifying question returns to the agent, which answers it before calling
-`ask_user` again. Cancelling the answer list returns no answer.
+question. Selecting either action turns that row into a one-line input. The
+question and every other option remain visible while the user types. Escape or
+an empty submission restores the action label. A nonempty free-form answer
+completes the tool call.
 
-The dialog works in TUI and RPC modes. In print and JSON modes, the tool directs
-the agent to ask through normal text. The extension does not support multiple
-selections or multiple questions in one call.
+A clarifying question leaves the original decision pending. The agent answers
+the clarification first. The extension then reopens the original dialog unless
+the agent already called `ask_user` again. An answer or cancellation clears the
+pending question.
+
+The custom inline dialog and previews work in TUI mode. RPC mode uses Pi's
+separate selection and input dialogs, accepts the same option objects, and does
+not render previews. In print and JSON modes, the tool directs the agent to ask
+through normal text. The extension does not support multiple selections or
+multiple questions in one call.
 
 ## Workflow manager
 
