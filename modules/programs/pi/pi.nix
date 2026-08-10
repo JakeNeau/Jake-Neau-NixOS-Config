@@ -21,6 +21,64 @@
   codeLldbPath = pkgs: let
     extension = pkgs.vscode-extensions.vadimcn.vscode-lldb;
   in "${extension}/share/vscode/extensions/vadimcn.vscode-lldb/adapter/codelldb";
+  mkPiSettingsUpdater = pkgs:
+    pkgs.writeShellApplication {
+      name = "pi-settings-update";
+      runtimeInputs = [pkgs.coreutils pkgs.jq];
+      text = ''
+        action="''${1:-}"
+        settings="''${2:-}"
+
+        case "$action" in
+          set-shell)
+            [ "$#" -eq 3 ] || exit 2
+            ;;
+          unset-shell)
+            [ "$#" -eq 2 ] || exit 2
+            ;;
+          *)
+            exit 2
+            ;;
+        esac
+
+        [ -n "$settings" ] || exit 2
+        if [ -L "$settings" ]; then
+          echo "refusing to replace symbolic link: $settings" >&2
+          exit 1
+        fi
+        if [ -e "$settings" ] && [ ! -f "$settings" ]; then
+          echo "settings path is not a regular file: $settings" >&2
+          exit 1
+        fi
+        if [ "$action" = unset-shell ] && [ ! -e "$settings" ]; then
+          exit 0
+        fi
+
+        directory="$(dirname "$settings")"
+        mkdir -p "$directory"
+        temporary="$(mktemp "$directory/.settings.json.XXXXXX")"
+        trap 'rm -f "$temporary"' EXIT
+
+        if [ -e "$settings" ]; then
+          if [ "$action" = set-shell ]; then
+            jq --arg shell "$3" '.shellPath = $shell' "$settings" > "$temporary"
+          else
+            jq 'del(.shellPath)' "$settings" > "$temporary"
+          fi
+          chmod --reference="$settings" "$temporary"
+        else
+          jq -n --arg shell "$3" '{shellPath: $shell}' > "$temporary"
+          chmod 600 "$temporary"
+        fi
+
+        if [ -e "$settings" ] && cmp -s "$settings" "$temporary"; then
+          exit 0
+        fi
+
+        mv "$temporary" "$settings"
+        trap - EXIT
+      '';
+    };
   rustToolPath = pkgs:
     pkgs.lib.makeBinPath [
       pkgs.cargo
@@ -45,6 +103,117 @@
         | pi --mode rpc --no-session --offline --no-extensions \
           --extension ./ask-user/index.ts >rpc.jsonl
       grep -q '"success":true' rpc.jsonl
+      touch "$out"
+    '';
+  mkPiFishShellCheck = pkgs:
+    pkgs.runCommand "pi-fish-shell" {
+      nativeBuildInputs = [
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
+        pkgs.fish
+        pkgs.jq
+        pkgs.python3
+      ];
+    } ''
+      updater=${mkPiSettingsUpdater pkgs}/bin/pi-settings-update
+      settings="$TMPDIR/settings.json"
+
+      printf '{"theme":"light"}\n' > "$settings"
+      chmod 640 "$settings"
+      "$updater" set-shell "$settings" ${pkgs.fish}/bin/fish
+      test "$(jq -r .shellPath "$settings")" = ${pkgs.fish}/bin/fish
+      test "$(jq -r .theme "$settings")" = light
+      test "$(stat -c %a "$settings")" = 640
+      before="$(sha256sum "$settings")"
+      "$updater" set-shell "$settings" ${pkgs.fish}/bin/fish
+      test "$(sha256sum "$settings")" = "$before"
+
+      "$updater" unset-shell "$settings"
+      test "$(jq -r '.shellPath // "missing"' "$settings")" = missing
+      test "$(jq -r .theme "$settings")" = light
+      missing="$TMPDIR/missing.json"
+      "$updater" unset-shell "$missing"
+      test ! -e "$missing"
+
+      malformed="$TMPDIR/malformed.json"
+      printf '{broken\n' > "$malformed"
+      cp "$malformed" "$malformed.expected"
+      if "$updater" set-shell "$malformed" ${pkgs.fish}/bin/fish; then
+        exit 1
+      fi
+      cmp "$malformed" "$malformed.expected"
+
+      target="$TMPDIR/target.json"
+      link="$TMPDIR/link.json"
+      printf '{}\n' > "$target"
+      ln -s "$target" "$link"
+      if "$updater" set-shell "$link" ${pkgs.fish}/bin/fish; then
+        exit 1
+      fi
+      test -L "$link"
+      test "$(cat "$target")" = '{}'
+
+      export HOME="$TMPDIR/home"
+      export XDG_CONFIG_HOME="$HOME/.config"
+      export PI_CODING_AGENT_DIR="$TMPDIR/pi-agent"
+      mkdir -p "$XDG_CONFIG_HOME/fish/functions" "$PI_CODING_AGENT_DIR"
+      cat > "$XDG_CONFIG_HOME/fish/functions/pi_fixture.fish" <<'EOF'
+      function pi_fixture
+          echo fixture-ok
+      end
+      EOF
+      "$updater" set-shell "$PI_CODING_AGENT_DIR/settings.json" ${pkgs.fish}/bin/fish
+
+      python3 - <<'PY'
+      import json
+      import os
+      import subprocess
+
+      process = subprocess.Popen(
+          [
+              "pi",
+              "--mode",
+              "rpc",
+              "--no-session",
+              "--offline",
+              "--no-extensions",
+              "--no-skills",
+              "--no-prompt-templates",
+          ],
+          stdin=subprocess.PIPE,
+          stdout=subprocess.PIPE,
+          stderr=subprocess.PIPE,
+          text=True,
+          env=os.environ,
+      )
+
+      try:
+          for request_id, command, expected in [
+              ("syntax", "set value fish-ok; echo $value", "fish-ok\n"),
+              ("config", "pi_fixture", "fixture-ok\n"),
+          ]:
+              process.stdin.write(
+                  json.dumps({"id": request_id, "type": "bash", "command": command}) + "\n"
+              )
+              process.stdin.flush()
+              output = ""
+              while True:
+                  line = process.stdout.readline()
+                  if not line:
+                      raise RuntimeError(process.stderr.read())
+                  message = json.loads(line)
+                  if message.get("type") == "bash_execution_update":
+                      output += message["delta"]
+                  if message.get("type") == "response" and message.get("id") == request_id:
+                      if not message.get("success"):
+                          raise RuntimeError(message)
+                      break
+              if output != expected:
+                  raise RuntimeError(f"unexpected output for {request_id}: {output!r}")
+      finally:
+          process.terminate()
+          process.wait(timeout=5)
+      PY
+
       touch "$out"
     '';
   mkPiWorkflowCheck = pkgs:
@@ -152,6 +321,7 @@ in {
   perSystem = {pkgs, ...}: {
     checks = {
       pi-ask-user = mkPiAskUserCheck pkgs;
+      pi-fish-shell = mkPiFishShellCheck pkgs;
       pi-rust-tools = mkPiRustToolsCheck pkgs;
       pi-workflows = mkPiWorkflowCheck pkgs;
       pi-typed-links = mkPiLinkRegistry pkgs;
@@ -231,6 +401,7 @@ in {
     config = {
       pkgs,
       lib,
+      config,
       ...
     }: let
       pi-web-access = pkgs.buildNpmPackage {
@@ -258,6 +429,16 @@ in {
             }
         )
         promptFiles;
+      fishEnabled = config.programs.fish.enable;
+      fishShell = "${config.programs.fish.package}/bin/fish";
+      settingsUpdater = mkPiSettingsUpdater pkgs;
+      agentContext =
+        builtins.readFile ./config/AGENTS.md
+        + lib.optionalString fishEnabled ''
+
+          Pi's `bash` tool runs Fish in this home. Use Fish syntax for every command.
+          Do not wrap commands in `fish -c`.
+        '';
       fixedHomeFiles = {
         ".pi/agent/extensions/pi-web-access/index.ts".text = ''
           export { default } from "${pi-web-access-root}/index.ts";
@@ -302,7 +483,7 @@ in {
         ".pi/agent/keybindings.json".text = builtins.toJSON {
           "app.thinking.cycle" = "ctrl+tab";
         };
-        ".pi/agent/AGENTS.md".source = ./config/AGENTS.md;
+        ".pi/agent/AGENTS.md".text = agentContext;
 
         # Unattended research should return raw evidence to the main agent, not
         # open the interactive curator or delegate synthesis to another model.
@@ -321,6 +502,17 @@ in {
       };
     in {
       home.file = fixedHomeFiles // promptHomeFiles;
+      home.activation.piShellPath = lib.hm.dag.entryAfter ["writeBoundary"] (
+        if fishEnabled
+        then ''
+          $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
+            set-shell "$HOME/.pi/agent/settings.json" ${lib.escapeShellArg fishShell}
+        ''
+        else ''
+          $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
+            unset-shell "$HOME/.pi/agent/settings.json"
+        ''
+      );
     };
   };
 

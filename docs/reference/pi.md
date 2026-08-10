@@ -244,10 +244,27 @@ API keys are not stored in Nix. pi-web-access reads `EXA_API_KEY`,
 `BRAVE_API_KEY`, and its other supported provider variables from the process
 environment. Add credentials through sops-nix when needed.
 
-Pi's mutable `~/.pi/agent/settings.json`, authentication, model catalog, and
-session state remain outside Nix. The module owns the extension entry points,
-global context, link manifest, prompts, writing linter, and focused skill links.
-It also owns the two web policy files above.
+Nix does not manage Pi's authentication, model catalog, or session state. The
+module also leaves `~/.pi/agent/settings.json` mutable except for `shellPath`.
+A Home Manager activation merges that key into the live JSON when the home
+enables Fish. It removes only that key when the home disables Fish. Users can
+change every other setting through `/settings`.
+
+The activation refuses malformed JSON and symbolic links instead of replacing
+them. Do not save `/settings` during home activation because Pi and Home Manager
+do not share a settings lock. A trusted project's `.pi/settings.json` can
+override the global shell path.
+
+The managed path names the Fish package selected by Home Manager. Pi starts
+Fish non-interactively, so normal shell initialization and autoloaded functions
+such as `nr` remain available. Interactive aliases, prompts, completions,
+keybindings, and plugin setup remain inactive. The generated global context
+tells Pi to use Fish syntax only when the home enables Fish. Existing Pi
+processes require a restart after home activation to read the changed setting.
+
+The module owns the extension entry points, global context, link manifest,
+prompts, writing linter, and focused skill links. It also owns the two web policy
+files above.
 
 ## The numtide cache aspect
 
