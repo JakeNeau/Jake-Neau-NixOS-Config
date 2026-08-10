@@ -286,11 +286,6 @@
       editor border changes and restores. Start and stop a read-only
       `/refine-spec` discovery stage, then check that no child process remains.
       Remove this entry when all checks pass on a live TUI.
-- [ ] On aspen, run the Pi Rust tooling live aarch64-darwin verification:
-      `nix build .#checks.aarch64-darwin.pi-rust-tools --no-link` and dry-build
-      `homeConfigurations."jakeneau@aspen".activationPackage`. Linux has passed
-      the full rust-analyzer and CodeLLDB integration suite; Darwin currently
-      has evaluation coverage only. Remove this entry once both builds pass.
 - [ ] Add an MCP adapter to Pi's typed-link registry for `[[mcp:<name>]]`
       links. It must discover configured Model Context
       Protocol servers, resolve each link to useful metadata, and invoke the
@@ -370,16 +365,6 @@
       load-flaky the way the "times out unanswered language-server requests"
       test did (it failed roughly 1 run in 5 with `initialize request timed out
       after 30ms`). Low priority.
-- [ ] User action, aspen: re-run the config-group ACL using
-      `docs/how-to/repair-config-group-access.md`. Use that strip-then-reapply
-      procedure, not a bare second `chmod +a`. Adding the corrected entry on top
-      of the old one leaves the known-broken narrow ACE as a second entry per
-      node. Aspen's live ACL is still the narrow
-      `list,add_file,search,file_inherit,directory_inherit`, which is what let
-      root-owned non-group-writable files break `nr`/git in the first place.
-      Until this runs on aspen, the breakage can recur. Cedar no longer needs
-      it: its 2026-07-28 repair verified clean, with 0 stale ACEs, 0 doubled
-      ACEs, and all 273 directories correct.
 - [ ] Check whether the `/etc/nix-darwin` entry in `settings.safe.directory`
       (`modules/programs/git/git.nix`) is redundant, and remove it if so.
       `/private/etc/nix-darwin` is the repository's resolved real path, which
