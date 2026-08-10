@@ -63,7 +63,16 @@ in {
     imports = [inputs.stylix.homeModules.stylix];
     stylix = lib.mkMerge [
       (theme pkgs)
-      {targets.hyprland.enable = false;}
+      {
+        targets = {
+          hyprland.enable = false;
+          librewolf.profileNames = [
+            "work"
+            "strict"
+            "compatibility"
+          ];
+        };
+      }
     ];
     home.pointerCursor.enable = true;
   };

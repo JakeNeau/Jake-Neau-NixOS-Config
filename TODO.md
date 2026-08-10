@@ -6,19 +6,31 @@
       preserve Redwood's custom boot entries, `configurationLimit = 15`, and
       5120x1440 graphics modes. Done means the Redwood system dry-build passes
       without Minegrub's nested-`buildInputs` warning.
-- [ ] Restructure librewolf into four profiles in
-      `modules/programs/librewolf/librewolf.nix` (currently a single `default`
-      profile): `work` (relaxed hardening), `strict` (strict hardening — today's
-      `default` becomes this), `compatibility` (relaxed hardening), and
-      `development` (no extensions, no hardening). Apply Stylix theming to every
-      profile except `development` by setting
-      `stylix.targets.librewolf.profileNames` to work/strict/compatibility —
-      Linux only, since the macs have no stylix. This must also eliminate the
-      current Stylix warning that
-      `config.stylix.targets.librewolf.profileNames` is unset. Stylix does not
-      theme LibreWolf today, so this wiring only matters once the profiles
-      exist; Stylix home-manager config is delivered through the Linux hosts'
-      `baselines` (`modules/nix/tools/stylix/stylix.nix`).
+- [ ] After activating the LibreWolf profile configuration, complete this live
+      verification:
+      1. Remove all persistence exceptions from `strict`.
+      2. Add the same required exceptions to `work` and `compatibility`.
+      3. Check all four Linux menu entries, names, and icons.
+      4. Inspect Linux icons at 16, 24, 32, 48, 64, and 128 pixels.
+      5. Check all four macOS Spotlight and Launchpad entries, names, and icons.
+      6. Inspect macOS icons at 16, 32, 48, 64, and 128 pixels.
+      7. Verify that each command and graphical launcher opens its named profile.
+      8. With `work` running, invoke `librewolf-work` with a test URL.
+      9. With only `strict` running, invoke `librewolf-work` with a test URL.
+      10. Launch the same nondefault profile twice.
+      11. Run all four profiles concurrently.
+      12. Confirm repeated launches and URLs avoid profile-lock and routing
+          failures.
+      13. Close each profile normally and reopen it.
+      14. Confirm that `strict` and `development` retain no cookies or site
+          storage.
+      15. Confirm that `work` and `compatibility` retain data only for their
+          matching exception lists.
+      16. Confirm that `work` and `compatibility` do not share retained data.
+      17. Confirm that each extension list matches the LibreWolf reference.
+      18. Confirm that `development` has no Stylix browser theme.
+      Complete this item only after persistence migration, repeated-launch
+      tests, URL-routing tests, and profile-isolation checks pass.
 - [ ] Runtime theme switching:
       keep stylix and add one home-manager specialisation per color scheme —
       the base theme stays gruvbox-material-dark-hard via `lib.mkDefault`, and

@@ -153,7 +153,8 @@ declaration, the rest are hand-written aspects.
 - `kubernetes/` — install-only declaration: kubectl + k9s behind a
   generated enable toggle.
 - `libreoffice/` — office suite.
-- `librewolf/` — privacy-hardened Firefox fork, Jake's daily browser.
+- `librewolf/` — privacy-hardened Firefox fork with separate work, strict,
+  compatibility, and development profiles. See [LibreWolf](librewolf.md).
 - `nvf/` — declarative Neovim, the same editor on every host.
 - `onedrive/`: macOS OneDrive app installed through a Homebrew cask.
 - `papirus-icon-theme/` — fallback icon set.
