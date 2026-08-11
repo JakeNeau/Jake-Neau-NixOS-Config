@@ -19,6 +19,7 @@
         niri-desktop
         audio
         graphics
+        grub
         network
         ungoogled-chromium
         blender

@@ -100,7 +100,6 @@ Flake-level machinery and third-party tool wiring.
     [common nixpkgs module](common-nixpkgs.md).
   - `mac-app-util/` — real trampoline apps so LaunchServices sees
     Nix-installed macOS apps.
-  - `minegrub/` — Minecraft-themed GRUB.
   - `nix-darwin/` — the nix-darwin input: declarative macOS system config.
   - `nix-homebrew/` — declarative Homebrew installation management.
   - `nix-minecraft/` — declarative Minecraft servers; importing it means
@@ -141,6 +140,8 @@ declaration, the rest are hand-written aspects.
 - `gh/`: cross-platform GitHub CLI through Home Manager.
 - `ghostty/` — GPU-accelerated terminal; Linux home install, macOS cask
   with home-manager config.
+- `grub/` — UEFI bootloader and Tela theme for NixOS desktops, sized from
+  per-host display facts. See [GRUB theming](../explanation/grub-theming.md).
 - `git/` — git identity at both the per-user and system level. The home-manager
   half also allowlists this repo's paths in `safe.directory`, scopes
   `core.sharedRepository = "group"` to it via `gitdir:` includes, and warns at

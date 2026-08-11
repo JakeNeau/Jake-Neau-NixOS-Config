@@ -6,6 +6,10 @@
   inputs = {
     flake-file.url = "github:vic/flake-file";
     flake-parts.url = "github:hercules-ci/flake-parts";
+    grub2-themes = {
+      url = "git+https://github.com/vinceliuice/grub2-themes.git";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -13,7 +17,6 @@
     import-tree.url = "github:vic/import-tree";
     llm-agents.url = "github:numtide/llm-agents.nix";
     mac-app-util.url = "github:hraban/mac-app-util";
-    minegrub-theme.url = "github:Lxtharia/minegrub-theme";
     nix-darwin = {
       url = "github:nix-darwin/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";

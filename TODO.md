@@ -1,13 +1,7 @@
 # TODO
 
-- [ ] Replace Minegrub on Redwood with a different GRUB theme packaged by
-      nixpkgs. Remove the `minegrub-theme` flake input and
-      `modules/nix/tools/minegrub/minegrub.nix`, regenerate `flake.nix`, and
-      preserve Redwood's custom boot entries, `configurationLimit = 15`, and
-      5120x1440 graphics modes. Done means the Redwood system dry-build passes
-      without Minegrub's nested-`buildInputs` warning.
 - [ ] On cedar, verify the built-in display resolution and correct
-      `hostConstants.monitorResolution` if it differs from the temporary
+      `hostConstants.displayResolution` if it differs from the temporary
       2560x1664 value copied from aspen.
 - [ ] After activating the LibreWolf profile configuration, complete this live
       verification:

@@ -25,14 +25,14 @@
         default = false;
         description = "Whether this host runs the declarative minecraft server (nix-minecraft).";
       };
-      monitorResolution = {
+      displayResolution = {
         horizontal = lib.mkOption {
           type = lib.types.ints.positive;
-          description = "The primary monitor's horizontal resolution in pixels.";
+          description = "The primary display's horizontal resolution in pixels.";
         };
         vertical = lib.mkOption {
           type = lib.types.ints.positive;
-          description = "The primary monitor's vertical resolution in pixels.";
+          description = "The primary display's vertical resolution in pixels.";
         };
       };
       graphicsType = lib.mkOption {

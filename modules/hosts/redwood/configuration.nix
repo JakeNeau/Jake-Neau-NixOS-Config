@@ -30,13 +30,12 @@
     imports =
       (with inputs.self.modules.nixos; [
         role-desktop
-        minegrub
         nix-minecraft
       ])
       ++ [inputs.self.modules.generic.numtide-cache];
 
     hostConstants.hostName = "redwood";
-    hostConstants.monitorResolution = {
+    hostConstants.displayResolution = {
       horizontal = 5120;
       vertical = 1440;
     };
@@ -49,38 +48,23 @@
     # ----
     # Boot
     # ----
-    boot.loader = {
-      efi.canTouchEfiVariables = true;
-      grub = {
-        enable = true;
-        device = "nodev";
-        efiSupport = true;
-        # Bound /boot/kernels so the 511M partition never fills; older
-        # generations stay in the store but drop out of the GRUB menu.
-        configurationLimit = 15;
-        minegrub-theme = {
-          enable = true;
-          splash = "I use NixOS BTW!!";
-          background = "background_options/1.8  - [Classic Minecraft].png";
-          boot-options-count = 4;
-        };
-        gfxmodeEfi = "5120x1440";
-        gfxmodeBios = "5120x1440";
-        extraEntries = ''
-          menuentry "Windows 11 (Skill Issue)" {
-            search --fs-uuid --no-floppy --set=root 4443-0F45
-            chainloader (''${root})/EFI/Microsoft/Boot/bootmgfw.efi
-          }
-          menuentry "UEFI Firmware Settings" {
-            fwsetup
-          }
-        '';
-        extraConfig = ''
-          GRUB_TIMEOUT=10
-        '';
-      };
+    boot.loader.grub = {
+      # Bound /boot/kernels so the 511M partition never fills; older
+      # generations stay in the store but drop out of the GRUB menu.
+      configurationLimit = 15;
+      extraEntries = ''
+        menuentry "Windows 11 (Skill Issue)" {
+          search --fs-uuid --no-floppy --set=root 4443-0F45
+          chainloader (''${root})/EFI/Microsoft/Boot/bootmgfw.efi
+        }
+        menuentry "UEFI Firmware Settings" {
+          fwsetup
+        }
+      '';
+      extraConfig = ''
+        GRUB_TIMEOUT=10
+      '';
     };
-    stylix.targets.grub.enable = false;
 
     boot.kernelParams = ["video=5120x1440"];
 

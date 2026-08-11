@@ -16,7 +16,7 @@
     ];
 
     hostConstants.hostName = "spruce";
-    hostConstants.monitorResolution = {
+    hostConstants.displayResolution = {
       horizontal = 1920;
       vertical = 1080;
     };
@@ -31,10 +31,6 @@
       nvidiaBusId = "PCI:1:0:0";
       intelBusId = "PCI:0:2:0";
     };
-
-    # Simple UEFI bootloader (the desktop's themed GRUB is desktop-specific).
-    boot.loader.systemd-boot.enable = true;
-    boot.loader.efi.canTouchEfiVariables = true;
 
     # The first system version installed.
     # REPLACE with the NixOS release this laptop is first installed with.

@@ -373,6 +373,26 @@
         "type": "gitlab"
       }
     },
+    "grub2-themes": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1757136219,
+        "narHash": "sha256-tKU+vq34KHu/A2wD7WdgP5A4/RCmSD8hB0TyQAUlixA=",
+        "ref": "refs/heads/master",
+        "rev": "80dd04ddf3ba7b284a7b1a5df2b1e95ee2aad606",
+        "revCount": 341,
+        "type": "git",
+        "url": "https://github.com/vinceliuice/grub2-themes.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/vinceliuice/grub2-themes.git"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -417,11 +437,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1786483560,
-        "narHash": "sha256-O6wClUga6slD+1SJ7M8kgtp7jvtHNPBFomV4xe6yRtQ=",
+        "lastModified": 1786484186,
+        "narHash": "sha256-/I8AB0AHQXMLfvgZR7MD0qTA8Iq5KThR9iKAzqA6v3g=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "8f198cd0687257e4b343211da0bb7b7c2176d714",
+        "rev": "d52d36d644994c76f152c33b3b0c63bca7a1b7a4",
         "type": "github"
       },
       "original": {
@@ -450,24 +470,6 @@
       "original": {
         "owner": "hraban",
         "repo": "mac-app-util",
-        "type": "github"
-      }
-    },
-    "minegrub-theme": {
-      "inputs": {
-        "nixpkgs": "nixpkgs_6"
-      },
-      "locked": {
-        "lastModified": 1783209925,
-        "narHash": "sha256-NO94JBjSI4jHPaSxXhaZDv3oT7lKpoCzLxjAbWdSjwc=",
-        "owner": "Lxtharia",
-        "repo": "minegrub-theme",
-        "rev": "d0aec4523e1800c3196227dc420d326891292508",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Lxtharia",
-        "repo": "minegrub-theme",
         "type": "github"
       }
     },
@@ -528,7 +530,7 @@
     "nix-minecraft": {
       "inputs": {
         "flake-compat": "flake-compat_2",
-        "nixpkgs": "nixpkgs_7",
+        "nixpkgs": "nixpkgs_6",
         "systems": "systems_4"
       },
       "locked": {
@@ -589,19 +591,6 @@
         "owner": "nix-community",
         "repo": "nixpkgs.lib",
         "type": "github"
-      }
-    },
-    "nixpkgs_10": {
-      "locked": {
-        "lastModified": 1784796856,
-        "narHash": "sha256-vwxWgF+Gj276WznzGb1LxGsK/39HaQwgQXiU3EkC844=",
-        "rev": "e2587caef70cea85dd97d7daab492899902dbf5d",
-        "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1040357.e2587caef70c/nixexprs.tar.xz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz"
       }
     },
     "nixpkgs_2": {
@@ -670,22 +659,6 @@
     },
     "nixpkgs_6": {
       "locked": {
-        "lastModified": 1689850295,
-        "narHash": "sha256-fUYf6WdQlhd2H+3aR8jST5dhFH1d0eE22aes8fNIfyk=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "5df4d78d54f7a34e9ea1f84a22b4fd9baebc68d0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_7": {
-      "locked": {
         "lastModified": 1769461804,
         "narHash": "sha256-msG8SU5WsBUfVVa/9RPLaymvi5bI8edTavbIq3vRlhI=",
         "owner": "nixos",
@@ -700,7 +673,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_8": {
+    "nixpkgs_7": {
       "locked": {
         "lastModified": 1786384358,
         "narHash": "sha256-RzPPiWeUtuvymnpuEWsdtzli5w4kjZs49FqEs3/1u+I=",
@@ -711,6 +684,22 @@
       },
       "original": {
         "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_8": {
+      "locked": {
+        "lastModified": 1786384358,
+        "narHash": "sha256-RzPPiWeUtuvymnpuEWsdtzli5w4kjZs49FqEs3/1u+I=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "2fcb964de67fcf60b43471c55d5d99e61a9ccb5a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
         "ref": "nixos-unstable",
         "repo": "nixpkgs",
         "type": "github"
@@ -718,24 +707,21 @@
     },
     "nixpkgs_9": {
       "locked": {
-        "lastModified": 1786384358,
-        "narHash": "sha256-RzPPiWeUtuvymnpuEWsdtzli5w4kjZs49FqEs3/1u+I=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "2fcb964de67fcf60b43471c55d5d99e61a9ccb5a",
-        "type": "github"
+        "lastModified": 1784796856,
+        "narHash": "sha256-vwxWgF+Gj276WznzGb1LxGsK/39HaQwgQXiU3EkC844=",
+        "rev": "e2587caef70cea85dd97d7daab492899902dbf5d",
+        "type": "tarball",
+        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1040357.e2587caef70c/nixexprs.tar.xz"
       },
       "original": {
-        "owner": "nixos",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
+        "type": "tarball",
+        "url": "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz"
       }
     },
     "nur": {
       "inputs": {
         "flake-parts": "flake-parts_4",
-        "nixpkgs": "nixpkgs_9"
+        "nixpkgs": "nixpkgs_8"
       },
       "locked": {
         "lastModified": 1786483598,
@@ -780,7 +766,7 @@
       "inputs": {
         "flake-compat": "flake-compat_3",
         "mnw": "mnw",
-        "nixpkgs": "nixpkgs_10"
+        "nixpkgs": "nixpkgs_9"
       },
       "locked": {
         "lastModified": 1786433999,
@@ -850,15 +836,15 @@
       "inputs": {
         "flake-file": "flake-file",
         "flake-parts": "flake-parts",
+        "grub2-themes": "grub2-themes",
         "home-manager": "home-manager",
         "import-tree": "import-tree",
         "llm-agents": "llm-agents",
         "mac-app-util": "mac-app-util",
-        "minegrub-theme": "minegrub-theme",
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",
         "nix-minecraft": "nix-minecraft",
-        "nixpkgs": "nixpkgs_8",
+        "nixpkgs": "nixpkgs_7",
         "nur": "nur",
         "nvf": "nvf",
         "pi-acp": "pi-acp",

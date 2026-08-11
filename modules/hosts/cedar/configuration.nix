@@ -21,7 +21,7 @@
     ];
 
     hostConstants.hostName = "cedar";
-    hostConstants.monitorResolution = {
+    hostConstants.displayResolution = {
       horizontal = 2560;
       vertical = 1664;
     };
