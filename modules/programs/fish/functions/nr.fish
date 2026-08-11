@@ -72,7 +72,9 @@ function nr --description "Pulls, verifies every environment in the flake, commi
     return 1
   end
 
-  sudo nix flake update --flake $flake $nix_quiet
+  # macOS sudo preserves HOME. Use -H because root-run Nix rejects user-owned
+  # HOME without changing the preserved HOME that root-run Git needs.
+  sudo -H nix flake update --flake $flake $nix_quiet
   or begin
     echo "nr: nix flake update failed, aborting$stash_hint" >&2
     return 1

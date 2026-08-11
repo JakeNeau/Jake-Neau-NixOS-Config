@@ -42,6 +42,12 @@ The command stops after any failed operation. A failure after the temporary
 stash leaves recovery instructions in the error. A later run refuses to proceed
 until the user restores that stash.
 
+The flake update runs as `sudo -H nix flake update`. The `-H` sets `HOME` to
+root's home directory. This avoids Nix's fallback from the user-owned home.
+Other root-run commands retain their existing `sudo` forms. Root-run Git on
+macOS must inherit the invoking user's `HOME` so it reads the managed Git
+configuration.
+
 ## Staging modes
 
 The default mode runs `git add -A`. It includes tracked edits, deletions, and

@@ -138,6 +138,10 @@ And it is inert unless the git process reads a config file that sets it.
 That last boundary splits by platform. The setting lives in the user's
 home-manager git config, so root-run git picks it up only when `sudo` preserves
 `HOME`. macOS `/etc/sudoers` carries `env_keep += "HOME MAIL"`, so it does. The
-sudoers NixOS generates has no `env_keep HOME`. Root-run git there reads root's
-own config and this include never fires. That is why the NixOS half is tracked
-as unfinished rather than assumed to work.
+`nr` flow therefore leaves every root-run Git command in that form. Its separate
+flake-update command uses `sudo -H` because root-run Nix rejects a user-owned
+home directory.
+
+NixOS generates sudoers without `env_keep HOME`. Root-run git there reads root's
+own config and this include never fires. That is why the NixOS half remains
+unfinished rather than assumed to work.
