@@ -23,6 +23,9 @@
     workSettings = lib.mkMerge [
       commonProfileSettings
       {
+        "privacy.clearOnShutdown.cookies" = lib.mkForce false;
+        "privacy.clearOnShutdown.offlineApps" = lib.mkForce false;
+        "privacy.clearOnShutdown_v2.cookiesAndStorage" = lib.mkForce false;
         "privacy.resistFingerprinting" = false;
         "privacy.fingerprintingProtection" = true;
         "privacy.fingerprintingProtection.overrides" = "+AllTargets,-CSSPrefersColorScheme";

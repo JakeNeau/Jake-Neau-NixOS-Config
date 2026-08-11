@@ -8,8 +8,10 @@
       without Minegrub's nested-`buildInputs` warning.
 - [ ] After activating the LibreWolf profile configuration, complete this live
       verification:
-      1. Remove all persistence exceptions from `strict`.
-      2. Add the same required exceptions to `work` and `compatibility`.
+      1. Confirm that `work` retains cookies and site storage without
+         exceptions.
+      2. Remove all persistence exceptions from `strict` and `development`,
+         and add any required exceptions to `compatibility`.
       3. Check all four Linux menu entries, names, and icons.
       4. Inspect Linux icons at 16, 24, 32, 48, 64, and 128 pixels.
       5. Check all four macOS Spotlight and Launchpad entries, names, and icons.
@@ -24,13 +26,13 @@
       13. Close each profile normally and reopen it.
       14. Confirm that `strict` and `development` retain no cookies or site
           storage.
-      15. Confirm that `work` and `compatibility` retain data only for their
-          matching exception lists.
+      15. Confirm that `work` retains all site data and `compatibility` retains
+          data only for its exception list.
       16. Confirm that `work` and `compatibility` do not share retained data.
       17. Confirm that each extension list matches the LibreWolf reference.
       18. Confirm that `development` has no Stylix browser theme.
-      Complete this item only after persistence migration, repeated-launch
-      tests, URL-routing tests, and profile-isolation checks pass.
+      Complete this item only after persistence setup, repeated-launch tests,
+      URL-routing tests, and profile-isolation checks pass.
 - [ ] Runtime theme switching:
       keep stylix and add one home-manager specialisation per color scheme —
       the base theme stays gruvbox-material-dark-hard via `lib.mkDefault`, and

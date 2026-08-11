@@ -7,9 +7,9 @@ profiles with separate state and command and graphical launchers.
 
 | Profile | Purpose | Extensions | Privacy mode | Stylix |
 |---|---|---|---|---|
-| `work` | Default profile for general productivity | Six productivity extensions | Clear cookies and site storage except for manually allowed sites | Yes |
+| `work` | Default profile for general productivity | Six productivity extensions | Retain cookies and site storage | Yes |
 | `strict` | Personal browsing and the existing browser state | All declared extensions | Clear cookies and site storage on shutdown, with no exceptions | Yes |
-| `compatibility` | Sites that reject stronger privacy behavior | Bitwarden and Chrome Mask | Clear cookies and site storage except for the same manually allowed sites as work | Yes |
+| `compatibility` | Sites that reject stronger privacy behavior | Bitwarden and Chrome Mask | Clear cookies and site storage except for manually allowed sites | Yes |
 | `development` | Extension-free page testing | None | Clear cookies and site storage on shutdown, with no exceptions | No |
 
 All profiles retain LibreWolf's security controls. Every profile uses the
@@ -18,14 +18,15 @@ bookmarks and uBlock settings.
 
 ## Persistence exceptions
 
-All profiles clear cookies and site storage during normal shutdown. The user
-keeps the same manual persistence exceptions in `work` and `compatibility`.
-The `strict` and `development` profiles have no exceptions.
+The `work` profile retains cookies and site storage. The other profiles clear
+cookies and site storage during normal shutdown. The user may keep manual
+persistence exceptions in `compatibility`. The `strict` and `development`
+profiles have no exceptions.
 
-The profiles do not share browser state. An allowed site stores separate
-cookies and site data in `work` and `compatibility`. Home Manager does not
-modify the browser-owned `permissions.sqlite` databases. Shutdown clearing may
-not complete after a browser crash or forced process termination.
+The profiles do not share browser state. A site stores separate cookies and
+site data in `work` and `compatibility`. Home Manager does not modify the
+browser-owned `permissions.sqlite` databases. Shutdown clearing may not
+complete after a browser crash or forced process termination.
 
 ## Launchers
 
