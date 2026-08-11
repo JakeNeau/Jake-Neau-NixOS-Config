@@ -31,6 +31,7 @@
           macos-option-as-alt = true;
           keybind = [
             "ctrl+enter=unbind"
+            "ctrl+tab=unbind"
           ];
         };
       };
