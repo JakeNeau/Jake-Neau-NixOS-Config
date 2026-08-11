@@ -16,6 +16,10 @@
     ];
 
     hostConstants.hostName = "spruce";
+    hostConstants.monitorResolution = {
+      horizontal = 1920;
+      vertical = 1080;
+    };
 
     # Host facts features branch on (e.g. fastfetch's Power box).
     hostConstants.isLaptop = true;

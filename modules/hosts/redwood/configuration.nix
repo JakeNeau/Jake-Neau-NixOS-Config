@@ -36,6 +36,10 @@
       ++ [inputs.self.modules.generic.numtide-cache];
 
     hostConstants.hostName = "redwood";
+    hostConstants.monitorResolution = {
+      horizontal = 5120;
+      vertical = 1440;
+    };
 
     sops.secrets.redwoodSamsungOdysseyG9Token.owner = "jakeneau";
 

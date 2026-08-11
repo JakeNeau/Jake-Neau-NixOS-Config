@@ -6,6 +6,9 @@
       preserve Redwood's custom boot entries, `configurationLimit = 15`, and
       5120x1440 graphics modes. Done means the Redwood system dry-build passes
       without Minegrub's nested-`buildInputs` warning.
+- [ ] On cedar, verify the built-in display resolution and correct
+      `hostConstants.monitorResolution` if it differs from the temporary
+      2560x1664 value copied from aspen.
 - [ ] After activating the LibreWolf profile configuration, complete this live
       verification:
       1. Confirm that `work` retains cookies and site storage without

@@ -25,6 +25,16 @@
         default = false;
         description = "Whether this host runs the declarative minecraft server (nix-minecraft).";
       };
+      monitorResolution = {
+        horizontal = lib.mkOption {
+          type = lib.types.ints.positive;
+          description = "The primary monitor's horizontal resolution in pixels.";
+        };
+        vertical = lib.mkOption {
+          type = lib.types.ints.positive;
+          description = "The primary monitor's vertical resolution in pixels.";
+        };
+      };
       graphicsType = lib.mkOption {
         type = lib.types.enum ["amd" "intel" "nvidia" "apple"];
         # No default: every host MUST declare its GPU vendor.

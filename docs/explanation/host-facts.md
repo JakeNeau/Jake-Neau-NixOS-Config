@@ -15,6 +15,10 @@ once (`flake.modules.generic.host-constants`) and readable from any
 feature in any class: system config and home-manager alike. Hosts only set
 values.
 
+Facts can group related values. `hostConstants.monitorResolution` contains
+horizontal and vertical pixel counts, so display-aware features can derive a
+machine's native resolution without parsing a resolution string.
+
 ## The read-through: why and how
 
 Standalone homes broke the old delivery. With home-manager as a system

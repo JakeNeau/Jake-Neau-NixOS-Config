@@ -21,6 +21,10 @@
     ];
 
     hostConstants.hostName = "cedar";
+    hostConstants.monitorResolution = {
+      horizontal = 2560;
+      vertical = 1664;
+    };
 
     # Host facts features branch on (e.g. fastfetch's Power box).
     hostConstants.isLaptop = true;
