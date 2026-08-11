@@ -31,15 +31,7 @@
           macos-option-as-alt = true;
           keybind = [
             "ctrl+enter=unbind"
-            "ctrl+tab=unbind"
           ];
-        };
-      };
-
-      targets.darwin.defaults = lib.mkIf pkgs.stdenv.isDarwin {
-        "com.mitchellh.ghostty".NSUserKeyEquivalents = {
-          "Show Next Tab" = "@$]";
-          "Show Previous Tab" = "@$[";
         };
       };
 

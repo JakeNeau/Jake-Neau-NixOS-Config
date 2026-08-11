@@ -481,7 +481,7 @@ in {
         ".pi/agent/skills/writing-pi-extensions".source = ./config/skills/writing-pi-extensions;
         ".pi/agent/link-registry.json".source = linkRegistry;
         ".pi/agent/keybindings.json".text = builtins.toJSON {
-          "app.thinking.cycle" = "ctrl+tab";
+          "app.thinking.cycle" = "ctrl+shift+l";
         };
         ".pi/agent/AGENTS.md".text = agentContext;
 

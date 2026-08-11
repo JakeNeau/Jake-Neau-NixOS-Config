@@ -279,12 +279,6 @@
       native installer) and delete the `~/.claude` and `~/.claude.json`
       state. Redwood's declared harness is pi; the Claude Code install
       was a scratch install that predates the superpowers removal.
-- [ ] After rebuilding a Pi home, run the interactive workflow smoke check.
-      Confirm `Shift+Tab` cycles `normal` and `refine-spec`. Confirm `Ctrl+Tab`
-      remains a distinct terminal key and cycles thinking levels. Confirm the
-      editor border changes and restores. Start and stop a read-only
-      `/refine-spec` discovery stage, then check that no child process remains.
-      Remove this entry when all checks pass on a live TUI.
 - [ ] Add an MCP adapter to Pi's typed-link registry for `[[mcp:<name>]]`
       links. It must discover configured Model Context
       Protocol servers, resolve each link to useful metadata, and invoke the

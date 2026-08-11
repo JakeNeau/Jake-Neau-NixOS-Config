@@ -64,7 +64,7 @@ multiple questions in one call.
 
 The `workflows` extension adds exclusive, artifact-driven workflow modes.
 `Shift+Tab` cycles through `normal` and discovered workflows. Home Manager moves
-Pi's thinking-level cycle to `Ctrl+Tab`.
+Pi's thinking-level cycle to `Ctrl+Shift+L`.
 
 Each agent stage runs in a fresh RPC child process with the user's selected
 model and thinking level. The parent session stores validated stage artifacts as
