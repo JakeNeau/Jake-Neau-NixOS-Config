@@ -11,7 +11,9 @@ workflow arms it. The next submitted prompt becomes that workflow's input.
 
 Home Manager binds `app.thinking.cycle` to `Ctrl+Tab`, because the workflow
 manager owns `Shift+Tab`. The managed Ghostty configuration unbinds its default
-`Ctrl+Tab` tab-switching action so Pi receives the key.
+`Ctrl+Tab` action. On macOS, Home Manager also assigns the native tab menu items
+to Ghostty's existing `Cmd+Shift+]` and `Cmd+Shift+[` shortcuts so Pi receives
+`Ctrl+Tab`.
 
 Each global workflow can register a direct command. The bundled workflow uses
 `/refine-spec [idea or area]`. Project workflow commands pass through the input

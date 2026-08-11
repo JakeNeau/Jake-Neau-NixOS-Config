@@ -36,6 +36,13 @@
         };
       };
 
+      targets.darwin.defaults = lib.mkIf pkgs.stdenv.isDarwin {
+        "com.mitchellh.ghostty".NSUserKeyEquivalents = {
+          "Show Next Tab" = "@$]";
+          "Show Previous Tab" = "@$[";
+        };
+      };
+
       # Silence the "Last login: ..." banner login(1) prints in every new
       # terminal window on macOS.
       home.file = lib.mkIf pkgs.stdenv.isDarwin {
