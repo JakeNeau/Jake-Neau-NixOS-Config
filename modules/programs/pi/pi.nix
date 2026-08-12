@@ -1,7 +1,8 @@
 {inputs, ...}: let
-  askUserSource = ./extensions/ask-user;
-  rustToolsSource = ./extensions/rust-tools;
-  workflowSource = ./extensions/workflows;
+  extensionSource = ./extensions;
+  askUserSource = "${extensionSource}/ask-user";
+  rustToolsSource = "${extensionSource}/rust-tools";
+  workflowSource = "${extensionSource}/workflows";
   writingSource = ./writing;
   mkPiLinkRegistry = pkgs:
     pkgs.runCommand "pi-link-registry.json" {
@@ -224,6 +225,7 @@
       ];
     } ''
       mkdir extensions
+      cp -R ${askUserSource} extensions/ask-user
       cp -R ${workflowSource} extensions/workflows
       chmod -R u+w extensions
       node --experimental-strip-types --test extensions/workflows/tests/*.test.ts

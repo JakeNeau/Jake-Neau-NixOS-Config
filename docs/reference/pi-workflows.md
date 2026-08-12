@@ -158,6 +158,10 @@ Each refinement performs these phases:
 8. A fresh verifier checks the proposal, decisions, architecture, and project
    validation.
 
+In TUI mode, multiple-choice checkpoints use the same inline dialog as the
+`ask_user` tool. Selecting the free-form or clarification action replaces only
+that action row with an input. The question and all options remain visible.
+
 The writer gets one correction attempt after failed semantic verification. A
 second failure stops the workflow.
 

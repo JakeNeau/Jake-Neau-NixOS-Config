@@ -2,14 +2,12 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 import { BorderedLoader, CustomEditor } from "@earendil-works/pi-coding-agent";
 import { Text, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 
+import { runAskUserTui } from "../ask-user/dialog.ts";
 import type { WorkflowArtifact } from "./artifacts.ts";
-
-export interface WorkflowAnswer {
-  answer: string | null;
-  index?: number;
-  clarification?: string;
-  status: "answered" | "clarification" | "cancelled";
-}
+import {
+  type WorkflowAnswer,
+  workflowAnswerForDialogEvent,
+} from "./question.ts";
 
 export interface WorkflowQuestion {
   text: string;
@@ -92,11 +90,24 @@ export class WorkflowUi {
   async ask(question: WorkflowQuestion): Promise<WorkflowAnswer> {
     const recommendation = question.recommendation ? `\nRecommendation: ${question.recommendation}` : "";
     const title = `${question.text}\n\n${question.why}${recommendation}`;
-    const labels = question.options.map((option, index) => `${index + 1}. ${option.label} — ${option.consequence}`);
+    const optionLabels = question.options.map((option) => `${option.label} — ${option.consequence}`);
+    const answerLabels = optionLabels.map((label, index) => `${index + 1}. ${label}`);
+
+    if (this.ctx.mode === "tui") {
+      const event = await runAskUserTui(
+        {
+          question: title,
+          options: optionLabels.map((label) => ({ label })),
+        },
+        this.ctx,
+      );
+      return workflowAnswerForDialogEvent(answerLabels, event);
+    }
+
     const freeForm = "Type a free-form answer...";
     const clarify = "Ask a clarifying question...";
     while (true) {
-      const choice = await this.ctx.ui.select(title, [...labels, freeForm, clarify]);
+      const choice = await this.ctx.ui.select(title, [...answerLabels, freeForm, clarify]);
       if (!choice) return { answer: null, status: "cancelled" };
       if (choice === freeForm) {
         const answer = (await this.ctx.ui.input("Free-form answer", "Type your answer"))?.trim();
@@ -108,8 +119,8 @@ export class WorkflowUi {
         if (clarification) return { answer: null, clarification, status: "clarification" };
         continue;
       }
-      const index = labels.indexOf(choice);
-      if (index >= 0) return { answer: labels[index], index: index + 1, status: "answered" };
+      const index = answerLabels.indexOf(choice);
+      if (index >= 0) return { answer: answerLabels[index], index: index + 1, status: "answered" };
     }
   }
 
