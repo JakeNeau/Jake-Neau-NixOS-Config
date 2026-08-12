@@ -100,13 +100,6 @@
       role entry); stylix home-manager config for standalone homes is routed
       via the Linux hosts' `baselines`
       (`modules/nix/tools/stylix/stylix.nix`).
-- [ ] On the macOS hosts (aspen, cedar): swap Command and Option on
-      built-in/Apple keyboards only, so Alt and Mod/Super sit in the same
-      physical positions as on a standard PC keyboard. Must be scoped per
-      device — an external Windows/PC keyboard plugged in keeps its default
-      layout. Likely a per-device key remap via `hidutil` (or a nix-darwin
-      keyboard option) restricted to Apple keyboard vendor/product IDs;
-      probably lands in a darwin system module under `modules/host-config/`.
 - [ ] Syncthing on every host plus the GrapheneOS phone; design settled
       2026-07-07. A `flake.programs.syncthing`
       declaration installs per-user via home-manager's `services.syncthing` on
@@ -259,13 +252,6 @@
       occurrence ghostty actually honors after the cutover; if the wrong one
       wins, pin the intended 0.9 with `lib.mkForce` in
       `modules/programs/ghostty/ghostty.nix`.
-- [ ] Decide whether the macs (aspen, cedar) should get yazi back: after the
-      stage-5 declaration-framework cutover they no longer receive yazi's
-      per-user install (pre-cutover it arrived via the role-default homeManager
-      aggregate; the spec lists yazi only in the Linux hosts' `globalPrograms`).
-      Spec-consistent, so this may be fine as-is — but if yazi is wanted on the
-      macs, it's one `globalPrograms` entry in each mac's host declaration or a
-      `flake.users` programs line.
 - [ ] Clean superpowers out of live Claude Code state on cedar: `claude
       plugin uninstall superpowers@claude-plugins-official` to clear the
       cache, then jq-delete the
@@ -311,13 +297,6 @@
       `modules/programs/claude-code/config/hooks/edit-briefing`. The spec
       `specs/edit-briefings.md` is intentionally kept (not retired) until this
       check passes.
-- [ ] Decide whether to rewrite `modules/programs/claude-code/config/CLAUDE.md`
-      to obey its own form policy. Its `## 3. How you write` section requires no
-      em dashes, no semicolons, no contractions, one claim per sentence, and a
-      25-word sentence limit — but sections 1-2 and 4-12 are full of em dashes,
-      semicolons, contractions, and much longer sentences. The prose predates
-      section 3; section 3 is what made the file self-inconsistent. User's call
-      whether to rewrite those sections or narrow the policy.
 - [ ] Split the multi-claim `test()` block in
       `modules/programs/pi/extensions/typed-links/tests/writing-resources.test.mjs`
       into one `test()` per claim, so the first failure stops masking the rest.
@@ -332,16 +311,6 @@
       that user's own agent. These files sit outside both agents' trees, so the
       agent-config split left them alone — reword only if consistency with the
       agent-isolation rule is wanted there too. Low priority.
-- [ ] Check whether the `/etc/nix-darwin` entry in `settings.safe.directory`
-      (`modules/programs/git/git.nix`) is redundant, and remove it if so.
-      `/private/etc/nix-darwin` is the repository's resolved real path, which
-      satisfies libgit2 and the git CLI alike. So the unresolved spelling may
-      carry no weight, while `/etc/nixos` stays either way as the real path on
-      Linux. The 2026-07-28 comment-only pass over that file deliberately left
-      this out, since dropping an allowlist entry is a behavior change needing
-      its own verification. Confirm with
-      `nix flake metadata /private/etc/nix-darwin`, not with `git status`,
-      because only a libgit2 consumer proves the allowlist does the work.
 - [ ] Verify and fix the NixOS side of `core.sharedRepository`: the
       `gitdir:/etc/nixos/` include does NOT reach root-run git on NixOS. Proven
       on redwood — its generated sudoers

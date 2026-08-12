@@ -77,9 +77,9 @@ checks it anyway.
 `nix` opens this repository through libgit2, not through the git CLI, and the
 two match `safe.directory` entries differently. On macOS `/etc` is a symlink
 to `/private/etc`, so the repo's real path is `/private/etc/nix-darwin`. The
-CLI accepts an `/etc/nix-darwin` entry for that path and libgit2 does not. So
-the declarative config lists the `/private` spelling too, and the temporary
-entry a new user adds at bootstrap has to use it. On NixOS `/etc/nixos` is a
+CLI accepts an `/etc/nix-darwin` entry for that path and libgit2 does not. The
+declarative config therefore uses the `/private` spelling. The temporary entry
+a new user adds at bootstrap must also use it. On NixOS `/etc/nixos` is a
 real directory, so the question never arises.
 
 That temporary entry is the reason bootstrap ends by deleting `~/.gitconfig`.

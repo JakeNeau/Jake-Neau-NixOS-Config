@@ -15,7 +15,6 @@
       # real path there.
       settings.safe.directory = [
         "/etc/nixos"
-        "/etc/nix-darwin"
         "/private/etc/nix-darwin"
       ];
       # git creates .git files at umask 022 — no group-write — leaving the tree's
