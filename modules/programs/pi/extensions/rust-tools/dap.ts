@@ -248,10 +248,9 @@ export class CodeLldbSession {
   }
 
   private async resume(command: string, args: Record<string, unknown>, label: string): Promise<StoppedEvent> {
-    const stopped = this.waitForStop();
-    await this.connection.request(command, args);
     try {
-      return await stopped;
+      await this.connection.request(command, args);
+      return await this.waitForStop();
     } catch (error) {
       throw new Error(`${label} failed: ${error instanceof Error ? error.message : String(error)}`);
     }

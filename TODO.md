@@ -332,32 +332,6 @@
       that user's own agent. These files sit outside both agents' trees, so the
       agent-config split left them alone — reword only if consistency with the
       agent-isolation rule is wanted there too. Low priority.
-- [ ] Guard the dangling stop-waiter in `CodeLldbSession.resume()` in
-      `modules/programs/pi/extensions/rust-tools/dap.ts` — it has the same defect
-      already fixed in `launch()`: it creates `const stopped =
-      this.waitForStop();` and then awaits `this.connection.request(command,
-      args)`. If that request rejects, no event ever settles `stopped`, so
-      `close()` later rejects it with "debug session closed" and it surfaces as
-      an unhandled rejection — which under Node's default
-      `--unhandled-rejections=throw` can be blamed on an unrelated test or kill
-      a live Pi session. Apply the same one-line `stopped.catch(() => {});`
-      immediately after `waitForStop()` that `launch()` now uses. Done means a
-      failing resume request produces only the wrapped `${label} failed: ...`
-      error, with no unhandled rejection when the session closes. Deferred from
-      the pi-rust-tools aarch64-darwin check fix, whose scope was three tests
-      plus the minimum production change.
-- [ ] Give the one direct `RustAnalyzerSession.start` call in
-      `modules/programs/pi/extensions/rust-tools/tests/lsp.test.ts` (the
-      "synchronizes source changes after a document is opened" test) an explicit
-      `readyTimeoutMs`. It still passes only `timeoutMs: 500`, so the startup
-      handshake and every subsequent request share a single 500ms budget. The
-      shared `start()` helper in the same file already passes an explicit
-      generous `readyTimeoutMs: 30_000` — the option added to
-      `RustAnalyzerStartOptions` in `lsp.ts`, which defaults to `timeoutMs` so
-      existing callers are unchanged. Done means this call cannot become
-      load-flaky the way the "times out unanswered language-server requests"
-      test did (it failed roughly 1 run in 5 with `initialize request timed out
-      after 30ms`). Low priority.
 - [ ] Check whether the `/etc/nix-darwin` entry in `settings.safe.directory`
       (`modules/programs/git/git.nix`) is redundant, and remove it if so.
       `/private/etc/nix-darwin` is the repository's resolved real path, which

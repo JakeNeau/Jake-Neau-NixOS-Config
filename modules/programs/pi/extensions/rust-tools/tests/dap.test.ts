@@ -9,7 +9,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const server = join(here, "fixtures", "fake-dap.mjs");
 const source = join(here, "fixtures", "workspace", "crates", "demo", "src", "lib.rs");
 
-async function start(terminateOnContinue = false) {
+async function start(terminateOnContinue = false, failOnContinue = false, stopBeforeResponse = false) {
   return CodeLldbSession.start({
     executable: process.execPath,
     adapterArgs: [server],
@@ -18,6 +18,8 @@ async function start(terminateOnContinue = false) {
       ...process.env,
       FAKE_SOURCE_PATH: source,
       FAKE_TERMINATE_ON_CONTINUE: terminateOnContinue ? "1" : "0",
+      FAKE_FAIL_ON_CONTINUE: failOnContinue ? "1" : "0",
+      FAKE_STOP_BEFORE_RESPONSE: stopBeforeResponse ? "1" : "0",
     },
     timeoutMs: 1000,
   });
@@ -51,6 +53,16 @@ test("does not leave stale event waiters after a stopped event wins", async (con
   const stepped = await session.next(stopped.threadId!);
   const terminated = await session.continue(stepped.threadId!);
   assert.equal(terminated.terminated, true);
+});
+
+test("recovers after a failed resume without leaving a stale stop waiter", async (context) => {
+  const session = await start(false, true, true);
+  context.after(() => session.close());
+  await session.launch({ program: "/tmp/demo", cwd: "/tmp", args: [], env: {}, breakpoints: [] });
+  await assert.rejects(session.continue(7), /continue failed: resume rejected/);
+  assert.equal((await session.continue(7)).reason, "step");
+  await session.close();
+  await new Promise((resolve) => setImmediate(resolve));
 });
 
 test("reports CodeLLDB spawn failures", async () => {

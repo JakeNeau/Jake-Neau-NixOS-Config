@@ -54,6 +54,7 @@ test("synchronizes source changes after a document is opened", async (context) =
     cwd: root,
     env: { ...process.env, FAKE_SOURCE_URI: pathToFileURL(changedSource).href },
     timeoutMs: 500,
+    readyTimeoutMs: 30_000,
   });
   context.after(() => session.close());
   const point = { path: changedSource, line: 5, column: 8 };

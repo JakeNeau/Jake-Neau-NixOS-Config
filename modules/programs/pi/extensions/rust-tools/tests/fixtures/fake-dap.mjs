@@ -4,6 +4,7 @@ const portIndex = process.argv.indexOf("--port");
 const port = Number(process.argv[portIndex + 1]);
 let sequence = 1;
 let launchRequest;
+let failedContinue = false;
 
 function frame(message) {
   const body = Buffer.from(JSON.stringify({ seq: sequence++, ...message }));
@@ -47,12 +48,19 @@ function handle(socket, request) {
   } else if (request.command === "evaluate") {
     response(socket, request, { result: "42", type: "i32", variablesReference: 0 });
   } else if (["continue", "next", "stepIn", "stepOut"].includes(request.command)) {
-    response(socket, request, { allThreadsContinued: true });
-    if (request.command === "continue" && process.env.FAKE_TERMINATE_ON_CONTINUE === "1") {
-      event(socket, "exited", { exitCode: 0 });
-      event(socket, "terminated");
+    if (request.command === "continue" && process.env.FAKE_FAIL_ON_CONTINUE === "1" && !failedContinue) {
+      failedContinue = true;
+      socket.write(frame({ type: "response", request_seq: request.seq, success: false, command: request.command, message: "resume rejected" }));
     } else {
-      event(socket, "stopped", { reason: "step", threadId: 7 });
+      const stopBeforeResponse = request.command === "continue" && process.env.FAKE_STOP_BEFORE_RESPONSE === "1";
+      if (stopBeforeResponse) event(socket, "stopped", { reason: "step", threadId: 7 });
+      response(socket, request, { allThreadsContinued: true });
+      if (request.command === "continue" && process.env.FAKE_TERMINATE_ON_CONTINUE === "1") {
+        event(socket, "exited", { exitCode: 0 });
+        event(socket, "terminated");
+      } else if (!stopBeforeResponse) {
+        event(socket, "stopped", { reason: "step", threadId: 7 });
+      }
     }
   } else if (request.command === "disconnect") {
     response(socket, request);
