@@ -5,9 +5,10 @@ with every exploration path, tool result, and rejected idea. The workflow
 manager therefore separates control from reasoning.
 
 The interactive Pi session acts as the control plane. It owns user decisions,
-routing, progress, validation, and cleanup. Each reasoning stage runs in a fresh
-child Pi process. The child receives only declared artifacts and a catalog of
-other available artifacts.
+routing, progress, validation, and cleanup. Each bounded reasoning stage runs
+in a fresh child Pi process. A conversation mode keeps one child for its full
+chat. Every child receives declared artifacts and a catalog of other available
+artifacts.
 
 This split keeps the parent context clean. It also makes each stage's input and
 output inspectable. A later stage receives conclusions because a prior stage
@@ -15,9 +16,10 @@ recorded them, not because both stages happen to share a long transcript.
 
 ## Why artifacts replace transcript chaining
 
-Passing a complete child transcript to the next child would recreate the
+Passing a complete child transcript to another stage would recreate the
 context problem under another name. It would also mix evidence, intermediate
-reasoning, tool noise, and final conclusions.
+reasoning, tool noise, and final conclusions. A conversation child retains its
+own transcript only while that mode remains active.
 
 A workflow artifact contains a bounded summary and a schema-checked payload.
 The parent adds identity and lineage. Later stages can request an undeclared
@@ -45,7 +47,7 @@ appears several times.
 This distinction makes retries and iterations auditable. It also prevents a
 stage from rewriting history or creating a self-referential input.
 
-## Why routing is constrained
+## Why workflows constrain routing
 
 An unrestricted orchestrator could jump to an unsafe writer, skip required
 verification, or invent a stage name. A purely fixed chain would prevent those
@@ -104,6 +106,33 @@ written specifications with project evidence and every recorded user decision.
 The result is slower than letting one long-running agent edit immediately. The
 extra stages buy context isolation, explicit decisions, bounded authority, and
 independent verification.
+
+## Why clarification and exploration are separate
+
+Clarification and exploration assign initiative to different actors.
+Clarification lets the model identify missing requirements and ask one focused
+question at a time. Exploration lets the user develop an idea through open
+discussion without entering a model-led interview.
+
+Combining these behaviors caused two failures. Exploration behaved like a
+series of isolated clarification requests. The model could also decide that an
+exploration invalidated a question and return to clarification without the
+user's request.
+
+The refinement runtime now keeps the modes separate. Slash commands and
+explicit natural-language instructions can switch between clarification,
+exploration, and writing. Discussion, suggestions, and questions do not trigger
+a transition. The model can report uncertainty, but it cannot select the next
+stage.
+
+Each conversation mode keeps one child process alive across turns. The child
+retains the normal chat transcript, model snapshot, tool policy, and supplied
+evidence. This removes repeated process startup and evidence serialization from
+every conversational turn.
+
+When the user requests a stage change, the child emits one bounded summary.
+Later stages receive the summary instead of the complete transcript. This keeps
+the artifact graph bounded without making each message a one-off question.
 
 ## Why specification and plan refinement share one engine
 

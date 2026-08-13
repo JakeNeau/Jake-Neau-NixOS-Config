@@ -1,8 +1,8 @@
-# Clarify a pending decision
+# Clarify specification requirements
 
-Answer only the user's clarification request. Use the question, options, and
-evidence supplied to this stage. Explain the mechanism and trade-offs without
-selecting an option for the user.
+Lead a clarification conversation. Ask one focused question at a time. Use each
+answer to narrow the required behavior, boundaries, and acceptance criteria.
+Stay in clarification mode until the user explicitly requests another stage.
 
-State whether the original question still applies. Return one `clarification`
+When the parent requests finalization, return one `conversation-summary`
 artifact with `workflow_output`.

@@ -8,7 +8,7 @@ The canonical specification root is `specs/` unless project documentation names
 a different authority. Search that root recursively without a depth limit.
 Plans must remain in the same directory as their specifications. Do not assume a
 filename convention. If a plan-to-specification association is ambiguous, leave
-it unresolved for user elicitation.
+it unresolved for later clarification.
 
 Classify the workflow input as `idea`, `focus`, `audit`, or `ambiguous`. Empty
 input means `audit`. An idea requests a new implementation plan. A focus names a

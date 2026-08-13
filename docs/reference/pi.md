@@ -72,16 +72,22 @@ non-context custom entries. Global workflows live with the extension. Trusted
 projects may add declarative definitions under `.pi/workflows/`.
 
 The bundled `/refine-spec [idea or area]` workflow discovers the project's
-specification practice and gathers parallel evidence. It asks one decision at a
-time, requires proposal approval, restricts writes, and verifies the result.
-Calling `/refine-spec` without input audits all active specifications.
+specification practice and gathers parallel evidence. The user then selects a
+model-led clarification conversation, a user-led exploration conversation, or
+writing. Slash commands and explicit natural-language instructions can switch
+stages. The workflow requires proposal approval, restricts writes, and verifies
+the result. Calling
+`/refine-spec` without input audits all active specifications.
 
 The bundled `/refine-plan [specification or area]` workflow uses the same
 refinement engine to create an implementation-complete plan. It reads project
-documentation before code and asks the user about every unresolved choice. The
-plan names exact files, symbols, behavior, data flow, tests, and documentation.
-Pi writes one plan beside its specification under the recursive `specs/` tree.
-Calling `/refine-plan` without input audits all active plans.
+documentation before code. Clarification asks about unresolved choices, while
+exploration remains user-led. A persistent child preserves each conversation
+until the user requests another stage.
+
+The plan names exact files, symbols, behavior, data flow, tests, and
+documentation. Pi writes one plan beside its specification under the recursive
+`specs/` tree. Calling `/refine-plan` without input audits all active plans.
 
 [Pi workflow reference](pi-workflows.md) defines commands, definition fields,
 stages, artifacts, safety rules, and limits. [The workflow

@@ -104,9 +104,11 @@ Mutation and user-decision stages run serially.
 
 ## Child stages
 
-Each stage uses a fresh `pi --mode rpc --no-session` process. The child receives
-the project directory, trust decision, model snapshot, thinking snapshot, stage
-prompt, selected artifacts, artifact catalog, and tool allowlist.
+Each non-conversation stage uses a fresh `pi --mode rpc --no-session` process.
+A refinement conversation keeps one child process for that mode. The child
+receives the project directory, trust decision, model snapshot, thinking
+snapshot, stage prompt, selected artifacts, artifact catalog, and tool
+allowlist.
 
 The workflow extension detects `PI_WORKFLOW_CHILD=1` and registers two tools:
 
@@ -183,17 +185,42 @@ Pi refines each issue in these phases:
 1. Four read-only children inspect specifications, documentation,
    implementation, and verification evidence.
 2. A join stage synthesizes their artifacts.
-3. Fresh elicitation stages ask one multiple-choice question at a time.
-4. Clarification stages answer user questions without recording decisions.
-5. A proposal stage integrates the evidence and recorded answers.
-6. The user approves exact specification files before mutation.
-7. A writer changes only those files.
-8. A fresh verifier checks the proposal, decisions, architecture, and project
-   validation.
+3. The user selects clarification, exploration, or writing.
+4. Clarification uses one persistent child that asks one focused question at a
+   time.
+5. Exploration uses one persistent child for a user-led design conversation.
+6. The user explicitly requests every switch between clarification,
+   exploration, and writing.
+7. A proposal stage integrates the evidence and conversation summaries.
+8. The user approves exact specification files before mutation.
+9. A writer changes only those files.
+10. A fresh verifier checks the proposal, decisions, architecture, and project
+    validation.
 
-In TUI mode, multiple-choice checkpoints use the same inline dialog as the
-`ask_user` tool. Selecting the free-form or clarification action replaces only
-that action row with an input. The question and all options remain visible.
+Clarification and exploration are separate modes. Clarification lets the model
+lead requirement discovery. Exploration lets the user lead an open discussion.
+The child cannot switch modes or start writing.
+
+The conversation editor accepts these stage commands:
+
+| Command | Result |
+|---|---|
+| `/clarify` | Finalize the current conversation and enter clarification |
+| `/explore` | Finalize the current conversation and enter exploration |
+| `/write` | Finalize the current conversation and prepare the proposal |
+| `/stop` | Stop the workflow without writing |
+
+An explicit natural-language instruction can also change the stage. Examples
+include `Switch to clarification mode`, `Please enter explore mode`, and
+`Start writing the specification`. A discussion statement such as `I think we
+can write this now` remains part of the current conversation. Questions and
+suggestions also remain in the current mode.
+
+A conversation child remains alive across its turns. This preserves normal chat
+context and avoids a new Pi process and repeated evidence prompt for every
+message. When the user requests a stage change, the child emits one bounded
+`conversation-summary` artifact. The next stage receives that summary instead
+of the full transcript.
 
 The writer gets one correction attempt after failed semantic verification. A
 second failure stops the workflow.
@@ -215,13 +242,13 @@ filename convention. It asks the user when the association or target path is
 ambiguous.
 
 `refine-plan` uses the same discovery, audit, parallel investigation,
-synthesis, decision, approval, mutation, retry, and verification control flow
-as `refine-spec`. Its stage prompts apply implementation-plan constraints.
+synthesis, conversation, approval, mutation, retry, and verification control
+flow as `refine-spec`. Its stage prompts apply implementation-plan constraints.
 
 The workflow reads project documentation before broad code. Four investigation
 branches gather specification, documentation, implementation, and verification
-evidence. The elicitation loop asks one question for every unresolved
-implementation choice.
+evidence. Clarification asks about unresolved implementation choices.
+Exploration remains user-led. Only the user can switch stages.
 
 The approved plan is high-level pseudocode. It names exact file paths, symbols,
 interfaces, behavior, data flow, errors, compatibility work, tests, validation,

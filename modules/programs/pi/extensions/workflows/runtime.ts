@@ -6,9 +6,11 @@ import { resolve } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 import { ArtifactStore, type ArtifactCandidate, type WorkflowArtifact } from "./artifacts.ts";
+import { runConversationStage } from "./conversation-runner.ts";
 import type { LoadedWorkflow, StageDefinition } from "./definitions.ts";
 import { InvocationGraph, mapWithConcurrency, resolveSuccessorSet, validateRouterSelection } from "./engine.ts";
 import { approvedPlanTargets, approvedTargets, RefinementTargetError } from "./paths.ts";
+import { parseRefinementInput, type RefinementMode } from "./refinement-mode.ts";
 import { chooseSpecificationLocation, fingerprintIssue, suppressSkippedIssues, type RefinementIssue } from "./refine-spec.ts";
 import { runStage, type StageRunResult } from "./runner.ts";
 import { fitEvidenceStageContext, MAX_STAGE_CONTEXT_BYTES, serializeStageContext } from "./stage-context.ts";
@@ -487,47 +489,103 @@ export class WorkflowRuntime {
     }
   }
 
-  private async collectDecisions(
-    focus: WorkflowArtifact,
+  private async runConversation(
+    mode: RefinementMode,
     synthesis: WorkflowArtifact,
-    decisions: WorkflowArtifact[],
-  ): Promise<void> {
-    while (true) {
-      const elicited = await this.stage("elicit", [synthesis, ...decisions]);
-      if (elicited.outcome === "ready") return;
-      const question = object(object(elicited.payload).question) as WorkflowQuestion;
-      if (!question.text || !Array.isArray(question.options)) throw new Error("Elicitation stage returned no valid question");
-
+    summaries: WorkflowArtifact[],
+  ): Promise<{ action: "switch"; mode: RefinementMode; summary: WorkflowArtifact } | { action: "write"; summary: WorkflowArtifact }> {
+    const stage = this.definition.stages[mode];
+    if (!stage) throw new Error("The refinement workflow has no conversation stage");
+    const schema = JSON.parse(await readFile(resolve(this.definition.root, "schemas/conversation.json"), "utf8"));
+    const priorContext = serializeStageContext({ mode }, [synthesis, ...summaries]);
+    if (Buffer.byteLength(priorContext) > MAX_STAGE_CONTEXT_BYTES) throw new Error("Refinement conversation inputs exceed 50 KB");
+    const behavior = mode === "clarify"
+      ? "Lead a clarification conversation. Ask one focused question at a time and use each answer to narrow the requirements."
+      : "Let the user lead an exploratory conversation about what they want. Respond naturally with analysis, alternatives, and reflections. Do not turn the exchange into a questionnaire.";
+    const prompt = `# ${mode === "clarify" ? "Clarify requirements" : "Explore requirements"}\n\n${behavior}\n\nStay in ${mode} mode. Never change modes, propose a final specification, or call workflow_output on your own. Only the parent workflow can request a mode change. Do not mention internal workflow commands.\n\n## Refinement context\n\n${priorContext}`;
+    this.ui.update({ stage: mode });
+    const result = await runConversationStage<
+      { action: "switch"; mode: RefinementMode } | { action: "write" }
+    >({
+      cwd: this.ctx.cwd,
+      prompt,
+      schema,
+      provider: this.provider,
+      model: this.model,
+      thinking: this.thinking,
+      tools: stage.tools,
+      trusted: this.trusted,
+      readOnly: true,
+      readOnlyCommandPrefixes: this.definition.readOnlyCommandPrefixes?.[mode],
+      artifacts: [...this.artifacts.list()],
+      catalog: this.artifacts.catalog(),
+      signal: this.abortController.signal,
+    }, async (response) => {
+      if (response) this.ui.appendConversation("assistant", response);
       while (true) {
-        this.ui.setDecisionWidget(text(focus.summary), decisions.map((decision) => decision.summary));
-        const answer = await this.ui.ask(question);
-        if (answer.status === "cancelled") throw new WorkflowStopped("Workflow stopped");
-        if (answer.status === "clarification" && answer.clarification) {
-          const request = this.addArtifact("clarification-request", [elicited], {
-            artifactKind: "clarification-request",
-            outcome: "requested",
-            summary: answer.clarification,
-            payload: { question, request: answer.clarification },
-          });
-          const clarification = await this.stage("clarify", [synthesis, elicited, request]);
-          this.ctx.ui.notify(text(object(clarification.payload).answer), "info");
+        const input = (await this.ui.edit(
+          `${mode === "clarify" ? "Clarify" : "Explore"} mode. Explicitly request another stage, or use /clarify, /explore, /write, or /stop.`,
+        ))?.trim();
+        if (!input) return { action: "stop" };
+        const parsed = parseRefinementInput(input);
+        if (parsed.action === "stop") return { action: "stop" };
+        if (parsed.action === "message") {
+          this.ui.appendConversation("user", parsed.text);
+          return { action: "continue", prompt: parsed.text };
+        }
+        if (parsed.action === "switch" && parsed.mode === mode) {
+          this.ctx.ui.notify(`Already in ${mode} mode.`, "info");
           continue;
         }
-        if (answer.status !== "answered" || !answer.answer) continue;
-        const option = answer.index ? question.options[answer.index - 1] : undefined;
-        decisions.push(this.addArtifact("decision", [elicited], {
-          artifactKind: "decision-record",
-          outcome: "answered",
-          summary: option?.label ?? answer.answer,
-          payload: {
-            question: question.text,
-            answer: option ? { id: option.id, label: option.label } : { freeForm: answer.answer },
-            reason: option?.consequence ?? "The user supplied a free-form answer.",
-            rejectedAlternatives: question.options.filter((candidate) => candidate.id !== option?.id),
-          },
-        }));
-        break;
+        const target = parsed.action === "write" ? "writing" : `${parsed.mode} mode`;
+        return {
+          action: "finish",
+          value: parsed,
+          prompt: `The user explicitly requested ${target}. Finalize the ${mode} conversation now. Call workflow_output once with a conversation-summary artifact. Record only supported understanding and decisions. Preserve unresolved matters in openQuestions. Set payload.mode to ${JSON.stringify(mode)}. Do not continue the conversation or choose another mode.`,
+        };
       }
+    });
+    if (!result) throw new WorkflowStopped("Workflow stopped");
+    this.updateUsage(result.result);
+    const requested = result.result.requestedArtifactIds.map((artifactId) => {
+      const artifact = this.artifacts.get(artifactId);
+      if (!artifact) throw new Error(`Conversation requested an unknown artifact: ${artifactId}`);
+      return artifact;
+    });
+    const parents = [...new Map(
+      [synthesis, ...summaries, ...requested].map((artifact) => [artifact.artifactId, artifact]),
+    ).values()];
+    const summary = this.addArtifact(mode, parents, result.result.artifact);
+    return result.value.action === "write"
+      ? { action: "write", summary }
+      : { action: "switch", mode: result.value.mode, summary };
+  }
+
+  private async collectRequirements(
+    synthesis: WorkflowArtifact,
+    initialMode?: RefinementMode,
+    priorSummaries: WorkflowArtifact[] = [],
+  ): Promise<WorkflowArtifact[]> {
+    let mode = initialMode;
+    if (!mode) {
+      const choice = await this.ui.choose("Choose a refinement stage", [
+        "Clarify requirements",
+        "Explore requirements",
+        "Write the specification",
+        "Stop workflow",
+      ]);
+      if (!choice || choice === "Stop workflow") throw new WorkflowStopped("Workflow stopped");
+      if (choice === "Write the specification") return priorSummaries;
+      mode = choice === "Clarify requirements" ? "clarify" : "explore";
+    }
+
+    if (!mode) throw new Error("No refinement conversation mode was selected");
+    const summaries = [...priorSummaries];
+    while (true) {
+      const result = await this.runConversation(mode, synthesis, summaries);
+      summaries.push(result.summary);
+      if (result.action === "write") return summaries;
+      mode = result.mode;
     }
   }
 
@@ -544,8 +602,7 @@ export class WorkflowRuntime {
       { lens: "verification", iteration: focus.artifactId },
     ]);
     const synthesis = await this.stage("synthesize", evidence, { iteration: focus.artifactId });
-    const decisions: WorkflowArtifact[] = [];
-    await this.collectDecisions(focus, synthesis, decisions);
+    const decisions = await this.collectRequirements(synthesis);
 
     let proposal = await this.stage("propose", [context, synthesis, ...decisions]);
     let proposalCorrectionCount = 0;
@@ -578,24 +635,14 @@ export class WorkflowRuntime {
       }
       const choice = await this.ui.choose(
         `${proposalPayload.design}\n\nFiles: ${files.join(", ")}\n\nDoes this design make sense?`,
-        ["Accept and write", "Ask more questions", "Correct the proposal", "Skip this issue", "Stop workflow"],
+        ["Accept and write", "Return to clarification", "Return to exploration", "Correct the proposal", "Skip this issue", "Stop workflow"],
       );
       if (!choice || choice === "Stop workflow") return "stopped";
       if (choice === "Skip this issue") return "skipped";
-      if (choice === "Ask more questions") {
-        const request = await this.ui.edit("What should the workflow refine further?");
-        decisions.push(this.addArtifact("decision", [proposal], {
-          artifactKind: "decision-record",
-          outcome: "answered",
-          summary: request?.trim() || "Ask more design questions.",
-          payload: {
-            question: "What needs further refinement?",
-            answer: { freeForm: request?.trim() || "Ask more questions based on the current evidence." },
-            reason: "User requested more design work.",
-            rejectedAlternatives: [],
-          },
-        }));
-        await this.collectDecisions(focus, synthesis, decisions);
+      if (choice === "Return to clarification" || choice === "Return to exploration") {
+        const mode = choice === "Return to clarification" ? "clarify" : "explore";
+        const revised = await this.collectRequirements(synthesis, mode, decisions);
+        decisions.splice(0, decisions.length, ...revised);
         proposal = await this.stage("propose", [context, synthesis, ...decisions]);
         continue;
       }

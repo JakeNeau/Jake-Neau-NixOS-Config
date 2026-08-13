@@ -17,6 +17,7 @@ export default function registerWorkflowChild(pi: ExtensionAPI): void {
     artifacts: Record<string, string>;
   };
   const readOnly = process.env.PI_WORKFLOW_READ_ONLY === "1";
+  const conversation = process.env.PI_WORKFLOW_CONVERSATION === "1";
   const readOnlyCommandPrefixes = JSON.parse(
     process.env.PI_WORKFLOW_READ_ONLY_COMMAND_PREFIXES ?? "[]",
   ) as string[];
@@ -30,10 +31,15 @@ export default function registerWorkflowChild(pi: ExtensionAPI): void {
     label: "Workflow Output",
     description: "Return the final validated artifact for this workflow stage.",
     promptSnippet: "Return the workflow stage artifact",
-    promptGuidelines: [
-      "Call workflow_output exactly once as the final action of a workflow child stage.",
-      "Do not describe a workflow artifact only in assistant text.",
-    ],
+    promptGuidelines: conversation
+      ? [
+          "Do not call workflow_output during workflow conversation turns.",
+          "Call workflow_output exactly once when the workflow asks you to finalize the conversation.",
+        ]
+      : [
+          "Call workflow_output exactly once as the final action of a workflow child stage.",
+          "Do not describe a workflow artifact only in assistant text.",
+        ],
     parameters: Type.Unsafe(schema),
     executionMode: "sequential",
     async execute(_toolCallId, params) {

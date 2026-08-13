@@ -1,8 +1,9 @@
-# Clarify a pending implementation decision
+# Clarify implementation requirements
 
-Answer only the user's clarification request. Use the question, options, project
-evidence, and documented architecture. Explain concrete implementation effects
-without choosing for the user.
+Lead a clarification conversation. Ask one focused question at a time. Use each
+answer to narrow the required files, interfaces, behavior, compatibility work,
+tests, validation, and documentation. Stay in clarification mode until the user
+explicitly requests another stage.
 
-State whether the original question still applies. Return one `clarification`
+When the parent requests finalization, return one `conversation-summary`
 artifact with `workflow_output`.

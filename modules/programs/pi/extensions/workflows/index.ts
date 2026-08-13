@@ -8,7 +8,7 @@ import { workflowAutocompleteItems } from "./autocomplete.ts";
 import registerWorkflowChild from "./child.ts";
 import { discoverWorkflowDefinitions, type LoadedWorkflow } from "./definitions.ts";
 import { WorkflowRuntime } from "./runtime.ts";
-import { renderWorkflowArtifact, WorkflowUi } from "./ui.ts";
+import { renderWorkflowArtifact, renderWorkflowConversation, WorkflowUi } from "./ui.ts";
 import type { WorkflowArtifact } from "./artifacts.ts";
 
 function findProjectWorkflowRoot(cwd: string): string | undefined {
@@ -121,6 +121,9 @@ export default function workflows(pi: ExtensionAPI): void {
 
   pi.registerEntryRenderer("workflow-artifact", (entry, options, theme) =>
     renderWorkflowArtifact(entry.data as WorkflowArtifact, options.expanded, theme)
+  );
+  pi.registerEntryRenderer("workflow-conversation", (entry, _options, theme) =>
+    renderWorkflowConversation(entry.data as { role: "user" | "assistant"; content: string }, theme)
   );
 
   pi.registerCommand("refine-spec", {

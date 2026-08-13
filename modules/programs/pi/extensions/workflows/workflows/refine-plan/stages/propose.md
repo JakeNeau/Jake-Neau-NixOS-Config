@@ -1,13 +1,14 @@
 # Propose the complete implementation plan
 
-Create one implementation-complete plan from project evidence and recorded user
-decisions. Preserve every accepted decision. Do not add an unapproved choice or
-assumption.
+Create one implementation-complete plan from project evidence, conversation
+summaries, and recorded user decisions. Preserve every accepted decision. Do
+not add an unapproved choice or assumption. Treat open questions as unresolved.
 
 Identify the exact specification in `specificationPath`. Place one plan file in
 the same directory at any nesting depth under the specification root. Reuse an
 existing associated plan when one exists. If the association or target filename
-was not decided, return to elicitation instead of choosing it.
+was not decided, identify it as unresolved instead of choosing it. The user can
+return to clarification from the proposal checkpoint.
 
 Write the plan as high-level pseudocode. Order changes by dependency. For each
 step, name exact file paths, existing or new symbols, and signatures or data

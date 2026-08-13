@@ -16,6 +16,8 @@ export interface WorkflowQuestion {
   recommendation: string | null;
 }
 
+const EXPLORE_DECISION_LABEL = "Explore this decision";
+
 export interface WorkflowUiState {
   name: string;
   source: "global" | "project";
@@ -74,6 +76,10 @@ export class WorkflowUi {
     this.pi.appendEntry("workflow-artifact", artifact);
   }
 
+  appendConversation(role: "user" | "assistant", content: string): void {
+    this.pi.appendEntry("workflow-conversation", { role, content });
+  }
+
   async runLoader<T>(label: string, action: (signal: AbortSignal) => Promise<T>): Promise<T | undefined> {
     if (this.ctx.mode !== "tui") return action(new AbortController().signal);
     return this.ctx.ui.custom<T | undefined>((tui, theme, _keybindings, done) => {
@@ -97,18 +103,24 @@ export class WorkflowUi {
       const event = await runAskUserTui(
         {
           question: title,
-          options: optionLabels.map((label) => ({ label })),
+          options: [...optionLabels.map((label) => ({ label })), { label: EXPLORE_DECISION_LABEL }],
         },
         this.ctx,
       );
-      return workflowAnswerForDialogEvent(answerLabels, event);
+      return workflowAnswerForDialogEvent(answerLabels, event, optionLabels.length);
     }
 
     const freeForm = "Type a free-form answer...";
     const clarify = "Ask a clarifying question...";
     while (true) {
-      const choice = await this.ctx.ui.select(title, [...answerLabels, freeForm, clarify]);
+      const choice = await this.ctx.ui.select(title, [
+        ...answerLabels,
+        EXPLORE_DECISION_LABEL,
+        freeForm,
+        clarify,
+      ]);
       if (!choice) return { answer: null, status: "cancelled" };
+      if (choice === EXPLORE_DECISION_LABEL) return { answer: null, status: "explore" };
       if (choice === freeForm) {
         const answer = (await this.ctx.ui.input("Free-form answer", "Type your answer"))?.trim();
         if (answer) return { answer, status: "answered" };
@@ -138,6 +150,15 @@ export class WorkflowUi {
     this.ctx.ui.setEditorComponent(this.previousEditor);
     this.state = undefined;
   }
+}
+
+export function renderWorkflowConversation(
+  message: { role: "user" | "assistant"; content: string },
+  theme: any,
+): Text {
+  const color = message.role === "user" ? "accent" : "text";
+  const label = message.role === "user" ? "You" : "Refiner";
+  return new Text(`${theme.fg(color, theme.bold(label))}\n${theme.fg("text", message.content)}`, 1, 0);
 }
 
 export function renderWorkflowArtifact(artifact: WorkflowArtifact, expanded: boolean, theme: any): Text {

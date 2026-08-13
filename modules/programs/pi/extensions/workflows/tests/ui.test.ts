@@ -40,3 +40,10 @@ test("maps the shared question dialog events to workflow answers", () => {
     { answer: null, status: "cancelled" },
   );
 });
+
+test("maps the workflow exploration action without recording a decision", () => {
+  assert.deepEqual(
+    workflowAnswerForDialogEvent(labels, { type: "selected", index: labels.length }, labels.length),
+    { answer: null, status: "explore" },
+  );
+});

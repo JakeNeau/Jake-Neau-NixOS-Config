@@ -1,8 +1,9 @@
 # Propose the integrated refinement
 
-Synthesize one complete design from project evidence and recorded user
-decisions. Preserve every accepted decision. Name rejected alternatives when
-they clarify the boundary.
+Synthesize one complete design from project evidence, conversation summaries,
+and recorded user decisions. Preserve every accepted decision. Treat open
+questions as unresolved instead of choosing an answer. Name rejected
+alternatives when they clarify the boundary.
 
 Explain how the design integrates with existing specifications, architecture,
 implementation, tests, and documentation. List the exact specification files

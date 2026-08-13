@@ -53,39 +53,37 @@
         "stages": ["investigate"]
       },
       "transitions": {
-        "ready": [["elicit"]]
+        "ready": [["clarify"]]
       }
-    },
-    "elicit": {
-      "prompt": "stages/elicit.md",
-      "tools": ["read", "follow_link"],
-      "readOnly": true,
-      "inputs": ["evidence-synthesis", "decision-record"],
-      "outputSchema": "schemas/elicit.json",
-      "transitions": {
-        "question": [["elicit"]],
-        "ready": [["propose"]]
-      },
-      "checkpoint": "question"
     },
     "clarify": {
       "prompt": "stages/clarify.md",
       "tools": ["read", "follow_link"],
       "readOnly": true,
-      "inputs": ["question", "clarification-request", "evidence-synthesis"],
-      "outputSchema": "schemas/clarify.json",
+      "inputs": ["evidence-synthesis", "conversation-summary"],
+      "outputSchema": "schemas/conversation.json",
       "transitions": {
-        "answered": [["elicit"]]
+        "completed": [["propose"]]
+      }
+    },
+    "explore": {
+      "prompt": "stages/explore.md",
+      "tools": ["read", "follow_link"],
+      "readOnly": true,
+      "inputs": ["evidence-synthesis", "conversation-summary"],
+      "outputSchema": "schemas/conversation.json",
+      "transitions": {
+        "completed": [["propose"]]
       }
     },
     "propose": {
       "prompt": "stages/propose.md",
       "tools": ["read", "follow_link"],
       "readOnly": true,
-      "inputs": ["spec-context", "evidence-synthesis", "decision-record"],
+      "inputs": ["spec-context", "evidence-synthesis", "decision-record", "conversation-summary"],
       "outputSchema": "schemas/proposal.json",
       "transitions": {
-        "proposed": [["write"], ["elicit"]]
+        "proposed": [["write"]]
       },
       "checkpoint": "proposal"
     },
