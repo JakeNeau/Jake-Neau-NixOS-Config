@@ -71,23 +71,18 @@ model and thinking level. The parent session stores validated stage artifacts as
 non-context custom entries. Global workflows live with the extension. Trusted
 projects may add declarative definitions under `.pi/workflows/`.
 
-The bundled `/refine-spec [idea or area]` workflow discovers the project's
-specification practice and gathers parallel evidence. The user then selects a
-model-led clarification conversation, a user-led exploration conversation, or
-writing. Slash commands and explicit natural-language instructions can switch
-stages. The workflow requires proposal approval, restricts writes, and verifies
-the result. Calling
-`/refine-spec` without input audits all active specifications.
+The bundled `/refine-spec [idea or area]` workflow reads the relevant project
+evidence and proposes exact specification edits. The user approves the design
+and file list before a bounded writer applies it. With no input, the workflow
+selects one clear specification defect.
 
-The bundled `/refine-plan [specification or area]` workflow uses the same
-refinement engine to create an implementation-complete plan. It reads project
-documentation before code. Clarification asks about unresolved choices, while
-exploration remains user-led. A persistent child preserves each conversation
-until the user requests another stage.
+The bundled `/refine-plan [specification or area]` workflow proposes one concise
+implementation plan. The plan names required files, symbols, behavior, data
+flow, errors, tests, and documentation changes. The user approves one plan file
+before Pi writes it.
 
-The plan names exact files, symbols, behavior, data flow, tests, and
-documentation. Pi writes one plan beside its specification under the recursive
-`specs/` tree. Calling `/refine-plan` without input audits all active plans.
+Each bundled refinement workflow uses one proposal stage and one writer stage.
+It has no separate audit, conversation, retry, or verification pass.
 
 [Pi workflow reference](pi-workflows.md) defines commands, definition fields,
 stages, artifacts, safety rules, and limits. [The workflow

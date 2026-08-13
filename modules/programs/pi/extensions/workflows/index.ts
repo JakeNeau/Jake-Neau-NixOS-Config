@@ -8,7 +8,7 @@ import { workflowAutocompleteItems } from "./autocomplete.ts";
 import registerWorkflowChild from "./child.ts";
 import { discoverWorkflowDefinitions, type LoadedWorkflow } from "./definitions.ts";
 import { WorkflowRuntime } from "./runtime.ts";
-import { renderWorkflowArtifact, renderWorkflowConversation, WorkflowUi } from "./ui.ts";
+import { renderWorkflowArtifact, WorkflowUi } from "./ui.ts";
 import type { WorkflowArtifact } from "./artifacts.ts";
 
 function findProjectWorkflowRoot(cwd: string): string | undefined {
@@ -92,9 +92,7 @@ export default function workflows(pi: ExtensionAPI): void {
     active = new WorkflowRuntime(pi, ctx, definition);
     activePromise = (async () => {
       try {
-        const result = name === "refine-spec" || name === "refine-plan"
-          ? await active!.runRefinement(input)
-          : await active!.runGraph(input);
+        const result = await active!.runGraph(input);
         ctx.ui.notify(result === "done" ? `Workflow completed: ${name}` : `Workflow stopped: ${name}`, "info");
       } catch (error) {
         ctx.ui.notify(error instanceof Error ? error.message : String(error), "error");
@@ -122,17 +120,13 @@ export default function workflows(pi: ExtensionAPI): void {
   pi.registerEntryRenderer("workflow-artifact", (entry, options, theme) =>
     renderWorkflowArtifact(entry.data as WorkflowArtifact, options.expanded, theme)
   );
-  pi.registerEntryRenderer("workflow-conversation", (entry, _options, theme) =>
-    renderWorkflowConversation(entry.data as { role: "user" | "assistant"; content: string }, theme)
-  );
-
   pi.registerCommand("refine-spec", {
-    description: "Refine project specifications from an idea, focus area, or audit",
+    description: "Refine a project specification",
     handler: async (args, ctx) => start("refine-spec", args.trim(), ctx),
   });
 
   pi.registerCommand("refine-plan", {
-    description: "Create or refine an implementation-complete plan for a specification",
+    description: "Create or refine an implementation plan",
     handler: async (args, ctx) => start("refine-plan", args.trim(), ctx),
   });
 

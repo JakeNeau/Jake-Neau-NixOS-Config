@@ -76,17 +76,23 @@ test("rejects broken transitions, joins, and nonterminal dead ends", () => {
   assert.match(errors, /terminal outcome/);
 });
 
-test("loads the bundled refinement definitions without diagnostics", async () => {
+test("loads compact bundled refinement workflows", async () => {
   const here = dirname(fileURLToPath(import.meta.url));
   const result = await discoverWorkflowDefinitions({
     globalRoot: join(here, "..", "workflows"),
     projectTrusted: false,
   });
   assert.deepEqual(result.diagnostics, []);
-  assert.equal(result.workflows.get("refine-spec")?.stages.investigate.join, undefined);
-  assert.equal(result.workflows.get("refine-spec")?.stages.synthesize.join?.mode, "all");
-  assert.equal(result.workflows.get("refine-plan")?.stages.investigate.join, undefined);
-  assert.equal(result.workflows.get("refine-plan")?.stages.synthesize.join?.mode, "all");
+
+  for (const name of ["refine-spec", "refine-plan"]) {
+    const workflow = result.workflows.get(name);
+    assert.ok(workflow);
+    assert.equal(workflow.entry, "refine");
+    assert.deepEqual(Object.keys(workflow.stages), ["refine", "write"]);
+    assert.equal(workflow.stages.refine.checkpoint, "proposal");
+    assert.deepEqual(workflow.stages.refine.transitions, { proposed: [["write"]] });
+    assert.deepEqual(workflow.stages.write.transitions, { done: [] });
+  }
 });
 
 test("loads trusted read-only command exceptions with workflow and stage scope", async () => {

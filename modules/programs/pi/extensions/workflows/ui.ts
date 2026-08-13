@@ -67,17 +67,8 @@ export class WorkflowUi {
     this.ctx.ui.setStatus("workflow", this.ctx.ui.theme.fg(this.state.color as any, status));
   }
 
-  setDecisionWidget(title: string, decisions: string[]): void {
-    const lines = [this.ctx.ui.theme.fg("warning", title), ...decisions.slice(-6).map((decision) => `✓ ${decision}`)];
-    this.ctx.ui.setWidget("workflow", lines);
-  }
-
   appendArtifact(artifact: WorkflowArtifact): void {
     this.pi.appendEntry("workflow-artifact", artifact);
-  }
-
-  appendConversation(role: "user" | "assistant", content: string): void {
-    this.pi.appendEntry("workflow-conversation", { role, content });
   }
 
   async runLoader<T>(label: string, action: (signal: AbortSignal) => Promise<T>): Promise<T | undefined> {
@@ -140,25 +131,12 @@ export class WorkflowUi {
     return this.ctx.ui.select(title, options);
   }
 
-  async edit(title: string, prefill = ""): Promise<string | undefined> {
-    return this.ctx.ui.editor(title, prefill);
-  }
-
   stop(): void {
     this.ctx.ui.setStatus("workflow", undefined);
     this.ctx.ui.setWidget("workflow", undefined);
     this.ctx.ui.setEditorComponent(this.previousEditor);
     this.state = undefined;
   }
-}
-
-export function renderWorkflowConversation(
-  message: { role: "user" | "assistant"; content: string },
-  theme: any,
-): Text {
-  const color = message.role === "user" ? "accent" : "text";
-  const label = message.role === "user" ? "You" : "Refiner";
-  return new Text(`${theme.fg(color, theme.bold(label))}\n${theme.fg("text", message.content)}`, 1, 0);
 }
 
 export function renderWorkflowArtifact(artifact: WorkflowArtifact, expanded: boolean, theme: any): Text {

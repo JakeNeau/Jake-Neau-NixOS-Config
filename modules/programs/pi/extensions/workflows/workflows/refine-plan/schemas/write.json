@@ -4,28 +4,19 @@
   "required": ["artifactKind", "outcome", "summary", "payload"],
   "properties": {
     "artifactKind": { "enum": ["write-result"] },
-    "outcome": { "enum": ["written"] },
+    "outcome": { "enum": ["done"] },
     "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
     "payload": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["files", "checks"],
+      "required": ["files"],
       "properties": {
         "files": {
           "type": "array",
           "minItems": 1,
-          "maxItems": 20,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["path", "summary"],
-            "properties": {
-              "path": { "type": "string", "minLength": 1, "maxLength": 500 },
-              "summary": { "type": "string", "minLength": 1, "maxLength": 1000 }
-            }
-          }
-        },
-        "checks": { "type": "array", "maxItems": 20, "items": { "type": "string", "maxLength": 1000 } }
+          "maxItems": 1,
+          "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+        }
       }
     }
   }

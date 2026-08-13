@@ -1,10 +1,24 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { basename, dirname, isAbsolute, resolve } from "node:path";
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 
-import { canonicalTarget } from "./paths.ts";
 import { isAllowedReadOnlyCommand, isSafeReadOnlyCommand } from "./runner.ts";
+
+function canonicalTarget(cwd: string, path: string): string {
+  const absolute = isAbsolute(path) ? resolve(path) : resolve(cwd, path);
+  if (existsSync(absolute)) return realpathSync(absolute);
+  const missing: string[] = [];
+  let current = absolute;
+  while (!existsSync(current)) {
+    const parent = dirname(current);
+    if (parent === current) return absolute;
+    missing.unshift(basename(current));
+    current = parent;
+  }
+  return resolve(realpathSync(current), ...missing);
+}
 
 export default function registerWorkflowChild(pi: ExtensionAPI): void {
   const schemaPath = process.env.PI_WORKFLOW_SCHEMA;
@@ -17,7 +31,6 @@ export default function registerWorkflowChild(pi: ExtensionAPI): void {
     artifacts: Record<string, string>;
   };
   const readOnly = process.env.PI_WORKFLOW_READ_ONLY === "1";
-  const conversation = process.env.PI_WORKFLOW_CONVERSATION === "1";
   const readOnlyCommandPrefixes = JSON.parse(
     process.env.PI_WORKFLOW_READ_ONLY_COMMAND_PREFIXES ?? "[]",
   ) as string[];
@@ -31,15 +44,10 @@ export default function registerWorkflowChild(pi: ExtensionAPI): void {
     label: "Workflow Output",
     description: "Return the final validated artifact for this workflow stage.",
     promptSnippet: "Return the workflow stage artifact",
-    promptGuidelines: conversation
-      ? [
-          "Do not call workflow_output during workflow conversation turns.",
-          "Call workflow_output exactly once when the workflow asks you to finalize the conversation.",
-        ]
-      : [
-          "Call workflow_output exactly once as the final action of a workflow child stage.",
-          "Do not describe a workflow artifact only in assistant text.",
-        ],
+    promptGuidelines: [
+      "Call workflow_output exactly once as the final action of a workflow child stage.",
+      "Do not describe a workflow artifact only in assistant text.",
+    ],
     parameters: Type.Unsafe(schema),
     executionMode: "sequential",
     async execute(_toolCallId, params) {
