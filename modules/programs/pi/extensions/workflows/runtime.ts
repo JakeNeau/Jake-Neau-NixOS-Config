@@ -11,6 +11,7 @@ import { InvocationGraph, mapWithConcurrency, resolveSuccessorSet, validateRoute
 import { approvedPlanTargets, approvedTargets } from "./paths.ts";
 import { chooseSpecificationLocation, fingerprintIssue, suppressSkippedIssues, type RefinementIssue } from "./refine-spec.ts";
 import { runStage, type StageRunResult } from "./runner.ts";
+import { fitEvidenceStageContext, MAX_STAGE_CONTEXT_BYTES, serializeStageContext } from "./stage-context.ts";
 import { WorkflowUi, type WorkflowQuestion } from "./ui.ts";
 
 class WorkflowStopped extends Error {}
@@ -128,8 +129,24 @@ export class WorkflowRuntime {
     );
     const promptTemplate = await readFile(resolve(this.definition.root, stage.prompt), "utf8");
     const schema = JSON.parse(await readFile(resolve(this.definition.root, stage.outputSchema), "utf8"));
-    const stageContext = JSON.stringify({ extra, artifacts: inputs }, null, 2);
-    if (Buffer.byteLength(stageContext) > 50 * 1024) throw new Error(`Stage ${stageType} inputs exceed 50 KB`);
+    let stageContext = serializeStageContext(extra, inputs);
+    if (
+      Buffer.byteLength(stageContext) > MAX_STAGE_CONTEXT_BYTES
+      && stageType === "synthesize"
+      && inputs.every((input) => input.artifactKind === "evidence")
+    ) {
+      const fitted = fitEvidenceStageContext(extra, inputs);
+      stageContext = fitted.serialized;
+      if (fitted.compacted) {
+        this.ctx.ui.notify(
+          "Synthesis evidence exceeded 50 KB. Pi compacted the child prompt and retained the original artifacts.",
+          "warning",
+        );
+      }
+    }
+    if (Buffer.byteLength(stageContext) > MAX_STAGE_CONTEXT_BYTES) {
+      throw new Error(`Stage ${stageType} inputs exceed 50 KB`);
+    }
     if (stageContext.split("\n").length > 2000) throw new Error(`Stage ${stageType} inputs exceed 2,000 lines`);
     const prompt = `${promptTemplate}\n\n## Stage context\n\n${stageContext}`;
     this.ui.update({ stage: stageType });

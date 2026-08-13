@@ -86,9 +86,9 @@ Each stage in `workflow.json` defines:
 | Field | Meaning |
 |---|---|
 | `prompt` | Markdown prompt path relative to the workflow directory |
-| `tools` | Exact child tool allowlist before workflow artifact tools are added |
+| `tools` | Exact child tool allowlist before Pi adds workflow artifact tools |
 | `readOnly` | Whether the child enforces read-only tool and Bash policy |
-| `inputs` | Artifact kinds included in the stage prompt |
+| `inputs` | Artifact kinds that Pi includes in the stage prompt |
 | `outputSchema` | Portable JSON schema for `workflow_output` |
 | `transitions` | Output outcomes mapped to allowed successor sets |
 | `join` | Optional `all` or `any` branch join |
@@ -119,6 +119,12 @@ The parent validates `workflow_output` again. Invalid or missing output receives
 one correction prompt in the same child process. A second failure stops that
 stage.
 
+Stage context uses compact JSON. When synthesis evidence still exceeds 50 KB,
+Pi first removes source excerpts. Pi then applies bounded evidence projections
+if needed and continues with the first projection that fits. The original
+artifacts remain unchanged in the session. This recovery applies to both
+`refine-spec` and `refine-plan`.
+
 Escape, `/workflow stop`, reload, and session shutdown abort active RPC work and
 clean up temporary files and processes.
 
@@ -130,8 +136,8 @@ Parents must already exist. This rule keeps the concrete artifact graph acyclic
 even when stage types repeat.
 
 Pi stores artifacts as custom session entries. They do not enter the parent LLM
-context. The TUI renders compact entries and exposes payloads when tool output
-is expanded.
+context. The TUI renders compact entries and exposes payloads when the user
+expands tool output.
 
 Declared artifact kinds enter a child prompt automatically. The child receives
 only metadata for other artifacts until it calls
@@ -165,8 +171,9 @@ before code. One canonical location may contain many specification files. When
 several locations exist, Pi chooses the documented authority and warns that the
 project should consolidate specification tracking.
 
-Audit mode ranks contradictions, ambiguity, missing decisions, architecture
-conflicts, implementation conflicts, implementation gaps, and acceptance gaps.
+In audit mode, Pi ranks contradictions, ambiguity, missing decisions,
+architecture conflicts, implementation conflicts, implementation gaps, and
+acceptance gaps.
 It handles one issue at a time and reruns the audit after a verified write.
 Issue fingerprints suppress unchanged issues that the user skips or resolves in
 the current run.
@@ -219,6 +226,8 @@ path outside the specification's directory.
 
 ## Limits
 
-Prompts and artifact requests use Pi's 50 KB and 2,000-line limits. A generic
-workflow run stops after 100 stage invocations. Project workflow schemas use a
-portable subset of JSON Schema and cannot use unsupported provider constructs.
+Prompts and artifact requests use Pi's 50 KB and 2,000-line limits. Synthesis
+stages compact oversized evidence as described above. Other oversized stage
+inputs stop the workflow. A generic workflow run stops after 100 stage
+invocations. Project workflow schemas use a portable subset of JSON Schema and
+cannot use unsupported provider constructs.
