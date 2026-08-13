@@ -158,12 +158,14 @@ declaration, the rest are hand-written aspects.
   compatibility, and development profiles. See [LibreWolf](librewolf.md).
 - `nvf/` — declarative Neovim, the same editor on every host.
 - `onedrive/`: macOS OneDrive app installed through a Homebrew cask.
+- `openpencil/` — local open-source UI design editor plus its headless CLI and
+  MCP servers. Every host receives it through `globalPrograms`.
 - `papirus-icon-theme/` — fallback icon set.
 - `pavucontrol/` — sound settings GUI.
-- `pi/` — `jakeneau`'s coding agent, with declarative web research and native
-  browser extensions, the matching browser CLI, and the numtide binary-cache
-  aspect. Its `config/skills/` carries every skill it indexes, including its
-  writing, comment, and documentation policies, and `writing/` holds the
+- `pi/` — `jakeneau`'s coding agent, with declarative web research, native
+  browser access, and a bounded OpenPencil MCP bridge. Its `config/skills/`
+  carries every skill it indexes, including UI-system initialization, writing,
+  comment, and documentation policies. `writing/` holds the
   `pi-writing-lint` source. See [pi](pi.md), [Pi's writing
   system](../explanation/pi-writing-system.md), [coding
   agents](../explanation/coding-agents.md).

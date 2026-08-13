@@ -2,6 +2,7 @@
   extensionSource = ./extensions;
   askUserSource = "${extensionSource}/ask-user";
   rustToolsSource = "${extensionSource}/rust-tools";
+  openPencilSource = "${extensionSource}/openpencil";
   workflowSource = "${extensionSource}/workflows";
   writingSource = ./writing;
   mkPiLinkRegistry = pkgs:
@@ -255,6 +256,28 @@
       grep -q '"success":true' child-rpc.jsonl
       touch "$out"
     '';
+  mkPiOpenPencilCheck = pkgs:
+    pkgs.runCommand "pi-openpencil" {
+      nativeBuildInputs = [
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
+        pkgs.nodejs
+      ];
+    } ''
+      cp -R ${openPencilSource} openpencil
+      chmod -R u+w openpencil
+      node --experimental-strip-types --test openpencil/tests/*.test.ts
+      cat > openpencil-extension.ts <<'EOF'
+      import { createOpenPencilExtension } from "${openPencilSource}/index.ts";
+      export default createOpenPencilExtension({ serverPath: "openpencil-mcp" });
+      EOF
+      export HOME="$TMPDIR/home"
+      mkdir -p "$HOME"
+      printf '{"type":"get_state"}\n' \
+        | pi --mode rpc --no-session --offline --no-extensions \
+          --extension ./openpencil-extension.ts >rpc.jsonl
+      grep -q '"success":true' rpc.jsonl
+      touch "$out"
+    '';
   mkPiRustToolsCheck = pkgs:
     pkgs.runCommand "pi-rust-tools" {
       nativeBuildInputs = [
@@ -325,6 +348,7 @@ in {
     checks = {
       pi-ask-user = mkPiAskUserCheck pkgs;
       pi-fish-shell = mkPiFishShellCheck pkgs;
+      pi-openpencil = mkPiOpenPencilCheck pkgs;
       pi-rust-tools = mkPiRustToolsCheck pkgs;
       pi-workflows = mkPiWorkflowCheck pkgs;
       pi-typed-links = mkPiLinkRegistry pkgs;
@@ -452,6 +476,13 @@ in {
         ".pi/agent/extensions/ask-user/index.ts".text = ''
           export { default } from "${askUserSource}/index.ts";
         '';
+        ".pi/agent/extensions/openpencil/index.ts".text = ''
+          import { createOpenPencilExtension } from "${openPencilSource}/index.ts";
+
+          export default createOpenPencilExtension({
+            serverPath: "${config.home.profileDirectory}/bin/openpencil-mcp",
+          });
+        '';
         ".pi/agent/extensions/workflows/index.ts".text = ''
           export { default } from "${workflowSource}/index.ts";
         '';
@@ -481,6 +512,7 @@ in {
           });
         '';
         ".pi/agent/skills/pi-web-access".source = "${pi-web-access-root}/skills";
+        ".pi/agent/skills/ui-system-initializer".source = ./config/skills/ui-system-initializer;
         ".pi/agent/skills/writing-pi-extensions".source = ./config/skills/writing-pi-extensions;
         ".pi/agent/link-registry.json".source = linkRegistry;
         ".pi/agent/keybindings.json".text = builtins.toJSON {

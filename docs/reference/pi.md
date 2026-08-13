@@ -95,6 +95,31 @@ explanation](../explanation/pi-workflows.md) describes the architecture.
 [Add a project-local Pi workflow](../how-to/add-a-pi-workflow.md) gives the
 authoring procedure.
 
+## OpenPencil integration
+
+The Pi home installs the `openpencil` extension when a home requests Pi and
+OpenPencil. The extension lazily starts OpenPencil's stdio MCP client and exposes
+one `openpencil` tool. The tool searches the upstream MCP catalog or calls one
+exact operation against the trusted project.
+
+Read operations run without a prompt. Every mutation requires interactive user
+approval. Noninteractive modes reject mutations. File arguments must remain
+inside the trusted project. `save_file` joins Pi's exact-path mutation queue.
+The extension disables the unrestricted OpenPencil `eval` operation and stops
+its MCP child during session shutdown.
+
+The OpenPencil program installs the desktop editor, headless `openpencil` CLI,
+`openpencil-mcp`, and `openpencil-mcp-http`. The MCP process receives the
+current trusted project as `OPENPENCIL_MCP_ROOT`. The desktop app must be open
+with a document loaded for live canvas operations.
+
+The global `ui-system-initializer` skill guides initialization through product
+direction, hierarchy, visual foundations, reusable patterns, and verified
+OpenPencil resources. It creates a project-local `ui-system` skill only after
+fresh CLI verification succeeds. Initialization stops before feature UI design.
+[UI system initialization](../explanation/ui-system-initialization.md) explains
+this boundary and the independent verification requirement.
+
 ## Web extensions
 
 The module pins both extension sources as non-flake inputs:
@@ -137,8 +162,8 @@ through the `follow_link` tool. Pi supports four link types:
 - `doc`: loads a project documentation page.
 
 Pi treats every other type as foreign and never guesses its targets. It ignores
-typed-link examples inside Markdown code spans and fences. Pi does not implement
-MCP or extension adapters.
+typed-link examples inside Markdown code spans and fences. OpenPencil resources
+remain ordinary project paths and identifiers rather than typed-link resources.
 
 Home Manager builds the global registry at
 `~/.pi/agent/link-registry.json` from:
@@ -176,9 +201,10 @@ total combines scanner diagnostics with malformed or missing typed-link edges.
 resources and rescans the project. Tool output follows Pi's standard truncation
 limits and points to the full source path when truncated.
 
-Home Manager installs the global `writing-pi-extensions` skill under
-`~/.pi/agent/skills/`. It requires extension designs to decide whether they
-introduce a durable resource kind that needs a typed-link adapter.
+Home Manager installs the global `writing-pi-extensions` and
+`ui-system-initializer` skills under `~/.pi/agent/skills/`. Extension designs
+must decide whether they introduce a durable resource kind that needs a
+typed-link adapter.
 [Pi typed-link navigation](../explanation/pi-typed-links.md) explains the
 registry's design.
 

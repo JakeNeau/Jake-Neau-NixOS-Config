@@ -4,7 +4,7 @@
     class = "darwin";
     system = "aarch64-darwin";
     users = ["jakeneau"];
-    globalPrograms = ["ghostty" "firefox" "fastfetch" "gh" "steam"];
+    globalPrograms = ["ghostty" "firefox" "fastfetch" "gh" "openpencil" "steam"];
     baselines = ["role-desktop" "mac-app-util"];
   };
 

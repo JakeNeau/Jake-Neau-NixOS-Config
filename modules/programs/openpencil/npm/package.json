@@ -1,0 +1,9 @@
+{
+  "name": "openpencil-tools",
+  "private": true,
+  "version": "0.14.0",
+  "dependencies": {
+    "@open-pencil/cli": "0.14.0",
+    "@open-pencil/mcp": "0.14.0"
+  }
+}

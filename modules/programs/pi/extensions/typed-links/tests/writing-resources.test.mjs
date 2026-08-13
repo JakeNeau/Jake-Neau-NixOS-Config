@@ -28,6 +28,7 @@ const EXPECTED_IDS = [
   "global:skill:controlled-writing",
   "global:skill:diataxis",
   "global:skill:documentation",
+  "global:skill:ui-system-initializer",
   "global:skill:writing",
   "global:skill:writing-pi-extensions",
   "global:skill:writing-substance",
