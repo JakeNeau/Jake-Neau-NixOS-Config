@@ -4,7 +4,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 
 import { canonicalTarget } from "./paths.ts";
-import { isSafeReadOnlyCommand } from "./runner.ts";
+import { isAllowedReadOnlyCommand, isSafeReadOnlyCommand } from "./runner.ts";
 
 export default function registerWorkflowChild(pi: ExtensionAPI): void {
   const schemaPath = process.env.PI_WORKFLOW_SCHEMA;
@@ -17,6 +17,9 @@ export default function registerWorkflowChild(pi: ExtensionAPI): void {
     artifacts: Record<string, string>;
   };
   const readOnly = process.env.PI_WORKFLOW_READ_ONLY === "1";
+  const readOnlyCommandPrefixes = JSON.parse(
+    process.env.PI_WORKFLOW_READ_ONLY_COMMAND_PREFIXES ?? "[]",
+  ) as string[];
   const approved = new Set<string>(
     (JSON.parse(process.env.PI_WORKFLOW_APPROVED_PATHS ?? "[]") as string[])
       .map((path) => canonicalTarget(process.cwd(), path)),
@@ -74,7 +77,7 @@ export default function registerWorkflowChild(pi: ExtensionAPI): void {
   pi.on("tool_call", (event, ctx) => {
     if (event.toolName === "bash" && readOnly) {
       const command = String((event.input as { command?: unknown }).command ?? "");
-      if (!isSafeReadOnlyCommand(command)) {
+      if (!isSafeReadOnlyCommand(command) && !isAllowedReadOnlyCommand(command, readOnlyCommandPrefixes)) {
         return { block: true, reason: `Workflow read-only stage blocked command: ${command}` };
       }
     }

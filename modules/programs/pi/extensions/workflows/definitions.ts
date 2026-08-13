@@ -2,6 +2,8 @@ import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import { isAbsolute, join, normalize, relative } from "node:path";
 
+import { hasShellControlSyntax } from "./runner.ts";
+
 export interface JoinDefinition {
   mode: "all" | "any";
   stages: string[];
@@ -35,6 +37,7 @@ export interface WorkflowDefinition {
 export interface LoadedWorkflow extends WorkflowDefinition {
   source: "global" | "project";
   root: string;
+  readOnlyCommandPrefixes?: Record<string, string[]>;
 }
 
 export interface DiscoveryResult {
@@ -85,7 +88,7 @@ export function validateWorkflowDefinition(value: unknown): string[] {
   const errors: string[] = [];
   if (!isRecord(value)) return ["workflow definition must be an object"];
   if (value.version !== 1) errors.push("version must be 1");
-  for (const forbidden of ["model", "provider", "thinking", "thinkingLevel"]) {
+  for (const forbidden of ["model", "provider", "thinking", "thinkingLevel", "readOnlyCommandPrefixes"]) {
     if (forbidden in value) errors.push(`${forbidden} is forbidden in workflow definitions`);
   }
   if (typeof value.name !== "string" || !/^[a-z][a-z0-9-]*$/.test(value.name)) {
@@ -220,6 +223,78 @@ async function loadRoot(root: string | undefined, source: "global" | "project"):
   return { workflows, diagnostics };
 }
 
+async function loadReadOnlyExceptions(
+  projectRoot: string | undefined,
+  workflows: Map<string, LoadedWorkflow>,
+): Promise<{ exceptions: Map<string, Record<string, string[]>>; diagnostics: string[] }> {
+  const exceptions = new Map<string, Record<string, string[]>>();
+  if (!projectRoot) return { exceptions, diagnostics: [] };
+  const path = join(projectRoot, "read-only-exceptions.json");
+  if (!existsSync(path)) return { exceptions, diagnostics: [] };
+
+  let raw: unknown;
+  try {
+    raw = JSON.parse(await readFile(path, "utf8"));
+  } catch (error) {
+    return { exceptions, diagnostics: [`${path}: ${String(error)}`] };
+  }
+
+  const errors: string[] = [];
+  if (!isRecord(raw)) {
+    errors.push("policy must be an object");
+  } else {
+    if (raw.version !== 1) errors.push("version must be 1");
+    if (!isRecord(raw.workflows)) {
+      errors.push("workflows must be an object");
+    } else {
+      for (const [workflowName, rawStages] of Object.entries(raw.workflows)) {
+        const workflow = workflows.get(workflowName);
+        if (!workflow) {
+          errors.push(`unknown workflow: ${workflowName}`);
+          continue;
+        }
+        if (!isRecord(rawStages)) {
+          errors.push(`workflow exceptions must be an object: ${workflowName}`);
+          continue;
+        }
+        const stages: Record<string, string[]> = {};
+        for (const [stageName, rawPolicy] of Object.entries(rawStages)) {
+          const stage = workflow.stages[stageName];
+          if (!stage) {
+            errors.push(`unknown stage: ${workflowName}.${stageName}`);
+            continue;
+          }
+          if (!stage.readOnly) {
+            errors.push(`stage is not read-only: ${workflowName}.${stageName}`);
+            continue;
+          }
+          if (!stage.tools.includes("bash")) {
+            errors.push(`stage does not enable bash: ${workflowName}.${stageName}`);
+            continue;
+          }
+          if (!isRecord(rawPolicy) || !isStringArray(rawPolicy.allowedCommandPrefixes)) {
+            errors.push(`allowedCommandPrefixes must be strings: ${workflowName}.${stageName}`);
+            continue;
+          }
+          const prefixes = rawPolicy.allowedCommandPrefixes.map((prefix) => prefix.trim());
+          if (prefixes.length === 0 || prefixes.some((prefix) => prefix.length === 0)) {
+            errors.push(`allowedCommandPrefixes must contain non-empty command prefixes: ${workflowName}.${stageName}`);
+            continue;
+          }
+          if (prefixes.some(hasShellControlSyntax)) {
+            errors.push(`allowedCommandPrefixes cannot contain shell control syntax: ${workflowName}.${stageName}`);
+            continue;
+          }
+          stages[stageName] = [...new Set(prefixes)];
+        }
+        if (Object.keys(stages).length > 0) exceptions.set(workflowName, stages);
+      }
+    }
+  }
+  if (errors.length > 0) return { exceptions: new Map(), diagnostics: errors.map((error) => `${path}: ${error}`) };
+  return { exceptions, diagnostics: [] };
+}
+
 export async function discoverWorkflowDefinitions(options: {
   globalRoot: string;
   projectRoot?: string;
@@ -241,6 +316,14 @@ export async function discoverWorkflowDefinitions(options: {
       continue;
     }
     workflows.set(workflow.name, workflow);
+  }
+  if (options.projectTrusted) {
+    const policy = await loadReadOnlyExceptions(options.projectRoot, workflows);
+    diagnostics.push(...policy.diagnostics);
+    for (const [workflowName, readOnlyCommandPrefixes] of policy.exceptions) {
+      const workflow = workflows.get(workflowName);
+      if (workflow) workflows.set(workflowName, { ...workflow, readOnlyCommandPrefixes });
+    }
   }
   return { workflows, diagnostics };
 }

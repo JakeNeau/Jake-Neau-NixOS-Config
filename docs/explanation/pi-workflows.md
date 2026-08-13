@@ -80,6 +80,17 @@ boundaries to validation before the workflow runs. Executable project code
 would make those guarantees harder to inspect and would add another extension
 loader inside the workflow manager.
 
+## Why read-only command exceptions are project-local
+
+A conservative Bash policy cannot predict every project validation command.
+Some useful checks also create caches or build outputs, so a universal list
+would either block valid work or permit excessive behavior.
+
+A trusted project may therefore grant command prefixes to one read-only stage.
+The workflow manager rejects shell composition and keeps file mutation tools
+blocked. This design makes the weaker boundary visible beside the project
+workflow without turning it into a global exception.
+
 ## Why mutation follows approval
 
 The model may propose several specification files. That proposal does not

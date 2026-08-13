@@ -52,6 +52,28 @@ Project definitions load only when `ctx.isProjectTrusted()` is true. A project
 workflow can replace a global workflow only with an explicit `replaces` field.
 Pi reports invalid definitions and accidental name collisions.
 
+A trusted project may define read-only Bash exceptions at
+`.pi/workflows/read-only-exceptions.json`. The policy has this structure:
+
+```json
+{
+  "version": 1,
+  "workflows": {
+    "refine-spec": {
+      "verify": {
+        "allowedCommandPrefixes": ["nix flake check", "cargo test"]
+      }
+    }
+  }
+}
+```
+
+Each exception applies to one existing read-only stage that enables `bash`.
+Commands may equal an approved prefix or add arguments after it. Pi still
+blocks newlines, redirection, command substitution, and shell composition. An
+invalid policy rejects every exception in that file and produces a
+workflow diagnostic. Untrusted projects receive no exceptions.
+
 A workflow cannot set a model, provider, or thinking level. Pi snapshots the
 user's active model and thinking level when the run starts. Every child stage
 uses that snapshot.
@@ -119,7 +141,10 @@ only metadata for other artifacts until it calls
 Read-only stages block `edit`, `write`, and Bash outside a conservative
 inspection-command policy. Definitions may use `read`, `grep`, `find`, `ls`,
 `bash`, `follow_link`, `rust_code`, `web_search`, `fetch_content`, and
-`get_search_content` in read-only stages.
+`get_search_content` in read-only stages. A trusted project policy may add
+stage-scoped Bash command prefixes, including prefixes denied by the default
+policy. These exceptions do not permit `edit`, `write`, other tools, or shell
+composition.
 
 Mutation definitions may add `edit` and `write`, but they cannot use Bash or
 unknown custom tools. Mutation stages receive exact approved paths and block

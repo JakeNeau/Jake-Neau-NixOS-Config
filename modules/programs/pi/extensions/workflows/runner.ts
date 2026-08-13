@@ -80,6 +80,19 @@ export function isSafeReadOnlyCommand(command: string): boolean {
   return safeStarts.some((prefix) => normalized === prefix || normalized.startsWith(`${prefix} `));
 }
 
+export function hasShellControlSyntax(command: string): boolean {
+  return /[\r\n;&|<>`]/.test(command) || command.includes("$(");
+}
+
+export function isAllowedReadOnlyCommand(command: string, allowedPrefixes: string[]): boolean {
+  if (hasShellControlSyntax(command)) return false;
+  const normalized = command.trim().replace(/[ \t]+/g, " ");
+  return allowedPrefixes.some((rawPrefix) => {
+    const prefix = rawPrefix.trim().replace(/[ \t]+/g, " ");
+    return normalized === prefix || normalized.startsWith(`${prefix} `);
+  });
+}
+
 export interface StageRunOptions {
   cwd: string;
   prompt: string;
@@ -90,6 +103,7 @@ export interface StageRunOptions {
   tools: string[];
   trusted: boolean;
   readOnly: boolean;
+  readOnlyCommandPrefixes?: string[];
   approvedPaths?: string[];
   artifacts: WorkflowArtifact[];
   catalog: unknown[];
@@ -183,6 +197,7 @@ export async function runStage(options: StageRunOptions): Promise<StageRunResult
       PI_WORKFLOW_SCHEMA: schemaPath,
       PI_WORKFLOW_ARTIFACT_MANIFEST: manifestPath,
       PI_WORKFLOW_READ_ONLY: options.readOnly ? "1" : "0",
+      PI_WORKFLOW_READ_ONLY_COMMAND_PREFIXES: JSON.stringify(options.readOnlyCommandPrefixes ?? []),
       PI_WORKFLOW_APPROVED_PATHS: JSON.stringify(options.approvedPaths ?? []),
     },
     detached: process.platform !== "win32",

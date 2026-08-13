@@ -46,7 +46,7 @@ Create `workflow.json`:
     },
     "report": {
       "prompt": "stages/report.md",
-      "tools": ["read"],
+      "tools": ["read", "bash"],
       "readOnly": true,
       "inputs": ["review-evidence"],
       "outputSchema": "schemas/report.json",
@@ -152,7 +152,34 @@ A mutation stage must set `"readOnly": false`, list `mutationPaths`, and omit
 Bash unless the procedure requires it. Read-only stages receive a conservative
 Bash policy even when they list the Bash tool.
 
-## 7. Replace a global workflow explicitly
+## 7. Add a read-only Bash exception
+
+Add `.pi/workflows/read-only-exceptions.json` when a read-only stage must run a
+project validation command that the default policy blocks:
+
+```json
+{
+  "version": 1,
+  "workflows": {
+    "review-change": {
+      "report": {
+        "allowedCommandPrefixes": ["nix flake check", "cargo test"]
+      }
+    }
+  }
+}
+```
+
+The named stage must set `readOnly` to `true` and include `bash` in `tools`.
+Scope each prefix to the narrowest command form that supports the stage.
+Arguments may follow a prefix. Pi still blocks shell composition, redirection,
+command substitution, and multiline commands.
+
+Trust the project before Pi loads the policy. One invalid entry rejects the
+complete exception file, and Pi reports a workflow diagnostic. Exceptions
+never permit `edit` or `write` in a read-only stage.
+
+## 8. Replace a global workflow explicitly
 
 A project workflow cannot shadow a global workflow accidentally. Add `replaces`
 when replacement is intentional:
@@ -166,7 +193,7 @@ when replacement is intentional:
 
 Pi shows the project source in the active mode label.
 
-## 8. Reload and run
+## 9. Reload and run
 
 Trust the project, then run `/reload`. Use `/workflow` to inspect available
 modes.

@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { CONFIG_DIR_NAME, type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
 
+import { workflowAutocompleteItems } from "./autocomplete.ts";
 import registerWorkflowChild from "./child.ts";
 import { discoverWorkflowDefinitions, type LoadedWorkflow } from "./definitions.ts";
 import { WorkflowRuntime } from "./runtime.ts";
@@ -204,9 +205,7 @@ export default function workflows(pi: ExtensionAPI): void {
         const match = before.match(/^\/([a-z0-9-]*)$/);
         if (!match) return current.getSuggestions(lines, line, column, options);
         const prefix = match[1];
-        const workflowItems = [...definitions.values()]
-          .filter((definition) => definition.name.startsWith(prefix))
-          .map((definition) => ({ value: `/${definition.name}`, label: definition.name, description: definition.description }));
+        const workflowItems = workflowAutocompleteItems(definitions.values(), prefix);
         if (workflowItems.length === 0) return current.getSuggestions(lines, line, column, options);
         return { prefix: `/${prefix}`, items: workflowItems };
       },

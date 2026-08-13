@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { StrictJsonlDecoder, buildChildArguments, isSafeReadOnlyCommand } from "../runner.ts";
+import { StrictJsonlDecoder, buildChildArguments, isAllowedReadOnlyCommand, isSafeReadOnlyCommand } from "../runner.ts";
 
 test("decodes fragmented LF-delimited RPC records without treating Unicode separators as framing", () => {
   const decoder = new StrictJsonlDecoder();
@@ -31,4 +31,15 @@ test("allows conservative inspection commands and blocks mutation", () => {
   assert.equal(isSafeReadOnlyCommand("git commit -am nope"), false);
   assert.equal(isSafeReadOnlyCommand("cat a > b"), false);
   assert.equal(isSafeReadOnlyCommand("rm -rf specs"), false);
+});
+
+test("allows scoped read-only command exceptions without shell composition", () => {
+  const exceptions = ["nix flake check", "cargo test"];
+  assert.equal(isAllowedReadOnlyCommand("nix flake check", exceptions), true);
+  assert.equal(isAllowedReadOnlyCommand("cargo test --workspace", exceptions), true);
+  assert.equal(isAllowedReadOnlyCommand("cargo testevil", exceptions), false);
+  assert.equal(isAllowedReadOnlyCommand("cargo test; rm -rf .", exceptions), false);
+  assert.equal(isAllowedReadOnlyCommand("cargo test | tee output", exceptions), false);
+  assert.equal(isAllowedReadOnlyCommand("cargo test $(touch bad)", exceptions), false);
+  assert.equal(isAllowedReadOnlyCommand("cargo test\nrm -rf .", exceptions), false);
 });

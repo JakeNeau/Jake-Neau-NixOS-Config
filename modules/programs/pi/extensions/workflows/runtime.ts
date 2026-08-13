@@ -143,6 +143,7 @@ export class WorkflowRuntime {
       tools: stage.tools,
       trusted: this.trusted,
       readOnly: stage.readOnly,
+      readOnlyCommandPrefixes: this.definition.readOnlyCommandPrefixes?.[stageType],
       approvedPaths,
       artifacts: [...this.artifacts.list()],
       catalog: this.artifacts.catalog(),

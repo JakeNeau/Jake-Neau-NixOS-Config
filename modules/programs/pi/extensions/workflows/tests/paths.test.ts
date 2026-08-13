@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, symlink } from "node:fs/promises";
+import { mkdtemp, mkdir, realpath, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -11,7 +11,7 @@ test("accepts approved files inside the canonical specification root", async () 
   await mkdir(join(root, "specs"));
   assert.deepEqual(
     approvedTargets(root, "specs", ["specs/design.md"]),
-    [join(root, "specs", "design.md")],
+    [join(await realpath(root), "specs", "design.md")],
   );
 });
 

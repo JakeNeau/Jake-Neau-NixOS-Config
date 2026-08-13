@@ -52,6 +52,10 @@ test("accepts a reachable workflow and rejects model control", () => {
     validateWorkflowDefinition({ ...validDefinition, model: "forbidden" }).join("\n"),
     /model/,
   );
+  assert.match(
+    validateWorkflowDefinition({ ...validDefinition, readOnlyCommandPrefixes: { start: ["rm"] } }).join("\n"),
+    /readOnlyCommandPrefixes/,
+  );
   const unsafe = structuredClone(validDefinition);
   unsafe.stages.start.tools = ["unknown_mutator"];
   assert.match(validateWorkflowDefinition(unsafe).join("\n"), /not approved/);
@@ -81,6 +85,59 @@ test("loads the bundled refine-spec definition without diagnostics", async () =>
   assert.deepEqual(result.diagnostics, []);
   assert.equal(result.workflows.get("refine-spec")?.stages.investigate.join, undefined);
   assert.equal(result.workflows.get("refine-spec")?.stages.synthesize.join?.mode, "all");
+});
+
+test("loads trusted read-only command exceptions with workflow and stage scope", async () => {
+  const root = await mkdtemp(join(tmpdir(), "pi-workflows-"));
+  const globalRoot = join(root, "global");
+  const projectRoot = join(root, "project");
+  const definition = structuredClone(validDefinition);
+  definition.stages.start.tools = ["read", "bash"];
+  await writeWorkflow(globalRoot, "demo", definition);
+  await mkdir(projectRoot, { recursive: true });
+  await writeFile(join(projectRoot, "read-only-exceptions.json"), JSON.stringify({
+    version: 1,
+    workflows: {
+      demo: {
+        start: {
+          allowedCommandPrefixes: ["nix flake check", "cargo test"],
+        },
+      },
+    },
+  }));
+
+  const untrusted = await discoverWorkflowDefinitions({ globalRoot, projectRoot, projectTrusted: false });
+  assert.equal(untrusted.workflows.get("demo")?.readOnlyCommandPrefixes, undefined);
+
+  const trusted = await discoverWorkflowDefinitions({ globalRoot, projectRoot, projectTrusted: true });
+  assert.deepEqual(trusted.diagnostics, []);
+  assert.deepEqual(trusted.workflows.get("demo")?.readOnlyCommandPrefixes, {
+    start: ["nix flake check", "cargo test"],
+  });
+  assert.equal(trusted.workflows.get("demo")?.readOnlyCommandPrefixes?.finish, undefined);
+});
+
+test("rejects malformed read-only command exceptions", async () => {
+  const root = await mkdtemp(join(tmpdir(), "pi-workflows-"));
+  const globalRoot = join(root, "global");
+  const projectRoot = join(root, "project");
+  const definition = structuredClone(validDefinition);
+  definition.stages.start.tools = ["read", "bash"];
+  await writeWorkflow(globalRoot, "demo", definition);
+  await mkdir(projectRoot, { recursive: true });
+
+  for (const [policy, expected] of [
+    [{ version: 2, workflows: {} }, /version must be 1/],
+    [{ version: 1, workflows: { missing: { start: { allowedCommandPrefixes: ["cargo test"] } } } }, /unknown workflow: missing/],
+    [{ version: 1, workflows: { demo: { missing: { allowedCommandPrefixes: ["cargo test"] } } } }, /unknown stage: demo\.missing/],
+    [{ version: 1, workflows: { demo: { start: { allowedCommandPrefixes: [""] } } } }, /non-empty command prefixes/],
+    [{ version: 1, workflows: { demo: { start: { allowedCommandPrefixes: ["cargo test; rm -rf ."] } } } }, /shell control syntax/],
+  ] as const) {
+    await writeFile(join(projectRoot, "read-only-exceptions.json"), JSON.stringify(policy));
+    const result = await discoverWorkflowDefinitions({ globalRoot, projectRoot, projectTrusted: true });
+    assert.match(result.diagnostics.join("\n"), expected);
+    assert.equal(result.workflows.get("demo")?.readOnlyCommandPrefixes, undefined);
+  }
 });
 
 test("loads trusted project workflows and requires explicit replacement", async () => {
