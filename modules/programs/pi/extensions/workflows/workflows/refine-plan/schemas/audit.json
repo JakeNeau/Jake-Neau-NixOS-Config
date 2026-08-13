@@ -1,0 +1,48 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["artifactKind", "outcome", "summary", "payload"],
+  "properties": {
+    "artifactKind": { "enum": ["issue-queue"] },
+    "outcome": { "enum": ["issues", "no-issues"] },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["issues"],
+      "properties": {
+        "issues": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["title", "claim", "category", "impact", "rankingReason", "confidence", "evidence"],
+            "properties": {
+              "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "claim": { "type": "string", "minLength": 1, "maxLength": 2000 },
+              "category": { "enum": ["contradiction", "ambiguity", "missing-decision", "architecture-conflict", "implementation-conflict", "implementation-gap", "acceptance-gap"] },
+              "impact": { "enum": ["critical", "high", "medium", "low"] },
+              "rankingReason": { "type": "string", "minLength": 1, "maxLength": 1000 },
+              "confidence": { "enum": ["high", "medium", "low"] },
+              "evidence": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 10,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["path", "excerpt"],
+                  "properties": {
+                    "path": { "type": "string", "minLength": 1, "maxLength": 500 },
+                    "excerpt": { "type": "string", "minLength": 1, "maxLength": 2000 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

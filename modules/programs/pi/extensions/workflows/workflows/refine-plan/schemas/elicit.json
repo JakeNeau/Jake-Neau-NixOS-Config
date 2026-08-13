@@ -1,0 +1,44 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["artifactKind", "outcome", "summary", "payload"],
+  "properties": {
+    "artifactKind": { "enum": ["question", "decision-readiness"] },
+    "outcome": { "enum": ["question", "ready"] },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["remainingDecisions", "readinessReason"],
+      "properties": {
+        "question": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["text", "why", "options"],
+          "properties": {
+            "text": { "type": "string", "minLength": 1, "maxLength": 500 },
+            "why": { "type": "string", "minLength": 1, "maxLength": 1500 },
+            "options": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 5,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "label", "consequence"],
+                "properties": {
+                  "id": { "type": "string", "minLength": 1, "maxLength": 80 },
+                  "label": { "type": "string", "minLength": 1, "maxLength": 120 },
+                  "consequence": { "type": "string", "minLength": 1, "maxLength": 500 }
+                }
+              }
+            },
+            "recommendation": { "type": "string", "maxLength": 1000 }
+          }
+        },
+        "remainingDecisions": { "type": "array", "maxItems": 20, "items": { "type": "string", "maxLength": 500 } },
+        "readinessReason": { "type": "string", "maxLength": 1500 }
+      }
+    }
+  }
+}

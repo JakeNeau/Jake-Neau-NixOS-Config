@@ -26,3 +26,22 @@ export function approvedTargets(cwd: string, location: string, paths: string[]):
     return target;
   });
 }
+
+export function approvedPlanTargets(
+  cwd: string,
+  location: string,
+  specificationPath: string,
+  planPaths: string[],
+): string[] {
+  const [specification] = approvedTargets(cwd, location, [specificationPath]);
+  if (!existsSync(specification)) {
+    throw new Error(`The plan specification does not exist: ${specificationPath}`);
+  }
+  const plans = approvedTargets(cwd, location, planPaths);
+  for (const plan of plans) {
+    if (dirname(plan) !== dirname(specification)) {
+      throw new Error(`Proposed plan is not in the same directory as its specification: ${plan}`);
+    }
+  }
+  return plans;
+}

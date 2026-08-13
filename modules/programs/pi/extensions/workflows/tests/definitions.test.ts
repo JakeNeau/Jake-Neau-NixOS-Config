@@ -76,7 +76,7 @@ test("rejects broken transitions, joins, and nonterminal dead ends", () => {
   assert.match(errors, /terminal outcome/);
 });
 
-test("loads the bundled refine-spec definition without diagnostics", async () => {
+test("loads the bundled refinement definitions without diagnostics", async () => {
   const here = dirname(fileURLToPath(import.meta.url));
   const result = await discoverWorkflowDefinitions({
     globalRoot: join(here, "..", "workflows"),
@@ -85,6 +85,8 @@ test("loads the bundled refine-spec definition without diagnostics", async () =>
   assert.deepEqual(result.diagnostics, []);
   assert.equal(result.workflows.get("refine-spec")?.stages.investigate.join, undefined);
   assert.equal(result.workflows.get("refine-spec")?.stages.synthesize.join?.mode, "all");
+  assert.equal(result.workflows.get("refine-plan")?.stages.investigate.join, undefined);
+  assert.equal(result.workflows.get("refine-plan")?.stages.synthesize.join?.mode, "all");
 });
 
 test("loads trusted read-only command exceptions with workflow and stage scope", async () => {

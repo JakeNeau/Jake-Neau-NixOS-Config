@@ -36,6 +36,6 @@ reorganization.
   briefly and links into these pages for depth.
 - **`AGENTS.md`** — standing instructions for agents working in the repo
   (validation commands, cautions, conventions).
-- **`specs/`** — transient pre-implementation design documents: written before
-  a change, deleted once the durable rationale has graduated into
-  `explanation/`.
+- **`specs/`** contains transient specifications and implementation plans. The tree may
+  use subdirectories at any depth. Each plan stays beside its specification.
+  Delete these files after durable rationale moves into `explanation/`.

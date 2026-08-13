@@ -92,8 +92,8 @@ export default function workflows(pi: ExtensionAPI): void {
     active = new WorkflowRuntime(pi, ctx, definition);
     activePromise = (async () => {
       try {
-        const result = name === "refine-spec"
-          ? await active!.runRefineSpec(input)
+        const result = name === "refine-spec" || name === "refine-plan"
+          ? await active!.runRefinement(input)
           : await active!.runGraph(input);
         ctx.ui.notify(result === "done" ? `Workflow completed: ${name}` : `Workflow stopped: ${name}`, "info");
       } catch (error) {
@@ -126,6 +126,11 @@ export default function workflows(pi: ExtensionAPI): void {
   pi.registerCommand("refine-spec", {
     description: "Refine project specifications from an idea, focus area, or audit",
     handler: async (args, ctx) => start("refine-spec", args.trim(), ctx),
+  });
+
+  pi.registerCommand("refine-plan", {
+    description: "Create or refine an implementation-complete plan for a specification",
+    handler: async (args, ctx) => start("refine-plan", args.trim(), ctx),
   });
 
   pi.registerCommand("workflow", {

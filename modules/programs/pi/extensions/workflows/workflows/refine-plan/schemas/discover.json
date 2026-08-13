@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["artifactKind", "outcome", "summary", "payload"],
+  "properties": {
+    "artifactKind": { "enum": ["spec-context"] },
+    "outcome": { "enum": ["idea", "focus", "audit", "ambiguous"] },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intent", "input", "practiceSummary", "locations", "specFiles", "warnings", "confidence"],
+      "properties": {
+        "intent": { "enum": ["idea", "focus", "audit", "ambiguous"] },
+        "input": { "type": "string", "maxLength": 10000 },
+        "practiceSummary": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "locations": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "evidence", "documented", "fileCount"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1, "maxLength": 500 },
+              "evidence": { "type": "string", "minLength": 1, "maxLength": 1000 },
+              "documented": { "type": "boolean" },
+              "fileCount": { "type": "integer", "minimum": 0, "maximum": 10000 }
+            }
+          }
+        },
+        "chosenLocation": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "specFiles": { "type": "array", "maxItems": 100, "items": { "type": "string", "maxLength": 500 } },
+        "warnings": { "type": "array", "maxItems": 10, "items": { "type": "string", "maxLength": 1000 } },
+        "confidence": { "enum": ["high", "medium", "low"] }
+      }
+    }
+  }
+}

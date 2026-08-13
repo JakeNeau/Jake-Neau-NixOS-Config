@@ -76,6 +76,13 @@ specification practice and gathers parallel evidence. It asks one decision at a
 time, requires proposal approval, restricts writes, and verifies the result.
 Calling `/refine-spec` without input audits all active specifications.
 
+The bundled `/refine-plan [specification or area]` workflow uses the same
+refinement engine to create an implementation-complete plan. It reads project
+documentation before code and asks the user about every unresolved choice. The
+plan names exact files, symbols, behavior, data flow, tests, and documentation.
+Pi writes one plan beside its specification under the recursive `specs/` tree.
+Calling `/refine-plan` without input audits all active plans.
+
 [Pi workflow reference](pi-workflows.md) defines commands, definition fields,
 stages, artifacts, safety rules, and limits. [The workflow
 explanation](../explanation/pi-workflows.md) describes the architecture.

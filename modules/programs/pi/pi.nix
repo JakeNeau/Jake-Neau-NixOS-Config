@@ -240,6 +240,7 @@
           --extension ./extensions/workflows/index.ts >rpc.jsonl
       grep -q '"success":true' rpc.jsonl
       grep -q '"name":"refine-spec"' rpc.jsonl
+      grep -q '"name":"refine-plan"' rpc.jsonl
 
       printf '{"type":"object","properties":{}}\n' >schema.json
       printf '{"catalog":[],"artifacts":{}}\n' >manifest.json

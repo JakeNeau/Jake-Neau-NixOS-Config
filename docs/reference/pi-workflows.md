@@ -13,9 +13,10 @@ Home Manager binds `app.thinking.cycle` to `Ctrl+Shift+L`, because the workflow
 manager owns `Shift+Tab`. This binding avoids macOS's native `Ctrl+Tab` tab
 shortcut and remains distinct from Ghostty and niri shortcuts.
 
-Each global workflow can register a direct command. The bundled workflow uses
-`/refine-spec [idea or area]`. Project workflow commands pass through the input
-router and appear in workflow autocomplete.
+Each global workflow can register a direct command. The bundled workflows use
+`/refine-spec [idea or area]` and
+`/refine-plan [specification or area]`. Project workflow commands pass through
+the input router and appear in workflow autocomplete.
 
 `/workflow` supports these forms:
 
@@ -150,9 +151,9 @@ Mutation definitions may add `edit` and `write`, but they cannot use Bash or
 unknown custom tools. Mutation stages receive exact approved paths and block
 edits elsewhere. The bundled `refine-spec` writer receives no Bash tool.
 
-`refine-spec` hashes approved files before writing. It stops if a file changes
-between approval and mutation. Built-in edit and write tools retain Pi's shared
-file-mutation queue behavior.
+Both refinement workflows hash approved files before writing. A workflow stops
+if a file changes between approval and mutation. Built-in edit and write tools
+retain Pi's shared file-mutation queue behavior.
 
 ## `refine-spec`
 
@@ -189,6 +190,32 @@ that action row with an input. The question and all options remain visible.
 
 The writer gets one correction attempt after failed semantic verification. A
 second failure stops the workflow.
+
+## `refine-plan`
+
+`/refine-plan <text>` selects a specification or existing plan to refine.
+`/refine-plan` audits all active plans. Ambiguous input produces a user choice.
+
+The workflow searches the canonical specification root recursively. The
+repository convention permits subdirectories at any depth. Each plan must stay
+in the same directory as its specification. The workflow does not impose a
+filename convention. It asks the user when the association or target path is
+ambiguous.
+
+`refine-plan` uses the same discovery, audit, parallel investigation,
+synthesis, decision, approval, mutation, retry, and verification control flow
+as `refine-spec`. Its stage prompts apply implementation-plan constraints.
+
+The workflow reads project documentation before broad code. Four investigation
+branches gather specification, documentation, implementation, and verification
+evidence. The elicitation loop asks one question for every unresolved
+implementation choice.
+
+The approved plan is high-level pseudocode. It names exact file paths, symbols,
+interfaces, behavior, data flow, errors, compatibility work, tests, validation,
+and documentation. A verifier rejects any plan that leaves a coding decision
+unresolved. The mutation boundary permits one approved plan file and rejects a
+path outside the specification's directory.
 
 ## Limits
 

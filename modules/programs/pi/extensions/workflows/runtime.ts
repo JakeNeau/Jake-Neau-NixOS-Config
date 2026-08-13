@@ -8,7 +8,7 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 import { ArtifactStore, type ArtifactCandidate, type WorkflowArtifact } from "./artifacts.ts";
 import type { LoadedWorkflow, StageDefinition } from "./definitions.ts";
 import { InvocationGraph, mapWithConcurrency, resolveSuccessorSet, validateRouterSelection } from "./engine.ts";
-import { approvedTargets } from "./paths.ts";
+import { approvedPlanTargets, approvedTargets } from "./paths.ts";
 import { chooseSpecificationLocation, fingerprintIssue, suppressSkippedIssues, type RefinementIssue } from "./refine-spec.ts";
 import { runStage, type StageRunResult } from "./runner.ts";
 import { WorkflowUi, type WorkflowQuestion } from "./ui.ts";
@@ -352,7 +352,8 @@ export class WorkflowRuntime {
     }
   }
 
-  async runRefineSpec(input: string): Promise<"done" | "stopped"> {
+  async runRefinement(input: string): Promise<"done" | "stopped"> {
+    const planMode = this.definition.name === "refine-plan";
     this.ui.arm({ name: this.definition.name, source: this.definition.source, color: this.definition.color, stage: "starting" });
     const inputArtifact = this.addArtifact("input", [], {
       artifactKind: "workflow-input",
@@ -363,7 +364,7 @@ export class WorkflowRuntime {
     try {
       let context = await this.stage("discover", [inputArtifact], { input });
       if (context.outcome === "ambiguous") {
-        const intent = await this.ui.choose("How should refine-spec use this input?", [
+        const intent = await this.ui.choose(`How should ${this.definition.name} use this input?`, [
           "Treat it as a new design idea",
           "Treat it as an area that needs refinement",
           "Ignore it and audit all active specifications",
@@ -409,14 +410,14 @@ export class WorkflowRuntime {
       }
       for (const warning of array(object(context.payload).warnings)) this.ctx.ui.notify(String(warning), "warning");
 
-      if (context.outcome === "audit") return await this.runAudit(context);
+      if (context.outcome === "audit") return await this.runAudit(context, planMode);
       const focus = this.addArtifact("focus", [context], {
         artifactKind: "focus-item",
         outcome: "selected",
         summary: input.trim() || "Refine the selected specification area.",
         payload: { input, intent: context.outcome },
       });
-      const result = await this.refineOne(context, focus, false);
+      const result = await this.refineOne(context, focus, false, planMode);
       return result === "passed" ? "done" : "stopped";
     } catch (error) {
       if (error instanceof WorkflowStopped) return "stopped";
@@ -426,7 +427,7 @@ export class WorkflowRuntime {
     }
   }
 
-  private async runAudit(context: WorkflowArtifact): Promise<"done" | "stopped"> {
+  private async runAudit(context: WorkflowArtifact, planMode: boolean): Promise<"done" | "stopped"> {
     const skipped = new Set<string>();
     const resolved = new Set<string>();
     while (true) {
@@ -442,7 +443,7 @@ export class WorkflowRuntime {
         new Set([...skipped, ...resolved]),
       );
       if (audit.outcome === "no-issues" || issues.length === 0) {
-        this.ctx.ui.notify("No unresolved specification issues remain.", "info");
+        this.ctx.ui.notify(`No unresolved ${planMode ? "plan" : "specification"} issues remain.`, "info");
         return "done";
       }
       const issue = issues[0];
@@ -462,7 +463,7 @@ export class WorkflowRuntime {
         summary: issue.title,
         payload: issue,
       });
-      const result = await this.refineOne(context, focus, true);
+      const result = await this.refineOne(context, focus, true, planMode);
       if (result === "stopped") return "stopped";
       if (result === "skipped") skipped.add(fingerprint);
       if (result === "passed") resolved.add(fingerprint);
@@ -517,6 +518,7 @@ export class WorkflowRuntime {
     context: WorkflowArtifact,
     focus: WorkflowArtifact,
     auditMode: boolean,
+    planMode: boolean,
   ): Promise<"passed" | "skipped" | "stopped"> {
     const evidence = await this.parallelStage("investigate", [context, focus], [
       { lens: "specification", iteration: focus.artifactId },
@@ -568,40 +570,44 @@ export class WorkflowRuntime {
         continue;
       }
 
-      const approvedPaths = this.approvedPaths(context, proposal);
+      const approvedPaths = this.approvedPaths(context, proposal, planMode);
       const baselines = new Map<string, string | null>();
       for (const path of approvedPaths) baselines.set(path, await fileHash(path));
       const approval = this.addArtifact("approval", [proposal], {
         artifactKind: "approval",
         outcome: "accepted",
-        summary: `Approved changes to ${approvedPaths.length} specification file(s).`,
+        summary: `Approved changes to ${approvedPaths.length} ${planMode ? "plan" : "specification"} file(s).`,
         payload: { paths: approvedPaths, baselines: Object.fromEntries(baselines) },
       });
       for (const [path, hash] of baselines) {
-        if (await fileHash(path) !== hash) throw new Error(`Specification changed after approval: ${path}`);
+        if (await fileHash(path) !== hash) throw new Error(`${planMode ? "Plan" : "Specification"} changed after approval: ${path}`);
       }
       let write = await this.stage("write", [proposal, approval, ...decisions], { approvedPaths }, approvedPaths);
       const changed = await Promise.all(approvedPaths.map(async (path) => (await fileHash(path)) !== baselines.get(path)));
-      if (!changed.some(Boolean)) throw new Error("The writer did not change any approved specification file");
+      if (!changed.some(Boolean)) throw new Error(`The writer did not change any approved ${planMode ? "plan" : "specification"} file`);
       let verification = await this.stage("verify", [proposal, write, ...decisions], { auditMode });
       if (verification.outcome === "failed") {
         write = await this.stage("write", [proposal, write, verification, ...decisions], { correction: true, approvedPaths }, approvedPaths);
         verification = await this.stage("verify", [proposal, write, verification, ...decisions], { auditMode });
       }
       if (verification.outcome !== "passed") {
-        this.ctx.ui.notify("Specification verification failed after one correction.", "error");
+        this.ctx.ui.notify(`${planMode ? "Plan" : "Specification"} verification failed after one correction.`, "error");
         return "stopped";
       }
-      this.ctx.ui.notify("Specification refinement written and verified.", "info");
+      this.ctx.ui.notify(`${planMode ? "Plan" : "Specification"} refinement written and verified.`, "info");
       return "passed";
     }
   }
 
-  private approvedPaths(context: WorkflowArtifact, proposal: WorkflowArtifact): string[] {
+  private approvedPaths(context: WorkflowArtifact, proposal: WorkflowArtifact, planMode: boolean): string[] {
     const location = text(object(context.payload).chosenLocation);
     if (!location) throw new Error("No approved specification location");
-    const paths = array(object(proposal.payload).files).map((file) => text(file.path));
-    if (paths.length === 0) throw new Error("The proposal contains no specification files");
-    return approvedTargets(this.ctx.cwd, location, paths);
+    const payload = object(proposal.payload);
+    const paths = array(payload.files).map((file) => text(file.path));
+    if (paths.length === 0) throw new Error(`The proposal contains no ${planMode ? "plan" : "specification"} files`);
+    if (!planMode) return approvedTargets(this.ctx.cwd, location, paths);
+    const specificationPath = text(payload.specificationPath);
+    if (!specificationPath) throw new Error("The plan proposal does not identify its specification");
+    return approvedPlanTargets(this.ctx.cwd, location, specificationPath, paths);
   }
 }

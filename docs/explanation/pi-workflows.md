@@ -34,9 +34,9 @@ parent model never receives them automatically.
 
 ## Why the execution graph stays acyclic
 
-Some workflows repeat stage types. `refine-spec` may ask several questions,
-rerun an audit, or repair one failed verification. A static stage-type graph
-therefore needs cycles.
+Some workflows repeat stage types. The refinement workflows may ask several
+questions, rerun an audit, or repair one failed verification. A static
+stage-type graph therefore needs cycles.
 
 Each concrete invocation still receives a new identity and can depend only on
 earlier artifacts. The run forms an acyclic graph even when the same stage type
@@ -104,3 +104,19 @@ written specifications with project evidence and every recorded user decision.
 The result is slower than letting one long-running agent edit immediately. The
 extra stages buy context isolation, explicit decisions, bounded authority, and
 independent verification.
+
+## Why specification and plan refinement share one engine
+
+Specification and plan refinement have the same safety and decision lifecycle.
+Both discover project practice, gather independent evidence, and ask one
+question at a time. Both approve exact paths, hash files, write with bounded
+authority, and verify in a fresh stage.
+
+Separate control paths would make retries, approval, and mutation policy drift.
+The workflow manager therefore runs both definitions through one refinement
+engine. Separate prompts and schemas define their different artifacts.
+
+A specification decides intended behavior. An implementation plan decides the
+exact coding procedure for that behavior. The plan workflow therefore requires
+file, symbol, data-flow, error, test, and documentation details. It also confines
+the plan to the specification's directory.

@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "name": "refine-plan",
+  "description": "Create or refine implementation-complete plans beside their specifications",
+  "inputHint": "[specification or plan area]",
+  "color": "accent",
+  "entry": "discover",
+  "terminalOutcomes": ["done", "stopped", "no-issues"],
+  "maxParallel": 4,
+  "stages": {
+    "discover": {
+      "prompt": "stages/discover.md",
+      "tools": ["read", "bash", "follow_link"],
+      "readOnly": true,
+      "inputs": ["workflow-input"],
+      "outputSchema": "schemas/discover.json",
+      "transitions": {
+        "idea": [["investigate"]],
+        "focus": [["investigate"]],
+        "audit": [["audit"]],
+        "ambiguous": [["discover"]]
+      }
+    },
+    "audit": {
+      "prompt": "stages/audit.md",
+      "tools": ["read", "bash", "follow_link", "rust_code"],
+      "readOnly": true,
+      "inputs": ["spec-context", "resolved-issues"],
+      "outputSchema": "schemas/audit.json",
+      "transitions": {
+        "issues": [["investigate"]],
+        "no-issues": []
+      }
+    },
+    "investigate": {
+      "prompt": "stages/investigate.md",
+      "tools": ["read", "bash", "follow_link", "rust_code"],
+      "readOnly": true,
+      "inputs": ["spec-context", "focus-item", "decision-record"],
+      "outputSchema": "schemas/evidence.json",
+      "transitions": {
+        "ready": [["synthesize"]]
+      }
+    },
+    "synthesize": {
+      "prompt": "stages/synthesize.md",
+      "tools": ["read", "follow_link"],
+      "readOnly": true,
+      "inputs": ["evidence"],
+      "outputSchema": "schemas/synthesis.json",
+      "join": {
+        "mode": "all",
+        "stages": ["investigate"]
+      },
+      "transitions": {
+        "ready": [["elicit"]]
+      }
+    },
+    "elicit": {
+      "prompt": "stages/elicit.md",
+      "tools": ["read", "follow_link"],
+      "readOnly": true,
+      "inputs": ["evidence-synthesis", "decision-record"],
+      "outputSchema": "schemas/elicit.json",
+      "transitions": {
+        "question": [["elicit"]],
+        "ready": [["propose"]]
+      },
+      "checkpoint": "question"
+    },
+    "clarify": {
+      "prompt": "stages/clarify.md",
+      "tools": ["read", "follow_link"],
+      "readOnly": true,
+      "inputs": ["question", "clarification-request", "evidence-synthesis"],
+      "outputSchema": "schemas/clarify.json",
+      "transitions": {
+        "answered": [["elicit"]]
+      }
+    },
+    "propose": {
+      "prompt": "stages/propose.md",
+      "tools": ["read", "follow_link"],
+      "readOnly": true,
+      "inputs": ["spec-context", "evidence-synthesis", "decision-record"],
+      "outputSchema": "schemas/proposal.json",
+      "transitions": {
+        "proposed": [["write"], ["elicit"]]
+      },
+      "checkpoint": "proposal"
+    },
+    "write": {
+      "prompt": "stages/write.md",
+      "tools": ["read", "edit", "write", "follow_link"],
+      "readOnly": false,
+      "mutationPaths": ["$approved"],
+      "inputs": ["proposal", "decision-record"],
+      "outputSchema": "schemas/write.json",
+      "transitions": {
+        "written": [["verify"]]
+      }
+    },
+    "verify": {
+      "prompt": "stages/verify.md",
+      "tools": ["read", "bash", "follow_link"],
+      "readOnly": true,
+      "inputs": ["proposal", "decision-record", "write-result"],
+      "outputSchema": "schemas/verify.json",
+      "transitions": {
+        "passed": [["audit"], []],
+        "failed": [["write"]]
+      }
+    }
+  }
+}
