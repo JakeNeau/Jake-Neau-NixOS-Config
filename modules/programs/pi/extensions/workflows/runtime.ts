@@ -8,7 +8,7 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 import { ArtifactStore, type ArtifactCandidate, type WorkflowArtifact } from "./artifacts.ts";
 import type { LoadedWorkflow, StageDefinition } from "./definitions.ts";
 import { InvocationGraph, mapWithConcurrency, resolveSuccessorSet, validateRouterSelection } from "./engine.ts";
-import { approvedPlanTargets, approvedTargets } from "./paths.ts";
+import { approvedPlanTargets, approvedTargets, RefinementTargetError } from "./paths.ts";
 import { chooseSpecificationLocation, fingerprintIssue, suppressSkippedIssues, type RefinementIssue } from "./refine-spec.ts";
 import { runStage, type StageRunResult } from "./runner.ts";
 import { fitEvidenceStageContext, MAX_STAGE_CONTEXT_BYTES, serializeStageContext } from "./stage-context.ts";
@@ -548,9 +548,34 @@ export class WorkflowRuntime {
     await this.collectDecisions(focus, synthesis, decisions);
 
     let proposal = await this.stage("propose", [context, synthesis, ...decisions]);
+    let proposalCorrectionCount = 0;
     while (true) {
       const proposalPayload = object(proposal.payload);
       const files = array(proposalPayload.files).map((file) => text(file.path));
+      let approvedPaths: string[];
+      try {
+        approvedPaths = this.approvedPaths(context, proposal, planMode);
+      } catch (error) {
+        if (!(error instanceof RefinementTargetError)) throw error;
+        const correctiveAction = this.addArtifact("corrective-action", [proposal], {
+          artifactKind: "corrective-action",
+          outcome: "required",
+          summary: error.message,
+          payload: { error: error.message, action: error.correctiveAction },
+        });
+        if (proposalCorrectionCount >= 1) {
+          this.ctx.ui.notify(`Proposal correction failed. ${error.message}\nRequired action: ${error.correctiveAction}`, "error");
+          return "stopped";
+        }
+        proposalCorrectionCount += 1;
+        this.ctx.ui.notify(`Correcting invalid proposal: ${error.message}`, "warning");
+        proposal = await this.stage(
+          "propose",
+          [context, synthesis, ...decisions, proposal, correctiveAction],
+          { correction: true },
+        );
+        continue;
+      }
       const choice = await this.ui.choose(
         `${proposalPayload.design}\n\nFiles: ${files.join(", ")}\n\nDoes this design make sense?`,
         ["Accept and write", "Ask more questions", "Correct the proposal", "Skip this issue", "Stop workflow"],
@@ -587,7 +612,6 @@ export class WorkflowRuntime {
         continue;
       }
 
-      const approvedPaths = this.approvedPaths(context, proposal, planMode);
       const baselines = new Map<string, string | null>();
       for (const path of approvedPaths) baselines.set(path, await fileHash(path));
       const approval = this.addArtifact("approval", [proposal], {

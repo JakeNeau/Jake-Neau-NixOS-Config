@@ -18,6 +18,9 @@ contracts for new code.
 Include removal or migration steps. Leave no design or implementation decision
 to the coding phase.
 
+When the stage context includes a `corrective-action` artifact, regenerate the
+proposal and apply that correction. Do not repeat the invalid file targets.
+
 The `design` field must contain the complete proposed plan text. List only the
 single plan file in `files`. Do not propose code or specification mutations.
 Return one `refinement-proposal` artifact with `workflow_output`.

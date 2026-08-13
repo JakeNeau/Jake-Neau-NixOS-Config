@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 
-import { approvedPlanTargets, approvedTargets } from "../paths.ts";
+import { approvedPlanTargets, approvedTargets, RefinementTargetError } from "../paths.ts";
 
 test("accepts approved files inside the canonical specification root", async () => {
   const root = await mkdtemp(join(tmpdir(), "workflow-paths-"));
@@ -21,8 +21,18 @@ test("rejects lexical and symlink escapes from the specification root", async ()
   await mkdir(join(root, "outside"));
   await symlink(join(root, "outside"), join(root, "specs", "escape"));
 
-  assert.throws(() => approvedTargets(root, "specs", ["outside/design.md"]), /outside/);
-  assert.throws(() => approvedTargets(root, "specs", ["specs/escape/design.md"]), /outside/);
+  for (const path of ["outside/design.md", "specs/escape/design.md"]) {
+    assert.throws(
+      () => approvedTargets(root, "specs", [path]),
+      (error) => {
+        assert.ok(error instanceof RefinementTargetError);
+        assert.match(error.message, /outside the specification location/);
+        assert.match(error.correctiveAction, /only specification files under specs/);
+        assert.match(error.correctiveAction, /design or integration text/);
+        return true;
+      },
+    );
+  }
 });
 
 test("accepts a plan beside its specification at arbitrary depth", async () => {
@@ -64,6 +74,11 @@ test("rejects a plan outside its specification directory", async () => {
       "specs/services/auth/session.md",
       ["specs/plans/session.md"],
     ),
-    /same directory/,
+    (error) => {
+      assert.ok(error instanceof RefinementTargetError);
+      assert.match(error.message, /same directory/);
+      assert.match(error.correctiveAction, /beside its existing specification/);
+      return true;
+    },
   );
 });

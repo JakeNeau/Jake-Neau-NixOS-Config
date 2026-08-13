@@ -178,7 +178,7 @@ It handles one issue at a time and reruns the audit after a verified write.
 Issue fingerprints suppress unchanged issues that the user skips or resolves in
 the current run.
 
-Each refinement performs these phases:
+Pi refines each issue in these phases:
 
 1. Four read-only children inspect specifications, documentation,
    implementation, and verification evidence.
@@ -197,6 +197,11 @@ that action row with an input. The question and all options remain visible.
 
 The writer gets one correction attempt after failed semantic verification. A
 second failure stops the workflow.
+
+Before approval, Pi checks every proposed mutation target against the canonical
+specification location. An invalid target records a `corrective-action` artifact
+and sends it to a fresh proposal stage. The workflow continues when the corrected
+proposal is valid. A second invalid proposal stops the workflow without mutation.
 
 ## `refine-plan`
 
