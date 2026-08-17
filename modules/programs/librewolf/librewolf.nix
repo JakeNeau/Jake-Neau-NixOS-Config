@@ -306,7 +306,7 @@
     ];
 
     browserExecutable =
-      if pkgs.stdenv.isDarwin
+      if pkgs.stdenv.hostPlatform.isDarwin
       then "${config.programs.librewolf.finalPackage}/Applications/LibreWolf.app/Contents/MacOS/librewolf"
       else lib.getExe config.programs.librewolf.finalPackage;
 
@@ -427,11 +427,11 @@
       pkgs.runCommand "librewolf-${profile}-icon" {
         nativeBuildInputs =
           [pkgs.imagemagick]
-          ++ lib.optionals pkgs.stdenv.isDarwin [pkgs.libicns];
+          ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [pkgs.libicns];
       } ''
         mkdir -p work/source "$out/share"
 
-        ${lib.optionalString pkgs.stdenv.isDarwin ''
+        ${lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
           ${pkgs.libicns}/bin/icns2png \
             -x -o work/source \
             ${config.programs.librewolf.finalPackage}/Applications/LibreWolf.app/Contents/Resources/firefox.icns
@@ -451,7 +451,7 @@
                 then "xc:${badge.darkColor}"
                 else "gradient:${badge.lightColor}-${badge.darkColor}";
               baseIcon =
-                if pkgs.stdenv.isDarwin
+                if pkgs.stdenv.hostPlatform.isDarwin
                 then "work/source/firefox_${toString macSourceSize}x${toString macSourceSize}x32.png"
                 else "${config.gtk.iconTheme.package}/share/icons/${config.gtk.iconTheme.name}/apps/scalable/librewolf.svg";
               iconName = "librewolf-${profile}.png";
@@ -512,7 +512,7 @@
           )
           iconVariants}
 
-        ${lib.optionalString pkgs.stdenv.isDarwin ''
+        ${lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
           iconset=work/librewolf-${profile}.iconset
           mkdir -p "$iconset"
 
@@ -612,7 +612,7 @@
         chmod +x "$app/Contents/MacOS/librewolf-${profile}"
       '';
 
-    macOSProfileApps = lib.optionals pkgs.stdenv.isDarwin (
+    macOSProfileApps = lib.optionals pkgs.stdenv.hostPlatform.isDarwin (
       map mkMacOSProfileApp macOSProfileNames
     );
   in
@@ -634,7 +634,7 @@
       # Default browser (Linux: XDG)
       # ---------------------------------
       # Linux: register LibreWolf as the default browser via XDG mimeapps.
-      (lib.mkIf pkgs.stdenv.isLinux {
+      (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
         xdg = {
           desktopEntries = profileDesktopEntries;
           mimeApps = {
@@ -660,7 +660,7 @@
       # confirmation modal. Guard on the current handler so we only call duti when
       # it isn't already LibreWolf -- the modal then appears at most once per type
       # (on first switch), not on every rebuild.
-      (lib.mkIf pkgs.stdenv.isDarwin {
+      (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
         home.packages = [pkgs.duti];
         home.activation.librewolfDefaultBrowser = lib.hm.dag.entryAfter ["writeBoundary"] ''
           for type in http https public.html; do

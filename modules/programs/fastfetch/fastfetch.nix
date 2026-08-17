@@ -15,7 +15,7 @@ let
   }: let
     # Filesystem birth time of /: GNU stat on Linux, BSD stat on macOS.
     birth-command =
-      if pkgs.stdenv.isDarwin
+      if pkgs.stdenv.hostPlatform.isDarwin
       then "stat -f %B /"
       else "stat -c %W /";
     # PC line value: bold hostname, em dash, then the hardware model. The

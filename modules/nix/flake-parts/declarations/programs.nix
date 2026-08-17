@@ -113,8 +113,8 @@
       ...
     }: let
       gate =
-        (lib.elem "linux" homePlatforms && pkgs.stdenv.isLinux)
-        || (lib.elem "macos" homePlatforms && pkgs.stdenv.isDarwin);
+        (lib.elem "linux" homePlatforms && pkgs.stdenv.hostPlatform.isLinux)
+        || (lib.elem "macos" homePlatforms && pkgs.stdenv.hostPlatform.isDarwin);
     in {
       imports = [decl.config];
 

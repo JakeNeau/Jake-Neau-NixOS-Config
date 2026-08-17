@@ -412,8 +412,8 @@ in {
           inherit (release) hash;
         };
         dontUnpack = true;
-        nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [pkgs.autoPatchelfHook];
-        buildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [pkgs.stdenv.cc.cc.lib];
+        nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [pkgs.autoPatchelfHook];
+        buildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [pkgs.stdenv.cc.cc.lib];
         installPhase = ''
           install -Dm755 "$src" "$out/bin/agent-browser"
         '';

@@ -34,7 +34,7 @@
       })
 
       # Linux: register sioyek as the default PDF handler via XDG mimeapps.
-      (lib.mkIf pkgs.stdenv.isLinux {
+      (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
         xdg.mimeApps = {
           enable = true;
           defaultApplications."application/pdf" = "sioyek.desktop";
@@ -47,7 +47,7 @@
       # confirmation modal. Guard on the current handler so we only call duti
       # when it isn't already sioyek -- the modal then appears at most once (on
       # first switch), not on every rebuild.
-      (lib.mkIf pkgs.stdenv.isDarwin {
+      (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
         home.packages = [pkgs.duti];
         home.activation.sioyekDefaultPdf = lib.hm.dag.entryAfter ["writeBoundary"] ''
           if [ "$(${lib.getExe pkgs.duti} -d com.adobe.pdf 2>/dev/null)" != "info.sioyek.sioyek" ]; then

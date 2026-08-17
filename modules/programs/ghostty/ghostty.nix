@@ -21,7 +21,7 @@
         # with package = null it is what makes macOS config-only — HM still
         # writes the config for the cask-installed app.
         enable = true;
-        package = lib.mkIf pkgs.stdenv.isDarwin null;
+        package = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin null;
         enableFishIntegration = true;
         settings = {
           background-opacity = 0.9;
@@ -37,7 +37,7 @@
 
       # Silence the "Last login: ..." banner login(1) prints in every new
       # terminal window on macOS.
-      home.file = lib.mkIf pkgs.stdenv.isDarwin {
+      home.file = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
         ".hushlogin".text = "";
       };
     };

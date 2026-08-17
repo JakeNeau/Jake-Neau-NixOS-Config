@@ -57,7 +57,7 @@
 
         # Linux-only: portals and mimeapps don't exist on Darwin and ghostty
         # has no Darwin build.
-        (lib.mkIf pkgs.stdenv.isLinux {
+        (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
           xdg.configFile."xdg-desktop-portal-termfilechooser/config".text = ''
             [filechooser]
             cmd=${lib.getExe wrapper}

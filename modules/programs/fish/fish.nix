@@ -94,7 +94,7 @@
           # cannot run there; the plugin is plain fish script and works fine,
           # so build it without tests.
           (
-            if pkgs.stdenv.isDarwin
+            if pkgs.stdenv.hostPlatform.isDarwin
             then
               fzf-fish.overrideAttrs (old: {
                 doCheck = false;
@@ -184,7 +184,7 @@
       # Per-platform power shortcuts
       # ----------------------------
       # systemd power shortcuts.
-      (lib.mkIf pkgs.stdenv.isLinux {
+      (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
         programs.fish.shellAliases = {
           # Power aliases
           r = "sudo systemctl reboot";
@@ -193,7 +193,7 @@
       })
 
       # macOS power shortcuts: shutdown(8) stands in for systemctl.
-      (lib.mkIf pkgs.stdenv.isDarwin {
+      (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
         programs.fish.shellAliases = {
           # Power aliases
           r = "sudo shutdown -r now";

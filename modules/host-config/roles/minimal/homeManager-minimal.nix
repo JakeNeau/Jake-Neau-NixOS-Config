@@ -7,7 +7,7 @@
     ...
   }: {
     home.homeDirectory =
-      if pkgs.stdenv.isDarwin
+      if pkgs.stdenv.hostPlatform.isDarwin
       then lib.mkForce "/Users/${config.home.username}"
       else "/home/${config.home.username}";
 

@@ -13,14 +13,14 @@
     ...
   }:
     lib.mkMerge [
-      (lib.mkIf pkgs.stdenv.isLinux {
+      (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
         home.packages = with pkgs; [
           libreoffice-qt-fresh
           hunspell # Spell-check engine for LibreOffice
           hunspellDicts.en_US # US English dictionary
         ];
       })
-      (lib.mkIf pkgs.stdenv.isDarwin {
+      (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
         home.packages = [pkgs.libreoffice-bin];
       })
     ];

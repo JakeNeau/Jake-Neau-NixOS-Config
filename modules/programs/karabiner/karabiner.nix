@@ -52,7 +52,7 @@
     # Karabiner reads this file live. As a read-only store symlink it works
     # fine, but edits made in the Karabiner GUI will not stick -- change the
     # contributing feature instead.
-    config = lib.mkIf pkgs.stdenv.isDarwin {
+    config = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
       xdg.configFile."karabiner/karabiner.json".text = builtins.toJSON {
         profiles = [
           {

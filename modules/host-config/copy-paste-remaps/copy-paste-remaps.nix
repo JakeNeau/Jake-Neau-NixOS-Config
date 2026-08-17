@@ -86,7 +86,7 @@
       enable = true;
       # On macOS the app comes from the homebrew cask; only the config is
       # managed here.
-      package = lib.mkIf pkgs.stdenv.isDarwin null;
+      package = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin null;
       settings.keybind = [
         "ctrl+c=copy_to_clipboard"
         "ctrl+v=paste_from_clipboard"

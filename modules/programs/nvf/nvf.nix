@@ -92,7 +92,7 @@
         # as a self-contained base16 theme — but only on Darwin, so it never
         # overrides stylix on NixOS. Palette copied verbatim from
         # ${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-hard.yaml.
-        theme = lib.mkIf pkgs.stdenv.isDarwin {
+        theme = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
           enable = true;
           name = "base16";
           base16-colors = {

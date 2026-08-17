@@ -42,7 +42,7 @@
       home.file.".config/nix-config".source =
         config.lib.file.mkOutOfStoreSymlink
         "${
-          if pkgs.stdenv.isDarwin
+          if pkgs.stdenv.hostPlatform.isDarwin
           then "/etc/nix-darwin"
           else "/etc/nixos"
         }/modules/users/${username}";
