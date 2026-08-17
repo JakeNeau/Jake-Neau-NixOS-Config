@@ -667,6 +667,8 @@
             key = lib.generators.mkLuaInline;
           in {
             enabled = true;
+            sources.files.hidden = true;
+            sources.grep.hidden = true;
             actions.cursor_left = feed "<Left>";
             actions.cursor_right = feed "<Right>";
             win.input.keys = {
