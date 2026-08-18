@@ -354,9 +354,33 @@
       activation rather than at the system switch, and that a new user who edits
       secrets must add the program. A design question for the user to decide,
       not a defect.
+- [ ] Consider replacing alejandra with nixfmt as the Nix formatter. Raised
+      while designing the Neovim indentation system: alejandra accepts no
+      options at all and hard-codes 2-space indent, making it the only
+      formatter this config runs that cannot follow a project's declared
+      style — stylua, shfmt and prettier all read `.editorconfig`, while
+      taplo, ruff, clang-format and deno read their own config files.
+      nixfmt 1.4.0 has `--indent=INT` and implements the accepted RFC 166
+      style, which is now the nixpkgs standard. Deliberately kept out of the
+      indentation work because nixfmt's output differs from alejandra's, so
+      the next save of every `.nix` file would produce a large unrelated
+      diff, and `AGENTS.md` mandates alejandra. Do it as its own change:
+      switch `vim.languages.nix.format.type`, update the `AGENTS.md` and
+      `README.md` convention, and reformat the tree in one commit.
 
 ## Waiting on upstream
 
+- [ ] Remove the `indentRepair` block in `modules/programs/nvf/indent.nix` once
+      `neovim/neovim` issue 25526 is fixed. An autocommand that deletes itself
+      mid-dispatch truncates the chain it was dispatched from, and because
+      filetype detection dispatches `FileType` nested inside `BufReadPost`,
+      lz.n's `once = true` lazy-loading handlers starve everything registered
+      after them for the filetypes they trigger on (lua and markdown here) —
+      both vim-sleuth's initial run and nvf's treesitter `indentexpr`. lz.n
+      already carries its own workaround for the same issue. Verify removal the
+      way the block was verified: open a lua and a markdown file as a
+      command-line argument and confirm the settings match opening the same file
+      with `:edit`.
 - [ ] Remove the `agents-md-context` session-start hook once Claude Code
       natively supports BOTH conventions it bridges: reading a project-root
       `AGENTS.md` (upstream feature request: anthropics/claude-code#6235) AND

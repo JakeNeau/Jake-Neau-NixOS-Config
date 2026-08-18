@@ -156,7 +156,10 @@ declaration, the rest are hand-written aspects.
 - `libreoffice/` — office suite.
 - `librewolf/` — privacy-hardened Firefox fork with separate work, strict,
   compatibility, and development profiles. See [LibreWolf](librewolf.md).
-- `nvf/` — declarative Neovim, the same editor on every host.
+- `nvf/` — declarative Neovim, the same editor on every host. `indent.nix` holds
+  every tab and space setting. See [Neovim indentation
+  settings](neovim-indentation.md) and [Neovim
+  indentation](../explanation/neovim-indentation.md).
 - `onedrive/`: macOS OneDrive app installed through a Homebrew cask.
 - `openpencil/` — local open-source UI design editor plus its headless CLI and
   MCP servers. Every host receives it through `globalPrograms`.

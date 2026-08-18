@@ -118,18 +118,16 @@
         # ----------------
         # Global Options
         # ----------------
+        # Tab and space settings live in indent.nix, never here.
         options = {
-          autoindent = true; # Automatically indent on a newline
           autoread = true; # Reload buffers when the underlying file changes on disk
           cmdheight = 1; # The height of the command pane in lines
           cursorlineopt = "both"; # The way to highlight the line the cursor is on
           foldlevel = 99; # stops auto folding when opening document
           mouse = "nvi"; # Supported modes for mouse control
-          shiftwidth = 0; # Number of spaces to use for autoindent, 0 means use tabstop vaule
           signcolumn = "yes"; # Show the sign column (what is sign column)
           splitbelow = true; # On true new splits open below instead of above
           splitright = true; # New splits will open to the right
-          tabstop = 2; # The number of spaces a tab counts for
           termguicolors = true; # On true use 256 colors for terminal
           tm = 500; # The time in ms that Neovim will wait for the next key in chord
           updatetime = 25; # The number of ms until the cursor hold event is triggered
@@ -418,7 +416,11 @@
 
           java.enable = true;
 
-          json.enable = true;
+          json = {
+            enable = true;
+            # prettier over jsonfmt, which discovers no project config at all.
+            format.type = ["prettier"];
+          };
 
           lua = {
             enable = true;
@@ -439,7 +441,9 @@
           python = {
             enable = true;
             lsp.servers = ["pyright"];
-            format.type = ["black"];
+            # ruff over black: black hard-codes 4 spaces with no option to
+            # follow a project's declared width. Output stays black-compatible.
+            format.type = ["ruff"];
           };
 
           rust = {
