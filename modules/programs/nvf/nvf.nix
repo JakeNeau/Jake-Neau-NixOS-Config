@@ -201,11 +201,6 @@
           enable = true; # Enable lazy loading for plugins to load in only when needed
           enableLznAutoRequire = true; # Builtin plugins need this, only turn off for debug
           plugins = {
-            # nvf names this spec differently from its package; remove after nvf aligns them.
-            lazydev.load = ''
-              vim.cmd.packadd("lazydev.nvim")
-            '';
-
             codecompanion-nvim = lib.mkIf piAi {
               keys = [
                 {
