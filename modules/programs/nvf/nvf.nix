@@ -371,6 +371,63 @@
                 }
               ];
             };
+
+            # VSCode-style side-by-side diff viewer (:CodeDiff). In-diff keys
+            # ([c/]c hunks, [f/]f files, t layout, q close) are its defaults.
+            # Launchers replace gitsigns' plain vimdiff: file-scoped under
+            # <leader>gd, project-scoped under <leader>gD.
+            "codediff.nvim" = {
+              package = pkgs.vimPlugins.codediff-nvim;
+              setupModule = "codediff";
+              setupOpts = {};
+              cmd = ["CodeDiff"];
+              keys = [
+                {
+                  key = "<leader>gdd";
+                  mode = "n";
+                  action = "<cmd>CodeDiff file HEAD<cr>";
+                  desc = "Diff file vs HEAD";
+                }
+                {
+                  key = "<leader>gdh";
+                  mode = "n";
+                  action = "<cmd>CodeDiff history %<cr>";
+                  desc = "File history";
+                }
+                {
+                  # ":" keeps the visual range, which codediff turns into
+                  # line-range history (git log -L) for the selection.
+                  key = "<leader>gdh";
+                  mode = "x";
+                  action = ":CodeDiff history<cr>";
+                  desc = "History of selected lines";
+                }
+                {
+                  key = "<leader>gDd";
+                  mode = "n";
+                  action = "<cmd>CodeDiff<cr>";
+                  desc = "Diff project vs HEAD";
+                }
+                {
+                  key = "<leader>gDs";
+                  mode = "n";
+                  action = "<cmd>CodeDiff --staged<cr>";
+                  desc = "Diff staged";
+                }
+                {
+                  key = "<leader>gDh";
+                  mode = "n";
+                  action = "<cmd>CodeDiff history<cr>";
+                  desc = "Project history";
+                }
+                {
+                  key = "<leader>gDm";
+                  mode = "n";
+                  action = "<cmd>CodeDiff main...<cr>";
+                  desc = "Diff vs merge-base with main";
+                }
+              ];
+            };
           };
         };
 
@@ -644,8 +701,10 @@
             previewHunk = "<leader>gp";
             blameLine = "<leader>gl";
             toggleBlame = "<leader>gt";
-            diffThis = "<leader>gd";
-            diffProject = "<leader>gD";
+            # codediff owns diffing (<leader>gd/<leader>gD prefixes); null
+            # stops nvf re-binding these to its <leader>hd/<leader>hD defaults.
+            diffThis = null;
+            diffProject = null;
             toggleDeleted = "<leader>gT";
           };
         };
@@ -754,6 +813,8 @@
               ++ [
                 (lib.generators.mkLuaInline ''{ "<leader>f", group = "Find" }'')
                 (lib.generators.mkLuaInline ''{ "<leader>g", group = "Git" }'')
+                (lib.generators.mkLuaInline ''{ "<leader>gd", group = "Diff (file)" }'')
+                (lib.generators.mkLuaInline ''{ "<leader>gD", group = "Diff (project)" }'')
                 (lib.generators.mkLuaInline ''{ "<leader>j", group = "Jujutsu" }'')
               ];
           };
