@@ -482,6 +482,8 @@
 
           go.enable = true;
 
+          helm.enable = true;
+
           html.enable = true;
 
           java.enable = true;
