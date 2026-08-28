@@ -395,6 +395,18 @@
                   desc = "File history";
                 }
                 {
+                  key = "<leader>gdb";
+                  mode = "n";
+                  lua = true;
+                  action = ''
+                    function()
+                      local base = codediff_branch_base()
+                      if base then vim.cmd("CodeDiff file " .. base .. "...") end
+                    end
+                  '';
+                  desc = "Diff file vs branch base";
+                }
+                {
                   # ":" keeps the visual range, which codediff turns into
                   # line-range history (git log -L) for the selection.
                   key = "<leader>gdh";
@@ -421,10 +433,16 @@
                   desc = "Project history";
                 }
                 {
-                  key = "<leader>gDm";
+                  key = "<leader>gDb";
                   mode = "n";
-                  action = "<cmd>CodeDiff main...<cr>";
-                  desc = "Diff vs merge-base with main";
+                  lua = true;
+                  action = ''
+                    function()
+                      local base = codediff_branch_base()
+                      if base then vim.cmd("CodeDiff " .. base .. "...") end
+                    end
+                  '';
+                  desc = "Diff branch (vs branch base)";
                 }
               ];
             };
@@ -1274,6 +1292,25 @@
               if vim.fn.isdirectory(dir) == 1 then vim.b[ev.buf].osc7_dir = dir end
             end,
           })
+        '';
+
+        # Branch base for the codediff "diff branch" keys: the trunk the remote
+        # points origin/HEAD at, falling back to a local main/master. Runs in
+        # Neovim's cwd, matching how codediff itself resolves the working repo.
+        luaConfigRC.codediffBranchBase = ''
+          function codediff_branch_base()
+            local ref = vim.fn.systemlist("git symbolic-ref -q --short refs/remotes/origin/HEAD")[1]
+            if vim.v.shell_error == 0 and ref and ref ~= "" then
+              return ref
+            end
+            for _, branch in ipairs({ "main", "master" }) do
+              vim.fn.systemlist("git rev-parse -q --verify " .. branch)
+              if vim.v.shell_error == 0 then
+                return branch
+              end
+            end
+            vim.notify("no branch base found (origin/HEAD, main, master)", vim.log.levels.WARN)
+          end
         '';
 
         # autoread only permits a reload; something still has to poll the disk
