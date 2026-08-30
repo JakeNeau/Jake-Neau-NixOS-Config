@@ -48,25 +48,21 @@
     # ----
     # Boot
     # ----
+    boot.loader.timeout = 10;
     boot.loader.grub = {
       # Bound /boot/kernels so the 511M partition never fills; older
       # generations stay in the store but drop out of the GRUB menu.
       configurationLimit = 15;
       extraEntries = ''
-        menuentry "Windows 11 (Skill Issue)" {
+        menuentry "Windows 11 (Skill Issue)" --class windows {
           search --fs-uuid --no-floppy --set=root 4443-0F45
           chainloader (''${root})/EFI/Microsoft/Boot/bootmgfw.efi
         }
-        menuentry "UEFI Firmware Settings" {
+        menuentry "UEFI Firmware Settings" --class efi {
           fwsetup
         }
       '';
-      extraConfig = ''
-        GRUB_TIMEOUT=10
-      '';
     };
-
-    boot.kernelParams = ["video=5120x1440"];
 
     # Redwood's firmware supports S3, while s2idle wedges the AMD resume path.
     systemd.sleep.settings.Sleep = {

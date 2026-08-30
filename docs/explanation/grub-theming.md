@@ -5,16 +5,22 @@ The Linux desktop role imports the `grub` program aspect from
 Vinceliuice's Tela theme on both NixOS hosts. Darwin hosts do not import the
 aspect.
 
-## Per-host output mode
+## Firmware-safe output mode
 
-Each host declares `hostConstants.displayResolution.horizontal` and
-`hostConstants.displayResolution.vertical`. The GRUB aspect converts these
-pixel counts into the theme module's `WIDTHxHEIGHT` custom resolution. The
-upstream module sets the same mode for EFI and BIOS, with `auto` as a fallback.
+GRUB uses the firmware's Graphics Output Protocol mode list. That list can omit
+the native desktop resolution. Requesting an omitted mode makes GRUB probe the
+mode and fall back, which can retrain the display and produce visible flicker.
 
-A display resolution describes the primary display. It does not model a
-machine's complete monitor inventory. Features that need every monitor should
-use a separate structured fact.
+The GRUB aspect therefore lets the firmware select the EFI mode with `auto`.
+The Tela theme uses its 1080p assets and scales within the selected mode. The
+host's `hostConstants.displayResolution` remains a desktop fact and does not
+control the bootloader.
+
+## Custom-entry icons
+
+GRUB resolves a menu icon from each entry's `--class` value. A custom entry must
+name a class that has a corresponding PNG in the Tela theme. Redwood uses the
+`windows` class for Windows and the `efi` class for firmware settings.
 
 ## Theme ownership
 

@@ -4,9 +4,7 @@
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  flake.modules.nixos.grub = {config, ...}: let
-    resolution = config.hostConstants.displayResolution;
-  in {
+  flake.modules.nixos.grub = {lib, ...}: {
     imports = [inputs.grub2-themes.nixosModules.default];
 
     boot.loader = {
@@ -15,13 +13,14 @@
         enable = true;
         device = "nodev";
         efiSupport = true;
+        gfxmodeEfi = lib.mkForce "auto";
       };
       grub2-theme = {
         enable = true;
         theme = "tela";
         icon = "color";
         footer = true;
-        customResolution = "${toString resolution.horizontal}x${toString resolution.vertical}";
+        screen = "1080p";
       };
     };
 
