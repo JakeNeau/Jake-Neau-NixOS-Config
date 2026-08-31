@@ -156,6 +156,7 @@ declaration, the rest are hand-written aspects.
 - `libreoffice/` — office suite.
 - `librewolf/` — privacy-hardened Firefox fork with separate work, strict,
   compatibility, and development profiles. See [LibreWolf](librewolf.md).
+- `nautilus/`: graphical file manager installed for Redwood users.
 - `nvf/` — declarative Neovim, the same editor on every host. `indent.nix` holds
   every tab and space setting. See [Neovim indentation
   settings](neovim-indentation.md) and [Neovim

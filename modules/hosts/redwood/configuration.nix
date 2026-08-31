@@ -5,7 +5,7 @@
     class = "nixos";
     system = "x86_64-linux";
     users = ["jakeneau"];
-    globalPrograms = ["ghostty" "yazi" "fastfetch" "gh" "openpencil"];
+    globalPrograms = ["ghostty" "yazi" "fastfetch" "gh" "nautilus" "openpencil"];
     baselines = ["role-desktop" "niri-desktop" "redwood-monitor-power" "stylix"];
   };
 
