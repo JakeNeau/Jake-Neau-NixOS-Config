@@ -15,7 +15,7 @@
     lib.mkMerge [
       (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
         home.packages = with pkgs; [
-          libreoffice-qt-fresh
+          libreoffice-qt-stable
           hunspell # Spell-check engine for LibreOffice
           hunspellDicts.en_US # US English dictionary
         ];
