@@ -629,6 +629,9 @@
           context = {
             enable = true;
             setupOpts.max_lines = 4;
+            # Render in every window, not just the focused one, so both
+            # sides of a diff show the header and stay row-aligned
+            setupOpts.multiwindow = true;
           };
 
           textobjects = {
