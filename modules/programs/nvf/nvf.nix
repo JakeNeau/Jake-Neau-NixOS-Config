@@ -1280,6 +1280,23 @@
             action = ''function() Snacks.picker.git_stash() end'';
             desc = "Git stash";
           }
+
+          # First/last hunk, completing gitsigns' ]c/[c; here because nvf's
+          # gitsigns mappings options have no first/last variant.
+          {
+            key = "[C";
+            mode = ["n"];
+            lua = true;
+            action = ''function() require("gitsigns").nav_hunk("first") end'';
+            desc = "First git hunk";
+          }
+          {
+            key = "]C";
+            mode = ["n"];
+            lua = true;
+            action = ''function() require("gitsigns").nav_hunk("last") end'';
+            desc = "Last git hunk";
+          }
         ];
 
         # Track each terminal's live cwd from the OSC 7 sequence the shell emits
