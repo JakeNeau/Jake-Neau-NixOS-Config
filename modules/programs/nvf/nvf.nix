@@ -277,15 +277,47 @@
                   desc = "Select Claude model";
                 }
                 {
+                  # Same snapshot detour as <leader>as, for the whole buffer.
                   key = "<leader>ab";
                   mode = "n";
-                  action = "<cmd>ClaudeCodeAdd %<cr>";
+                  lua = true;
+                  action = ''
+                    function()
+                      if not vim.api.nvim_buf_get_name(0):match("^codediff://") then
+                        vim.cmd("ClaudeCodeAdd %")
+                        return
+                      end
+                      local path = claudecode_codediff_snapshot()
+                      if path then
+                        require("claudecode").send_at_mention(path, nil, nil, "ClaudeCodeAdd")
+                      end
+                    end
+                  '';
                   desc = "Add current buffer";
                 }
                 {
+                  # A codediff:// revision buffer exists nowhere on disk, so
+                  # ClaudeCodeSend's @-mention would fail; mention a snapshot
+                  # of it instead (see claudecode_codediff_snapshot).
                   key = "<leader>as";
                   mode = "v";
-                  action = "<cmd>ClaudeCodeSend<cr>";
+                  lua = true;
+                  action = ''
+                    function()
+                      if not vim.api.nvim_buf_get_name(0):match("^codediff://") then
+                        vim.cmd("ClaudeCodeSend")
+                        return
+                      end
+                      local path, header = claudecode_codediff_snapshot()
+                      if not path then return end
+                      local s = vim.fn.line("v") + header
+                      local e = vim.fn.line(".") + header
+                      if s > e then s, e = e, s end
+                      -- send_at_mention takes 0-indexed lines
+                      require("claudecode").send_at_mention(path, s - 1, e - 1, "ClaudeCodeSend")
+                      vim.api.nvim_feedkeys("\27", "n", false)
+                    end
+                  '';
                   desc = "Send to Claude";
                 }
                 {
@@ -1332,6 +1364,39 @@
               end
             end
             vim.notify("no branch base found (origin/HEAD, main, master)", vim.log.levels.WARN)
+          end
+        '';
+
+        # claudecode @-mentions are paths the Claude CLI reads from disk, so a
+        # codediff:// revision buffer (history diff, or the base side of any
+        # diff) has nothing to mention. Snapshot such a buffer to a read-only
+        # session-temp file — labeled historical by a header comment and by its
+        # directory name — for the <leader>as/<leader>ab overrides to mention
+        # instead. Returns the path and the header line count, or nil if the
+        # buffer name does not parse.
+        luaConfigRC.claudecodeCodediffSnapshot = ''
+          function claudecode_codediff_snapshot()
+            local bufname = vim.api.nvim_buf_get_name(0)
+            local _, commit, filepath = require("codediff.core.virtual_file").parse_url(bufname)
+            if not commit then
+              vim.notify("cannot parse codediff buffer: " .. bufname, vim.log.levels.ERROR)
+              return nil
+            end
+            local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+            local header = 0
+            if vim.bo.commentstring ~= "" then
+              local note = ("read-only git-history snapshot of %s at revision %s; do not edit"):format(filepath, commit)
+              table.insert(lines, 1, vim.bo.commentstring:format(note))
+              header = 1
+            end
+            local dir = vim.fn.tempname() .. "/read-only-git-history"
+            vim.fn.mkdir(dir, "p")
+            local rev = commit:gsub("%W", ""):sub(1, 8)
+            local name = vim.fn.fnamemodify(filepath, ":t"):gsub("^[^.]*", "%0@" .. rev, 1)
+            local path = dir .. "/" .. name
+            vim.fn.writefile(lines, path)
+            vim.fn.setfperm(path, "r--r--r--")
+            return path, header
           end
         '';
 
