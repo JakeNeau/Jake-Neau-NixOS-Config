@@ -16,6 +16,17 @@ The Tela theme uses its 1080p assets and scales within the selected mode. The
 host's `hostConstants.displayResolution` remains a desktop fact and does not
 control the bootloader.
 
+## Kernel handoff
+
+The AMD graphics aspect loads `amdgpu` in the initial ramdisk. Without early
+kernel modesetting, the initial ramdisk uses `simpledrm`. Stage 2 then replaces
+that framebuffer with `amdgpu`, which causes another visible mode transition
+long after GRUB exits.
+
+Early loading moves that transition to the start of the initial ramdisk and
+keeps the AMD framebuffer through the rest of boot. A transition can remain
+when the firmware mode differs from the display's native mode.
+
 ## Custom-entry icons
 
 GRUB resolves a menu icon from each entry's `--class` value. A custom entry must
