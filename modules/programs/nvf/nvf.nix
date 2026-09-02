@@ -86,32 +86,32 @@
         # ----------------
         # Colorscheme
         # ----------------
-        # On NixOS, stylix themes nvf automatically (gruvbox-material-dark-hard).
+        # On NixOS, stylix themes nvf automatically (everforest-dark-hard).
         # The macs have no stylix, so without a colorscheme treesitter has no
         # palette behind it and code looks washed out. Enable the same scheme
         # as a self-contained base16 theme — but only on Darwin, so it never
         # overrides stylix on NixOS. Palette copied verbatim from
-        # ${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-hard.yaml.
+        # ${pkgs.base16-schemes}/share/themes/everforest-dark-hard.yaml.
         theme = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
           enable = true;
           name = "base16";
           base16-colors = {
-            base00 = "#202020";
-            base01 = "#2a2827";
-            base02 = "#504945";
-            base03 = "#5a524c";
-            base04 = "#bdae93";
-            base05 = "#ddc7a1";
-            base06 = "#ebdbb2";
-            base07 = "#fbf1c7";
-            base08 = "#ea6962";
-            base09 = "#e78a4e";
-            base0A = "#d8a657";
-            base0B = "#a9b665";
-            base0C = "#89b482";
-            base0D = "#7daea3";
-            base0E = "#d3869b";
-            base0F = "#bd6f3e";
+            base00 = "#272e33";
+            base01 = "#2e383c";
+            base02 = "#414b50";
+            base03 = "#859289";
+            base04 = "#9da9a0";
+            base05 = "#d3c6aa";
+            base06 = "#edeada";
+            base07 = "#fffbef";
+            base08 = "#e67e80";
+            base09 = "#e69875";
+            base0A = "#dbbc7f";
+            base0B = "#a7c080";
+            base0C = "#83c092";
+            base0D = "#7fbbb3";
+            base0E = "#d699b6";
+            base0F = "#9da9a0";
           };
         };
 

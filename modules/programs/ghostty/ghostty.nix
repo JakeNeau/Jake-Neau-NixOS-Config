@@ -24,6 +24,10 @@
         package = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin null;
         enableFishIntegration = true;
         settings = {
+          # macOS only: stylix themes ghostty on Linux; the macs have no
+          # stylix, so use ghostty's bundled theme matching the stylix scheme
+          # (same accents as everforest-dark-hard.yaml).
+          theme = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin "Everforest Dark Hard";
           background-opacity = 0.9;
           font-feature = ["liga" "calt" "dlig"];
           # Send Option as Alt so Neovim's <A-…> maps fire; the cost is losing
