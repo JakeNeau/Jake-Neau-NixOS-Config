@@ -370,6 +370,12 @@
 
 ## Waiting on upstream
 
+- [ ] Remove Redwood's `monitorPower.reprobeConnectors = ["DP-1"]`
+      workaround once Niri reliably restores a physically power-cycled display.
+      Track niri issue #2265 and its related output-reconnect reports. Before
+      removing the workaround, power off the Odyssey with its physical button,
+      leave it disconnected for at least 30 minutes, power it on, and confirm
+      Niri reconnects `DP-1` without a TTY switch or reboot.
 - [ ] Remove `beekeeper-studio-6.0.5` from
       `nixpkgs.config.permittedInsecurePackages` in
       `modules/nix/tools/home-manager/common-nixpkgs.nix` once nixpkgs packages

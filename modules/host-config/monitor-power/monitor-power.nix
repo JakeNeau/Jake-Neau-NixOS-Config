@@ -36,20 +36,54 @@
     ...
   }: let
     cfg = config.monitorPower;
+    reprobeCommands =
+      lib.concatMapStringsSep "\n" (connector: ''
+        for statusFile in /sys/class/drm/card*-${connector}/status; do
+          [[ -e "$statusFile" ]] || continue
+          if [[ "$(< "$statusFile")" == disconnected ]]; then
+            printf 'detect\n' > "$statusFile"
+          fi
+        done
+      '')
+      cfg.reprobeConnectors;
     sleepTargets = [
       "suspend.target"
       "hibernate.target"
       "suspend-then-hibernate.target"
     ];
   in {
-    options.monitorPower.resumeUsers = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [];
-      description = "Users whose monitor-power resume service starts after system sleep.";
+    options.monitorPower = {
+      reprobeConnectors = lib.mkOption {
+        type = lib.types.listOf (lib.types.strMatching "[A-Za-z0-9-]+");
+        default = [];
+        description = "DRM connectors to force-reprobe while disconnected.";
+      };
+      resumeUsers = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        description = "Users whose monitor-power resume service starts after system sleep.";
+      };
     };
 
     config = lib.mkMerge [
       {hardware.i2c.enable = true;}
+      (lib.mkIf (cfg.reprobeConnectors != []) {
+        systemd.services.monitor-power-reprobe = {
+          description = "Reprobe disconnected DRM monitor connectors";
+          wantedBy = ["multi-user.target"];
+          path = [pkgs.coreutils];
+          serviceConfig = {
+            Restart = "on-failure";
+            RestartSec = 5;
+          };
+          script = ''
+            while true; do
+              ${reprobeCommands}
+              sleep 5
+            done
+          '';
+        };
+      })
       (lib.mkIf (cfg.resumeUsers != []) {
         systemd.services.monitor-power-resume-users = {
           description = "Restore user monitors after system sleep";

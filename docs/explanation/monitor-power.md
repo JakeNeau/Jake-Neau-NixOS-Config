@@ -65,6 +65,13 @@ Network access and the monitor's remote-control setting must be available at
 those points. Backend failures produce a warning but do not block the system
 transition.
 
+The Odyssey can miss its DisplayPort reconnect event after someone uses its
+physical power button. Niri then records the `DP-1` disconnection but receives
+no event when the monitor returns. Redwood force-reprobes that connector every
+five seconds while DRM reports it disconnected. A successful probe updates the
+DRM state and emits the event that lets Niri restore the output. Switching to
+another TTY and back also forces Niri to recheck the connector.
+
 On Redwood, `Mod+Semicolon` signals swayidle to enter its idle state. Swayidle
 runs `monitor-power off`, then runs `monitor-power on` after the next mouse or
 keyboard input. A short delay prevents the shortcut's key release from

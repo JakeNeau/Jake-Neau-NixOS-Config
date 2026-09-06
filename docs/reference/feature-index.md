@@ -53,8 +53,9 @@ Machine-level config: what needs root, shared by all users.
 - `key-repeat/` — key-repeat timing declared once, shared across
   platforms.
 - `monitor-power/` — coordinates Niri DPMS with pluggable firmware backends.
-  It controls monitors through DDC/CI by default. It also provides the generic
-  Samsung Tizen factory that Redwood configures. See [monitor power
+  It controls monitors through DDC/CI by default. It can force-reprobe DRM
+  connectors that miss hotplug events. It also provides the generic Samsung
+  Tizen factory that Redwood configures. See [monitor power
   control](../explanation/monitor-power.md).
 - `network/` — hostname wiring from `hostConstants.hostName` on both
   platforms.

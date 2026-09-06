@@ -64,7 +64,10 @@
       MemorySleepMode = "deep";
       SuspendState = "mem";
     };
-    monitorPower.resumeUsers = ["jakeneau"];
+    monitorPower = {
+      reprobeConnectors = ["DP-1"];
+      resumeUsers = ["jakeneau"];
+    };
 
     boot.kernelPatches = [
       {
