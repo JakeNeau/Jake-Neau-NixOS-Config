@@ -30,8 +30,7 @@ when the firmware mode differs from the display's native mode.
 ## Custom-entry icons
 
 GRUB resolves a menu icon from each entry's `--class` value. A custom entry must
-name a class that has a corresponding PNG in the Tela theme. Redwood uses the
-`windows` class for Windows and the `efi` class for firmware settings.
+name a class that has a corresponding PNG in the Tela theme. Redwood uses the `efi` class for firmware settings.
 
 ## Theme ownership
 

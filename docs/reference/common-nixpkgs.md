@@ -1,32 +1,32 @@
 # The common nixpkgs module
 
-`flake.modules.homeManager.common-nixpkgs`
-(`modules/nix/tools/home-manager/common-nixpkgs.nix`): the shared nixpkgs
-policy imported into every stamped home (see [generated host
-artifacts](generated-host-artifacts.md)). Each standalone home evaluates
-its own nixpkgs, so this policy must arrive explicitly; why homes are
-standalone at all: [the standalone home
+`flake.modules.homeManager.common-nixpkgs` is the shared nixpkgs policy for
+every stamped home. Its source is
+`modules/nix/tools/home-manager/common-nixpkgs.nix`. See [generated host
+artifacts](generated-host-artifacts.md).
+
+Each standalone home evaluates its own nixpkgs. This policy must therefore
+arrive explicitly. See [the standalone home
 model](../explanation/standalone-homes.md).
 
 ## What it sets
 
-- `nixpkgs.config = { allowUnfree = true; }` — the shared unfree
-  permission.
-- `nixpkgs.overlays = [ inputs.nur.overlays.default ]` — the NUR overlay,
-  needed by homes (firefox-family addons come from
-  `pkgs.nur.repos.rycee`). The nix-minecraft overlay is not included: no
-  home consumes it, so it stays at the system layer.
-- No `permittedInsecurePackages` pins: the only live pin
-  (bitwarden-desktop's electron) is system-installed.
-- `programs.home-manager.enable = true` — every home ships the
-  `home-manager` CLI, which `hr` and self-managed switching need.
+- `nixpkgs.config.allowUnfree = true` grants the shared unfree permission.
+- `nixpkgs.config.permittedInsecurePackages` permits
+  `beekeeper-studio-6.0.5`. That release bundles EOL Electron 39.8.1. Remove
+  the exception after nixpkgs updates Beekeeper Studio.
+- `nixpkgs.overlays = [ inputs.nur.overlays.default ]` adds the NUR overlay.
+  Homes need NUR for packages such as `pkgs.nur.repos.rycee` Firefox addons.
+  The system layer retains the nix-minecraft overlay because no home uses it.
+- `programs.home-manager.enable = true` adds the `home-manager` CLI to every
+  home. Users need this CLI to run `hr` or switch their homes directly.
 
 ## Priority markers
 
-`nixpkgs.config` carries an explicit `lib.mkOverride 100` marker. 100 is
-plain priority — the marker changes nothing about merging; it makes the
-boundary priority wrapper leave the attrset whole instead of recursing
-into it, because the option's opaque type never discharges markers
-stamped inside its value. `nixpkgs.overlays` needs no marker: the wrapper
-exempts lists. Rationale:
-[the framework's why](../explanation/declaration-framework.md).
+`nixpkgs.config` carries an explicit `lib.mkOverride 100` marker. Priority 100
+is the plain priority, so the marker does not change merging. The marker stops
+the boundary priority wrapper from recursing into the attrset. The opaque
+option type cannot discharge markers stamped inside its value.
+
+`nixpkgs.overlays` needs no marker because the wrapper exempts lists. See [the
+framework rationale](../explanation/declaration-framework.md).

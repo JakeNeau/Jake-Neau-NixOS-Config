@@ -370,6 +370,12 @@
 
 ## Waiting on upstream
 
+- [ ] Remove `beekeeper-studio-6.0.5` from
+      `nixpkgs.config.permittedInsecurePackages` in
+      `modules/nix/tools/home-manager/common-nixpkgs.nix` once nixpkgs packages
+      Beekeeper Studio with a supported Electron release. Version 6.0.5 bundles
+      EOL Electron 39.8.1. Verify every Home Manager output after removing the
+      exception.
 - [ ] Remove the `indentRepair` block in `modules/programs/nvf/indent.nix` once
       `neovim/neovim` issue 25526 is fixed. An autocommand that deletes itself
       mid-dispatch truncates the chain it was dispatched from, and because
