@@ -227,7 +227,16 @@
             "claudecode.nvim" = lib.mkIf claudeAi {
               package = pkgs.vimPlugins.claudecode-nvim;
               setupModule = "claudecode";
-              setupOpts = {};
+              # Bottom split instead of the default right sidebar: a side
+              # split competes for columns with codediff's side-by-side view
+              # (whose single-pane layout sizes itself from the full screen
+              # width, squeezing any other vertical split). snacks_win_opts
+              # deep-merges over the provider's win config; 0 = full width.
+              setupOpts.terminal.snacks_win_opts = {
+                position = "bottom";
+                height = 0.3;
+                width = 0;
+              };
               cmd = [
                 "ClaudeCode"
                 "ClaudeCodeFocus"
@@ -879,6 +888,7 @@
                 (lib.generators.mkLuaInline ''{ "<leader>gd", group = "Diff (file)" }'')
                 (lib.generators.mkLuaInline ''{ "<leader>gD", group = "Diff (project)" }'')
                 (lib.generators.mkLuaInline ''{ "<leader>j", group = "Jujutsu" }'')
+                (lib.generators.mkLuaInline ''{ "<leader>t", group = "Terminal" }'')
               ];
           };
         };
@@ -1080,6 +1090,17 @@
               end
             '';
             desc = "Set the base dir to here (oil / terminal / file), any mode";
+          }
+          {
+            # Pop-up terminal: Snacks.terminal() toggles one persistent
+            # shell in a bottom split (30% height, like the AI bar); hiding
+            # keeps it running. Unlike <A-t> (terminal in the current
+            # window), this one pops in and out.
+            key = "<leader>tt";
+            mode = "n";
+            lua = true;
+            action = ''function() Snacks.terminal() end'';
+            desc = "Toggle terminal (bottom)";
           }
           # Cycle buffers (shadows the default screen-top/bottom motions).
           {
