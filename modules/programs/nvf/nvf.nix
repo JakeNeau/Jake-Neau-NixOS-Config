@@ -646,6 +646,14 @@
 
           # Function signature help popup
           nvim-docs-view.enable = true;
+
+          # Jumping into std source starts a second rust-analyzer rooted in the
+          # stdlib workspace, whose nightly-only manifest breaks the
+          # `cargo metadata` root lookup. Naming the sysroot source lets the
+          # library check reuse the project client instead.
+          servers."rust-analyzer" = lib.mkIf config.programs.nvf.settings.vim.languages.rust.enable {
+            settings."rust-analyzer".cargo.sysrootSrc = "${pkgs.rustPlatform.rustLibSrc}";
+          };
         };
 
         # ------------
