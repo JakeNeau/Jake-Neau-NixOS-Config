@@ -56,6 +56,7 @@ in {
   };
 
   flake.modules.homeManager.stylix = {
+    config,
     lib,
     pkgs,
     ...
@@ -66,6 +67,8 @@ in {
       {
         targets = {
           hyprland.enable = false;
+          # Replaced by the hand-wired nvf theming below.
+          nvf.enable = false;
           librewolf.profileNames = [
             "work"
             "strict"
@@ -75,5 +78,37 @@ in {
       }
     ];
     home.pointerCursor.enable = true;
+
+    # Stylix's nvf target still sets vim.statusline.lualine.theme, which nvf
+    # renamed (warning on every eval). Same theming, new option name. Drop
+    # this and re-enable the target once stylix PR #2497 lands.
+    programs.nvf.settings.vim = {
+      theme = {
+        enable = true;
+        name = "base16";
+        base16-colors = {
+          inherit
+            (config.lib.stylix.colors.withHashtag)
+            base00
+            base01
+            base02
+            base03
+            base04
+            base05
+            base06
+            base07
+            base08
+            base09
+            base0A
+            base0B
+            base0C
+            base0D
+            base0E
+            base0F
+            ;
+        };
+      };
+      statusline.lualine.setupOpts.options.theme = "base16";
+    };
   };
 }

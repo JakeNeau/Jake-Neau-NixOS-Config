@@ -370,6 +370,10 @@
 
 ## Waiting on upstream
 
+- [ ] When stylix PR #2497 lands, re-enable `stylix.targets.nvf` and remove
+      the hand-wired nvf theming in `modules/nix/tools/stylix/stylix.nix`.
+      That block works around stylix setting the renamed
+      `vim.statusline.lualine.theme` option, which warned on every eval.
 - [ ] Remove Redwood's `monitorPower.reprobeConnectors = ["DP-1"]`
       workaround once Niri reliably restores a physically power-cycled display.
       Track niri issue #2265 and its related output-reconnect reports. Before
