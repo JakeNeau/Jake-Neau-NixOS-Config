@@ -79,7 +79,8 @@ quirks aspect.
 
 - `aspen/` — Jake's personal MacBook (darwin).
 - `cedar/` — the macOS work laptop (darwin).
-- `redwood/` — the NixOS desktop, its generated hardware config,
+- `redwood/`: the NixOS desktop, its generated hardware config,
+  [Secure Boot procedure](../how-to/enable-secure-boot.md),
   [deep-only S3 suspend policy](../explanation/redwood-suspend.md), Minecraft
   server definitions, and Samsung Odyssey monitor power backend.
 - `spruce/` — the NixOS laptop (placeholder hardware config until the
@@ -99,6 +100,8 @@ Flake-level machinery and third-party tool wiring.
   - `home-manager/` — the home-manager flake input and
     `flake.homeConfigurations` option, plus the
     [common nixpkgs module](common-nixpkgs.md).
+  - `lanzaboote/`: Redwood's signed systemd-boot integration for UEFI Secure
+    Boot. See [Enable Secure Boot on Redwood](../how-to/enable-secure-boot.md).
   - `mac-app-util/` — real trampoline apps so LaunchServices sees
     Nix-installed macOS apps.
   - `nix-darwin/` — the nix-darwin input: declarative macOS system config.
@@ -141,7 +144,7 @@ declaration, the rest are hand-written aspects.
 - `gh/`: cross-platform GitHub CLI through Home Manager.
 - `ghostty/` — GPU-accelerated terminal; Linux home install, macOS cask
   with home-manager config.
-- `grub/` — UEFI bootloader and Tela theme for NixOS desktops, using the
+- `grub/`: Spruce's UEFI bootloader and Tela theme, using the
   firmware-selected graphics mode. See [GRUB theming](../explanation/grub-theming.md).
 - `git/` — git identity at both the per-user and system level. The home-manager
   half also allowlists this repo's paths in `safe.directory`, scopes

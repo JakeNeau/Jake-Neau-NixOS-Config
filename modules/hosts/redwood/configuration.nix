@@ -30,6 +30,7 @@
     imports =
       (with inputs.self.modules.nixos; [
         role-desktop
+        lanzaboote
         nix-minecraft
       ])
       ++ [inputs.self.modules.generic.numtide-cache];
@@ -49,15 +50,8 @@
     # Boot
     # ----
     boot.loader.timeout = 10;
-    boot.loader.grub = {
-      # The relocated 5 GiB EFI partition has room for 15 boot generations.
-      configurationLimit = 15;
-      extraEntries = ''
-        menuentry "UEFI Firmware Settings" --class efi {
-          fwsetup
-        }
-      '';
-    };
+    # The relocated 5 GiB EFI partition has room for 15 boot generations.
+    boot.lanzaboote.configurationLimit = 15;
 
     # Redwood's firmware supports S3, while s2idle wedges the AMD resume path.
     systemd.sleep.settings.Sleep = {
