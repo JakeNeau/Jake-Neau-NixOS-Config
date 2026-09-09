@@ -1440,6 +1440,52 @@
             end,
           })
         '';
+
+        # The built-in tabline unconditionally collapses every directory in a
+        # tab label to its first character (shorten_dir in draw_tabline), even
+        # with plenty of room. Show full paths instead, and only when the line
+        # overflows, shorten the widest label one directory at a time.
+        luaConfigRC.fullPathTabline = ''
+          function full_path_tabline()
+            local tabs = vim.api.nvim_list_tabpages()
+            local labels = {}
+            for i, tab in ipairs(tabs) do
+              local buf = vim.api.nvim_win_get_buf(vim.api.nvim_tabpage_get_win(tab))
+              local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":~:.")
+              if name == "" then name = "[No Name]" end
+              if vim.bo[buf].modified then name = name .. " +" end
+              labels[i] = name
+            end
+            local function overflow()
+              local width = 0
+              for _, label in ipairs(labels) do width = width + vim.fn.strwidth(label) + 2 end
+              return width > vim.o.columns
+            end
+            while overflow() do
+              local widest, shortened
+              for i, label in ipairs(labels) do
+                -- Collapse the leftmost still-long directory, pathshorten-style
+                -- (a leading dot survives: .config -> .c). The kept character
+                -- must not itself be a dot, so .c/ and ../ stay as they are.
+                local short = label:gsub("(%.?[^/.])[^/]+/", "%1/", 1)
+                if short ~= label and (not widest or vim.fn.strwidth(label) > vim.fn.strwidth(labels[widest])) then
+                  widest, shortened = i, short
+                end
+              end
+              if not widest then break end
+              labels[widest] = shortened
+            end
+            local current = vim.api.nvim_get_current_tabpage()
+            local parts = {}
+            for i, tab in ipairs(tabs) do
+              local hl = tab == current and "%#TabLineSel#" or "%#TabLine#"
+              -- A literal % in a filename would otherwise be parsed as format syntax.
+              parts[i] = "%" .. i .. "T" .. hl .. " " .. labels[i]:gsub("%%", "%%%%") .. " "
+            end
+            return table.concat(parts) .. "%T%#TabLineFill#"
+          end
+          vim.o.tabline = "%!v:lua.full_path_tabline()"
+        '';
       };
     };
   };
