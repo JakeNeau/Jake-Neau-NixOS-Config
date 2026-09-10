@@ -124,9 +124,6 @@
             ga = "git add";
             gc = "git commit -m";
             gp = "git push";
-
-            # General Command Aliases
-            ng = "sudo nix-collect-garbage --delete-old";
           };
           shellInit = ''
             # Clean up all failed commands from history after 20 entries
@@ -145,6 +142,7 @@
           "h"
           "hr"
           "nc"
+          "ng"
           "npd"
           "npr"
           "npv"
