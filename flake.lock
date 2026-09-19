@@ -802,11 +802,11 @@
         "nixpkgs": "nixpkgs_8"
       },
       "locked": {
-        "lastModified": 1789831376,
-        "narHash": "sha256-vrD90o0vGJM7MMP33LhAIKn8VDFd5QF61rK2uTnN+Ms=",
+        "lastModified": 1789833442,
+        "narHash": "sha256-DKhzavqHDuQG1rN821pDUT/Fs0x6vOXyB3/emzd0Zv8=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "54c9ea26ff91f1929d40395129b30113ddb9c6df",
+        "rev": "19985d928112d0ff3ce2caf5ca8063c3cd7310eb",
         "type": "github"
       },
       "original": {

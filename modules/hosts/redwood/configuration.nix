@@ -6,24 +6,7 @@
     system = "x86_64-linux";
     users = ["jakeneau"];
     globalPrograms = ["ghostty" "yazi" "fastfetch" "gh" "nautilus" "openpencil"];
-    baselines = ["role-desktop" "niri-desktop" "redwood-monitor-power" "stylix"];
-  };
-
-  flake.modules.homeManager.redwood-monitor-power = {pkgs, ...}: let
-    redwoodSamsungOdysseyG9Power = inputs.self.lib.monitorPower.samsungTizen {
-      inherit pkgs;
-      name = "redwood-samsung-odyssey-g9-power";
-      hostname = "samsung.local";
-      tokenFile = "/run/secrets/redwoodSamsungOdysseyG9Token";
-      remoteName = "redwood-monitor-power";
-    };
-  in {
-    monitorPower = {
-      ddc.enable = true;
-      backends.redwoodSamsungOdysseyG9 = redwoodSamsungOdysseyG9Power;
-      resumeAfterSleep.enable = true;
-      screenOff.wakeOnInput.enable = true;
-    };
+    baselines = ["role-desktop" "niri-desktop" "stylix"];
   };
 
   flake.modules.nixos.redwood = {pkgs, ...}: {
@@ -41,8 +24,6 @@
       vertical = 1440;
     };
 
-    sops.secrets.redwoodSamsungOdysseyG9Token.owner = "jakeneau";
-
     # Host facts features branch on (e.g. the graphics vendor modules).
     hostConstants.graphicsType = "amd";
 
@@ -58,11 +39,6 @@
       MemorySleepMode = "deep";
       SuspendState = "mem";
     };
-    monitorPower = {
-      reprobeConnectors = ["DP-1"];
-      resumeUsers = ["jakeneau"];
-    };
-
     boot.kernelPatches = [
       {
         # Patches for running steamVR

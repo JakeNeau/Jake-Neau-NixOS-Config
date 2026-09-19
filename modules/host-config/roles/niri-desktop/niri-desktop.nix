@@ -6,7 +6,6 @@
   flake.modules.nixos.niri-desktop = {pkgs, ...}: {
     imports = with inputs.self.modules.nixos; [
       hyprlock
-      monitor-power
     ];
 
     programs.niri = {
@@ -46,7 +45,6 @@
       clipse
       fuzzel
       hyprlock
-      monitor-power
       udiskie
       xwayland-satellite
       candy-icons
