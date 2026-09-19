@@ -511,6 +511,7 @@ in {
             toolPath: "${rustToolPath pkgs}",
           });
         '';
+        ".pi/agent/skills/brainstorming".source = ./config/skills/brainstorming;
         ".pi/agent/skills/pi-web-access".source = "${pi-web-access-root}/skills";
         ".pi/agent/skills/ui-system-initializer".source = ./config/skills/ui-system-initializer;
         ".pi/agent/skills/writing-pi-extensions".source = ./config/skills/writing-pi-extensions;

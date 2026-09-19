@@ -90,6 +90,19 @@ explanation](../explanation/pi-workflows.md) describes the architecture.
 [Add a project-local Pi workflow](../how-to/add-a-pi-workflow.md) gives the
 authoring procedure.
 
+## Brainstorming skill
+
+The global `brainstorming` skill turns an idea into an approved specification
+before implementation. Pi inspects project evidence, asks one material question
+at a time through `ask_user`, compares viable approaches, and validates the
+design at proportionate checkpoints.
+
+The skill blocks implementation until the design receives explicit approval.
+It then writes only the design section in the project's specification format,
+reviews that file, and requests file approval. In this repository it creates a
+short-named file under `specs/` with `Spec`, `Plan`, and `Tasks` sections. The
+last two remain empty for the `/refine-plan` workflow.
+
 ## OpenPencil integration
 
 The Pi home installs the `openpencil` extension when a home requests Pi and
@@ -196,7 +209,7 @@ total combines scanner diagnostics with malformed or missing typed-link edges.
 resources and rescans the project. Tool output follows Pi's standard truncation
 limits and points to the full source path when truncated.
 
-Home Manager installs the global `writing-pi-extensions` and
+Home Manager installs the global `brainstorming`, `writing-pi-extensions`, and
 `ui-system-initializer` skills under `~/.pi/agent/skills/`. Extension designs
 must decide whether they introduce a durable resource kind that needs a
 typed-link adapter.

@@ -24,17 +24,31 @@ Check that the forbidden-signature database exists:
 find /sys/firmware/efi/efivars -maxdepth 1 -name 'dbx-*' -printf '%s bytes\n'
 ```
 
-If the command produces no output, restore only the forbidden signatures in
-the firmware:
+If the command produces no output, restore the forbidden signatures in the
+firmware:
 
 1. Open **Security → Secure Boot**.
 2. Set **Secure Boot Mode** to **Custom**.
 3. Open **Key Management**.
 4. Open **Forbidden Signatures**.
 5. Select **Enroll Factory Defaults**.
+6. Disable **Factory Key Provision**.
+7. Delete only the **Platform Key (PK)**.
 
-Do not select **Clear Secure Boot Keys**. That action clears every Secure Boot
-database, including `dbx`.
+ASRock may provision all factory keys while restoring `dbx`. Deleting only the
+Platform Key returns the firmware to Setup Mode without removing `dbx`. Do not
+select **Clear Secure Boot Keys** because that action clears every Secure Boot
+database.
+
+After rebooting, verify the required state:
+
+```fish
+sudo sbctl status
+find /sys/firmware/efi/efivars -maxdepth 1 -name 'dbx-*' -printf '%s bytes\n'
+```
+
+`sbctl` must report `Setup Mode: Enabled` and `Secure Boot: Disabled`. The
+`dbx` command must still produce a nonzero size.
 
 ## 2. Generate the signing keys
 
@@ -76,6 +90,16 @@ Microsoft certificates with the local keys:
 ```fish
 sudo sbctl enroll-keys --microsoft
 ```
+
+If `sbctl` reports immutable `KEK` and `db` variables, remove the Linux
+filesystem guard from only those variables:
+
+```fish
+nix shell nixpkgs#e2fsprogs -c sh -c 'sudo "$(command -v chattr)" -i /sys/firmware/efi/efivars/KEK-* /sys/firmware/efi/efivars/db-*'
+```
+
+Do not change the `dbx` attribute. Run the enrollment command again after
+`chattr` succeeds.
 
 Reboot, then verify enforcement:
 

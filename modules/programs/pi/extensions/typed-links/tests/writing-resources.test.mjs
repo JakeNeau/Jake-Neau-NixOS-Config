@@ -14,6 +14,7 @@ const piCommands = process.env.TEST_PI_COMMANDS;
 const EXPECTED_IDS = [
   "global:command:comment-review",
   "global:command:writing-review",
+  "global:skill:brainstorming",
   "global:skill:comment-api-contracts",
   "global:skill:comment-disabled-code",
   "global:skill:comment-functional-directives",
