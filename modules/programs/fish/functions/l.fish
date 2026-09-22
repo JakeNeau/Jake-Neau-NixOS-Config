@@ -1,22 +1,19 @@
 function l --description "Runs eza with a lot of information"
   set -l depth
-  set -l path
+  set -l paths
 
   for arg in $argv
-    # Set depth if depth is not set and the argument is a number
+    # The first bare number is the tree depth; everything else is a path
     if test -z "$depth" -a (string match -r '^[0-9]+$' "$arg" | count) -gt 0
       set depth "$arg"
-    else if test -z "$path"
-      set path "$arg"
     else
-      echo "l: unexpected extra argument '$arg' (usage: l [depth] [path])" >&2
-      return 1
+      set -a paths "$arg"
     end
   end
 
   if not test -z "$depth"
-    eza -algh --git-repos --git --icons --group-directories-first -T -L=$depth $path
+    eza -algh --git-repos --git --icons --group-directories-first -T -L=$depth $paths
   else
-    eza -algh --git-repos --git --icons --group-directories-first $path
+    eza -algh --git-repos --git --icons --group-directories-first $paths
   end
 end
