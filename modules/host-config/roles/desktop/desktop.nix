@@ -104,12 +104,6 @@
       xournalpp # App for signing PDFs
     ];
 
-    # Temporary: still pinned by bitwarden-desktop upstream. Drop once nixpkgs
-    # bumps it off EOL electron.
-    nixpkgs.config.permittedInsecurePackages = [
-      "electron-39.8.10" # bitwarden-desktop's runtime engine
-    ];
-
     # -----
     # Fonts
     # -----

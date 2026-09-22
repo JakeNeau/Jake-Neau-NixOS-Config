@@ -374,10 +374,10 @@
       the hand-wired nvf theming in `modules/nix/tools/stylix/stylix.nix`.
       That block works around stylix setting the renamed
       `vim.statusline.lualine.theme` option, which warned on every eval.
-- [ ] Remove `beekeeper-studio-6.0.5` from
+- [ ] Remove `beekeeper-studio-6.1.1` from
       `nixpkgs.config.permittedInsecurePackages` in
       `modules/nix/tools/home-manager/common-nixpkgs.nix` once nixpkgs packages
-      Beekeeper Studio with a supported Electron release. Version 6.0.5 bundles
+      Beekeeper Studio with a supported Electron release. Version 6.1.1 bundles
       EOL Electron 39.8.1. Verify every Home Manager output after removing the
       exception.
 - [ ] Remove the `indentRepair` block in `modules/programs/nvf/indent.nix` once
