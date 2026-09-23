@@ -1,7 +1,7 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # Baseline settings every nix-darwin system needs.
-  flake.modules.darwin.role-minimal = {pkgs, ...}: {
-    imports = [inputs.self.modules.generic.role-minimal];
+  flake.modules.darwin.role-minimal = { pkgs, ... }: {
+    imports = [ inputs.self.modules.generic.role-minimal ];
 
     nixpkgs.config.allowUnfree = true;
 
@@ -10,7 +10,7 @@
     # Shown by `darwin-version --configuration-revision`.
     system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
 
-    environment.systemPackages = [pkgs.vim];
+    environment.systemPackages = [ pkgs.vim ];
 
     # Used for backwards compatibility; read the changelog before changing.
     system.stateVersion = 6;

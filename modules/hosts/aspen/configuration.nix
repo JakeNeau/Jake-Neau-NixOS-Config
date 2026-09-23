@@ -1,14 +1,24 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # Jake's personal MacBook ("aspen", formerly "Jakes-MacBook-Air").
   flake.hosts.aspen = {
     class = "darwin";
     system = "aarch64-darwin";
-    users = ["jakeneau"];
-    globalPrograms = ["ghostty" "firefox" "fastfetch" "gh" "openpencil" "steam"];
-    baselines = ["role-desktop" "mac-app-util"];
+    users = [ "jakeneau" ];
+    globalPrograms = [
+      "ghostty"
+      "firefox"
+      "fastfetch"
+      "gh"
+      "openpencil"
+      "steam"
+    ];
+    baselines = [
+      "role-desktop"
+      "mac-app-util"
+    ];
   };
 
-  flake.modules.darwin.aspen = {...}: {
+  flake.modules.darwin.aspen = { ... }: {
     imports = [
       inputs.self.modules.darwin.role-desktop
       inputs.self.modules.generic.cli
@@ -26,6 +36,6 @@
     hostConstants.graphicsType = "apple";
 
     # repo write without sudo; the group itself comes from modules/host-config/config-group
-    users.groups.config.members = ["jakeneau"];
+    users.groups.config.members = [ "jakeneau" ];
   };
 }

@@ -6,7 +6,7 @@
   # ----------------------------
   # NixOS: CUPS + mDNS discovery
   # ----------------------------
-  flake.modules.nixos.printing = {pkgs, ...}: {
+  flake.modules.nixos.printing = { pkgs, ... }: {
     services.avahi = {
       enable = true;
       nssmdns4 = true;

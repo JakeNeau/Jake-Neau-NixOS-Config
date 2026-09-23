@@ -103,6 +103,7 @@ Flake-level machinery and third-party tool wiring.
   - `nix-homebrew/` — declarative Homebrew installation management.
   - `nix-minecraft/` — declarative Minecraft servers; importing it means
     "this host runs a minecraft server".
+  - `nixfmt/` — the `nix fmt` formatter output (nixfmt over the whole tree).
   - `nixpkgs/` — the package set everything builds from.
   - `nur/` — the Nix User Repository overlay (community packages, e.g.
     browser addons).

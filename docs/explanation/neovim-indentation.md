@@ -93,8 +93,8 @@ C indent script, so `indent.nix` sets `'cindent'` by name. Without that they
 would fall to plain `'autoindent'`, which changed 252 lines.
 
 Nix stays on treesitter despite scoring poorly. Its single systematic error
-indents the body of alejandra's `}: let` construct one level too deep. alejandra
-repairs that on save. The error therefore affects only what appears while typing.
+indents the body of a `let` that follows a function header one level too deep.
+nixfmt repairs that on save. The error therefore affects only what appears while typing.
 
 ## Formatters read the project, not the buffer
 
@@ -108,9 +108,10 @@ formatter's own arguments, so the tool reads `.stylua.toml`, `.taplo.toml`,
 Two tools cannot participate, because they accept no width option. Python
 therefore uses ruff instead of black. ruff honors `indent-width` and keeps
 black-compatible output. JSON uses prettier instead of jsonfmt, which discovers
-no configuration file at all. Nix keeps alejandra, which hard-codes two spaces
-and accepts no options. The `nix` policy entry pins two spaces to match it.
-`TODO.md` tracks evaluating nixfmt as a configurable replacement.
+no configuration file at all. Nix uses nixfmt, which reads no project file but
+takes `--indent`. nvf passes the buffer's width to it, so Nix follows
+`.editorconfig` through sleuth. The `nix` policy entry pins two spaces, nixfmt's
+default, for repositories that declare nothing.
 
 Where a repository declares nothing, each tool falls back to its own default,
 and that self-corrects. The first format writes the tool's style, sleuth then

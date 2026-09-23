@@ -1,4 +1,4 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # Setup of the tooling that powers the dendritic pattern.
   #
   #   flake-parts  - compose the flake from small modules (https://flake.parts)

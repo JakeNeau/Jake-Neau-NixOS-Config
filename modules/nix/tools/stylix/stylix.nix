@@ -1,4 +1,5 @@
-{inputs, ...}: let
+{ inputs, ... }:
+let
   # Theme values shared by the NixOS aspect and the homeManager aspect, so
   # both layers state the same theme. A function of pkgs because the cursor
   # and fonts reference packages.
@@ -31,7 +32,8 @@
       };
     };
   };
-in {
+in
+{
   # System-wide theming. https://github.com/danth/stylix
   # Linux only: the NixOS aspect themes the system layer, the homeManager
   # aspect (in the Linux hosts' baselines) themes standalone homes. macOS
@@ -43,77 +45,80 @@ in {
     stylix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  flake.modules.nixos.stylix = {
-    lib,
-    pkgs,
-    ...
-  }: {
-    imports = [inputs.stylix.nixosModules.stylix];
-    stylix = lib.mkMerge [
-      (theme pkgs)
-      {targets.regreet.enable = false;}
-    ];
-  };
-
-  flake.modules.homeManager.stylix = {
-    config,
-    lib,
-    pkgs,
-    ...
-  }: {
-    imports = [inputs.stylix.homeModules.stylix];
-    stylix = lib.mkMerge [
-      (theme pkgs)
-      {
-        targets = {
-          hyprland.enable = false;
-          # Replaced by the hand-wired nvf theming below.
-          nvf.enable = false;
-          # Stylix still writes the renamed programs.rofi.font option.
-          # Remove this override after it uses programs.rofi.settings.font.
-          rofi.fonts.enable = false;
-          librewolf.profileNames = [
-            "work"
-            "strict"
-            "compatibility"
-          ];
-        };
-      }
-    ];
-    home.pointerCursor.enable = true;
-
-    programs.rofi.settings.font = "${config.stylix.fonts.monospace.name} ${toString config.stylix.fonts.sizes.popups}";
-
-    # Stylix's nvf target still sets vim.statusline.lualine.theme, which nvf
-    # renamed (warning on every eval). Same theming, new option name. Drop
-    # this and re-enable the target once stylix PR #2497 lands.
-    programs.nvf.settings.vim = {
-      theme = {
-        enable = true;
-        name = "base16";
-        base16-colors = {
-          inherit
-            (config.lib.stylix.colors.withHashtag)
-            base00
-            base01
-            base02
-            base03
-            base04
-            base05
-            base06
-            base07
-            base08
-            base09
-            base0A
-            base0B
-            base0C
-            base0D
-            base0E
-            base0F
-            ;
-        };
-      };
-      statusline.lualine.setupOpts.options.theme = "base16";
+  flake.modules.nixos.stylix =
+    {
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      imports = [ inputs.stylix.nixosModules.stylix ];
+      stylix = lib.mkMerge [
+        (theme pkgs)
+        { targets.regreet.enable = false; }
+      ];
     };
-  };
+
+  flake.modules.homeManager.stylix =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      imports = [ inputs.stylix.homeModules.stylix ];
+      stylix = lib.mkMerge [
+        (theme pkgs)
+        {
+          targets = {
+            hyprland.enable = false;
+            # Replaced by the hand-wired nvf theming below.
+            nvf.enable = false;
+            # Stylix still writes the renamed programs.rofi.font option.
+            # Remove this override after it uses programs.rofi.settings.font.
+            rofi.fonts.enable = false;
+            librewolf.profileNames = [
+              "work"
+              "strict"
+              "compatibility"
+            ];
+          };
+        }
+      ];
+      home.pointerCursor.enable = true;
+
+      programs.rofi.settings.font = "${config.stylix.fonts.monospace.name} ${toString config.stylix.fonts.sizes.popups}";
+
+      # Stylix's nvf target still sets vim.statusline.lualine.theme, which nvf
+      # renamed (warning on every eval). Same theming, new option name. Drop
+      # this and re-enable the target once stylix PR #2497 lands.
+      programs.nvf.settings.vim = {
+        theme = {
+          enable = true;
+          name = "base16";
+          base16-colors = {
+            inherit (config.lib.stylix.colors.withHashtag)
+              base00
+              base01
+              base02
+              base03
+              base04
+              base05
+              base06
+              base07
+              base08
+              base09
+              base0A
+              base0B
+              base0C
+              base0D
+              base0E
+              base0F
+              ;
+          };
+        };
+        statusline.lualine.setupOpts.options.theme = "base16";
+      };
+    };
 }

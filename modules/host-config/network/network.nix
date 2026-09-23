@@ -1,12 +1,12 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # Generic: both NixOS and nix-darwin expose networking.hostName.
-  flake.modules.generic.network = {config, ...}: {
+  flake.modules.generic.network = { config, ... }: {
     networking.hostName = config.hostConstants.hostName;
   };
 
   # ComputerName (the friendly Finder/Sharing name) follows the hostname;
   # LocalHostName already does by nix-darwin default.
-  flake.modules.darwin.network = {config, ...}: {
+  flake.modules.darwin.network = { config, ... }: {
     networking.computerName = config.hostConstants.hostName;
   };
 

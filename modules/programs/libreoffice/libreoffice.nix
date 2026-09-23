@@ -7,11 +7,12 @@
   # source build, so nixpkgs ships the official prebuilt LibreOffice.app
   # (libreoffice-bin), which bundles its own spell checking; mac-app-util
   # trampolines that bundle into Launchpad/Spotlight (see the mac-app-util feature).
-  flake.modules.homeManager.libreoffice = {
-    pkgs,
-    lib,
-    ...
-  }:
+  flake.modules.homeManager.libreoffice =
+    {
+      pkgs,
+      lib,
+      ...
+    }:
     lib.mkMerge [
       (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
         home.packages = with pkgs; [
@@ -21,7 +22,7 @@
         ];
       })
       (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
-        home.packages = [pkgs.libreoffice-bin];
+        home.packages = [ pkgs.libreoffice-bin ];
       })
     ];
 }

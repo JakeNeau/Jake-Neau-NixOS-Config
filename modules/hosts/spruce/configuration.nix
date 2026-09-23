@@ -1,12 +1,22 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # The NixOS laptop ("spruce"). Same desktop experience as the desktop
   # host, minus the desktop-only hardware (GPU/audio rig, openrgb, minecraft).
   flake.hosts.spruce = {
     class = "nixos";
     system = "x86_64-linux";
-    users = ["jakeneau"];
-    globalPrograms = ["ghostty" "yazi" "fastfetch" "gh" "openpencil"];
-    baselines = ["role-desktop" "niri-desktop" "stylix"];
+    users = [ "jakeneau" ];
+    globalPrograms = [
+      "ghostty"
+      "yazi"
+      "fastfetch"
+      "gh"
+      "openpencil"
+    ];
+    baselines = [
+      "role-desktop"
+      "niri-desktop"
+      "stylix"
+    ];
   };
 
   flake.modules.nixos.spruce = {

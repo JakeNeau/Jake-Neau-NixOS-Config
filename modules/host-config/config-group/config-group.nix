@@ -30,14 +30,14 @@
   # (No keys.txt re-lock: the sops age key lives outside the repo on macOS.)
 
   flake.modules.nixos.config-group = {
-    users.groups.config.members = ["jakeneau"];
+    users.groups.config.members = [ "jakeneau" ];
   };
 
   flake.modules.darwin.config-group = {
     # macOS owns the account itself; nix-darwin will only create/manage a group
     # that is listed in knownGroups, and it needs an explicit gid (600 is free
     # here — the only custom gids are Apple's sharepoint groups at 701/702).
-    users.knownGroups = ["config"];
+    users.knownGroups = [ "config" ];
     # account names differ per host, so each host aspect lists its own members
     users.groups.config.gid = 600;
   };

@@ -1,4 +1,4 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # direnv: auto-loads a project's environment on cd, with nix-direnv caching
   # `use flake`/`use nix` so dev shells don't re-evaluate on every entry.
   #
@@ -16,6 +16,6 @@
     };
   };
 
-  flake.modules.nixos.direnv.imports = [inputs.self.modules.generic.direnv];
-  flake.modules.darwin.direnv.imports = [inputs.self.modules.generic.direnv];
+  flake.modules.nixos.direnv.imports = [ inputs.self.modules.generic.direnv ];
+  flake.modules.darwin.direnv.imports = [ inputs.self.modules.generic.direnv ];
 }

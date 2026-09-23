@@ -1,12 +1,13 @@
 {
-  flake.modules.nixos.graphics-intel = {
-    config,
-    lib,
-    pkgs,
-    ...
-  }:
+  flake.modules.nixos.graphics-intel =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     lib.mkIf (config.hostConstants.graphicsType == "intel") {
-      hardware.graphics.extraPackages = [pkgs.intel-media-driver]; # VAAPI, Broadwell+ (iHD)
+      hardware.graphics.extraPackages = [ pkgs.intel-media-driver ]; # VAAPI, Broadwell+ (iHD)
       environment.variables.LIBVA_DRIVER_NAME = "iHD";
     };
 }

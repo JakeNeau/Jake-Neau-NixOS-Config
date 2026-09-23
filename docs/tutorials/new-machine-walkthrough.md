@@ -142,11 +142,10 @@ Copy the generated hardware values exactly. Do not reuse another host's device U
 
 ## 5. Format and stage the host
 
-Format the new Nix files with a temporary Alejandra package:
+Format the new Nix files with the flake's formatter:
 
 ```sh
-sudo nix --extra-experimental-features 'nix-command flakes' run nixpkgs#alejandra -- \
-  modules/hosts/<host>
+sudo nix --extra-experimental-features 'nix-command flakes' fmt
 ```
 
 Stage every new declaration before evaluation. Nix ignores untracked files in a Git flake.

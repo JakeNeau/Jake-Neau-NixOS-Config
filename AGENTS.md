@@ -34,8 +34,8 @@ Core design principles (from the README):
 - **home-manager first.** Configure programs through home-manager — not
   imperatively, not at the system level — whenever home-manager can do it.
 - **Prefer flakes.** Favor implementations that fully use flakes.
-- **Formatting.** Format Nix with **`alejandra`**; match the existing 2-space
-  indentation.
+- **Formatting.** Format Nix with **`nix fmt`** (nixfmt, RFC 166 style); match
+  the existing 2-space indentation.
 ## Validating changes (dry-build; don't switch)
 
 **After any modification to this repo, always confirm the configuration still

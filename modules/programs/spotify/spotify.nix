@@ -6,12 +6,12 @@
   # work in-process sidesteps it. Known upstream CEF/Mesa bug (nixpkgs#228586),
   # not a config issue. Periodically test a bare `spotify`: once it launches
   # without the flag, the upstream fix has landed and this whole module can go.
-  flake.modules.nixos.spotify = {pkgs, ...}: {
+  flake.modules.nixos.spotify = { pkgs, ... }: {
     environment.systemPackages = [
       (pkgs.symlinkJoin {
         name = "spotify";
-        paths = [pkgs.spotify];
-        nativeBuildInputs = [pkgs.makeWrapper];
+        paths = [ pkgs.spotify ];
+        nativeBuildInputs = [ pkgs.makeWrapper ];
         postBuild = ''wrapProgram $out/bin/spotify --add-flags "--in-process-gpu"'';
       })
     ];

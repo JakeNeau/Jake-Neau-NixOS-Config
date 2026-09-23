@@ -1,12 +1,13 @@
 {
-  flake.modules.nixos.graphics-nvidia = {
-    config,
-    lib,
-    ...
-  }:
+  flake.modules.nixos.graphics-nvidia =
+    {
+      config,
+      lib,
+      ...
+    }:
     lib.mkMerge [
       (lib.mkIf (config.hostConstants.graphicsType == "nvidia") {
-        services.xserver.videoDrivers = ["nvidia"];
+        services.xserver.videoDrivers = [ "nvidia" ];
         hardware.nvidia = {
           modesetting.enable = true;
           nvidiaSettings = true;

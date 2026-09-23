@@ -1,7 +1,7 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # Baseline settings every NixOS system needs.
   flake.modules.nixos.role-minimal = {
-    imports = [inputs.self.modules.generic.role-minimal];
+    imports = [ inputs.self.modules.generic.role-minimal ];
 
     nixpkgs.config.allowUnfree = true;
 

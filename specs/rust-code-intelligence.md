@@ -361,7 +361,7 @@ check remains tracked in `TODO.md`, so this spec remains until that check passes
 - [ ] Add a Nix test derivation that copies immutable sources, runs every Node
   test, and supplies packaged executable paths. Install generated Home Manager
   entry points that call both factories with those same paths.
-- [ ] Format `modules/programs/pi/pi.nix` with `alejandra` and run the dedicated
+- [ ] Format `modules/programs/pi/pi.nix` with `nix fmt` and run the dedicated
   Nix check, requiring all unit, fake-peer, and supported live integration tests
   to pass.
 

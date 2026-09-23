@@ -354,19 +354,6 @@
       activation rather than at the system switch, and that a new user who edits
       secrets must add the program. A design question for the user to decide,
       not a defect.
-- [ ] Consider replacing alejandra with nixfmt as the Nix formatter. Raised
-      while designing the Neovim indentation system: alejandra accepts no
-      options at all and hard-codes 2-space indent, making it the only
-      formatter this config runs that cannot follow a project's declared
-      style — stylua, shfmt and prettier all read `.editorconfig`, while
-      taplo, ruff, clang-format and deno read their own config files.
-      nixfmt 1.4.0 has `--indent=INT` and implements the accepted RFC 166
-      style, which is now the nixpkgs standard. Deliberately kept out of the
-      indentation work because nixfmt's output differs from alejandra's, so
-      the next save of every `.nix` file would produce a large unrelated
-      diff, and `AGENTS.md` mandates alejandra. Do it as its own change:
-      switch `vim.languages.nix.format.type`, update the `AGENTS.md` and
-      `README.md` convention, and reformat the tree in one commit.
 
 ## Waiting on upstream
 

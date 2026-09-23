@@ -11,8 +11,8 @@
   # --------------------------------
   # System install & first-run setup
   # --------------------------------
-  flake.modules.darwin.karabiner = {config, ...}: {
-    homebrew.casks = ["karabiner-elements"];
+  flake.modules.darwin.karabiner = { config, ... }: {
+    homebrew.casks = [ "karabiner-elements" ];
 
     # Karabiner's first-run approvals (driver extension + Input Monitoring)
     # cannot be automated. A fully set-up system has the Karabiner-Core-Service
@@ -37,32 +37,34 @@
   # --------------------------------
   # Rules collector & karabiner.json
   # --------------------------------
-  flake.modules.homeManager.karabiner = {
-    config,
-    pkgs,
-    lib,
-    ...
-  }: {
-    options.karabiner.rules = lib.mkOption {
-      type = lib.types.listOf (pkgs.formats.json {}).type;
-      default = [];
-      description = "Karabiner-Elements complex modification rules, merged into karabiner.json.";
-    };
+  flake.modules.homeManager.karabiner =
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
+    {
+      options.karabiner.rules = lib.mkOption {
+        type = lib.types.listOf (pkgs.formats.json { }).type;
+        default = [ ];
+        description = "Karabiner-Elements complex modification rules, merged into karabiner.json.";
+      };
 
-    # Karabiner reads this file live. As a read-only store symlink it works
-    # fine, but edits made in the Karabiner GUI will not stick -- change the
-    # contributing feature instead.
-    config = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
-      xdg.configFile."karabiner/karabiner.json".text = builtins.toJSON {
-        profiles = [
-          {
-            name = "Default";
-            selected = true;
-            virtual_hid_keyboard.keyboard_type_v2 = "ansi";
-            complex_modifications.rules = config.karabiner.rules;
-          }
-        ];
+      # Karabiner reads this file live. As a read-only store symlink it works
+      # fine, but edits made in the Karabiner GUI will not stick -- change the
+      # contributing feature instead.
+      config = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
+        xdg.configFile."karabiner/karabiner.json".text = builtins.toJSON {
+          profiles = [
+            {
+              name = "Default";
+              selected = true;
+              virtual_hid_keyboard.keyboard_type_v2 = "ansi";
+              complex_modifications.rules = config.karabiner.rules;
+            }
+          ];
+        };
       };
     };
-  };
 }

@@ -1,6 +1,6 @@
 {
   flake.programs.nautilus = {
-    install.linux = ["home"];
+    install.linux = [ "home" ];
     hasEnableOption = false;
   };
 }

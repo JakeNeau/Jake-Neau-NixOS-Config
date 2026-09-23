@@ -1,4 +1,4 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # The default system type: minimal + the tooling used everywhere.
 
   flake.modules.nixos.role-default = {
@@ -14,7 +14,7 @@
         git
         printing
       ])
-      ++ [inputs.self.modules.generic.network];
+      ++ [ inputs.self.modules.generic.network ];
   };
 
   flake.modules.darwin.role-default = {
@@ -28,7 +28,7 @@
         network
         printing
       ])
-      ++ [inputs.self.modules.generic.network];
+      ++ [ inputs.self.modules.generic.network ];
   };
 
   flake.modules.homeManager.role-default = {

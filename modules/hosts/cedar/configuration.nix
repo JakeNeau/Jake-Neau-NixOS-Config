@@ -1,18 +1,29 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # The macOS work laptop ("cedar"). Only the jake.neau user
   # lives here.
   flake.hosts.cedar = {
     class = "darwin";
     system = "aarch64-darwin";
-    users = ["jake.neau"];
-    globalPrograms = ["ghostty" "firefox" "fastfetch" "gh" "onedrive" "openpencil" "windows-app"];
+    users = [ "jake.neau" ];
+    globalPrograms = [
+      "ghostty"
+      "firefox"
+      "fastfetch"
+      "gh"
+      "onedrive"
+      "openpencil"
+      "windows-app"
+    ];
     # The nix firefox package breaks against the org's SSO, so cedar takes
     # the cask; its users get the -config unit through the baseline.
     installOverrides.firefox = "cask";
-    baselines = ["role-desktop" "mac-app-util"];
+    baselines = [
+      "role-desktop"
+      "mac-app-util"
+    ];
   };
 
-  flake.modules.darwin.cedar = {...}: {
+  flake.modules.darwin.cedar = { ... }: {
     imports = [
       inputs.self.modules.darwin.role-desktop
       inputs.self.modules.darwin.podman
@@ -31,6 +42,6 @@
     hostConstants.graphicsType = "apple";
 
     # repo write without sudo; the group itself comes from modules/host-config/config-group
-    users.groups.config.members = ["jake.neau"];
+    users.groups.config.members = [ "jake.neau" ];
   };
 }

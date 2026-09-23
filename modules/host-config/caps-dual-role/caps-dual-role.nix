@@ -32,7 +32,7 @@
             type = "basic";
             from = {
               key_code = "caps_lock";
-              modifiers.optional = ["any"];
+              modifiers.optional = [ "any" ];
             };
             to = [
               {
@@ -42,7 +42,7 @@
                 lazy = true;
               }
             ];
-            to_if_alone = [{key_code = "escape";}];
+            to_if_alone = [ { key_code = "escape"; } ];
           }
         ];
       }

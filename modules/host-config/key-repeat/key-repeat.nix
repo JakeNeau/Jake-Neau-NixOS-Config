@@ -1,9 +1,9 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # Key-repeat timing, declared once and shared across platforms. macOS applies it
   # now; a niri config can read the same constants later (repeat-delay = delayMs,
   # repeat-rate = 1000 / intervalMs). Values are multiples of 15ms so macOS — which
   # counts InitialKeyRepeat/KeyRepeat in 15ms steps — divides cleanly.
-  flake.modules.generic.key-repeat = {lib, ...}: {
+  flake.modules.generic.key-repeat = { lib, ... }: {
     options.keyRepeat = {
       delayMs = lib.mkOption {
         type = lib.types.int;
@@ -18,8 +18,8 @@
     };
   };
 
-  flake.modules.darwin.key-repeat = {config, ...}: {
-    imports = [inputs.self.modules.generic.key-repeat];
+  flake.modules.darwin.key-repeat = { config, ... }: {
+    imports = [ inputs.self.modules.generic.key-repeat ];
     system.defaults.NSGlobalDomain = {
       InitialKeyRepeat = config.keyRepeat.delayMs / 15; # macOS counts in 15ms steps
       KeyRepeat = config.keyRepeat.intervalMs / 15;

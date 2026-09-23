@@ -256,7 +256,7 @@ nix flake check             # evaluate everything
 nix run  .#write-flake      # only if you added/removed a flake input
 ```
 
-Format Nix with **`alejandra`** (2-space indent), matching the rest of the repo.
+Format Nix with **`nix fmt`** (nixfmt, 2-space indent), matching the rest of the repo.
 
 ## References
 

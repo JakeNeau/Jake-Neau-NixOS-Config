@@ -19,7 +19,7 @@
   # -------------------------
   # NixOS: login shell + bash
   # -------------------------
-  flake.modules.nixos.fish = {pkgs, ...}: {
+  flake.modules.nixos.fish = { pkgs, ... }: {
     # Registers fish in /etc/shells (required for it to be a login shell) and
     # wires vendor completions/config for fish plugin packages.
     programs.fish.enable = true;
@@ -41,7 +41,7 @@
   # --------------------------
   # macOS: zsh execs into fish
   # --------------------------
-  flake.modules.darwin.fish = {pkgs, ...}: {
+  flake.modules.darwin.fish = { pkgs, ... }: {
     # Installs fish system-wide, registers it in /etc/shells, and sets up the
     # nix environment + vendor plugin loading for fish sessions.
     programs.fish.enable = true;
@@ -60,26 +60,30 @@
   # ------------------------------------------------
   # Both: aliases, functions, plugins (home-manager)
   # ------------------------------------------------
-  flake.modules.homeManager.fish = {
-    pkgs,
-    lib,
-    config,
-    ...
-  }: let
-    # Installs each named function as its own ~/.config/fish/functions file,
-    # where fish autoloads it on first call.
-    functionFiles = names:
-      lib.listToAttrs (map (name: {
-          name = "fish/functions/${name}.fish";
-          value.source = ./functions/${name}.fish;
-        })
-        names);
+  flake.modules.homeManager.fish =
+    {
+      pkgs,
+      lib,
+      config,
+      ...
+    }:
+    let
+      # Installs each named function as its own ~/.config/fish/functions file,
+      # where fish autoloads it on first call.
+      functionFiles =
+        names:
+        lib.listToAttrs (
+          map (name: {
+            name = "fish/functions/${name}.fish";
+            value.source = ./functions/${name}.fish;
+          }) names
+        );
 
-    # The mc-* helpers wrap systemd units that only exist when the host runs
-    # nix-minecraft; the fact arrives via the baseline's hostConstants
-    # read-through (osConfig doesn't exist for standalone homes).
-    hasMinecraft = config.hostConstants.minecraftServer;
-  in
+      # The mc-* helpers wrap systemd units that only exist when the host runs
+      # nix-minecraft; the fact arrives via the baseline's hostConstants
+      # read-through (osConfig doesn't exist for standalone homes).
+      hasMinecraft = config.hostConstants.minecraftServer;
+    in
     lib.mkMerge [
       {
         # -------
@@ -94,13 +98,15 @@
           # cannot run there; the plugin is plain fish script and works fine,
           # so build it without tests.
           (
-            if pkgs.stdenv.hostPlatform.isDarwin
-            then
+            if pkgs.stdenv.hostPlatform.isDarwin then
               fzf-fish.overrideAttrs (old: {
                 doCheck = false;
-                meta = old.meta // {broken = false;};
+                meta = old.meta // {
+                  broken = false;
+                };
               })
-            else fzf-fish # Search for multiple things with fzf
+            else
+              fzf-fish # Search for multiple things with fzf
           )
           grc # A generic colorizer
           pisces # Adds parentheses, quotes, etc. in pairs
@@ -109,7 +115,9 @@
           # pure's test suite fails in the Nix sandbox (permission errors,
           # likely the Nix >= 2.30 build-dir move); the plugin itself is fine,
           # so build it without tests.
-          (pure.overrideAttrs (_: {doCheck = false;})) # Minimal and fast fish prompt
+          (pure.overrideAttrs (_: {
+            doCheck = false;
+          })) # Minimal and fast fish prompt
           sponge # Remove typos from terminal
           z # Jump to previous directories
         ];
@@ -159,13 +167,13 @@
       # actually installed.
       (lib.mkIf config.programs.eza.enable {
         programs.fish.shellAliases.ls = "eza --icons --group-directories-first";
-        xdg.configFile = functionFiles ["l"];
+        xdg.configFile = functionFiles [ "l" ];
       })
 
       # The greeting is a fastfetch splash, so only override fish's default
       # greeting where fastfetch is installed.
       (lib.mkIf config.programs.fastfetch.enable {
-        xdg.configFile = functionFiles ["fish_greeting"];
+        xdg.configFile = functionFiles [ "fish_greeting" ];
       })
 
       # Minecraft server controls, only on hosts that run nix-minecraft.

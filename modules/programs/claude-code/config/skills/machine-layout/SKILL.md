@@ -55,7 +55,7 @@ are placed at `flake.modules.<class>.<name>` (classes: `nixos`, `darwin`,
 - `nix build .#darwinConfigurations.<host>.system --no-link` (always
   `--no-link` — the repo is root-owned, so a `./result` symlink fails).
 - `nix eval --raw '.#darwinConfigurations.cedar.system.drvPath'`.
-- Format Nix with **alejandra** (2-space indent).
+- Format Nix with **`nix fmt`** (nixfmt, 2-space indent).
 - Git flakes only see tracked files → `git add` before you eval or build.
 
 ## Other facts

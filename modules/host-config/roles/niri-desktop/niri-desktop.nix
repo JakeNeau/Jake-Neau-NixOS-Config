@@ -1,9 +1,9 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # niri-desktop: the complete niri wayland desktop in one import -- the compositor,
   # its portals, the greetd session that launches it, and (via home-manager) all the
   # per-user wayland plumbing. NixOS-only; niri does not exist on macOS.
 
-  flake.modules.nixos.niri-desktop = {pkgs, ...}: {
+  flake.modules.nixos.niri-desktop = { pkgs, ... }: {
     imports = with inputs.self.modules.nixos; [
       hyprlock
     ];

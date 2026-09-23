@@ -1,11 +1,11 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   flake-file.inputs.grub2-themes = {
     url = "git+https://github.com/vinceliuice/grub2-themes.git";
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  flake.modules.nixos.grub = {lib, ...}: {
-    imports = [inputs.grub2-themes.nixosModules.default];
+  flake.modules.nixos.grub = { lib, ... }: {
+    imports = [ inputs.grub2-themes.nixosModules.default ];
 
     boot.loader = {
       efi.canTouchEfiVariables = true;

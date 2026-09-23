@@ -1,7 +1,7 @@
 {
   # git identity in two aspects so it matches at both levels: the home-manager
   # aspect for per-user git, the nixos aspect for system-level /etc/gitconfig.
-  flake.modules.homeManager.git = {lib, ...}: {
+  flake.modules.homeManager.git = { lib, ... }: {
     programs.git = {
       enable = true;
       settings.user = {
@@ -40,7 +40,7 @@
 
     # ~/.gitconfig is the user's file, so warn, never act. The `|| true` below
     # keeps a failed write from aborting activation, which runs under `set -eu`.
-    home.activation.warnUnmanagedGitconfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    home.activation.warnUnmanagedGitconfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       if [ -e "$HOME/.gitconfig" ]; then
         printf '%s\n' \
           "warning: ~/.gitconfig exists and is not managed by Nix." \

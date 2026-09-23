@@ -9,7 +9,10 @@
   # who enables it for HM config gets the -config unit's package = null
   # instead of the broken-there nix package.
   flake.programs.firefox = {
-    install.linux = ["home"];
-    install.macos = ["home" "cask"];
+    install.linux = [ "home" ];
+    install.macos = [
+      "home"
+      "cask"
+    ];
   };
 }

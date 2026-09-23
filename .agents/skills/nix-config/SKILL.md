@@ -196,7 +196,7 @@ nix run .#write-flake                    # after adding/removing flake inputs
   repo with a spurious `Permission denied` after the build succeeded.
 - **`git add` new files first** — flake eval ignores untracked files, so an
   unstaged new module surfaces as a misleading "attribute missing".
-- Format Nix with **`alejandra`** (2-space indent). Do **not** run `switch`,
+- Format Nix with **`nix fmt`** (nixfmt, 2-space indent). Do **not** run `switch`,
   `nix flake update`, or the `nr`/`nrr`/`hr` shell functions yourself — those
   activate live systems (and `nr` pushes to GitHub).
 

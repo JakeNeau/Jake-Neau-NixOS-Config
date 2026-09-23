@@ -1,6 +1,8 @@
-{...}: let
+{ ... }:
+let
   version = "0.14.0";
-  mkOpenPencilTools = pkgs:
+  mkOpenPencilTools =
+    pkgs:
     pkgs.buildNpmPackage {
       pname = "openpencil-tools";
       inherit version;
@@ -8,9 +10,9 @@
       npmDepsHash = "sha256-WbwkB76bG0Gz4fMopTrsVObAjgNUoGfOdmFgXiDR5b8=";
       dontNpmBuild = true;
     };
-  mkOpenPencilApp = pkgs:
-    if pkgs.stdenv.hostPlatform.isDarwin
-    then
+  mkOpenPencilApp =
+    pkgs:
+    if pkgs.stdenv.hostPlatform.isDarwin then
       pkgs.stdenvNoCC.mkDerivation {
         pname = "openpencil";
         inherit version;
@@ -35,10 +37,11 @@
           hash = "sha256-UpgOigckZL5945LHGdaGy9CJ06zZbQjp3O/gmFV8UJ0=";
         };
       };
-in {
+in
+{
   flake.programs.openpencil = {
-    install.linux = ["home"];
-    install.macos = ["home"];
+    install.linux = [ "home" ];
+    install.macos = [ "home" ];
     hasEnableOption = false;
     packages = pkgs: [
       (mkOpenPencilApp pkgs)

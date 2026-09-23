@@ -1,6 +1,6 @@
 {
   flake.programs.steam = {
-    install.macos = ["cask"];
+    install.macos = [ "cask" ];
     hasEnableOption = false;
   };
 }

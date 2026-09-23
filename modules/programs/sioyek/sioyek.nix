@@ -9,12 +9,13 @@
   # Linux uses XDG mimeapps; macOS has no declarative LaunchServices option, so
   # `duti` sets the handler from an activation script.
 
-  flake.modules.homeManager.sioyek = {
-    pkgs,
-    lib,
-    options,
-    ...
-  }:
+  flake.modules.homeManager.sioyek =
+    {
+      pkgs,
+      lib,
+      options,
+      ...
+    }:
     lib.mkMerge [
       {
         programs.sioyek = {
@@ -48,8 +49,8 @@
       # when it isn't already sioyek -- the modal then appears at most once (on
       # first switch), not on every rebuild.
       (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
-        home.packages = [pkgs.duti];
-        home.activation.sioyekDefaultPdf = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        home.packages = [ pkgs.duti ];
+        home.activation.sioyekDefaultPdf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           if [ "$(${lib.getExe pkgs.duti} -d com.adobe.pdf 2>/dev/null)" != "info.sioyek.sioyek" ]; then
             $DRY_RUN_CMD ${lib.getExe pkgs.duti} -s info.sioyek.sioyek com.adobe.pdf all || true
           fi

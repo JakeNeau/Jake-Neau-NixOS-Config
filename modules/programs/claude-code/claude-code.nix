@@ -1,4 +1,4 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # Claude Code: Anthropic's terminal coding assistant.
   #
   # Cross-platform: nixpkgs builds claude-code on both Linux and macOS, so
@@ -18,349 +18,382 @@
   # home-manager instead materialises each file from its text, so the config is
   # shared across machines through the flake rather than via a symlink farm.
   flake.programs.claude-code = {
-    install.linux = ["home"];
-    install.macos = ["home"];
+    install.linux = [ "home" ];
+    install.macos = [ "home" ];
     # home-manager's real programs.claude-code module supplies the enable
     # toggle, so hasEnableOption keeps its default.
-    config = {
-      pkgs,
-      lib,
-      config,
-      ...
-    }: let
-      # Source tree for the declarative config (see ./config/README.md).
-      configSrc = ./config;
+    config =
+      {
+        pkgs,
+        lib,
+        config,
+        ...
+      }:
+      let
+        # Source tree for the declarative config (see ./config/README.md).
+        configSrc = ./config;
 
-      # Markdown folders (agents, commands, rules): map each `<name>.md` to
-      # { <name> = <file contents> }. `.gitkeep` and any non-markdown file are
-      # ignored, so an otherwise-empty folder yields {} (the option default).
-      readMarkdown = dir:
-        lib.mapAttrs' (
-          name: _:
-            lib.nameValuePair (lib.removeSuffix ".md" name) (builtins.readFile (dir + "/${name}"))
-        ) (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (builtins.readDir dir));
+        # Markdown folders (agents, commands, rules): map each `<name>.md` to
+        # { <name> = <file contents> }. `.gitkeep` and any non-markdown file are
+        # ignored, so an otherwise-empty folder yields {} (the option default).
+        readMarkdown =
+          dir:
+          lib.mapAttrs'
+            (name: _: lib.nameValuePair (lib.removeSuffix ".md" name) (builtins.readFile (dir + "/${name}")))
+            (
+              lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (builtins.readDir dir)
+            );
 
-      # Hooks keep their full filename (the module writes hooks/<name> verbatim
-      # and marks it executable), so map filename -> contents and skip .gitkeep.
-      readHooks = dir:
-        lib.mapAttrs (
-          name: _: builtins.readFile (dir + "/${name}")
-        ) (lib.filterAttrs (name: type: type == "regular" && name != ".gitkeep") (builtins.readDir dir));
+        # Hooks keep their full filename (the module writes hooks/<name> verbatim
+        # and marks it executable), so map filename -> contents and skip .gitkeep.
+        readHooks =
+          dir:
+          lib.mapAttrs (name: _: builtins.readFile (dir + "/${name}")) (
+            lib.filterAttrs (name: type: type == "regular" && name != ".gitkeep") (builtins.readDir dir)
+          );
 
-      # Each subdirectory of skills/ is one skill; inline its SKILL.md as a
-      # string (the module writes skills/<name>/SKILL.md). This single-file form
-      # is the trade-off for not symlinking: a skill that ships supporting files
-      # alongside SKILL.md would need the directory form instead.
-      readSkills = dir:
-        lib.mapAttrs (
-          name: _: builtins.readFile (dir + "/${name}/SKILL.md")
-        ) (lib.filterAttrs (_: type: type == "directory") (builtins.readDir dir));
+        # Each subdirectory of skills/ is one skill; inline its SKILL.md as a
+        # string (the module writes skills/<name>/SKILL.md). This single-file form
+        # is the trade-off for not symlinking: a skill that ships supporting files
+        # alongside SKILL.md would need the directory form instead.
+        readSkills =
+          dir:
+          lib.mapAttrs (name: _: builtins.readFile (dir + "/${name}/SKILL.md")) (
+            lib.filterAttrs (_: type: type == "directory") (builtins.readDir dir)
+          );
 
-      # Global context (CLAUDE.md). Empty file -> "" -> nothing is written.
-      context = builtins.readFile (configSrc + "/CLAUDE.md");
+        # Global context (CLAUDE.md). Empty file -> "" -> nothing is written.
+        context = builtins.readFile (configSrc + "/CLAUDE.md");
 
-      # Auto-allow sandboxed bash: read-only commands, plus network to the
-      # allowlisted domains in ./_sandbox-allowed-domains.nix. Writes and any
-      # non-allowlisted host still fall back to a permission prompt.
-      settingsPolicy.sandbox = {
-        enabled = true;
-        autoAllowBashIfSandboxed = true;
-        network.allowedDomains = import ./_sandbox-allowed-domains.nix;
-      };
+        # Auto-allow sandboxed bash: read-only commands, plus network to the
+        # allowlisted domains in ./_sandbox-allowed-domains.nix. Writes and any
+        # non-allowlisted host still fall back to a permission prompt.
+        settingsPolicy.sandbox = {
+          enabled = true;
+          autoAllowBashIfSandboxed = true;
+          network.allowedDomains = import ./_sandbox-allowed-domains.nix;
+        };
 
-      # Force-enable plugins. Claude Code never auto-fetches plugins from settings
-      # alone, so each machine's cache is populated once via `claude plugin install
-      # <plugin>@claude-plugins-official`; these entries just keep them enabled
-      # across rebuilds and machines.
-      settingsPolicy.enabledPlugins."security-guidance@claude-plugins-official" = true; # in-session vuln review
-      settingsPolicy.enabledPlugins."code-simplifier@claude-plugins-official" = false; # disabled: JS/TS-flavored, redundant with comment-style-enforcer + code-reviewer, fires proactively
-      settingsPolicy.enabledPlugins."claude-md-management@claude-plugins-official" = true; # CLAUDE.md audit/maintenance
+        # Force-enable plugins. Claude Code never auto-fetches plugins from settings
+        # alone, so each machine's cache is populated once via `claude plugin install
+        # <plugin>@claude-plugins-official`; these entries just keep them enabled
+        # across rebuilds and machines.
+        settingsPolicy.enabledPlugins."security-guidance@claude-plugins-official" = true; # in-session vuln review
+        settingsPolicy.enabledPlugins."code-simplifier@claude-plugins-official" = false; # disabled: JS/TS-flavored, redundant with comment-style-enforcer + code-reviewer, fires proactively
+        settingsPolicy.enabledPlugins."claude-md-management@claude-plugins-official" = true; # CLAUDE.md audit/maintenance
 
-      # Points at the script materialised by home.file below; shows real
-      # subscription usage from Claude Code's own /usage payload on stdin.
-      settingsPolicy.statusLine = {
-        type = "command";
-        command = "${config.home.homeDirectory}/.claude/statusline-usage.sh";
-        padding = 0;
-      };
-
-      # Declarative hook registration, deep-merged into settings.json by the same
-      # policy path as the keys above. jq's `*` replaces arrays wholesale, so each
-      # event must list its COMPLETE set — anything omitted here is dropped.
-      settingsPolicy.hooks = let
-        cmd = command: {
-          inherit command;
+        # Points at the script materialised by home.file below; shows real
+        # subscription usage from Claude Code's own /usage payload on stdin.
+        settingsPolicy.statusLine = {
           type = "command";
-          timeout = 10;
+          command = "${config.home.homeDirectory}/.claude/statusline-usage.sh";
+          padding = 0;
         };
-      in {
-        # Annotates an edit's accept/deny prompt with a WHY/WHAT/WHERE/RELATES
-        # briefing (edit-briefing spec). Advisory only — it never blocks an edit.
-        PreToolUse = [
+
+        # Declarative hook registration, deep-merged into settings.json by the same
+        # policy path as the keys above. jq's `*` replaces arrays wholesale, so each
+        # event must list its COMPLETE set — anything omitted here is dropped.
+        settingsPolicy.hooks =
+          let
+            cmd = command: {
+              inherit command;
+              type = "command";
+              timeout = 10;
+            };
+          in
           {
-            matcher = "Edit|Write";
-            hooks = [(cmd "~/.claude/hooks/edit-briefing")];
-          }
-          # Auto-approves ClickUp's read tools and escalates every other one to
-          # the user. Unlike the briefings above this one does decide, because
-          # ClickUp grants no read-only scope of its own.
-          {
-            matcher = "mcp__clickup__.*";
-            hooks = [(cmd "~/.claude/hooks/clickup-read-only")];
-          }
-        ];
-        # Restates the code-writing-flow order once the plan is approved.
-        PostToolUse = [
-          {
-            matcher = "ExitPlanMode";
-            hooks = [(cmd "~/.claude/hooks/code-flow-reminder")];
-          }
-        ];
-        # Names any code-writing-flow stage that never ran. Both of these are soft
-        # gates: they only inject context, so neither can block a stop or a tool
-        # call the way the gates they replaced did.
-        Stop = [
-          {
-            hooks = [(cmd "~/.claude/hooks/code-flow-checklist")];
-          }
-        ];
-        SessionStart = [
-          {
-            hooks = [
-              # no native AGENTS.md support in Claude Code; inject one from the project root
-              (cmd "~/.claude/hooks/agents-md-context")
-              # development-flow map (the hook explains why it lives there, not in CLAUDE.md)
-              (cmd "~/.claude/hooks/session-flow-map")
+            # Annotates an edit's accept/deny prompt with a WHY/WHAT/WHERE/RELATES
+            # briefing (edit-briefing spec). Advisory only — it never blocks an edit.
+            PreToolUse = [
+              {
+                matcher = "Edit|Write";
+                hooks = [ (cmd "~/.claude/hooks/edit-briefing") ];
+              }
+              # Auto-approves ClickUp's read tools and escalates every other one to
+              # the user. Unlike the briefings above this one does decide, because
+              # ClickUp grants no read-only scope of its own.
+              {
+                matcher = "mcp__clickup__.*";
+                hooks = [ (cmd "~/.claude/hooks/clickup-read-only") ];
+              }
             ];
-          }
-        ];
-      };
-
-      # LSP servers mirroring every language nvf configures an LSP for
-      # (modules/programs/nvf). Commands are pinned to absolute store paths so
-      # the `claude` process always resolves them regardless of PATH.
-      lspServers = {
-        bash = {
-          command = "${pkgs.bash-language-server}/bin/bash-language-server";
-          args = ["start"];
-          extensionToLanguage = {
-            ".sh" = "shellscript";
-            ".bash" = "shellscript";
+            # Restates the code-writing-flow order once the plan is approved.
+            PostToolUse = [
+              {
+                matcher = "ExitPlanMode";
+                hooks = [ (cmd "~/.claude/hooks/code-flow-reminder") ];
+              }
+            ];
+            # Names any code-writing-flow stage that never ran. Both of these are soft
+            # gates: they only inject context, so neither can block a stop or a tool
+            # call the way the gates they replaced did.
+            Stop = [
+              {
+                hooks = [ (cmd "~/.claude/hooks/code-flow-checklist") ];
+              }
+            ];
+            SessionStart = [
+              {
+                hooks = [
+                  # no native AGENTS.md support in Claude Code; inject one from the project root
+                  (cmd "~/.claude/hooks/agents-md-context")
+                  # development-flow map (the hook explains why it lives there, not in CLAUDE.md)
+                  (cmd "~/.claude/hooks/session-flow-map")
+                ];
+              }
+            ];
           };
-        };
-        clang = {
-          command = "${pkgs.clang-tools}/bin/clangd";
-          args = [];
-          extensionToLanguage = {
-            ".c" = "c";
-            ".h" = "c";
-            ".cc" = "cpp";
-            ".cpp" = "cpp";
-            ".hpp" = "cpp";
+
+        # LSP servers mirroring every language nvf configures an LSP for
+        # (modules/programs/nvf). Commands are pinned to absolute store paths so
+        # the `claude` process always resolves them regardless of PATH.
+        lspServers = {
+          bash = {
+            command = "${pkgs.bash-language-server}/bin/bash-language-server";
+            args = [ "start" ];
+            extensionToLanguage = {
+              ".sh" = "shellscript";
+              ".bash" = "shellscript";
+            };
           };
-        };
-        css = {
-          command = "${pkgs.vscode-langservers-extracted}/bin/vscode-css-language-server";
-          args = ["--stdio"];
-          extensionToLanguage = {
-            ".css" = "css";
-            ".scss" = "scss";
-            ".less" = "less";
+          clang = {
+            command = "${pkgs.clang-tools}/bin/clangd";
+            args = [ ];
+            extensionToLanguage = {
+              ".c" = "c";
+              ".h" = "c";
+              ".cc" = "cpp";
+              ".cpp" = "cpp";
+              ".hpp" = "cpp";
+            };
           };
-        };
-        dart = {
-          command = "${pkgs.dart}/bin/dart";
-          args = ["language-server"];
-          extensionToLanguage = {".dart" = "dart";};
-        };
-        go = {
-          command = "${pkgs.gopls}/bin/gopls";
-          args = [];
-          extensionToLanguage = {".go" = "go";};
-        };
-        html = {
-          command = "${pkgs.vscode-langservers-extracted}/bin/vscode-html-language-server";
-          args = ["--stdio"];
-          extensionToLanguage = {".html" = "html";};
-        };
-        java = {
-          command = "${pkgs.jdt-language-server}/bin/jdtls";
-          args = [];
-          extensionToLanguage = {".java" = "java";};
-        };
-        json = {
-          command = "${pkgs.vscode-langservers-extracted}/bin/vscode-json-language-server";
-          args = ["--stdio"];
-          extensionToLanguage = {
-            ".json" = "json";
-            ".jsonc" = "jsonc";
+          css = {
+            command = "${pkgs.vscode-langservers-extracted}/bin/vscode-css-language-server";
+            args = [ "--stdio" ];
+            extensionToLanguage = {
+              ".css" = "css";
+              ".scss" = "scss";
+              ".less" = "less";
+            };
           };
-        };
-        lua = {
-          command = "${pkgs.lua-language-server}/bin/lua-language-server";
-          args = [];
-          extensionToLanguage = {".lua" = "lua";};
-        };
-        markdown = {
-          command = "${pkgs.marksman}/bin/marksman";
-          args = ["server"];
-          extensionToLanguage = {
-            ".md" = "markdown";
-            ".markdown" = "markdown";
+          dart = {
+            command = "${pkgs.dart}/bin/dart";
+            args = [ "language-server" ];
+            extensionToLanguage = {
+              ".dart" = "dart";
+            };
           };
-          # marksman reads our [[type:name]] links as wikilinks and flags each as a
-          # broken reference, with no per-link escape; disabling diagnostics silences
-          # them while keeping navigation/hover.
-          diagnostics = false;
-        };
-        nix = {
-          command = "${pkgs.nil}/bin/nil";
-          args = [];
-          extensionToLanguage = {".nix" = "nix";};
-        };
-        python = {
-          command = "${pkgs.pyright}/bin/pyright-langserver";
-          args = ["--stdio"];
-          extensionToLanguage = {".py" = "python";};
-        };
-        rust = {
-          command = "${pkgs.rust-analyzer}/bin/rust-analyzer";
-          args = [];
-          extensionToLanguage = {".rs" = "rust";};
-        };
-        svelte = {
-          command = "${pkgs.svelte-language-server}/bin/svelteserver";
-          args = ["--stdio"];
-          extensionToLanguage = {".svelte" = "svelte";};
-        };
-        toml = {
-          command = "${pkgs.taplo}/bin/taplo";
-          args = ["lsp" "stdio"];
-          extensionToLanguage = {".toml" = "toml";};
-        };
-        typescript = {
-          command = "${pkgs.typescript-language-server}/bin/typescript-language-server";
-          args = ["--stdio"];
-          extensionToLanguage = {
-            ".ts" = "typescript";
-            ".tsx" = "typescriptreact";
-            ".js" = "javascript";
-            ".jsx" = "javascriptreact";
-            ".mts" = "typescript";
-            ".cts" = "typescript";
+          go = {
+            command = "${pkgs.gopls}/bin/gopls";
+            args = [ ];
+            extensionToLanguage = {
+              ".go" = "go";
+            };
           };
-        };
-        yaml = {
-          command = "${pkgs.yaml-language-server}/bin/yaml-language-server";
-          args = ["--stdio"];
-          extensionToLanguage = {
-            ".yaml" = "yaml";
-            ".yml" = "yaml";
+          html = {
+            command = "${pkgs.vscode-langservers-extracted}/bin/vscode-html-language-server";
+            args = [ "--stdio" ];
+            extensionToLanguage = {
+              ".html" = "html";
+            };
           };
-        };
-      };
-    in {
-      programs.claude-code = {
-        enable = true;
-
-        # Pull MCP servers declared in `programs.mcp.servers` into Claude Code's
-        # config. No-op until that module is enabled with servers; wired here so
-        # adding one elsewhere is automatically picked up.
-        enableMcpIntegration = true;
-
-        inherit context lspServers;
-
-        # NOTE: settings.json is deliberately NOT managed via the module's
-        # `settings` option, which writes a read-only Nix-store symlink — Claude
-        # Code mutates that file at runtime (effort level, theme), so that would
-        # freeze those knobs. Policy keys are instead merged in at activation
-        # (see home.activation.claudeCodeSettingsPolicy below).
-
-        # Declarative config inlined from ./config (see helpers above).
-        agents = readMarkdown (configSrc + "/agents");
-        commands = readMarkdown (configSrc + "/commands");
-        rules = readMarkdown (configSrc + "/rules");
-        hooks = readHooks (configSrc + "/hooks");
-        skills = readSkills (configSrc + "/skills");
-      };
-
-      # Writing skills invoke `claude-writing-lint`, so it must be on PATH. The
-      # declaration's `packages` applies only when hasEnableOption = false.
-      home.packages = [inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.claude-writing-lint];
-
-      # MCP servers (flow into Claude via enableMcpIntegration above). mcp-nixos:
-      # live search of nixpkgs packages and NixOS/home-manager/nix-darwin options,
-      # so Claude looks them up instead of guessing. No credentials needed.
-      programs.mcp = {
-        enable = true;
-        servers.nixos.command = lib.getExe pkgs.mcp-nixos;
-
-        # ClickUp's first-party remote server. Auth is OAuth-only (it rejects
-        # personal API tokens), so no secret belongs here — authorize once per
-        # machine with `/mcp` in a Claude Code session.
-        servers.clickup.url = "https://mcp.clickup.com/mcp";
-      };
-
-      # Merge our policy into the live settings.json rather than owning the file:
-      # Claude rewrites it at runtime, so a read-only symlink would freeze theme/effort/hooks.
-      home.activation.claudeCodeSettingsPolicy = lib.hm.dag.entryAfter ["writeBoundary"] ''
-        settings="$HOME/.claude/settings.json"
-        mkdir -p "$(dirname "$settings")"
-        [ -f "$settings" ] || echo '{}' > "$settings"
-        tmp="$(mktemp)"
-        ${pkgs.jq}/bin/jq --argjson policy ${lib.escapeShellArg (builtins.toJSON settingsPolicy)} \
-          '. * $policy' "$settings" > "$tmp"  # deep-merge, our keys win
-        mv "$tmp" "$settings"
-      '';
-
-      # Claude Code loads a plugin from every subdirectory of skills/, and a
-      # home-manager backup keeps the plugin.json name it copied — so a backup
-      # left beside the managed plugin shadows it, and the MCP servers the
-      # plugin carries vanish with no error. Move any backup out of the tree
-      # rather than deleting it: the clashing content may not be reproducible.
-      home.activation.claudeCodeSkillBackups = lib.hm.dag.entryAfter ["linkGeneration"] ''
-        for backup in "$HOME"/.claude/skills/*.backup; do
-          [ -e "$backup" ] || continue
-          mkdir -p "$HOME/.claude/skill-backups"
-          # Timestamped, so a later clash cannot nest inside an earlier backup
-          mv "$backup" "$HOME/.claude/skill-backups/$(basename "$backup").$(date +%s)"
-        done
-      '';
-
-      # keybindings.json, unlike settings.json, is read-only to Claude Code (it
-      # never rewrites it), so a declarative Nix-store symlink is safe here.
-      # alt+j/k scroll by line and alt+shift+j/k by half page, in both the
-      # fullscreen Scroll view and the Ctrl+O Transcript view.
-      home.file.".claude/keybindings.json".text = let
-        scrollBinds = {
-          "alt+k" = "scroll:lineUp";
-          "alt+j" = "scroll:lineDown";
-          "alt+shift+k" = "scroll:halfPageUp";
-          "alt+shift+j" = "scroll:halfPageDown";
+          java = {
+            command = "${pkgs.jdt-language-server}/bin/jdtls";
+            args = [ ];
+            extensionToLanguage = {
+              ".java" = "java";
+            };
+          };
+          json = {
+            command = "${pkgs.vscode-langservers-extracted}/bin/vscode-json-language-server";
+            args = [ "--stdio" ];
+            extensionToLanguage = {
+              ".json" = "json";
+              ".jsonc" = "jsonc";
+            };
+          };
+          lua = {
+            command = "${pkgs.lua-language-server}/bin/lua-language-server";
+            args = [ ];
+            extensionToLanguage = {
+              ".lua" = "lua";
+            };
+          };
+          markdown = {
+            command = "${pkgs.marksman}/bin/marksman";
+            args = [ "server" ];
+            extensionToLanguage = {
+              ".md" = "markdown";
+              ".markdown" = "markdown";
+            };
+            # marksman reads our [[type:name]] links as wikilinks and flags each as a
+            # broken reference, with no per-link escape; disabling diagnostics silences
+            # them while keeping navigation/hover.
+            diagnostics = false;
+          };
+          nix = {
+            command = "${pkgs.nil}/bin/nil";
+            args = [ ];
+            extensionToLanguage = {
+              ".nix" = "nix";
+            };
+          };
+          python = {
+            command = "${pkgs.pyright}/bin/pyright-langserver";
+            args = [ "--stdio" ];
+            extensionToLanguage = {
+              ".py" = "python";
+            };
+          };
+          rust = {
+            command = "${pkgs.rust-analyzer}/bin/rust-analyzer";
+            args = [ ];
+            extensionToLanguage = {
+              ".rs" = "rust";
+            };
+          };
+          svelte = {
+            command = "${pkgs.svelte-language-server}/bin/svelteserver";
+            args = [ "--stdio" ];
+            extensionToLanguage = {
+              ".svelte" = "svelte";
+            };
+          };
+          toml = {
+            command = "${pkgs.taplo}/bin/taplo";
+            args = [
+              "lsp"
+              "stdio"
+            ];
+            extensionToLanguage = {
+              ".toml" = "toml";
+            };
+          };
+          typescript = {
+            command = "${pkgs.typescript-language-server}/bin/typescript-language-server";
+            args = [ "--stdio" ];
+            extensionToLanguage = {
+              ".ts" = "typescript";
+              ".tsx" = "typescriptreact";
+              ".js" = "javascript";
+              ".jsx" = "javascriptreact";
+              ".mts" = "typescript";
+              ".cts" = "typescript";
+            };
+          };
+          yaml = {
+            command = "${pkgs.yaml-language-server}/bin/yaml-language-server";
+            args = [ "--stdio" ];
+            extensionToLanguage = {
+              ".yaml" = "yaml";
+              ".yml" = "yaml";
+            };
+          };
         };
       in
-        builtins.toJSON {
-          "$schema" = "https://www.schemastore.org/claude-code-keybindings.json";
-          "$docs" = "https://code.claude.com/docs/en/keybindings";
-          bindings = [
-            {
-              context = "Transcript";
-              bindings = scrollBinds;
-            }
-            {
-              context = "Scroll";
-              bindings = scrollBinds;
-            }
-          ];
+      {
+        programs.claude-code = {
+          enable = true;
+
+          # Pull MCP servers declared in `programs.mcp.servers` into Claude Code's
+          # config. No-op until that module is enabled with servers; wired here so
+          # adding one elsewhere is automatically picked up.
+          enableMcpIntegration = true;
+
+          inherit context lspServers;
+
+          # NOTE: settings.json is deliberately NOT managed via the module's
+          # `settings` option, which writes a read-only Nix-store symlink — Claude
+          # Code mutates that file at runtime (effort level, theme), so that would
+          # freeze those knobs. Policy keys are instead merged in at activation
+          # (see home.activation.claudeCodeSettingsPolicy below).
+
+          # Declarative config inlined from ./config (see helpers above).
+          agents = readMarkdown (configSrc + "/agents");
+          commands = readMarkdown (configSrc + "/commands");
+          rules = readMarkdown (configSrc + "/rules");
+          hooks = readHooks (configSrc + "/hooks");
+          skills = readSkills (configSrc + "/skills");
         };
 
-      # Status line script, materialised from ./config (the claude-code module has
-      # no status-line option, so this bypasses it the same way keybindings.json
-      # does). settingsPolicy.statusLine above points settings.json at this path.
-      home.file.".claude/statusline-usage.sh" = {
-        text = builtins.readFile (configSrc + "/statusline-usage.sh");
-        executable = true;
+        # Writing skills invoke `claude-writing-lint`, so it must be on PATH. The
+        # declaration's `packages` applies only when hasEnableOption = false.
+        home.packages = [ inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.claude-writing-lint ];
+
+        # MCP servers (flow into Claude via enableMcpIntegration above). mcp-nixos:
+        # live search of nixpkgs packages and NixOS/home-manager/nix-darwin options,
+        # so Claude looks them up instead of guessing. No credentials needed.
+        programs.mcp = {
+          enable = true;
+          servers.nixos.command = lib.getExe pkgs.mcp-nixos;
+
+          # ClickUp's first-party remote server. Auth is OAuth-only (it rejects
+          # personal API tokens), so no secret belongs here — authorize once per
+          # machine with `/mcp` in a Claude Code session.
+          servers.clickup.url = "https://mcp.clickup.com/mcp";
+        };
+
+        # Merge our policy into the live settings.json rather than owning the file:
+        # Claude rewrites it at runtime, so a read-only symlink would freeze theme/effort/hooks.
+        home.activation.claudeCodeSettingsPolicy = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          settings="$HOME/.claude/settings.json"
+          mkdir -p "$(dirname "$settings")"
+          [ -f "$settings" ] || echo '{}' > "$settings"
+          tmp="$(mktemp)"
+          ${pkgs.jq}/bin/jq --argjson policy ${lib.escapeShellArg (builtins.toJSON settingsPolicy)} \
+            '. * $policy' "$settings" > "$tmp"  # deep-merge, our keys win
+          mv "$tmp" "$settings"
+        '';
+
+        # Claude Code loads a plugin from every subdirectory of skills/, and a
+        # home-manager backup keeps the plugin.json name it copied — so a backup
+        # left beside the managed plugin shadows it, and the MCP servers the
+        # plugin carries vanish with no error. Move any backup out of the tree
+        # rather than deleting it: the clashing content may not be reproducible.
+        home.activation.claudeCodeSkillBackups = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+          for backup in "$HOME"/.claude/skills/*.backup; do
+            [ -e "$backup" ] || continue
+            mkdir -p "$HOME/.claude/skill-backups"
+            # Timestamped, so a later clash cannot nest inside an earlier backup
+            mv "$backup" "$HOME/.claude/skill-backups/$(basename "$backup").$(date +%s)"
+          done
+        '';
+
+        # keybindings.json, unlike settings.json, is read-only to Claude Code (it
+        # never rewrites it), so a declarative Nix-store symlink is safe here.
+        # alt+j/k scroll by line and alt+shift+j/k by half page, in both the
+        # fullscreen Scroll view and the Ctrl+O Transcript view.
+        home.file.".claude/keybindings.json".text =
+          let
+            scrollBinds = {
+              "alt+k" = "scroll:lineUp";
+              "alt+j" = "scroll:lineDown";
+              "alt+shift+k" = "scroll:halfPageUp";
+              "alt+shift+j" = "scroll:halfPageDown";
+            };
+          in
+          builtins.toJSON {
+            "$schema" = "https://www.schemastore.org/claude-code-keybindings.json";
+            "$docs" = "https://code.claude.com/docs/en/keybindings";
+            bindings = [
+              {
+                context = "Transcript";
+                bindings = scrollBinds;
+              }
+              {
+                context = "Scroll";
+                bindings = scrollBinds;
+              }
+            ];
+          };
+
+        # Status line script, materialised from ./config (the claude-code module has
+        # no status-line option, so this bypasses it the same way keybindings.json
+        # does). settingsPolicy.statusLine above points settings.json at this path.
+        home.file.".claude/statusline-usage.sh" = {
+          text = builtins.readFile (configSrc + "/statusline-usage.sh");
+          executable = true;
+        };
       };
-    };
   };
 }

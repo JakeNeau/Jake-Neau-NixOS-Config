@@ -1,4 +1,4 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # mac-app-util: register Nix-installed macOS .app bundles with LaunchServices
   # via real trampoline apps instead of nix-store symlinks. macOS ignores apps
   # reached through store symlinks, so without this a Nix app can't be made a
@@ -18,13 +18,13 @@
 
   # Trampoline system apps (environment.systemPackages).
   flake.modules.darwin.mac-app-util = {
-    imports = [inputs.mac-app-util.darwinModules.default];
+    imports = [ inputs.mac-app-util.darwinModules.default ];
   };
 
   # Trampoline every user's home-manager apps -- sioyek is installed through
   # home-manager, so this is what fixes its PDF default. Delivered through the
   # mac hosts' baselines.
   flake.modules.homeManager.mac-app-util = {
-    imports = [inputs.mac-app-util.homeManagerModules.default];
+    imports = [ inputs.mac-app-util.homeManagerModules.default ];
   };
 }

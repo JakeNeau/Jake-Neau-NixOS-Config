@@ -1,22 +1,33 @@
-{inputs, ...}: {
+{ inputs, ... }: {
   # The NixOS desktop ("redwood"). Shared desktop config comes from
   # role-desktop; this file holds only desktop-specific hardware/features.
   flake.hosts.redwood = {
     class = "nixos";
     system = "x86_64-linux";
-    users = ["jakeneau"];
-    globalPrograms = ["ghostty" "yazi" "fastfetch" "gh" "nautilus" "openpencil"];
-    baselines = ["role-desktop" "niri-desktop" "stylix"];
+    users = [ "jakeneau" ];
+    globalPrograms = [
+      "ghostty"
+      "yazi"
+      "fastfetch"
+      "gh"
+      "nautilus"
+      "openpencil"
+    ];
+    baselines = [
+      "role-desktop"
+      "niri-desktop"
+      "stylix"
+    ];
   };
 
-  flake.modules.nixos.redwood = {pkgs, ...}: {
+  flake.modules.nixos.redwood = { pkgs, ... }: {
     imports =
       (with inputs.self.modules.nixos; [
         role-desktop
         lanzaboote
         nix-minecraft
       ])
-      ++ [inputs.self.modules.generic.numtide-cache];
+      ++ [ inputs.self.modules.generic.numtide-cache ];
 
     hostConstants.hostName = "redwood";
     hostConstants.displayResolution = {
@@ -51,7 +62,8 @@
       }
     ];
 
-    boot.initrd.luks.devices."luks-014e6aef-d36f-4b5b-9b48-447d6bc40b95".device = "/dev/disk/by-uuid/014e6aef-d36f-4b5b-9b48-447d6bc40b95";
+    boot.initrd.luks.devices."luks-014e6aef-d36f-4b5b-9b48-447d6bc40b95".device =
+      "/dev/disk/by-uuid/014e6aef-d36f-4b5b-9b48-447d6bc40b95";
 
     # -----
     # Audio
