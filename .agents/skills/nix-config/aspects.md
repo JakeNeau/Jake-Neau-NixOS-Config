@@ -165,20 +165,20 @@ aspect. **Imports stay unconditional; only content is conditional.**
 breaking evaluation with a conditional import.
 
 **Use it over others when:** the variation is *within* one aspect and switches on a
-runtime-detectable condition (`pkgs.stdenv.isLinux/isDarwin`). If the contexts are
-genuinely separate modules, prefer Simple's per-class split; reach for Conditional
-when you want one aspect that bends rather than several that duplicate. The same
-shape works inside a program declaration's `config` field (ghostty's module
-gates its macOS-only lines on `pkgs.stdenv.isDarwin`).
+runtime-detectable condition (`pkgs.stdenv.hostPlatform.isLinux/isDarwin`). If the
+contexts are genuinely separate modules, prefer Simple's per-class split; reach for
+Conditional when you want one aspect that bends rather than several that duplicate.
+The same shape works inside a program declaration's `config` field (ghostty's module
+gates its macOS-only lines on `pkgs.stdenv.hostPlatform.isDarwin`).
 
 ```nix
 flake.modules.homeManager.office = {pkgs, lib, ...}:
   lib.mkMerge [
     {home.packages = with pkgs; [notesnook];} # all systems
-    (lib.mkIf pkgs.stdenv.isLinux {
+    (lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
       home.packages = with pkgs; [libreoffice-qt6];
     })
-    (lib.mkIf pkgs.stdenv.isDarwin {
+    (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
       home.packages = with pkgs; [libreoffice-bin];
     })
   ];

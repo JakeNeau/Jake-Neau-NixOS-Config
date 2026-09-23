@@ -1,0 +1,180 @@
+diff -ruN pi-patch-old/dist/modes/interactive/components/assistant-message.js pi-patch-new/dist/modes/interactive/components/assistant-message.js
+--- pi-patch-old/dist/modes/interactive/components/assistant-message.js	2026-09-19 21:32:11.058430112 -0500
++++ pi-patch-new/dist/modes/interactive/components/assistant-message.js	2026-09-19 21:38:51.424115945 -0500
+@@ -71,7 +71,14 @@
+         this.isStreaming = isStreaming;
+         // Clear content container
+         this.contentContainer.clear();
+-        const hasVisibleContent = message.content.some((c) => (c.type === "text" && c.text.trim()) || (c.type === "thinking" && c.thinking.trim()));
++        const hasToolCalls = message.content.some((c) => c.type === "toolCall");
++        this.hasToolCalls = hasToolCalls;
++        if (process.env.PI_MINIMAL_TRANSCRIPT === "1" &&
++            (isStreaming || message.stopReason !== "stop" || hasToolCalls)) {
++            return;
++        }
++        const hasVisibleContent = message.content.some((c) => (c.type === "text" && c.text.trim()) ||
++            (process.env.PI_MINIMAL_TRANSCRIPT !== "1" && c.type === "thinking" && c.thinking.trim()));
+         if (hasVisibleContent) {
+             this.contentContainer.addChild(new Spacer(1));
+         }
+@@ -79,6 +86,9 @@
+         let thinkingRunIndex = 0;
+         for (let i = 0; i < message.content.length; i++) {
+             const content = message.content[i];
++            if (process.env.PI_MINIMAL_TRANSCRIPT === "1" && content.type === "thinking") {
++                continue;
++            }
+             if (content.type === "text" && content.text.trim()) {
+                 // Assistant text messages with no background - trim the text
+                 // Set paddingY=0 to avoid extra spacing before tool executions
+@@ -133,8 +143,6 @@
+         // Check if incomplete/failed - show after partial content.
+         // For aborted/error tool calls, tool execution components show the error.
+         // Length stops can happen before a tool call is complete, so surface them here too.
+-        const hasToolCalls = message.content.some((c) => c.type === "toolCall");
+-        this.hasToolCalls = hasToolCalls;
+         if (message.stopReason === "length") {
+             this.contentContainer.addChild(new Spacer(1));
+             this.contentContainer.addChild(new Text(theme.fg("error", "Response was truncated before completion."), this.outputPad, 0));
+diff -ruN pi-patch-old/dist/modes/interactive/components/custom-entry.js pi-patch-new/dist/modes/interactive/components/custom-entry.js
+--- pi-patch-old/dist/modes/interactive/components/custom-entry.js	2026-09-19 21:32:11.059430123 -0500
++++ pi-patch-new/dist/modes/interactive/components/custom-entry.js	2026-09-19 21:32:47.796854156 -0500
+@@ -15,6 +15,9 @@
+         this.renderer = renderer;
+         this.rebuild();
+     }
++    get customType() {
++        return this.entry.customType;
++    }
+     hasContent() {
+         return this.customComponent !== undefined;
+     }
+diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/dist/modes/interactive/interactive-mode.js
+--- pi-patch-old/dist/modes/interactive/interactive-mode.js	2026-09-19 21:32:11.057430100 -0500
++++ pi-patch-new/dist/modes/interactive/interactive-mode.js	2026-09-19 21:33:10.915121749 -0500
+@@ -88,6 +88,20 @@
+ function isExpandable(obj) {
+     return typeof obj === "object" && obj !== null && "setExpanded" in obj && typeof obj.setExpanded === "function";
+ }
++const MINIMAL_TRANSCRIPT_DIFF_TYPE = "minimal-transcript-diff";
++function isMinimalTranscript() {
++    return process.env.PI_MINIMAL_TRANSCRIPT === "1";
++}
++class TranscriptContainer extends Container {
++    addChild(component) {
++        if (!isMinimalTranscript() ||
++            component instanceof UserMessageComponent ||
++            component instanceof AssistantMessageComponent ||
++            (component instanceof CustomEntryComponent && component.customType === MINIMAL_TRANSCRIPT_DIFF_TYPE)) {
++            super.addChild(component);
++        }
++    }
++}
+ class ExpandableText extends Text {
+     getCollapsedText;
+     getExpandedText;
+@@ -329,10 +343,12 @@
+         this.ui.setClearOnShrink(this.settingsManager.getClearOnShrink());
+         this.headerContainer = new Container();
+         this.loadedResourcesContainer = new Container();
+-        this.chatContainer = new Container();
++        this.chatContainer = new TranscriptContainer();
+         this.documentContainer = new Container();
+-        this.documentContainer.addChild(this.headerContainer);
+-        this.documentContainer.addChild(this.loadedResourcesContainer);
++        if (!isMinimalTranscript()) {
++            this.documentContainer.addChild(this.headerContainer);
++            this.documentContainer.addChild(this.loadedResourcesContainer);
++        }
+         this.documentContainer.addChild(this.chatContainer);
+         this.pendingMessagesContainer = new Container();
+         this.statusContainer = new Container();
+@@ -354,7 +370,9 @@
+         this.footer = new FooterComponent(this.session, this.footerDataProvider);
+         this.footer.setAutoCompactEnabled(this.session.autoCompactionEnabled);
+         this.footerContainer = new Container();
+-        this.footerContainer.addChild(this.footer);
++        if (!isMinimalTranscript()) {
++            this.footerContainer.addChild(this.footer);
++        }
+         // Load hide thinking block setting
+         this.hideThinkingBlock = this.settingsManager.getHideThinkingBlock();
+         this.outputPad = this.settingsManager.getOutputPad();
+@@ -1614,6 +1632,8 @@
+      * Set extension status text in the footer.
+      */
+     setExtensionStatus(key, text) {
++        if (isMinimalTranscript())
++            return;
+         this.footerDataProvider.setExtensionStatus(key, text);
+         this.ui.requestRender();
+     }
+@@ -1625,6 +1645,14 @@
+         return true;
+     }
+     showStatusIndicator(indicator) {
++        if (isMinimalTranscript()) {
++            indicator.dispose();
++            this.activeStatusIndicator?.dispose();
++            this.activeStatusIndicator = undefined;
++            this.statusContainer.clear();
++            this.setEditorWorkingStatusIndicator(undefined);
++            return;
++        }
+         this.activeStatusIndicator?.dispose();
+         this.activeStatusIndicator = indicator;
+         this.activeWorkingIndicatorEmbedded = false;
+@@ -1805,6 +1833,11 @@
+             this.customFooter.dispose();
+         }
+         this.footerContainer.clear();
++        if (isMinimalTranscript()) {
++            this.customFooter = undefined;
++            this.ui.requestRender();
++            return;
++        }
+         if (factory) {
+             // Create and add custom footer, passing the data provider
+             this.customFooter = factory(this.ui, theme, this.footerDataProvider);
+@@ -2893,6 +2926,9 @@
+         this.ui.requestRender();
+     }
+     addCustomEntryToChat(entry) {
++        if (isMinimalTranscript() && entry.customType !== MINIMAL_TRANSCRIPT_DIFF_TYPE) {
++            return;
++        }
+         const renderer = this.session.extensionRunner.getEntryRenderer(entry.customType);
+         if (!renderer) {
+             return;
+@@ -2953,16 +2989,23 @@
+                     }
+                     const skillBlock = parseSkillBlock(textContent);
+                     if (skillBlock) {
+-                        // Render skill block (collapsible)
+-                        const component = new SkillInvocationMessageComponent(skillBlock, this.getMarkdownThemeWithSettings());
+-                        component.setExpanded(this.toolOutputExpanded);
+-                        this.chatContainer.addChild(component);
+-                        // Render user message separately if present
+-                        if (skillBlock.userMessage) {
+-                            this.chatContainer.addChild(new Spacer(1));
+-                            const userComponent = new UserMessageComponent(skillBlock.userMessage, this.getMarkdownThemeWithSettings(), this.outputPad, this.getMarkdownTransformers());
++                        if (isMinimalTranscript()) {
++                            const prompt = `/${skillBlock.name}${skillBlock.userMessage ? ` ${skillBlock.userMessage}` : ""}`;
++                            const userComponent = new UserMessageComponent(prompt, this.getMarkdownThemeWithSettings(), this.outputPad, this.getMarkdownTransformers());
+                             this.chatContainer.addChild(userComponent);
+                         }
++                        else {
++                            // Render skill block (collapsible)
++                            const component = new SkillInvocationMessageComponent(skillBlock, this.getMarkdownThemeWithSettings());
++                            component.setExpanded(this.toolOutputExpanded);
++                            this.chatContainer.addChild(component);
++                            // Render user message separately if present
++                            if (skillBlock.userMessage) {
++                                this.chatContainer.addChild(new Spacer(1));
++                                const userComponent = new UserMessageComponent(skillBlock.userMessage, this.getMarkdownThemeWithSettings(), this.outputPad, this.getMarkdownTransformers());
++                                this.chatContainer.addChild(userComponent);
++                            }
++                        }
+                     }
+                     else {
+                         const userComponent = new UserMessageComponent(textContent, this.getMarkdownThemeWithSettings(), this.outputPad, this.getMarkdownTransformers());

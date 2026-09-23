@@ -170,8 +170,8 @@ When you define `flake.modules.<class>.<name>`:
    that a declaration already delivers (via `globalPrograms` or a user
    declaration) — double delivery concatenates list options.
 5. **Merge with `lib.mkMerge`, not `//`.** `//` is a shallow overwrite.
-6. **Detect the platform with `pkgs.stdenv.isLinux` / `isDarwin`**, not
-   hand-rolled flags.
+6. **Detect the platform with `pkgs.stdenv.hostPlatform.isLinux` / `isDarwin`**,
+   not hand-rolled flags.
 
 The recurring aspect shapes — Declaration, Simple, Inheritance, Conditional,
 Collector, Constants, DRY, Factory — are cataloged with code in

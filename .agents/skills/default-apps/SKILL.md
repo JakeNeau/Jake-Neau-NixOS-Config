@@ -20,8 +20,8 @@ description: >-
 
 Registering an app as the default handler for a file type or URL scheme is
 **per-OS**, so it belongs in a cross-platform home-manager aspect split with
-`lib.mkMerge` + `pkgs.stdenv.isLinux` / `isDarwin` (see [[skill:nix-config]] for
-the aspect rules). Copy the two canonical examples in this repo:
+`lib.mkMerge` + `pkgs.stdenv.hostPlatform.isLinux` / `isDarwin` (see
+[[skill:nix-config]] for the aspect rules). Copy the two canonical examples in this repo:
 `modules/programs/sioyek/sioyek.nix` (PDF) and
 `modules/programs/librewolf/librewolf.nix` (browser).
 
@@ -31,7 +31,7 @@ Linux has a real declarative option. Point the MIME type at the app's `.desktop`
 file:
 
 ```nix
-(lib.mkIf pkgs.stdenv.isLinux {
+(lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
   xdg.mimeApps = {
     enable = true;
     defaultApplications."application/pdf" = "sioyek.desktop";
@@ -69,7 +69,7 @@ call.
 Single type (PDF):
 
 ```nix
-(lib.mkIf pkgs.stdenv.isDarwin {
+(lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
   home.packages = [pkgs.duti];
   home.activation.sioyekDefaultPdf =
     lib.hm.dag.entryAfter ["writeBoundary"] ''
@@ -83,7 +83,7 @@ Single type (PDF):
 Several types for one app (browser) — loop so the guard applies to each:
 
 ```nix
-(lib.mkIf pkgs.stdenv.isDarwin {
+(lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
   home.packages = [pkgs.duti];
   home.activation.librewolfDefaultBrowser =
     lib.hm.dag.entryAfter ["writeBoundary"] ''

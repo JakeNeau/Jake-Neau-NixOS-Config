@@ -15,10 +15,30 @@ user: [coding agents](../explanation/coding-agents.md).
   toggle and installs both pi and `agent-browser` behind it.
 - Pi comes from `inputs.llm-agents.packages.<system>.pi`, via
   **llm-agents.nix** (`github:numtide/llm-agents.nix`). The input deliberately
-  does not follow this flake's nixpkgs, preserving numtide's binary-cache hit.
+  does not follow this flake's nixpkgs. The module patches the packaged
+  JavaScript and rebuilds the Bun executable locally with cached npm
+  dependencies.
 - `agent-browser` uses the upstream release binary with a hash for each
   supported Linux/macOS architecture. The module patches Linux binaries for
   NixOS.
+
+## Minimal transcript
+
+The patched Pi package and `minimal-transcript` extension restrict the
+interactive transcript to user prompts, file diffs, and final assistant
+responses. Pi hides startup notices, thinking, intermediate assistant messages,
+tool calls, tool results, custom entries, dynamic statuses, and the footer.
+Dialogs and the editor remain available for interaction.
+
+The extension records successful `edit` and `write` calls as durable custom
+entries. Each entry opens as a colored unified diff. `Ctrl+Shift+O` collapses
+all file diffs to one-line path and line-count summaries. Pi's standard
+`Ctrl+O` binding toggles the same diff expansion state.
+
+The filter applies to every tool renderer, including tools from third-party
+extensions. Diff capture is narrower because only `edit` and `write` expose a
+bounded text-file mutation contract. File changes made through `bash` or another
+custom tool do not produce diff entries.
 
 ## Selectable questions
 

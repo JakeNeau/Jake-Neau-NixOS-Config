@@ -3,8 +3,19 @@
   askUserSource = "${extensionSource}/ask-user";
   rustToolsSource = "${extensionSource}/rust-tools";
   openPencilSource = "${extensionSource}/openpencil";
+  minimalTranscriptSource = "${extensionSource}/minimal-transcript";
   workflowSource = "${extensionSource}/workflows";
   writingSource = ./writing;
+  mkPiPackage = pkgs:
+    inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi.overrideAttrs (old: {
+      patches = (old.patches or []) ++ [./patches/minimal-transcript.patch];
+      nativeBuildInputs = (old.nativeBuildInputs or []) ++ [pkgs.makeWrapper];
+      postFixup =
+        (old.postFixup or "")
+        + ''
+          wrapProgram "$out/bin/pi" --set PI_MINIMAL_TRANSCRIPT 1
+        '';
+    });
   mkPiLinkRegistry = pkgs:
     pkgs.runCommand "pi-link-registry.json" {
       nativeBuildInputs = [pkgs.nodejs];
@@ -104,6 +115,25 @@
       printf '{"type":"get_state"}\n' \
         | pi --mode rpc --no-session --offline --no-extensions \
           --extension ./ask-user/index.ts >rpc.jsonl
+      grep -q '"success":true' rpc.jsonl
+      touch "$out"
+    '';
+  mkPiMinimalTranscriptCheck = pkgs:
+    pkgs.runCommand "pi-minimal-transcript" {
+      nativeBuildInputs = [
+        (mkPiPackage pkgs)
+        pkgs.nodejs
+      ];
+    } ''
+      cp -R ${minimalTranscriptSource} minimal-transcript
+      chmod -R u+w minimal-transcript
+      node --experimental-strip-types --test minimal-transcript/tests/*.test.ts
+
+      export HOME="$TMPDIR/home"
+      mkdir -p "$HOME"
+      printf '{"type":"get_state"}\n' \
+        | pi --mode rpc --no-session --offline --no-extensions \
+          --extension ./minimal-transcript/index.ts >rpc.jsonl
       grep -q '"success":true' rpc.jsonl
       touch "$out"
     '';
@@ -348,6 +378,7 @@ in {
     checks = {
       pi-ask-user = mkPiAskUserCheck pkgs;
       pi-fish-shell = mkPiFishShellCheck pkgs;
+      pi-minimal-transcript = mkPiMinimalTranscriptCheck pkgs;
       pi-openpencil = mkPiOpenPencilCheck pkgs;
       pi-rust-tools = mkPiRustToolsCheck pkgs;
       pi-workflows = mkPiWorkflowCheck pkgs;
@@ -360,8 +391,8 @@ in {
     };
   };
 
-  # Pi itself comes from llm-agents.nix (numtide), whose binary cache avoids a
-  # local Rust build. Extension and adapter sources stay immutable in the store.
+  # Pi comes from llm-agents.nix and receives a small transcript patch. The
+  # package keeps the cached npm dependencies and builds its Bun executable locally.
   flake-file.inputs = {
     llm-agents.url = "github:numtide/llm-agents.nix";
     # Pi exposes RPC but not ACP, so editors need this protocol adapter.
@@ -419,7 +450,7 @@ in {
         '';
       };
     in [
-      inputs.llm-agents.packages.${system}.pi
+      (mkPiPackage pkgs)
       inputs.self.packages.${system}.pi-acp
       inputs.self.packages.${system}.pi-writing-lint
       agent-browser
@@ -482,6 +513,9 @@ in {
           export default createOpenPencilExtension({
             serverPath: "${config.home.profileDirectory}/bin/openpencil-mcp",
           });
+        '';
+        ".pi/agent/extensions/minimal-transcript/index.ts".text = ''
+          export { default } from "${minimalTranscriptSource}/index.ts";
         '';
         ".pi/agent/extensions/workflows/index.ts".text = ''
           export { default } from "${workflowSource}/index.ts";

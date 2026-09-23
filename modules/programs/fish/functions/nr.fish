@@ -26,7 +26,7 @@ function nr --description "Pulls, verifies every environment in the flake, commi
   # (empty on macOS) while the nix subcommands below keep using --quiet
   set -l flake /etc/nixos
   set -l this_class nixosConfigurations
-  set -l rebuild nixos-rebuild switch --upgrade --flake
+  set -l rebuild nixos-rebuild switch --flake
   set -l rebuild_quiet --quiet
   if test (uname) = Darwin
     set flake /etc/nix-darwin

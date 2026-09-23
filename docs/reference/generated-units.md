@@ -14,7 +14,7 @@ contains `"home"`. It:
 
 - imports the declaration's `config` module;
 - gates its content (never its imports) on the platforms that declare
-  `"home"`, via `pkgs.stdenv.isLinux` / `isDarwin`;
+  `"home"`, via `pkgs.stdenv.hostPlatform.isLinux` / `isDarwin`;
 - sets `programs.<name>.enable = true` plainly — the boundary wrapper
   lands it at priority 900 at host stamping, so a user's plain
   `programs.<name>.enable = false;` (priority 100) wins;

@@ -43,7 +43,7 @@ Field choices:
   hand-written; incoherent combinations throw at evaluation with the fix
   named.
 - **Platform-specific config?** Make `config` a module function and gate on
-  `pkgs.stdenv.isLinux`/`isDarwin` (see
+  `pkgs.stdenv.hostPlatform.isLinux`/`isDarwin` (see
   `modules/programs/ghostty/ghostty.nix`).
 
 ## 2. Stage it

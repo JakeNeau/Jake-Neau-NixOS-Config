@@ -69,6 +69,9 @@ in {
           hyprland.enable = false;
           # Replaced by the hand-wired nvf theming below.
           nvf.enable = false;
+          # Stylix still writes the renamed programs.rofi.font option.
+          # Remove this override after it uses programs.rofi.settings.font.
+          rofi.fonts.enable = false;
           librewolf.profileNames = [
             "work"
             "strict"
@@ -78,6 +81,8 @@ in {
       }
     ];
     home.pointerCursor.enable = true;
+
+    programs.rofi.settings.font = "${config.stylix.fonts.monospace.name} ${toString config.stylix.fonts.sizes.popups}";
 
     # Stylix's nvf target still sets vim.statusline.lualine.theme, which nvf
     # renamed (warning on every eval). Same theming, new option name. Drop
