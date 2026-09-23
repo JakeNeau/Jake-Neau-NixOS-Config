@@ -7,13 +7,14 @@
   # re-pops on every rebuild. Trampolines also make the apps visible to Spotlight
   # and Launchpad. https://github.com/hraban/mac-app-util
 
-  flake-file.inputs.mac-app-util.url = "github:hraban/mac-app-util";
-  # Deliberately NOT `inputs.nixpkgs.follows = "nixpkgs"`. mac-app-util is a
-  # Common Lisp program built with SBCL; our nixpkgs ships SBCL 2.6.4, whose
-  # fare-quasiquote build dies in named-readtables ("Bug in readtable iterators
-  # or concurrent access?" -- a #\Nul reader-macro conflict). Letting it keep
-  # its own pinned nixpkgs (SBCL 2.5.7) sidesteps the broken toolchain. The
-  # extra nixpkgs only feeds this build-time tool, so the closure cost is small.
+  flake-file.inputs.mac-app-util = {
+    url = "github:hraban/mac-app-util";
+    # mac-app-util is a Common Lisp program built with SBCL. Its own nixpkgs
+    # pin ships SBCL 2.6.4, whose runtime cannot map its heap on macOS 27
+    # ("failed to allocate ... at 0x300100000"), so every activation that
+    # syncs trampolines crashes. Our nixpkgs' SBCL 2.6.8 builds and runs.
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
 
   # Trampoline system apps (environment.systemPackages).
   flake.modules.darwin.mac-app-util = {
