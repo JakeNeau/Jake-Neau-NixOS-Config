@@ -437,7 +437,20 @@
               # Launchers replace gitsigns' plain vimdiff: file-scoped under
               # <leader>gd, project-scoped under <leader>gD.
               "codediff.nvim" = {
-                package = pkgs.vimPlugins.codediff-nvim;
+                # 3.1.4 is the last release with codediff's own scroll sync.
+                # 4.0.4+ relies on native 'scrollbind', whose tall-filler fix
+                # Neovim reverted (neovim#41820), so added or deleted lines at
+                # least a window tall misalign the panes. Unpin once it relands.
+                package = pkgs.vimPlugins.codediff-nvim.overrideAttrs rec {
+                  version = "3.1.4";
+                  name = "vimplugin-codediff.nvim-${version}";
+                  src = pkgs.fetchFromGitHub {
+                    owner = "esmuellert";
+                    repo = "codediff.nvim";
+                    tag = "v${version}";
+                    hash = "sha256-lwssM0HlfBXUgBIRbtLKpF9WrQxXKDWNGiyXolk112g=";
+                  };
+                };
                 setupModule = "codediff";
                 setupOpts = { };
                 cmd = [ "CodeDiff" ];

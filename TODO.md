@@ -397,6 +397,19 @@
       fish plugin packaging per the maintainer stance in nixpkgs PR #393174),
       remove the `doCheck = false` override on pure in
       `modules/programs/fish/fish.nix`.
+- [ ] Remove the codediff.nvim 3.1.4 pin once Neovim relands its fix for
+      `'scrollbind'` with tall `virt_lines` blocks. The pin is the
+      `overrideAttrs` on the `"codediff.nvim"` package in
+      `modules/programs/nvf/nvf.nix`. Also unpin if a later codediff release
+      restores its own scroll sync. Verify removal: scroll a diff with a
+      deletion taller than the window from each pane, and confirm that the
+      panes stay aligned.
+
+      The Neovim fix is `neovim/neovim` PR 41519, and PR 41820 reverted it for
+      regressions. Backport PR 41824 also reverted it on the 0.12 branch.
+      In `esmuellert/codediff.nvim` PR 557, codediff 4.0.4 replaced its own
+      scroll sync with native `'scrollbind'` because of that fix. Without the
+      fix, added or deleted lines taller than the window misalign the panes.
 
 ## When I get a homelab
 
