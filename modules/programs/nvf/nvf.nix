@@ -1458,6 +1458,13 @@
             })
           '';
 
+          # codediff's explorer view auto-downloads a file watcher into the
+          # plugin root, which is the read-only Nix store and fails. Polling
+          # is the built-in fallback.
+          luaConfigRC.codediffNoWatcherInstall = ''
+            vim.env.CODEDIFF_WATCHER_NO_AUTO_INSTALL = "1"
+          '';
+
           # Branch base for the codediff "diff branch" keys: the trunk the remote
           # points origin/HEAD at, falling back to a local main/master. Runs in
           # Neovim's cwd, matching how codediff itself resolves the working repo.
