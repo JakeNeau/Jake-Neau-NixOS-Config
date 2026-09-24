@@ -112,12 +112,7 @@
           pisces # Adds parentheses, quotes, etc. in pairs
           plugin-sudope # Add sudo to a command when you forgot
           puffer # Useful text expansions
-          # pure's test suite fails in the Nix sandbox (permission errors,
-          # likely the Nix >= 2.30 build-dir move); the plugin itself is fine,
-          # so build it without tests.
-          (pure.overrideAttrs (_: {
-            doCheck = false;
-          })) # Minimal and fast fish prompt
+          pure # Minimal and fast fish prompt
           sponge # Remove typos from terminal
           z # Jump to previous directories
         ];

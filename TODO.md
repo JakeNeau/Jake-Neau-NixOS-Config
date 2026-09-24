@@ -388,15 +388,6 @@
       `modules/programs/claude-code/config/hooks/agents-md-context` and its
       `settingsPolicy.hooks.SessionStart` registration in
       `modules/programs/claude-code/claude-code.nix`.
-- [ ] Report the fishPlugins.pure build failure upstream to nixpkgs — pure
-      4.15.0's fishtape test suite fails 24/286 tests in the Nix build sandbox
-      (permission-denied errors, likely caused by Nix >= 2.30 moving build
-      dirs from /tmp to /nix/var/nix/builds; same failure class as nixpkgs
-      issues #510488 (nushell) and PR #535763 (mise)). The failure appears
-      unreported for pure. Once fixed upstream (or checks are dropped from
-      fish plugin packaging per the maintainer stance in nixpkgs PR #393174),
-      remove the `doCheck = false` override on pure in
-      `modules/programs/fish/fish.nix`.
 - [ ] Remove the codediff.nvim 3.1.4 pin once Neovim relands its fix for
       `'scrollbind'` with tall `virt_lines` blocks. The pin is the
       `overrideAttrs` on the `"codediff.nvim"` package in
