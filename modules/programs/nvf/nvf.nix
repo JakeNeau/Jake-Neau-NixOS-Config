@@ -7,6 +7,12 @@
   # namespace is identical between the NixOS and home-manager nvf modules.
 
   flake-file.inputs.nvf.url = "github:notashelf/nvf";
+  # Uncached: its Rust/Go client recompiles whenever the tag or nixpkgs moves,
+  # so the tag stays pinned rather than tracking main.
+  flake-file.inputs.kubectl-nvim = {
+    url = "github:Ramilito/kubectl.nvim/v2.44.1";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
 
   flake.modules.homeManager.nvf =
     {
@@ -16,10 +22,11 @@
       ...
     }:
     let
-      # AI plugins follow the agent selected by this home; absent program units
-      # do not declare their enable options, hence attrByPath.
+      # Program-bound plugins follow the programs this home declares; absent
+      # program units do not declare their enable options, hence attrByPath.
       claudeAi = lib.attrByPath [ "programs" "claude-code" "enable" ] false config;
       piAi = lib.attrByPath [ "programs" "pi" "enable" ] false config;
+      kubernetes = lib.attrByPath [ "programs" "kubernetes" "enable" ] false config;
       piAcp = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pi-acp;
     in
     {
@@ -428,6 +435,30 @@
                     mode = "n";
                     action = "<cmd>J undo<cr>";
                     desc = "jj undo";
+                  }
+                ];
+              };
+
+              # Kubernetes cluster browser (:Kubectl); in-buffer keys are its
+              # defaults (g? lists them). Gated on the kubernetes program,
+              # whose kubectl it drives.
+              "kubectl.nvim" = lib.mkIf kubernetes {
+                # nixpkgs has no kubectl.nvim, so the upstream flake builds it.
+                package = inputs.kubectl-nvim.packages.${pkgs.stdenv.hostPlatform.system}.default;
+                setupModule = "kubectl";
+                setupOpts = { };
+                cmd = [
+                  "Kubectl"
+                  "K"
+                  "Kubens"
+                  "Kubectx"
+                ];
+                keys = [
+                  {
+                    key = "<leader>k";
+                    mode = "n";
+                    action = "<cmd>lua require('kubectl').toggle()<cr>";
+                    desc = "Kubectl";
                   }
                 ];
               };
