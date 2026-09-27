@@ -22,23 +22,35 @@ user: [coding agents](../explanation/coding-agents.md).
   supported Linux/macOS architecture. The module patches Linux binaries for
   NixOS.
 
-## Minimal transcript
+## Transcript modes
 
-The patched Pi package and `minimal-transcript` extension restrict the
-interactive transcript to user prompts, file diffs, and final assistant
-responses. Pi hides startup notices, thinking, intermediate assistant messages,
-tool calls, tool results, custom entries, dynamic statuses, and the footer.
-Dialogs and the editor remain available for interaction.
+The patched Pi package and `minimal-transcript` extension start each interactive
+session in minimal mode. This mode shows user prompts, file diffs, and final
+assistant responses. Pi hides startup notices, thinking, intermediate assistant
+messages, tool calls, tool results, unrelated custom entries, dynamic statuses,
+the header, and the footer. Dialogs and the editor remain available.
+
+`Alt+T` switches between minimal mode and normal Pi output. The switch updates
+the complete current transcript, including content produced before or during an
+active response. Full mode follows Pi's normal thinking-block and tool-expansion
+settings. A new, resumed, forked, or replaced session starts in minimal mode.
+RPC, print, and JSON modes remain unchanged.
 
 The extension records successful `edit` and `write` calls as durable custom
-entries. Each entry opens as a colored unified diff. `Ctrl+Shift+O` collapses
-all file diffs to one-line path and line-count summaries. Pi's standard
-`Ctrl+O` binding toggles the same diff expansion state.
+entries.
 
-The filter applies to every tool renderer, including tools from third-party
-extensions. Diff capture is narrower because only `edit` and `write` expose a
-bounded text-file mutation contract. File changes made through `bash` or another
-custom tool do not produce diff entries.
+Each entry opens as a colored unified diff in minimal mode. Full mode hides
+these synthetic entries because normal Pi already renders the underlying tool
+calls.
+
+`Alt+O` expands or collapses file diffs in minimal mode and normal tool output
+in full mode. `Ctrl+O` and `Ctrl+Shift+O` are unbound. Pi retains `Ctrl+T` for
+thinking-block visibility in full mode.
+
+The minimal filter applies to every tool renderer, including tools from
+third-party extensions. Diff capture is narrower because only `edit` and
+`write` expose a bounded text-file mutation contract. File changes made through
+`bash` or another custom tool do not produce diff entries.
 
 ## Selectable questions
 

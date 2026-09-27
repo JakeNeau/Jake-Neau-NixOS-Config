@@ -4,7 +4,7 @@ import { isAbsolute, resolve } from "node:path";
 import { generateUnifiedPatch, type ExtensionAPI, type Theme } from "@earendil-works/pi-coding-agent";
 import { Container, Text } from "@earendil-works/pi-tui";
 
-import { countPatchChanges, diffSummary, type DiffEntryData } from "./core.ts";
+import { countPatchChanges, diffSummary, registerTranscriptControls, type DiffEntryData } from "./core.ts";
 
 const ENTRY_TYPE = "minimal-transcript-diff";
 
@@ -58,14 +58,7 @@ export default function minimalTranscript(pi: ExtensionAPI): void {
     return container;
   });
 
-  pi.registerShortcut("ctrl+shift+o", {
-    description: "Collapse file diffs",
-    handler: (ctx) => ctx.ui.setToolsExpanded(false),
-  });
-
-  pi.on("session_start", (_event, ctx) => {
-    if (ctx.hasUI) ctx.ui.setToolsExpanded(true);
-  });
+  registerTranscriptControls(pi);
 
   pi.on("tool_execution_start", async (event, ctx) => {
     if ((event.toolName !== "edit" && event.toolName !== "write") || typeof event.args?.path !== "string") return;

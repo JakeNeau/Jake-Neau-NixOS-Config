@@ -1,33 +1,65 @@
 diff -ruN pi-patch-old/dist/modes/interactive/components/assistant-message.js pi-patch-new/dist/modes/interactive/components/assistant-message.js
---- pi-patch-old/dist/modes/interactive/components/assistant-message.js	2026-09-19 21:32:11.058430112 -0500
-+++ pi-patch-new/dist/modes/interactive/components/assistant-message.js	2026-09-19 21:38:51.424115945 -0500
-@@ -71,7 +71,14 @@
+--- pi-patch-old/dist/modes/interactive/components/assistant-message.js	2026-09-27 10:04:23.179241257 -0500
++++ pi-patch-new/dist/modes/interactive/components/assistant-message.js	2026-09-27 10:04:51.730599178 -0500
+@@ -17,14 +17,16 @@
+     lastMessage;
+     hasToolCalls = false;
+     isStreaming = false;
++    minimalTranscript = false;
+     thinkingVisibilityOverrides = new Map();
+-    constructor(message, hideThinkingBlock = false, markdownTheme = getMarkdownTheme(), hiddenThinkingLabel = "Thinking...", outputPad = 1, markdownTransformers = []) {
++    constructor(message, hideThinkingBlock = false, markdownTheme = getMarkdownTheme(), hiddenThinkingLabel = "Thinking...", outputPad = 1, markdownTransformers = [], minimalTranscript = false) {
+         super();
+         this.hideThinkingBlock = hideThinkingBlock;
+         this.markdownTheme = markdownTheme;
+         this.hiddenThinkingLabel = hiddenThinkingLabel;
+         this.outputPad = outputPad;
+         this.markdownTransformers = markdownTransformers;
++        this.minimalTranscript = minimalTranscript;
+         // Container for text/thinking content
+         this.contentContainer = new Container();
+         this.addChild(this.contentContainer);
+@@ -57,6 +59,17 @@
+             this.updateContent(this.lastMessage);
+         }
+     }
++    setMinimalTranscript(enabled) {
++        if (this.minimalTranscript === enabled)
++            return;
++        this.minimalTranscript = enabled;
++        if (this.lastMessage) {
++            this.updateContent(this.lastMessage);
++        }
++    }
++    isVisibleInMinimalTranscript() {
++        return !!this.lastMessage && !this.isStreaming && this.lastMessage.stopReason === "stop" && !this.hasToolCalls;
++    }
+     render(width) {
+         const lines = super.render(width);
+         if (this.hasToolCalls || lines.length === 0) {
+@@ -71,7 +84,10 @@
          this.isStreaming = isStreaming;
          // Clear content container
          this.contentContainer.clear();
 -        const hasVisibleContent = message.content.some((c) => (c.type === "text" && c.text.trim()) || (c.type === "thinking" && c.thinking.trim()));
 +        const hasToolCalls = message.content.some((c) => c.type === "toolCall");
 +        this.hasToolCalls = hasToolCalls;
-+        if (process.env.PI_MINIMAL_TRANSCRIPT === "1" &&
-+            (isStreaming || message.stopReason !== "stop" || hasToolCalls)) {
-+            return;
-+        }
 +        const hasVisibleContent = message.content.some((c) => (c.type === "text" && c.text.trim()) ||
-+            (process.env.PI_MINIMAL_TRANSCRIPT !== "1" && c.type === "thinking" && c.thinking.trim()));
++            (!this.minimalTranscript && c.type === "thinking" && c.thinking.trim()));
          if (hasVisibleContent) {
              this.contentContainer.addChild(new Spacer(1));
          }
-@@ -79,6 +86,9 @@
+@@ -79,6 +95,9 @@
          let thinkingRunIndex = 0;
          for (let i = 0; i < message.content.length; i++) {
              const content = message.content[i];
-+            if (process.env.PI_MINIMAL_TRANSCRIPT === "1" && content.type === "thinking") {
++            if (this.minimalTranscript && content.type === "thinking") {
 +                continue;
 +            }
              if (content.type === "text" && content.text.trim()) {
                  // Assistant text messages with no background - trim the text
                  // Set paddingY=0 to avoid extra spacing before tool executions
-@@ -133,8 +143,6 @@
+@@ -133,8 +152,6 @@
          // Check if incomplete/failed - show after partial content.
          // For aborted/error tool calls, tool execution components show the error.
          // Length stops can happen before a tool call is complete, so surface them here too.
@@ -37,8 +69,8 @@ diff -ruN pi-patch-old/dist/modes/interactive/components/assistant-message.js pi
              this.contentContainer.addChild(new Spacer(1));
              this.contentContainer.addChild(new Text(theme.fg("error", "Response was truncated before completion."), this.outputPad, 0));
 diff -ruN pi-patch-old/dist/modes/interactive/components/custom-entry.js pi-patch-new/dist/modes/interactive/components/custom-entry.js
---- pi-patch-old/dist/modes/interactive/components/custom-entry.js	2026-09-19 21:32:11.059430123 -0500
-+++ pi-patch-new/dist/modes/interactive/components/custom-entry.js	2026-09-19 21:32:47.796854156 -0500
+--- pi-patch-old/dist/modes/interactive/components/custom-entry.js	2026-09-27 10:04:23.180241270 -0500
++++ pi-patch-new/dist/modes/interactive/components/custom-entry.js	2026-09-27 10:04:12.130539285 -0500
 @@ -15,6 +15,9 @@
          this.renderer = renderer;
          this.rebuild();
@@ -50,131 +82,422 @@ diff -ruN pi-patch-old/dist/modes/interactive/components/custom-entry.js pi-patc
          return this.customComponent !== undefined;
      }
 diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/dist/modes/interactive/interactive-mode.js
---- pi-patch-old/dist/modes/interactive/interactive-mode.js	2026-09-19 21:32:11.057430100 -0500
-+++ pi-patch-new/dist/modes/interactive/interactive-mode.js	2026-09-19 21:33:10.915121749 -0500
-@@ -88,6 +88,20 @@
+--- pi-patch-old/dist/modes/interactive/interactive-mode.js	2026-09-27 10:04:23.178241245 -0500
++++ pi-patch-new/dist/modes/interactive/interactive-mode.js	2026-09-27 10:08:59.581017987 -0500
+@@ -92,6 +92,87 @@
  function isExpandable(obj) {
      return typeof obj === "object" && obj !== null && "setExpanded" in obj && typeof obj.setExpanded === "function";
  }
 +const MINIMAL_TRANSCRIPT_DIFF_TYPE = "minimal-transcript-diff";
-+function isMinimalTranscript() {
++function isMinimalTranscriptEnabled() {
 +    return process.env.PI_MINIMAL_TRANSCRIPT === "1";
 +}
-+class TranscriptContainer extends Container {
++class MinimalTranscriptUserMessageComponent extends UserMessageComponent { }
++class FullTranscriptUserMessageComponent extends UserMessageComponent { }
++export class TranscriptContainer extends Container {
++    allChildren = [];
++    minimalTranscript;
++    constructor(minimalTranscript) {
++        super();
++        this.minimalTranscript = minimalTranscript;
++    }
++    isVisible(component) {
++        const syntheticDiff = component instanceof CustomEntryComponent && component.customType === MINIMAL_TRANSCRIPT_DIFF_TYPE;
++        if (!this.minimalTranscript)
++            return !syntheticDiff && !(component instanceof MinimalTranscriptUserMessageComponent);
++        return ((component instanceof UserMessageComponent && !(component instanceof FullTranscriptUserMessageComponent)) ||
++            (component instanceof AssistantMessageComponent && component.isVisibleInMinimalTranscript()) ||
++            syntheticDiff);
++    }
 +    addChild(component) {
-+        if (!isMinimalTranscript() ||
-+            component instanceof UserMessageComponent ||
-+            component instanceof AssistantMessageComponent ||
-+            (component instanceof CustomEntryComponent && component.customType === MINIMAL_TRANSCRIPT_DIFF_TYPE)) {
++        if (component instanceof AssistantMessageComponent) {
++            component.setMinimalTranscript(this.minimalTranscript);
++        }
++        this.allChildren.push(component);
++        if (this.isVisible(component)) {
 +            super.addChild(component);
++        }
++    }
++    insertBefore(component, before) {
++        if (component instanceof AssistantMessageComponent) {
++            component.setMinimalTranscript(this.minimalTranscript);
++        }
++        const index = this.allChildren.indexOf(before);
++        if (index < 0)
++            return false;
++        this.allChildren.splice(index, 0, component);
++        this.refreshVisibility();
++        return true;
++    }
++    removeChild(component) {
++        const index = this.allChildren.indexOf(component);
++        if (index >= 0) {
++            this.allChildren.splice(index, 1);
++        }
++        super.removeChild(component);
++    }
++    clear() {
++        this.allChildren = [];
++        super.clear();
++    }
++    getAllChildren() {
++        return this.allChildren;
++    }
++    setMinimalTranscript(enabled) {
++        this.minimalTranscript = enabled;
++        for (const child of this.allChildren) {
++            if (child instanceof AssistantMessageComponent) {
++                child.setMinimalTranscript(enabled);
++            }
++        }
++        this.refreshVisibility();
++    }
++    refreshVisibility() {
++        super.clear();
++        for (const child of this.allChildren) {
++            if (this.isVisible(child)) {
++                super.addChild(child);
++            }
++        }
++    }
++    invalidate() {
++        super.invalidate();
++        for (const child of this.allChildren) {
++            if (!this.children.includes(child)) {
++                child.invalidate?.();
++            }
 +        }
 +    }
 +}
  class ExpandableText extends Text {
      getCollapsedText;
      getExpandedText;
-@@ -329,10 +343,12 @@
+@@ -221,6 +299,7 @@
+     fullscreenLayoutRoot;
+     pendingMessagesContainer;
+     statusContainer;
++    statusContentContainer;
+     defaultEditor;
+     editor;
+     editorComponentFactory;
+@@ -232,6 +311,7 @@
+     activeSelectorDispose;
+     footer;
+     footerContainer;
++    footerContentContainer;
+     footerDataProvider;
+     // Stored so the same manager can be injected into custom editors, selectors, and extension UI.
+     keybindings;
+@@ -265,6 +345,7 @@
+     pendingTools = new Map();
+     // Tool output expansion state
+     toolOutputExpanded = false;
++    minimalTranscript = isMinimalTranscriptEnabled();
+     // Thinking block visibility state
+     hideThinkingBlock = false;
+     outputPad = 1;
+@@ -356,13 +437,11 @@
          this.ui.setClearOnShrink(this.settingsManager.getClearOnShrink());
          this.headerContainer = new Container();
          this.loadedResourcesContainer = new Container();
 -        this.chatContainer = new Container();
-+        this.chatContainer = new TranscriptContainer();
++        this.chatContainer = new TranscriptContainer(this.minimalTranscript);
          this.documentContainer = new Container();
 -        this.documentContainer.addChild(this.headerContainer);
 -        this.documentContainer.addChild(this.loadedResourcesContainer);
-+        if (!isMinimalTranscript()) {
-+            this.documentContainer.addChild(this.headerContainer);
-+            this.documentContainer.addChild(this.loadedResourcesContainer);
-+        }
-         this.documentContainer.addChild(this.chatContainer);
+-        this.documentContainer.addChild(this.chatContainer);
          this.pendingMessagesContainer = new Container();
          this.statusContainer = new Container();
-@@ -354,7 +370,9 @@
++        this.statusContentContainer = new Container();
+         this.widgetContainerAbove = new Container();
+         this.widgetContainerBelow = new Container();
+         this.keybindings = KeybindingsManager.create();
+@@ -381,7 +460,9 @@
          this.footer = new FooterComponent(this.session, this.footerDataProvider);
          this.footer.setAutoCompactEnabled(this.session.autoCompactionEnabled);
          this.footerContainer = new Container();
 -        this.footerContainer.addChild(this.footer);
-+        if (!isMinimalTranscript()) {
-+            this.footerContainer.addChild(this.footer);
-+        }
++        this.footerContentContainer = new Container();
++        this.footerContentContainer.addChild(this.footer);
++        this.syncTranscriptChrome();
          // Load hide thinking block setting
          this.hideThinkingBlock = this.settingsManager.getHideThinkingBlock();
          this.outputPad = this.settingsManager.getOutputPad();
-@@ -1614,6 +1632,8 @@
+@@ -1523,7 +1604,7 @@
+         const clearOnShrink = this.settingsManager.getClearOnShrink();
+         this.ui.setClearOnShrink(clearOnShrink);
+         if (!clearOnShrink && !this.activeStatusIndicator) {
+-            this.statusContainer.clear();
++            this.statusContentContainer.clear();
+         }
+         const editorPaddingX = this.settingsManager.getEditorPaddingX();
+         const autocompleteMaxVisible = this.settingsManager.getAutocompleteMaxVisible();
+@@ -1538,6 +1619,8 @@
+         const session = this.session;
+         this.unsubscribe?.();
+         this.unsubscribe = undefined;
++        if (isMinimalTranscriptEnabled())
++            this.setMinimalTranscript(true);
+         this.applyRuntimeSettings();
+         if (options.renderBeforeBind) {
+             this.renderCurrentSessionState();
+@@ -1689,6 +1771,40 @@
+             return false;
+         };
+     }
++    syncTranscriptChrome() {
++        this.documentContainer.clear();
++        this.footerContainer.clear();
++        this.statusContainer.clear();
++        if (!this.minimalTranscript) {
++            this.documentContainer.addChild(this.headerContainer);
++            this.documentContainer.addChild(this.loadedResourcesContainer);
++            this.footerContainer.addChild(this.footerContentContainer);
++            this.statusContainer.addChild(this.statusContentContainer);
++        }
++        this.documentContainer.addChild(this.chatContainer);
++        this.setEditorWorkingStatusIndicator(undefined);
++        if (this.activeStatusIndicator) {
++            this.statusContentContainer.clear();
++            if (!this.minimalTranscript && this.setEditorWorkingStatusIndicator(this.activeStatusIndicator)) {
++                this.activeWorkingIndicatorEmbedded = true;
++            }
++            else {
++                this.activeWorkingIndicatorEmbedded = false;
++                this.statusContentContainer.addChild(this.activeStatusIndicator);
++            }
++        }
++    }
++    setMinimalTranscript(enabled) {
++        if (!isMinimalTranscriptEnabled()) {
++            throw new Error("minimal transcript support is unavailable");
++        }
++        if (enabled === this.minimalTranscript)
++            return;
++        this.minimalTranscript = enabled;
++        this.chatContainer.setMinimalTranscript(enabled);
++        this.syncTranscriptChrome();
++        this.ui.requestRender(true);
++    }
+     /**
       * Set extension status text in the footer.
       */
-     setExtensionStatus(key, text) {
-+        if (isMinimalTranscript())
-+            return;
-         this.footerDataProvider.setExtensionStatus(key, text);
-         this.ui.requestRender();
+@@ -1698,7 +1814,7 @@
      }
-@@ -1625,6 +1645,14 @@
+     setEditorWorkingStatusIndicator(indicator) {
+         this.defaultEditor.setWorkingStatusIndicator(undefined);
+-        if (!isWorkingStatusEditor(this.editor))
++        if (this.minimalTranscript || !isWorkingStatusEditor(this.editor))
+             return false;
+         this.editor.setWorkingStatusIndicator(indicator);
          return true;
-     }
-     showStatusIndicator(indicator) {
-+        if (isMinimalTranscript()) {
-+            indicator.dispose();
-+            this.activeStatusIndicator?.dispose();
-+            this.activeStatusIndicator = undefined;
-+            this.statusContainer.clear();
-+            this.setEditorWorkingStatusIndicator(undefined);
-+            return;
-+        }
+@@ -1707,13 +1823,13 @@
          this.activeStatusIndicator?.dispose();
          this.activeStatusIndicator = indicator;
          this.activeWorkingIndicatorEmbedded = false;
-@@ -1805,6 +1833,11 @@
+-        this.statusContainer.clear();
++        this.statusContentContainer.clear();
+         this.setEditorWorkingStatusIndicator(undefined);
+         if (this.setEditorWorkingStatusIndicator(indicator)) {
+             this.activeWorkingIndicatorEmbedded = true;
+             return;
+         }
+-        this.statusContainer.addChild(indicator);
++        this.statusContentContainer.addChild(indicator);
+     }
+     clearStatusIndicator(kind) {
+         if (kind && this.activeStatusIndicator?.kind !== kind) {
+@@ -1724,13 +1840,13 @@
+         clearedIndicator?.dispose();
+         this.activeStatusIndicator = undefined;
+         this.activeWorkingIndicatorEmbedded = false;
+-        this.statusContainer.clear();
++        this.statusContentContainer.clear();
+         this.setEditorWorkingStatusIndicator(undefined);
+         if (clearedIndicator &&
+             !clearedIndicatorWasEmbedded &&
+             this.options.tuiMode === "regular" &&
+             this.ui.getClearOnShrink()) {
+-            this.statusContainer.addChild(this.idleStatus);
++            this.statusContentContainer.addChild(this.idleStatus);
+         }
+     }
+     showWorkingStatusIndicator() {
+@@ -1760,7 +1876,7 @@
+     }
+     setHiddenThinkingLabel(label) {
+         this.hiddenThinkingLabel = label ?? this.defaultHiddenThinkingLabel;
+-        for (const child of this.chatContainer.children) {
++        for (const child of this.chatContainer.getAllChildren()) {
+             if (child instanceof AssistantMessageComponent) {
+                 child.setHiddenThinkingLabel(this.hiddenThinkingLabel);
+             }
+@@ -1883,16 +1999,16 @@
+         if (this.customFooter?.dispose) {
              this.customFooter.dispose();
          }
-         this.footerContainer.clear();
-+        if (isMinimalTranscript()) {
-+            this.customFooter = undefined;
-+            this.ui.requestRender();
-+            return;
-+        }
+-        this.footerContainer.clear();
++        this.footerContentContainer.clear();
          if (factory) {
              // Create and add custom footer, passing the data provider
              this.customFooter = factory(this.ui, theme, this.footerDataProvider);
-@@ -2893,6 +2926,9 @@
+-            this.footerContainer.addChild(this.customFooter);
++            this.footerContentContainer.addChild(this.customFooter);
+         }
+         else {
+             // Restore built-in footer
+             this.customFooter = undefined;
+-            this.footerContainer.addChild(this.footer);
++            this.footerContentContainer.addChild(this.footer);
+         }
          this.ui.requestRender();
      }
-     addCustomEntryToChat(entry) {
-+        if (isMinimalTranscript() && entry.customType !== MINIMAL_TRANSCRIPT_DIFF_TYPE) {
-+            return;
-+        }
-         const renderer = this.session.extensionRunner.getEntryRenderer(entry.customType);
-         if (!renderer) {
-             return;
-@@ -2953,16 +2989,23 @@
+@@ -2024,6 +2140,7 @@
+             },
+             getToolsExpanded: () => this.toolOutputExpanded,
+             setToolsExpanded: (expanded) => this.setToolsExpanded(expanded),
++            setMinimalTranscript: (enabled) => this.setMinimalTranscript(enabled),
+         };
+     }
+     /**
+@@ -2210,10 +2327,10 @@
+         }
+         this.editorContainer.addChild(this.editor);
+         if (this.activeStatusIndicator) {
+-            this.statusContainer.clear();
++            this.statusContentContainer.clear();
+             this.activeWorkingIndicatorEmbedded = this.setEditorWorkingStatusIndicator(this.activeStatusIndicator);
+             if (!this.activeWorkingIndicatorEmbedded) {
+-                this.statusContainer.addChild(this.activeStatusIndicator);
++                this.statusContentContainer.addChild(this.activeStatusIndicator);
+             }
+         }
+         this.ui.setFocus(this.editor);
+@@ -2732,7 +2849,7 @@
+                     this.ui.requestRender();
+                 }
+                 else if (event.message.role === "assistant") {
+-                    this.streamingComponent = new AssistantMessageComponent(undefined, this.hideThinkingBlock, this.getMarkdownThemeWithSettings(), this.hiddenThinkingLabel, this.outputPad, this.getMarkdownTransformers());
++                    this.streamingComponent = new AssistantMessageComponent(undefined, this.hideThinkingBlock, this.getMarkdownThemeWithSettings(), this.hiddenThinkingLabel, this.outputPad, this.getMarkdownTransformers(), this.minimalTranscript);
+                     this.streamingMessage = event.message;
+                     this.chatContainer.addChild(this.streamingComponent);
+                     this.streamingComponent.updateContent(this.streamingMessage, true);
+@@ -2780,6 +2897,7 @@
+                         this.streamingMessage.errorMessage = errorMessage;
                      }
-                     const skillBlock = parseSkillBlock(textContent);
-                     if (skillBlock) {
--                        // Render skill block (collapsible)
--                        const component = new SkillInvocationMessageComponent(skillBlock, this.getMarkdownThemeWithSettings());
--                        component.setExpanded(this.toolOutputExpanded);
--                        this.chatContainer.addChild(component);
--                        // Render user message separately if present
--                        if (skillBlock.userMessage) {
--                            this.chatContainer.addChild(new Spacer(1));
+                     this.streamingComponent.updateContent(this.streamingMessage, false);
++                    this.chatContainer.refreshVisibility();
+                     if (this.streamingMessage.stopReason === "aborted" || this.streamingMessage.stopReason === "error") {
+                         if (!errorMessage) {
+                             errorMessage = this.streamingMessage.errorMessage || "Error";
+@@ -3022,12 +3140,8 @@
+         if (!component.hasContent()) {
+             return;
+         }
+-        if (this.streamingComponent) {
+-            const streamingIndex = this.chatContainer.children.indexOf(this.streamingComponent);
+-            if (streamingIndex >= 0) {
+-                this.chatContainer.children.splice(streamingIndex, 0, component);
+-                return;
+-            }
++        if (this.streamingComponent && this.chatContainer.insertBefore(component, this.streamingComponent)) {
++            return;
+         }
+         this.chatContainer.addChild(component);
+     }
+@@ -3082,9 +3196,12 @@
+                         // Render user message separately if present
+                         if (skillBlock.userMessage) {
+                             this.chatContainer.addChild(new Spacer(1));
 -                            const userComponent = new UserMessageComponent(skillBlock.userMessage, this.getMarkdownThemeWithSettings(), this.outputPad, this.getMarkdownTransformers());
-+                        if (isMinimalTranscript()) {
-+                            const prompt = `/${skillBlock.name}${skillBlock.userMessage ? ` ${skillBlock.userMessage}` : ""}`;
-+                            const userComponent = new UserMessageComponent(prompt, this.getMarkdownThemeWithSettings(), this.outputPad, this.getMarkdownTransformers());
++                            const userComponent = new FullTranscriptUserMessageComponent(skillBlock.userMessage, this.getMarkdownThemeWithSettings(), this.outputPad, this.getMarkdownTransformers());
                              this.chatContainer.addChild(userComponent);
                          }
-+                        else {
-+                            // Render skill block (collapsible)
-+                            const component = new SkillInvocationMessageComponent(skillBlock, this.getMarkdownThemeWithSettings());
-+                            component.setExpanded(this.toolOutputExpanded);
-+                            this.chatContainer.addChild(component);
-+                            // Render user message separately if present
-+                            if (skillBlock.userMessage) {
-+                                this.chatContainer.addChild(new Spacer(1));
-+                                const userComponent = new UserMessageComponent(skillBlock.userMessage, this.getMarkdownThemeWithSettings(), this.outputPad, this.getMarkdownTransformers());
-+                                this.chatContainer.addChild(userComponent);
-+                            }
-+                        }
++                        const prompt = `/${skillBlock.name}${skillBlock.userMessage ? ` ${skillBlock.userMessage}` : ""}`;
++                        const minimalComponent = new MinimalTranscriptUserMessageComponent(prompt, this.getMarkdownThemeWithSettings(), this.outputPad, this.getMarkdownTransformers());
++                        this.chatContainer.addChild(minimalComponent);
                      }
                      else {
                          const userComponent = new UserMessageComponent(textContent, this.getMarkdownThemeWithSettings(), this.outputPad, this.getMarkdownTransformers());
+@@ -3097,7 +3214,7 @@
+                 break;
+             }
+             case "assistant": {
+-                const assistantComponent = new AssistantMessageComponent(message, this.hideThinkingBlock, this.getMarkdownThemeWithSettings(), this.hiddenThinkingLabel, this.outputPad, this.getMarkdownTransformers());
++                const assistantComponent = new AssistantMessageComponent(message, this.hideThinkingBlock, this.getMarkdownThemeWithSettings(), this.hiddenThinkingLabel, this.outputPad, this.getMarkdownTransformers(), this.minimalTranscript);
+                 this.chatContainer.addChild(assistantComponent);
+                 break;
+             }
+@@ -3614,18 +3731,21 @@
+         if (isExpandable(activeHeader)) {
+             activeHeader.setExpanded(expanded);
+         }
+-        for (const container of [this.loadedResourcesContainer, this.chatContainer]) {
+-            for (const child of container.children) {
+-                if (isExpandable(child)) {
+-                    child.setExpanded(expanded);
+-                }
++        for (const child of this.loadedResourcesContainer.children) {
++            if (isExpandable(child)) {
++                child.setExpanded(expanded);
++            }
++        }
++        for (const child of this.chatContainer.getAllChildren()) {
++            if (isExpandable(child)) {
++                child.setExpanded(expanded);
+             }
+         }
+         this.showStatus(`Tool output: ${expanded ? "expanded" : "collapsed"}`);
+     }
+     /** Update rendered assistant messages without rebuilding live tool components. */
+     updateThinkingBlockVisibility() {
+-        for (const child of this.chatContainer.children) {
++        for (const child of this.chatContainer.getAllChildren()) {
+             if (child instanceof AssistantMessageComponent) {
+                 child.setHideThinkingBlock(this.hideThinkingBlock);
+             }
+@@ -3962,7 +4082,7 @@
+                 },
+                 onShowImagesChange: (enabled) => {
+                     this.settingsManager.setShowImages(enabled);
+-                    for (const child of this.chatContainer.children) {
++                    for (const child of this.chatContainer.getAllChildren()) {
+                         if (child instanceof ToolExecutionComponent) {
+                             child.setShowImages(enabled);
+                         }
+@@ -3970,7 +4090,7 @@
+                 },
+                 onImageWidthCellsChange: (width) => {
+                     this.settingsManager.setImageWidthCells(width);
+-                    for (const child of this.chatContainer.children) {
++                    for (const child of this.chatContainer.getAllChildren()) {
+                         if (child instanceof ToolExecutionComponent) {
+                             child.setImageWidthCells(width);
+                         }
+@@ -4078,7 +4198,7 @@
+                     this.settingsManager.setOutputPad(padding);
+                     this.outputPad = padding;
+                     if (this.streamingComponent || this.session.isStreaming) {
+-                        for (const child of this.chatContainer.children) {
++                        for (const child of this.chatContainer.getAllChildren()) {
+                             if (child instanceof AssistantMessageComponent ||
+                                 child instanceof CustomMessageComponent ||
+                                 child instanceof UserMessageComponent) {
+@@ -4104,7 +4224,7 @@
+                     this.settingsManager.setClearOnShrink(enabled);
+                     this.ui.setClearOnShrink(enabled);
+                     if (!enabled && !this.activeStatusIndicator) {
+-                        this.statusContainer.clear();
++                        this.statusContentContainer.clear();
+                     }
+                 },
+                 onShowTerminalProgressChange: (enabled) => {
+@@ -4118,7 +4238,7 @@
+                     }
+                     this.settingsManager.setTuiMode(mode);
+                     if (!this.activeStatusIndicator)
+-                        this.statusContainer.clear();
++                        this.statusContentContainer.clear();
+                     this.showStatus(`TUI mode: ${mode}`);
+                 },
+                 onFullscreenExitOutputChange: (output) => {

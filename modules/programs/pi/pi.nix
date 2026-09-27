@@ -12,6 +12,9 @@ let
     inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi.overrideAttrs (old: {
       patches = (old.patches or [ ]) ++ [ ./patches/minimal-transcript.patch ];
       nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.makeWrapper ];
+      preInstall = (old.preInstall or "") + ''
+        PI_SOURCE="$PWD" node --test ${./patches/minimal-transcript.test.mjs}
+      '';
       postFixup = (old.postFixup or "") + ''
         wrapProgram "$out/bin/pi" --set PI_MINIMAL_TRANSCRIPT 1
       '';
@@ -590,6 +593,7 @@ in
           ".pi/agent/link-registry.json".source = linkRegistry;
           ".pi/agent/keybindings.json".text = builtins.toJSON {
             "app.thinking.cycle" = "ctrl+shift+l";
+            "app.tools.expand" = "alt+o";
           };
           ".pi/agent/AGENTS.md".text = agentContext;
 
