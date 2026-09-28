@@ -40,14 +40,21 @@
   flake.modules.homeManager.niri-desktop =
     { pkgs, ... }:
     let
-      force-16-9 = pkgs.writeShellApplication {
-        name = "niri-force-16-9";
+      zeroGapConfig = pkgs.writeText "niri-zero-gap-config.kdl" (
+        builtins.replaceStrings [ "gaps 12" ] [ "gaps 0" ] (builtins.readFile ./config.kdl)
+      );
+      toggle-16-9 = pkgs.writeShellApplication {
+        name = "niri-toggle-16-9";
         runtimeInputs = [
           pkgs.coreutils
           pkgs.jq
           pkgs.niri
         ];
-        text = builtins.readFile ./force-16-9.sh;
+        text = ''
+          normal_config="${./config.kdl}"
+          zero_gap_config="${zeroGapConfig}"
+          ${builtins.readFile ./toggle-16-9.sh}
+        '';
       };
     in
     {
@@ -65,7 +72,7 @@
         hidden-desktop-entries
       ];
 
-      home.packages = [ force-16-9 ];
+      home.packages = [ toggle-16-9 ];
 
       xdg.configFile."niri/config.kdl".source = ./config.kdl;
     };

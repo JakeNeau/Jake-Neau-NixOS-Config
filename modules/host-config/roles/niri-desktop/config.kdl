@@ -139,7 +139,7 @@ output "HDMI-A-2" {
 // https://yalter.github.io/niri/Configuration:-Layout
 layout {
     // Set gaps around windows in logical pixels.
-    gaps 0
+    gaps 12
 
     // When to center a column when changing focus, options are:
     // - "never", default behavior, focusing an off-screen column will keep at the left
@@ -566,7 +566,7 @@ binds {
     // Expand the focused column to space not taken up by other fully visible columns.
     // Makes the column "fill the rest of the space".
     Mod+Ctrl+F { expand-column-to-available-width; }
-    Mod+Ctrl+Shift+F repeat=false hotkey-overlay-title="Force 16:9 Windowed Fullscreen" { spawn "niri-force-16-9"; }
+    Mod+Ctrl+Shift+F repeat=false hotkey-overlay-title="Toggle 16:9 Windowed Fullscreen" { spawn "niri-toggle-16-9"; }
 
     Mod+Alt+F { maximize-window-to-edges; }
 
