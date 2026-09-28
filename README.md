@@ -129,6 +129,7 @@ The NixOS hosts use the Niri window manager. These common shortcuts are configur
 - **Mod + Space**: Open the application launcher.
 - **Mod + q**: Open a terminal.
 - **Mod + c**: Close the focused window.
+- **Mod + Ctrl + Shift + f**: Force the focused window into centered, full-output-height 16:9 windowed fullscreen. Other columns tile beside it.
 
 Fish provides these rebuild helpers:
 

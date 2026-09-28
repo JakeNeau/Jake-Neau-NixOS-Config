@@ -37,21 +37,36 @@
   # Per-user wayland plumbing, aggregated -- each tool is its own feature.
   # Rides the niri hosts' baselines (a flake.hosts baselines entry), which
   # keeps it off macOS, where these same users also live.
-  flake.modules.homeManager.niri-desktop = {
-    imports = with inputs.self.modules.homeManager; [
-      swaybg
-      wl-clipboard
-      wl-clip-persist
-      clipse
-      fuzzel
-      hyprlock
-      udiskie
-      xwayland-satellite
-      candy-icons
-      papirus-icon-theme
-      hidden-desktop-entries
-    ];
+  flake.modules.homeManager.niri-desktop =
+    { pkgs, ... }:
+    let
+      force-16-9 = pkgs.writeShellApplication {
+        name = "niri-force-16-9";
+        runtimeInputs = [
+          pkgs.coreutils
+          pkgs.jq
+          pkgs.niri
+        ];
+        text = builtins.readFile ./force-16-9.sh;
+      };
+    in
+    {
+      imports = with inputs.self.modules.homeManager; [
+        swaybg
+        wl-clipboard
+        wl-clip-persist
+        clipse
+        fuzzel
+        hyprlock
+        udiskie
+        xwayland-satellite
+        candy-icons
+        papirus-icon-theme
+        hidden-desktop-entries
+      ];
 
-    xdg.configFile."niri/config.kdl".source = ./config.kdl;
-  };
+      home.packages = [ force-16-9 ];
+
+      xdg.configFile."niri/config.kdl".source = ./config.kdl;
+    };
 }
