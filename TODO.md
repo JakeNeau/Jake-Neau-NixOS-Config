@@ -357,6 +357,11 @@
 
 ## Waiting on upstream
 
+- [ ] Re-enable VRR for the Samsung Odyssey G95SC in
+      `modules/host-config/roles/niri-desktop/config.kdl` once Niri maintainers
+      resolve `niri-wm/niri` issue #2967 and testing confirms the fix on
+      redwood at 5120x1440@240 Hz. VRR currently causes intermittent black
+      screens while Niri still reports the output as connected.
 - [ ] When stylix PR #2497 lands, re-enable `stylix.targets.nvf` and remove
       the hand-wired nvf theming in `modules/nix/tools/stylix/stylix.nix`.
       That block works around stylix setting the renamed

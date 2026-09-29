@@ -94,9 +94,6 @@ output "DP-1" {
     // Transform allows to rotate the output counter-clockwise, valid values are:
     transform "normal"
 
-    // Setting on-demand to true will only enable VRR when a windowrule says so
-    variable-refresh-rate // on-demand=true
-
     // Position of the output in the global coordinate space.
     // This affects directional monitor actions like "focus-monitor-left", and cursor movement.
     // The cursor can only move between directly adjacent outputs.
