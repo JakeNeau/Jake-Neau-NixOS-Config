@@ -85,6 +85,9 @@ output "DP-1" {
 
     focus-at-startup
 
+    // Work around G95SC blackouts during RX 9070 XT clock changes; remove after drm/amd#4753.
+    variable-refresh-rate
+
     // The format is "<width>x<height>" or "<width>x<height>@<refresh rate>".
     mode "5120x1440@239.999"
 
