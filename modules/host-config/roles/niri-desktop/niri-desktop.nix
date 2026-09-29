@@ -51,7 +51,7 @@
           pkgs.niri
         ];
         text = ''
-          normal_config="${./config.kdl}"
+          normal_config="''${XDG_CONFIG_HOME:-$HOME/.config}/niri/config.kdl"
           zero_gap_config="${zeroGapConfig}"
           ${builtins.readFile ./toggle-16-9.sh}
         '';

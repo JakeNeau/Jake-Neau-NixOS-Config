@@ -845,11 +845,11 @@
         "nixpkgs": "nixpkgs_7"
       },
       "locked": {
-        "lastModified": 1790698486,
-        "narHash": "sha256-VIChYDLDFoI1eHJGfN3yZ2IRmK8rxyl+B4lsXScCKs4=",
+        "lastModified": 1790709262,
+        "narHash": "sha256-gZZ1p2XTAcJ/SJ5oI3wQargbJ0ipc4aO9cOoJyIvXQk=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "cef0a664c9ea8bd8a43367a28e9ae8c964d11889",
+        "rev": "51837c6b05f1d0628689861ecb88180bbfd17651",
         "type": "github"
       },
       "original": {
