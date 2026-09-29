@@ -220,6 +220,12 @@
                     desc = "Toggle Pi chat";
                   }
                   {
+                    key = "<leader>an";
+                    mode = "n";
+                    action = "<cmd>CodeCompanionChat<cr>";
+                    desc = "New Pi chat";
+                  }
+                  {
                     key = "<leader>aa";
                     mode = [
                       "n"
@@ -227,6 +233,23 @@
                     ];
                     action = "<cmd>CodeCompanionActions<cr>";
                     desc = "Pi actions";
+                  }
+                  {
+                    key = "<leader>ab";
+                    mode = "n";
+                    lua = true;
+                    action = ''
+                      function()
+                        local codecompanion = require("codecompanion")
+                        local bufnr = vim.api.nvim_get_current_buf()
+                        local chat = codecompanion.last_chat() or codecompanion.chat()
+                        if not chat then return end
+                        local buffer_context = require("codecompanion.interactions.shared.editor_context.buffer")
+                        buffer_context.new({ Chat = chat }):chat_render({ bufnr = bufnr })
+                        chat.ui:open()
+                      end
+                    '';
+                    desc = "Add current buffer to Pi chat";
                   }
                   {
                     key = "<leader>as";

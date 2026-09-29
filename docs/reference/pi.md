@@ -183,13 +183,18 @@ Home Manager links the bundled librarian skill under `~/.pi/agent/skills/`.
 codecompanion.nvim speaks the standard Agent Client Protocol. `pi-acp` bridges
 the two JSON protocols over stdio.
 
-When the sibling home has `programs.pi.enable = true`, the nvf module enables
-codecompanion.nvim. Its custom `pi` ACP adapter launches
-`pi-acp`, enables embedded context, and makes Pi the default chat adapter.
+For homes with Pi enabled, the nvf module activates the CodeCompanion plugin.
+
+The custom `pi` ACP adapter launches `pi-acp` with embedded context enabled. Pi
+is the default chat adapter.
+
 CodeCompanion receives streamed messages, tool activity, file diffs, model and
-thinking options, slash commands, and persistent Pi sessions. Pi continues to
-execute filesystem and shell tools locally. ACP filesystem and terminal
-delegation are not enabled.
+thinking options, slash commands, and persistent Pi sessions.
+
+`<leader>an` creates a new chat, while `<leader>at` toggles the most recent chat.
+`<leader>ab` attaches the current buffer as CodeCompanion context instead of
+copying its text into the chat. Pi continues to execute filesystem and shell
+tools locally. ACP filesystem and terminal delegation are not enabled.
 
 ## Typed-link navigation
 
