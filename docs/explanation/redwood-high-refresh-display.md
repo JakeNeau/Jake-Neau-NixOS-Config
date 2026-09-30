@@ -5,23 +5,16 @@ DisplayPort 1.4. The monitor advertises this mode only when Game Mode is active.
 The mode requires Display Stream Compression because its uncompressed signal
 exceeds DisplayPort 1.4 bandwidth.
 
-The RX 9070 XT display pipeline can trigger brief blackouts on some Samsung
-panels during memory-clock changes. The driver changes its dynamic refresh
-behavior during these transitions, and the panel can briefly lose the signal.
+Niri matches the monitor by its manufacturer, model, and serial number. This
+identity keeps the 240 Hz mode and variable refresh rate active when the cable
+moves between GPU ports.
 
-Niri therefore enables variable refresh rate continuously on `DP-1`. Persistent
-VRR prevents the display corruption that occurs during dynamic refresh
-transitions while retaining the native 240 Hz mode.
+Intermittent corruption and blackouts at 240 Hz produced DisplayPort symbol
+errors. The errors occurred through two GPU ports, disappeared at 120 Hz, and
+stopped after replacing the cable. Redwood therefore uses normal AMD power
+management without a display-driver workaround.
 
-Persistent VRR does not prevent every blackout. Redwood also sets
-`amdgpu.dcdebugmask=0x20000`, which disables firmware-assisted memory-clock
-switching. This setting keeps the VRAM clock at its maximum while the display is
-active and prevents blackouts during clock changes. It increases idle GPU power
-consumption.
-
-The upstream AMD reports track the remaining driver defect in
-[drm/amd#4753](https://gitlab.freedesktop.org/drm/amd/-/work_items/4753) and the
-exact monitor configuration in
-[drm/amd#4795](https://gitlab.freedesktop.org/drm/amd/-/work_items/4795). Remove
-the kernel parameter after upstream fixes memory-clock switching and Redwood
-passes a 240 Hz test with automatic clocking.
+If the failure returns, inspect the DisplayPort symbol-error counters before
+changing the graphics configuration. Test another short, certified cable first.
+Then investigate the monitor firmware or DisplayPort receiver. The native 120
+Hz mode remains the diagnostic fallback.

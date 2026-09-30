@@ -79,13 +79,11 @@ input {
 // Find more information on the wiki:
 // https://yalter.github.io/niri/Configuration:-Outputs
 // Remember to uncomment the node by removing "/-"!
-output "DP-1" {
+output "Samsung Electric Company Odyssey G95SC H1AK500000" {
     // Uncomment this line to disable this output.
     // off
 
     focus-at-startup
-
-    // Work around G95SC blackouts during RX 9070 XT clock changes; remove after drm/amd#4753.
     variable-refresh-rate
 
     // The format is "<width>x<height>" or "<width>x<height>@<refresh rate>".

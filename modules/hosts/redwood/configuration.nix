@@ -45,10 +45,6 @@
     # The relocated 5 GiB EFI partition has room for 15 boot generations.
     boot.lanzaboote.configurationLimit = 15;
 
-    # Disable FAMS to stop RX 9070 XT clock changes from blanking the G95SC.
-    # Remove after drm/amd#4753.
-    boot.kernelParams = [ "amdgpu.dcdebugmask=0x20000" ];
-
     # Redwood's firmware supports S3, while s2idle wedges the AMD resume path.
     systemd.sleep.settings.Sleep = {
       MemorySleepMode = "deep";
