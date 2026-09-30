@@ -25,16 +25,31 @@ user: [coding agents](../explanation/coding-agents.md).
 ## Transcript modes
 
 The patched Pi package and `minimal-transcript` extension start each interactive
-session in minimal mode. This mode shows user prompts, file diffs, and final
-assistant responses. Pi hides startup notices, thinking, intermediate assistant
-messages, tool calls, tool results, unrelated custom entries, dynamic statuses,
-the header, and the footer. Dialogs and the editor remain available.
+session in minimal mode. This mode shows user prompts, file diffs, final
+assistant responses, and Pi's native transient status row. Pi hides startup
+notices, thinking, intermediate assistant messages, tool calls, tool results,
+unrelated custom entries, persistent extension statuses, the header, and the
+footer. Dialogs and the editor remain available.
+
+The status row shows Pi's animated spinner while an agent turn is active. A turn
+starts with `Thinking…`, and assistant text streaming changes the label to
+`Writing response…`. Before each tool batch, the agent writes one plain-text
+activity line in the same assistant message. The extension shows a valid line
+beside the spinner while the batch runs.
+
+A line must describe current activity rather than hidden reasoning and use no
+more than 48 visible columns. A missing or invalid line produces `Working…`.
+Retry countdowns, context compaction, and branch summarization use Pi's native
+transient indicators in the same row. The row disappears when Pi settles.
 
 `Alt+T` switches between minimal mode and normal Pi output. The switch updates
-the complete current transcript, including content produced before or during an
-active response. Full mode follows Pi's normal thinking-block and tool-expansion
-settings. A new, resumed, forked, or replaced session starts in minimal mode.
-RPC, print, and JSON modes remain unchanged.
+the complete current transcript and working label, including content produced
+before or during an active response. Full mode shows progress lines as normal
+assistant text and uses Pi's default working message. It follows Pi's normal
+thinking-block and tool-expansion settings.
+
+A new, resumed, forked, or replaced session starts in minimal mode. The activity
+row is TUI-only. RPC, print, and JSON modes remain unchanged.
 
 The extension records successful `edit` and `write` calls as durable custom
 entries.

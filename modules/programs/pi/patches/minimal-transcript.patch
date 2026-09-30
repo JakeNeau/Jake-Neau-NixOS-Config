@@ -253,8 +253,8 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
 +            this.documentContainer.addChild(this.headerContainer);
 +            this.documentContainer.addChild(this.loadedResourcesContainer);
 +            this.footerContainer.addChild(this.footerContentContainer);
-+            this.statusContainer.addChild(this.statusContentContainer);
 +        }
++        this.statusContainer.addChild(this.statusContentContainer);
 +        this.documentContainer.addChild(this.chatContainer);
 +        this.setEditorWorkingStatusIndicator(undefined);
 +        if (this.activeStatusIndicator) {

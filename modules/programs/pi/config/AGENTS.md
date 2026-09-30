@@ -8,3 +8,8 @@ claiming completion. Correct verified documentation errors in the same task.
 Before writing or revising prose, call `follow_link global:skill:writing` and
 follow it. This applies to user-facing output, documentation, comments, plans,
 reviews, and interface text.
+
+Before each tool batch, write one plain-text activity line in the same assistant
+message as the tool calls. Keep it within 48 visible columns. Describe the
+current activity, not hidden reasoning. Do not create a separate turn for this
+line.

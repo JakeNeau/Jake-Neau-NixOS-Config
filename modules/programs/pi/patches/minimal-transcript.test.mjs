@@ -18,11 +18,11 @@ const customEntryModule = await import(
 const userModule = await import(
   pathToFileURL(join(source, "dist/modes/interactive/components/user-message.js")).href
 );
-const { Text } = await import(
+const { Container, Text } = await import(
   pathToFileURL(join(source, "node_modules/@earendil-works/pi-tui/dist/index.js")).href
 );
 
-const { TranscriptContainer } = interactive;
+const { InteractiveMode, TranscriptContainer } = interactive;
 const { AssistantMessageComponent } = assistantModule;
 const { CustomEntryComponent } = customEntryModule;
 const { UserMessageComponent } = userModule;
@@ -83,6 +83,40 @@ test("switches historical components between minimal and full transcripts", () =
 
   transcript.setMinimalTranscript(true);
   assert.deepEqual(transcript.children, [user, finalAnswer, diff]);
+});
+
+test("minimal chrome preserves transient status content", () => {
+  function harness(minimalTranscript) {
+    const mode = Object.create(InteractiveMode.prototype);
+    mode.minimalTranscript = minimalTranscript;
+    mode.documentContainer = new Container();
+    mode.headerContainer = new Container();
+    mode.loadedResourcesContainer = new Container();
+    mode.chatContainer = new Container();
+    mode.footerContainer = new Container();
+    mode.footerContentContainer = new Container();
+    mode.statusContainer = new Container();
+    mode.statusContentContainer = new Container();
+    mode.activeStatusIndicator = undefined;
+    mode.setEditorWorkingStatusIndicator = () => false;
+    return mode;
+  }
+
+  const minimal = harness(true);
+  minimal.syncTranscriptChrome();
+  assert.deepEqual(minimal.documentContainer.children, [minimal.chatContainer]);
+  assert.deepEqual(minimal.footerContainer.children, []);
+  assert.deepEqual(minimal.statusContainer.children, [minimal.statusContentContainer]);
+
+  const full = harness(false);
+  full.syncTranscriptChrome();
+  assert.deepEqual(full.documentContainer.children, [
+    full.headerContainer,
+    full.loadedResourcesContainer,
+    full.chatContainer,
+  ]);
+  assert.deepEqual(full.footerContainer.children, [full.footerContentContainer]);
+  assert.deepEqual(full.statusContainer.children, [full.statusContentContainer]);
 });
 
 test("preserves a streaming component across mode changes", () => {

@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { isAbsolute, resolve } from "node:path";
 
 import { generateUnifiedPatch, type ExtensionAPI, type Theme } from "@earendil-works/pi-coding-agent";
-import { Container, Text } from "@earendil-works/pi-tui";
+import { Container, Text, visibleWidth } from "@earendil-works/pi-tui";
 
 import { countPatchChanges, diffSummary, registerTranscriptControls, type DiffEntryData } from "./core.ts";
 
@@ -58,7 +58,7 @@ export default function minimalTranscript(pi: ExtensionAPI): void {
     return container;
   });
 
-  registerTranscriptControls(pi);
+  registerTranscriptControls(pi, visibleWidth);
 
   pi.on("tool_execution_start", async (event, ctx) => {
     if ((event.toolName !== "edit" && event.toolName !== "write") || typeof event.args?.path !== "string") return;
