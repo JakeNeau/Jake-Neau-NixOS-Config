@@ -357,11 +357,13 @@
 
 ## Waiting on upstream
 
-- [ ] Re-enable VRR for the Samsung Odyssey G95SC in
-      `modules/host-config/roles/niri-desktop/config.kdl` once Niri maintainers
-      resolve `niri-wm/niri` issue #2967 and testing confirms the fix on
-      redwood at 5120x1440@240 Hz. VRR currently causes intermittent black
-      screens while Niri still reports the output as connected.
+- [ ] Remove `amdgpu.dcdebugmask=0x20000` from
+      `modules/hosts/redwood/configuration.nix` once `drm/amd` issues #4753 and
+      #4795 fix memory-clock switching on the RX 9070 XT. The parameter disables
+      firmware-assisted memory-clock switching and pins VRAM at its maximum,
+      which prevents G95SC blackouts at 5120x1440@240 Hz but increases idle
+      power. Before removal, test automatic clocking with persistent VRR and
+      confirm that clock changes cause no corruption or blackouts.
 - [ ] When stylix PR #2497 lands, re-enable `stylix.targets.nvf` and remove
       the hand-wired nvf theming in `modules/nix/tools/stylix/stylix.nix`.
       That block works around stylix setting the renamed
