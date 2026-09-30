@@ -169,7 +169,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
 +        }
 +    }
 +}
- class ExpandableText extends Text {
+ class ExpandableText extends ThemedText {
      getCollapsedText;
      getExpandedText;
 @@ -221,6 +299,7 @@
