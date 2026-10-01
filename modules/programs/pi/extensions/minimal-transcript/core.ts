@@ -1,7 +1,11 @@
 interface TranscriptControlContext {
   mode: string;
   ui: {
+    getToolsExpanded(): boolean;
     notify(message: string, type?: string): void;
+    onTerminalInput(
+      handler: (data: string) => { consume?: boolean } | undefined,
+    ): () => void;
     setMinimalTranscript?: (enabled: boolean) => void;
     setToolsExpanded(enabled: boolean): void;
     setWorkingMessage(message?: string): void;
@@ -22,7 +26,7 @@ interface TranscriptControlApi {
     definition: { description: string; handler(ctx: TranscriptControlContext): void | Promise<void> },
   ): void;
   on(
-    event: "session_start" | "turn_start" | "agent_settled",
+    event: "session_start" | "session_shutdown" | "turn_start" | "agent_settled",
     handler: (event: unknown, ctx: TranscriptControlContext) => void | Promise<void>,
   ): void;
   on(
@@ -85,33 +89,39 @@ function transcriptUi(ctx: TranscriptControlContext): (enabled: boolean) => void
 export function registerTranscriptControls(
   pi: TranscriptControlApi,
   measureWidth: (text: string) => number,
+  matchesShortcut: (data: string, key: "alt+t" | "alt+o") => boolean,
 ): void {
   let minimal = true;
   let activityLabel: string | undefined;
   let candidateMessage: unknown;
+  let removeGlobalInput: (() => void) | undefined;
 
   const applyActivityLabel = (ctx: TranscriptControlContext) => {
     if (ctx.mode !== "tui") return;
     ctx.ui.setWorkingMessage(minimal ? activityLabel : undefined);
   };
 
+  const toggleTranscript = (ctx: TranscriptControlContext) => {
+    try {
+      const next = !minimal;
+      transcriptUi(ctx)(next);
+      minimal = next;
+      applyActivityLabel(ctx);
+      ctx.ui.notify(minimal ? "Minimal transcript" : "Full transcript", "info");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      ctx.ui.notify(`Transcript toggle failed: ${message}`, "error");
+    }
+  };
+
   pi.registerShortcut("alt+t", {
     description: "Toggle full transcript",
-    handler: (ctx) => {
-      try {
-        const next = !minimal;
-        transcriptUi(ctx)(next);
-        minimal = next;
-        applyActivityLabel(ctx);
-        ctx.ui.notify(minimal ? "Minimal transcript" : "Full transcript", "info");
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        ctx.ui.notify(`Transcript toggle failed: ${message}`, "error");
-      }
-    },
+    handler: toggleTranscript,
   });
 
   pi.on("session_start", (_event, ctx) => {
+    removeGlobalInput?.();
+    removeGlobalInput = undefined;
     minimal = true;
     activityLabel = undefined;
     candidateMessage = undefined;
@@ -120,11 +130,26 @@ export function registerTranscriptControls(
       transcriptUi(ctx)(true);
       ctx.ui.setToolsExpanded(true);
       ctx.ui.setWorkingMessage();
+      removeGlobalInput = ctx.ui.onTerminalInput((data) => {
+        if (matchesShortcut(data, "alt+t")) {
+          toggleTranscript(ctx);
+          return { consume: true };
+        }
+        if (matchesShortcut(data, "alt+o")) {
+          ctx.ui.setToolsExpanded(!ctx.ui.getToolsExpanded());
+          return { consume: true };
+        }
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       ctx.ui.notify(`Transcript toggle failed: ${message}`, "error");
       throw error;
     }
+  });
+
+  pi.on("session_shutdown", () => {
+    removeGlobalInput?.();
+    removeGlobalInput = undefined;
   });
 
   pi.on("turn_start", (_event, ctx) => {

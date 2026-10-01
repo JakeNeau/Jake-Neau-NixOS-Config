@@ -3,11 +3,15 @@ import test from "node:test";
 
 import { registerTranscriptControls } from "../core.ts";
 
+type TerminalInputHandler = (data: string) => { consume?: boolean } | undefined;
+
 interface FakeContext {
   mode: "tui" | "rpc";
   hasUI: boolean;
   ui: {
+    getToolsExpanded(): boolean;
     notify(message: string, type?: string): void;
+    onTerminalInput(handler: TerminalInputHandler): () => void;
     setMinimalTranscript?: (enabled: boolean) => void;
     setToolsExpanded(enabled: boolean): void;
     setWorkingMessage(message?: string): void;
@@ -32,7 +36,7 @@ function loadExtension(measureWidth: (text: string) => number = (text) => text.l
   const previous = process.env.PI_MINIMAL_TRANSCRIPT;
   process.env.PI_MINIMAL_TRANSCRIPT = "1";
   try {
-    registerTranscriptControls(pi, measureWidth);
+    registerTranscriptControls(pi, measureWidth, (data, key) => data === key);
   } finally {
     if (previous === undefined) delete process.env.PI_MINIMAL_TRANSCRIPT;
     else process.env.PI_MINIMAL_TRANSCRIPT = previous;
@@ -45,18 +49,31 @@ function context(mode: "tui" | "rpc" = "tui") {
   const modes: boolean[] = [];
   const notifications: Array<{ message: string; type?: string }> = [];
   const expansions: boolean[] = [];
+  const terminalInputHandlers: TerminalInputHandler[] = [];
   const workingMessages: Array<string | undefined> = [];
+  let toolsExpanded = false;
   const ctx: FakeContext = {
     mode,
     hasUI: true,
     ui: {
+      getToolsExpanded: () => toolsExpanded,
       notify: (message, type) => notifications.push({ message, type }),
+      onTerminalInput: (handler) => {
+        terminalInputHandlers.push(handler);
+        return () => {
+          const index = terminalInputHandlers.indexOf(handler);
+          if (index >= 0) terminalInputHandlers.splice(index, 1);
+        };
+      },
       setMinimalTranscript: (enabled) => modes.push(enabled),
-      setToolsExpanded: (enabled) => expansions.push(enabled),
+      setToolsExpanded: (enabled) => {
+        toolsExpanded = enabled;
+        expansions.push(enabled);
+      },
       setWorkingMessage: (message) => workingMessages.push(message),
     },
   };
-  return { ctx, expansions, modes, notifications, workingMessages };
+  return { ctx, expansions, modes, notifications, terminalInputHandlers, workingMessages };
 }
 
 function assistantMessage(text?: string) {
@@ -72,6 +89,32 @@ function assistantMessage(text?: string) {
 test("registers Alt+T without the old collapse shortcut", () => {
   const { shortcuts } = loadExtension();
   assert.deepEqual([...shortcuts.keys()], ["alt+t"]);
+});
+
+test("handles display shortcuts before any focused tool UI", async () => {
+  const { handlers } = loadExtension();
+  const state = context();
+
+  await handlers.get("session_start")![0]!({}, state.ctx);
+  const handleInput = state.terminalInputHandlers[0]!;
+
+  assert.equal(handleInput("x"), undefined);
+  assert.deepEqual(handleInput("alt+t"), { consume: true });
+  assert.deepEqual(handleInput("alt+o"), { consume: true });
+  assert.deepEqual(state.modes, [true, false]);
+  assert.deepEqual(state.expansions, [true, false]);
+  assert.deepEqual(state.notifications, [{ message: "Full transcript", type: "info" }]);
+});
+
+test("removes the global input listener at session shutdown", async () => {
+  const { handlers } = loadExtension();
+  const state = context();
+
+  await handlers.get("session_start")![0]!({}, state.ctx);
+  assert.equal(state.terminalInputHandlers.length, 1);
+
+  await handlers.get("session_shutdown")![0]!({}, state.ctx);
+  assert.equal(state.terminalInputHandlers.length, 0);
 });
 
 test("toggles transcript modes and reports each selected mode", async () => {

@@ -62,6 +62,9 @@ calls.
 in full mode. `Ctrl+O` and `Ctrl+Shift+O` are unbound. Pi retains `Ctrl+T` for
 thinking-block visibility in full mode.
 
+Both shortcuts are application-wide in TUI mode. They remain active while
+selectors, custom tool dialogs, loaders, and overlays own keyboard focus.
+
 The minimal filter applies to every tool renderer, including tools from
 third-party extensions. Diff capture is narrower because only `edit` and
 `write` expose a bounded text-file mutation contract. File changes made through
