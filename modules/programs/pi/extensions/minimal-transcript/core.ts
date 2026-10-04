@@ -90,6 +90,7 @@ export function registerTranscriptControls(
   pi: TranscriptControlApi,
   measureWidth: (text: string) => number,
   matchesShortcut: (data: string, key: "alt+t" | "alt+o") => boolean,
+  isShortcutRelease: (data: string) => boolean,
 ): void {
   let minimal = true;
   let activityLabel: string | undefined;
@@ -132,11 +133,11 @@ export function registerTranscriptControls(
       ctx.ui.setWorkingMessage();
       removeGlobalInput = ctx.ui.onTerminalInput((data) => {
         if (matchesShortcut(data, "alt+t")) {
-          toggleTranscript(ctx);
+          if (!isShortcutRelease(data)) toggleTranscript(ctx);
           return { consume: true };
         }
         if (matchesShortcut(data, "alt+o")) {
-          ctx.ui.setToolsExpanded(!ctx.ui.getToolsExpanded());
+          if (!isShortcutRelease(data)) ctx.ui.setToolsExpanded(!ctx.ui.getToolsExpanded());
           return { consume: true };
         }
       });

@@ -36,7 +36,12 @@ function loadExtension(measureWidth: (text: string) => number = (text) => text.l
   const previous = process.env.PI_MINIMAL_TRANSCRIPT;
   process.env.PI_MINIMAL_TRANSCRIPT = "1";
   try {
-    registerTranscriptControls(pi, measureWidth, (data, key) => data === key);
+    registerTranscriptControls(
+      pi,
+      measureWidth,
+      (data, key) => data.replace(/^release:/, "") === key,
+      (data) => data.startsWith("release:"),
+    );
   } finally {
     if (previous === undefined) delete process.env.PI_MINIMAL_TRANSCRIPT;
     else process.env.PI_MINIMAL_TRANSCRIPT = previous;
@@ -91,7 +96,7 @@ test("registers Alt+T without the old collapse shortcut", () => {
   assert.deepEqual([...shortcuts.keys()], ["alt+t"]);
 });
 
-test("handles display shortcuts before any focused tool UI", async () => {
+test("handles display shortcut presses before any focused tool UI", async () => {
   const { handlers } = loadExtension();
   const state = context();
 
@@ -100,7 +105,9 @@ test("handles display shortcuts before any focused tool UI", async () => {
 
   assert.equal(handleInput("x"), undefined);
   assert.deepEqual(handleInput("alt+t"), { consume: true });
+  assert.deepEqual(handleInput("release:alt+t"), { consume: true });
   assert.deepEqual(handleInput("alt+o"), { consume: true });
+  assert.deepEqual(handleInput("release:alt+o"), { consume: true });
   assert.deepEqual(state.modes, [true, false]);
   assert.deepEqual(state.expansions, [true, false]);
   assert.deepEqual(state.notifications, [{ message: "Full transcript", type: "info" }]);
