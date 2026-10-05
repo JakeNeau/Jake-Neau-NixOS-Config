@@ -14,8 +14,8 @@
     nixpkgs.config = lib.mkOverride 100 {
       allowUnfree = true;
 
-      # Beekeeper Studio 6.1.1 bundles EOL Electron; remove after nixpkgs updates it.
-      permittedInsecurePackages = [ "beekeeper-studio-6.1.1" ];
+      # Beekeeper Studio 6.1.4 bundles EOL Electron; remove after nixpkgs updates it.
+      permittedInsecurePackages = [ "beekeeper-studio-6.1.4" ];
     };
 
     # NUR is genuinely needed by homes (e.g. firefox-family addons come

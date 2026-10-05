@@ -70,8 +70,8 @@ development-flow hooks to tool events; the hook *scripts* are versioned in
 Those hooks are deliberately **advisory**: every one of them injects context
 and none blocks a tool call. `code-flow-reminder` restates the stage order
 once a plan is approved, `code-flow-checklist` names any stage that never
-ran, and `edit-briefing` annotates an edit's accept/deny prompt. An earlier
-design enforced the same flow with hooks that blocked on exit 2, which made
+ran (once per session, so it doesn't repeat after every reply), and
+`edit-briefing` annotates an edit's accept/deny prompt. An earlier design enforced the same flow with hooks that blocked on exit 2, which made
 a legitimately scaled-down flow impossible to complete; the order now lives
 in the `code-writing-flow` skill and is followed by judgment.
 

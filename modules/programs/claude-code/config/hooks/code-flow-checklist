@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Stop hook. Audits the session transcript: if code was edited but a stage of the
-# code-writing flow never ran, name the missing stages. Advisory only — it emits
-# additionalContext and always exits 0, so the session continues either way. The
-# gates this replaced blocked with exit 2; a soft gate informs and lets the session
-# decide, because a deliberately scaled-down flow is legitimate.
+# code-writing flow never ran, name the missing stages once. Advisory only — it
+# emits additionalContext and always exits 0, so the session continues either way.
+# The gates this replaced blocked with exit 2; a soft gate informs and lets the
+# session decide, because a deliberately scaled-down flow is legitimate.
 set -euo pipefail
 
 input=$(cat)
@@ -22,6 +22,14 @@ if [ "$stop_hook_active" = "true" ]; then exit 0; fi
 
 # Missing or unreadable transcript — nothing to audit.
 [ -f "$transcript" ] || exit 0
+
+# Said once per session: Claude Code shows this context after the reply, so a
+# repeat on every later turn is clutter that tells the session nothing new.
+said=$("$jq_bin" -r '
+  select(.attachment.type? == "hook_additional_context" and .attachment.hookEvent? == "Stop")
+  | "yes"
+' "$transcript" 2>/dev/null || true)
+[ -z "$said" ] || exit 0
 
 # Every Write/Edit target in the session. Claude's own working files under
 # ~/.claude (plans, memory, task state) are not project code, so a session that
