@@ -109,16 +109,7 @@
       # -----
       # Fonts
       # -----
-      fonts = {
-        packages = with pkgs; [
-          google-fonts
-          noto-fonts
-          noto-fonts-cjk-sans
-          noto-fonts-color-emoji
-          liberation_ttf
-        ];
-        fontDir.enable = true;
-      };
+      fonts.packages = [ pkgs.noto-fonts ];
 
       # -----------
       # Environment

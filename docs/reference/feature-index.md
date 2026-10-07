@@ -184,6 +184,9 @@ declaration, the rest are hand-written aspects.
   Stylix target because Sioyek's custom-color shader distorts PDF colors, and
   maps `h` to Vim-style movement instead of the upstream highlight command.
 - `spotify/` — Spotify, wrapped to launch with `--in-process-gpu`.
+- `steam/` — Steam on macOS. Redwood configures the NixOS client with a bounded
+  font set. See [Steam font compatibility](../explanation/steam-font-compatibility.md)
+  and [Repair Steam font rendering](../how-to/repair-steam-fonts.md).
 - `swaybg/` — wayland wallpaper setter.
 - `udiskie/` — automatic removable-media mounting.
 - `ungoogled-chromium/` — Chromium with Google integration removed.

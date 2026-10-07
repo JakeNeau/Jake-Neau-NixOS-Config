@@ -128,6 +128,15 @@
       dedicatedServer.openFirewall = true;
       localNetworkGameTransfers.openFirewall = true;
       gamescopeSession.enable = true;
+      # Steam's bundled Fontconfig becomes unstable with the complete system catalog.
+      fontPackages = with pkgs; [
+        dejavu_fonts
+        liberation_ttf
+        montserrat
+        noto-fonts
+        noto-fonts-cjk-sans
+        noto-fonts-color-emoji
+      ];
       extraCompatPackages = with pkgs; [
         proton-ge-bin
       ];
