@@ -13,6 +13,7 @@
       "onedrive"
       "openpencil"
       "windows-app"
+      "ungoogled-chromium"
     ];
     # The nix firefox package breaks against the org's SSO, so cedar takes
     # the cask; its users get the -config unit through the baseline.

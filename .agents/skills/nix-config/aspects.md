@@ -126,9 +126,9 @@ appears.
 and layers its own additions on top. This is how the layered roles
 (`modules/host-config/roles/`) and hosts' quirks aspects are built.
 
-**Why use it:** it lets you compose features instead of copy-pasting them — a
-"desktop" is "default plus audio plus graphics plus a browser", expressed as
-imports, so the parent stays the single source of truth.
+**Why use it:** it lets you compose features instead of copy-pasting them. A
+"desktop" is "default plus audio plus graphics plus the niri desktop", expressed
+as imports, so the parent stays the single source of truth.
 
 **Use it over others when:** you want to *reuse and extend* an existing feature
 as-is. Choose Collector instead when many features should contribute *into* one

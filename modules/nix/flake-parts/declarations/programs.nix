@@ -60,8 +60,8 @@ let
           description = ''
             Whether home-manager itself provides programs.<name>.enable.
             When false, the generated install unit declares that toggle and
-            installs pkgs.<name> behind it, so opting out stays the uniform
-            `programs.<name>.enable = false;`.
+            installs pkgs.<name> behind it, so opting out of a home install
+            stays the uniform `programs.<name>.enable = false;`.
           '';
         };
 
@@ -128,8 +128,8 @@ let
       hasCask = lib.elem "cask" decl.install.macos;
 
       # The per-user install: platform-gated on content (imports are never
-      # conditional) and hung off an overridable boolean, so opting out is
-      # always the uniform `programs.<name>.enable = false;`.
+      # conditional) and hung off an overridable boolean, so a home install
+      # always opts out with the uniform `programs.<name>.enable = false;`.
       installUnit =
         {
           pkgs,

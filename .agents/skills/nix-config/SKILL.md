@@ -130,8 +130,10 @@ Every kind of edit, with the page that carries the depth:
   `modules/users/<user>/` (priority 100) beats the boundary-wrapped shared
   defaults (900); no `mkForce` needed.
   [The framework's why](../../../docs/explanation/declaration-framework.md).
-- **Opt out of a global program** — `programs.<name>.enable = false;` in the
-  user's folder.
+- **Opt out of a global program:** for a home install, set
+  `programs.<name>.enable = false;` in the user's folder. A system or cask
+  install is machine-wide, so a user can disable only its config (for
+  ungoogled-chromium, `programs.chromium.enable = false;`).
   [Generated units: per-user opt-out](../../../docs/reference/generated-units.md#per-user-opt-out).
 - **Write or edit a hand-written aspect** — for services/daemons and oddballs
   beyond declarations; follow the rules below and the pattern catalog in

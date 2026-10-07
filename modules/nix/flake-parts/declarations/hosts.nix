@@ -43,7 +43,8 @@ let
         default = [ ];
         description = ''
           flake.programs names every user on this machine gets by default.
-          Installs are opt-out-able per user via programs.<name>.enable.
+          Home installs opt out per user via programs.<name>.enable; system
+          and cask installs are machine-wide.
         '';
       };
 

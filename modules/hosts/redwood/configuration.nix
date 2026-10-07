@@ -12,6 +12,7 @@
       "gh"
       "nautilus"
       "openpencil"
+      "ungoogled-chromium"
     ];
     baselines = [
       "role-desktop"

@@ -71,10 +71,19 @@ substantive hand-written aspect of the same name (yazi's portal machinery,
 
 ## Per-user opt-out
 
-Generated installs are defaults, not mandates: a user opts out with
-`programs.<name>.enable = false;` in their own folder
-(`modules/users/<user>/`), which beats the wrapped default at priority
-100 vs 900.
+Generated installs are defaults, not mandates. A user opts out in their own
+folder (`modules/users/<user>/`). The plain assignment beats the wrapped
+default at priority 100 vs 900. The setting depends on the resolved install
+way:
+
+- **Home install** (`homeManager.<name>`): `programs.<name>.enable = false;`.
+- **System or cask install:** The install is machine-wide, so no user can opt
+  out of it. The user receives only `homeManager.<name>-config` and can
+  disable only that config. With `hasEnableOption = true`,
+  `programs.<name>.enable = false;` disables it. With
+  `hasEnableOption = false`, no `programs.<name>` option exists. The user
+  disables the home-manager module that the declaration's `config` enables.
+  For `ungoogled-chromium`, that setting is `programs.chromium.enable = false;`.
 
 Documented edge — yazi on Linux: opting out also releases the
 `inode/directory` file-type default (the claim is conditioned on the

@@ -22,7 +22,6 @@
           audio
           graphics
           network
-          ungoogled-chromium
           blender
           davinci-resolve
           spotify
@@ -130,7 +129,6 @@
       karabiner
       key-repeat
       mac-app-util
-      ungoogled-chromium
     ];
   };
 

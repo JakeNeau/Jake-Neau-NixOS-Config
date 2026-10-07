@@ -117,12 +117,16 @@ declaration, the rest are hand-written aspects.
 
 - `blender/` — 3D modeling/art, with HIP GPU rendering on AMD hosts.
 - `candy-icons/` — gradient vector icon theme.
-- `claude-code/` — Anthropic's terminal coding assistant, declaratively
-  configured; `jake.neau`'s agent. Its `config/skills/` carries every skill it
-  loads, including its writing, comment, and documentation policies, and
-  `writing-lint.nix` packages the `claude-writing-lint` binary from `writing/`.
-  See [claude-code config](../explanation/claude-code-config.md), [Claude Code's
-  writing system](../explanation/claude-code-writing-system.md), [coding
+- `claude-code/`: Anthropic's terminal coding assistant, declaratively
+  configured as `jake.neau`'s agent. Its `config/skills/` carries every
+  skill it loads, including its writing, comment, and documentation policies.
+  The `writing-lint.nix` file packages the `claude-writing-lint` binary from
+  `writing/`. The `open-claude-in-chrome.nix` file adds the Open Claude in
+  Chrome extension, its native messaging host, and its MCP server. See [the
+  Claude Code module](claude-code.md) and [Chromium
+  extensions](../explanation/chromium-extensions.md). Design: [claude-code
+  config](../explanation/claude-code-config.md), [Claude Code's writing
+  system](../explanation/claude-code-writing-system.md), [coding
   agents](../explanation/coding-agents.md), [the /pr-review-guide
   command](../explanation/pr-review-guide-command.md).
 - `cli-tools/` — cross-platform command-line tools via home-manager.
@@ -188,7 +192,13 @@ declaration, the rest are hand-written aspects.
   and [Repair Steam font rendering](../how-to/repair-steam-fonts.md).
 - `swaybg/` — wayland wallpaper setter.
 - `udiskie/` — automatic removable-media mounting.
-- `ungoogled-chromium/` — Chromium with Google integration removed.
+- `ungoogled-chromium/`: Chromium with Google integration removed. Every host
+  receives it through `globalPrograms`. Its home configuration installs uBlock
+  Origin as a local CRX from the `nix-browser-addons` input. The
+  `nix-browser-addons-data` input tracks that flake's daily data branch, so
+  `nr` carries new uBlock Origin releases. See [Chromium
+  extensions](../explanation/chromium-extensions.md) and [Enable Nix-installed
+  Chromium extensions](../how-to/enable-chromium-extensions.md).
 - `windows-app/`: macOS Windows App installed through a Homebrew cask.
 - `wl-clip-persist/` — keeps clipboard contents alive after the source
   window closes.

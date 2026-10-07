@@ -11,6 +11,7 @@
       "fastfetch"
       "gh"
       "openpencil"
+      "ungoogled-chromium"
     ];
     baselines = [
       "role-desktop"

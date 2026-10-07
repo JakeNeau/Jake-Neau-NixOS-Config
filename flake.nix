@@ -28,6 +28,17 @@
       url = "github:hraban/mac-app-util";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-browser-addons = {
+      url = "github:andre4ik3/nix-browser-addons";
+      inputs = {
+        data.follows = "nix-browser-addons-data";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
+    nix-browser-addons-data = {
+      url = "github:andre4ik3/nix-browser-addons/data";
+      flake = false;
+    };
     nix-darwin = {
       url = "github:nix-darwin/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -37,6 +48,10 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nur.url = "github:nix-community/NUR";
     nvf.url = "github:notashelf/nvf";
+    open-claude-in-chrome = {
+      url = "github:noemica-io/open-claude-in-chrome";
+      flake = false;
+    };
     pi-acp = {
       url = "github:svkozak/pi-acp";
       flake = false;

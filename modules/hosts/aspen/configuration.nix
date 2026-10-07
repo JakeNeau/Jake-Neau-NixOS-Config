@@ -11,6 +11,7 @@
       "gh"
       "openpencil"
       "steam"
+      "ungoogled-chromium"
     ];
     baselines = [
       "role-desktop"

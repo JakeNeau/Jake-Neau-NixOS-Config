@@ -36,6 +36,14 @@ Field choices:
   it. If the package attribute differs from the name (or several packages are
   needed), add `packages = pkgs: [pkgs.foo pkgs.bar];` (see
   `modules/programs/kubernetes/kubernetes.nix`).
+- **Home-manager module under another name, and only a `"system"` or
+  `"cask"` way?** Set `hasEnableOption = false;`. The default would set
+  `programs.<name>.package = null`, an option that does not exist. Without a
+  `"home"` way, the generator declares no `programs.<name>` toggle. Write
+  `config` against the real module instead: enable it, and set
+  `package = null` so it configures the system install (see
+  `modules/programs/ungoogled-chromium/ungoogled-chromium.nix`, which
+  configures `programs.chromium`).
 - **A hand-written aspect of the same name must survive?** Suppress that
   class with e.g. `handWritten = ["nixos"];` so the generator emits nothing
   for it — no unit, no tombstone (see `modules/programs/yazi/yazi.nix`, whose

@@ -78,7 +78,12 @@ in the `code-writing-flow` skill and is followed by judgment.
 ## LSP servers pinned to the store
 
 Every language nvf configures an LSP for gets the same server registered
-for Claude Code, with commands pinned to absolute store paths so the
-`claude` process resolves them regardless of PATH. The MCP side follows
+for Claude Code. The module pins each command to an absolute store path, so
+the `claude` process resolves it regardless of PATH. The MCP side follows
 the same declarative route: `programs.mcp.servers` plus
 `enableMcpIntegration`, so a server added anywhere flows in automatically.
+
+`open-claude-in-chrome.nix` depends on that route. It adds the Open Claude in
+Chrome MCP server from its own file, beside a browser extension and a native
+messaging host. Its `node` is a store path for the same reason. See [Chromium
+extensions](chromium-extensions.md#open-claude-in-chrome).

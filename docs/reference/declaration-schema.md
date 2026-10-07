@@ -43,8 +43,10 @@ A declaration with both lists empty throws at declaration eval.
 - Type: bool. Default: `true`.
 - Whether home-manager itself provides `programs.<name>.enable`. When
   `false`, the generated install unit declares that toggle itself and
-  installs the `packages` list behind it, so opting out stays the uniform
-  `programs.<name>.enable = false;`.
+  installs the `packages` list behind it. A home install therefore opts out
+  with `programs.<name>.enable = false;`. Without a `"home"` way, no unit
+  declares the toggle. See [per-user
+  opt-out](generated-units.md#per-user-opt-out).
 
 ### packages
 
@@ -93,8 +95,10 @@ Declared in `modules/nix/flake-parts/declarations/hosts.nix`.
 - Type: list of strings. Default: `[]`.
 - `flake.programs` names every user on this machine gets by default. Each
   entry must have a declaration and at least one install way on the host's
-  platform, or declaration eval throws. Installs are opt-out-able per user
-  via `programs.<name>.enable = false;`.
+  platform, or declaration eval throws. A user opts out of a home install
+  with `programs.<name>.enable = false;`. A system or cask install is
+  machine-wide, and a user can disable only its config. See [per-user
+  opt-out](generated-units.md#per-user-opt-out).
 
 ### installOverrides
 

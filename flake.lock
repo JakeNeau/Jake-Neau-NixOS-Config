@@ -625,6 +625,47 @@
         "type": "github"
       }
     },
+    "nix-browser-addons": {
+      "inputs": {
+        "data": [
+          "nix-browser-addons-data"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "treefmt": "treefmt"
+      },
+      "locked": {
+        "lastModified": 1790169653,
+        "narHash": "sha256-LSthgQMeer87Y5+6E93varO3coJX8ZyPOh2keiBTG4Q=",
+        "owner": "andre4ik3",
+        "repo": "nix-browser-addons",
+        "rev": "e73537bed58e6d3f76855a058fc2053dbffb0019",
+        "type": "github"
+      },
+      "original": {
+        "owner": "andre4ik3",
+        "repo": "nix-browser-addons",
+        "type": "github"
+      }
+    },
+    "nix-browser-addons-data": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791333425,
+        "narHash": "sha256-VfFjlvriunTIQyV9iNG6bgEFx/VmuBvIi7IILVzzn0s=",
+        "owner": "andre4ik3",
+        "repo": "nix-browser-addons",
+        "rev": "73ae8f97e171f7bb3a1c40e9d3cd4f48c9ff5ce0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "andre4ik3",
+        "ref": "data",
+        "repo": "nix-browser-addons",
+        "type": "github"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -845,11 +886,11 @@
         "nixpkgs": "nixpkgs_7"
       },
       "locked": {
-        "lastModified": 1791387367,
-        "narHash": "sha256-ZYsmFvPqDdWgIFCr2RVkpjv8E/LS07pRbnJ+n/Ge0cE=",
+        "lastModified": 1791398045,
+        "narHash": "sha256-JrUc5EFpqJ9ieVwnogSD+fFQwbzgSne7blNy15OqZJA=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "2acc866129eeeea2d2156ba6b022b76e2106278a",
+        "rev": "be8a9ab3a6baf62996f40d862c5fca5450593980",
         "type": "github"
       },
       "original": {
@@ -900,6 +941,22 @@
       "original": {
         "owner": "notashelf",
         "repo": "nvf",
+        "type": "github"
+      }
+    },
+    "open-claude-in-chrome": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790102729,
+        "narHash": "sha256-VuZDeLCO1yBwYHBpB9SF+Xd5wfc9HnWgCSG9yZNzoVU=",
+        "owner": "noemica-io",
+        "repo": "open-claude-in-chrome",
+        "rev": "6a37c291f92c038f85807b77afe6ab1205d7752c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "noemica-io",
+        "repo": "open-claude-in-chrome",
         "type": "github"
       }
     },
@@ -987,12 +1044,15 @@
         "lanzaboote": "lanzaboote",
         "llm-agents": "llm-agents",
         "mac-app-util": "mac-app-util",
+        "nix-browser-addons": "nix-browser-addons",
+        "nix-browser-addons-data": "nix-browser-addons-data",
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",
         "nix-minecraft": "nix-minecraft",
         "nixpkgs": "nixpkgs_6",
         "nur": "nur",
         "nvf": "nvf",
+        "open-claude-in-chrome": "open-claude-in-chrome",
         "pi-acp": "pi-acp",
         "pi-agent-browser-native": "pi-agent-browser-native",
         "pi-web-access": "pi-web-access",
@@ -1247,6 +1307,27 @@
       "original": {
         "owner": "tinted-theming",
         "repo": "base16-zed",
+        "type": "github"
+      }
+    },
+    "treefmt": {
+      "inputs": {
+        "nixpkgs": [
+          "nix-browser-addons",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786901030,
+        "narHash": "sha256-WSFCsDSE5ffgD2MqzkM2CYjeFiKhRF/dJUN8uedb6YE=",
+        "owner": "numtide",
+        "repo": "treefmt-nix",
+        "rev": "27b3b12a8e6375f28ebe122f07d230ca5459bbfa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "treefmt-nix",
         "type": "github"
       }
     },
