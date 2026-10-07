@@ -80,18 +80,16 @@ Settle the design with me first through [[skill:brainstorming]], captured as a
 order. Read that skill before you start. Each stage is a subagent. You orchestrate
 them, because they run headless and see none of this conversation.
 
-The order is [[agent:plan-writer]], **my call on the plan**,
-[[agent:pseudocode-writer]], **your explanation of every pseudocode section to
-me**, [[agent:pseudocode-verifier]], [[agent:code-writer]],
-[[agent:code-reviewer]], [[agent:doc-writer]], [[agent:doc-reviewer]],
-[[agent:comment-writer]], [[agent:comment-style-enforcer]].
+The order is [[agent:plan-writer]], **your explanation of the plan and my call
+on it**, [[agent:code-writer]], [[agent:code-reviewer]], [[agent:doc-writer]],
+[[agent:doc-reviewer]], [[agent:comment-writer]],
+[[agent:comment-style-enforcer]].
 
-Two of those stages are mine, and they are the reason the flow exists. At the
-plan, I may ask you to clarify, extend, or modify it. Take clarify and modify
-straight back to [[agent:plan-writer]]; never patch the plan yourself. At the
-pseudocode, walk me through every section — what it does, why it exists, how it
-connects. My understanding of the design matters more than your speed through it.
-Assume I am unfamiliar, per §12.
+That middle stage is mine, and it is the reason the flow exists. Walk me through
+every part of the plan — what it does, why it exists, how it connects. Then I may
+ask you to clarify, extend, or modify it. Take clarify and modify straight back
+to [[agent:plan-writer]]; never patch the plan yourself. My understanding of the
+design matters more than your speed through it. Assume I am unfamiliar, per §12.
 
 Hand each stage the full brief and carry the `file:line` facts forward, so no
 stage re-derives what an earlier one proved. When something breaks along the way,

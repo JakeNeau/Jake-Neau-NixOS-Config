@@ -14,8 +14,8 @@ Development flow — the entry-point skill for each moment:
 - Creative work ahead (a feature, design, or architecture choice): settle the
   design interactively via [[skill:brainstorming]]; capture it in a [[skill:specs]] file.
 - Building non-trivial code from that design: [[skill:code-writing-flow]] — you
-  drive the stages in order (plan, your call on it, pseudocode, explain it to me,
-  verify, code, review, docs, doc review, comments, comment style).
+  drive the stages in order (plan, explain it to me and take my call on it, code,
+  review, docs, doc review, comments, comment style).
 - Implementing directly, or inside the code stage: [[skill:test-driven-development]]
   (RED-GREEN-REFACTOR).
 - A bug or unexpected failure: [[skill:systematic-debugging]] — find the root

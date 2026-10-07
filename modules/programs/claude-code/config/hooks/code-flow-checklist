@@ -67,8 +67,6 @@ if grep -qx 'simple-code-writer' <<<"$dispatched"; then exit 0; fi
 missing=""
 for stage in \
   "plan-writer|plan-writer (fill the spec's Plan and Tasks)" \
-  "pseudocode-writer|pseudocode-writer (and explain every section to the user)" \
-  "pseudocode-verifier|pseudocode-verifier (prove the pseudocode matches the plan)" \
   "code-reviewer|code-reviewer (prove the diff correct)" \
   "doc-writer|doc-writer (document the change, retire the consumed spec)" \
   "doc-reviewer|doc-reviewer (prove doc coverage and accuracy)" \

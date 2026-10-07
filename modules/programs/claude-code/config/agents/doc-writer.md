@@ -84,7 +84,7 @@ then — retire the spec that drove this change, where the project keeps specs:
 
 - **Fully implemented and documented** → delete the whole spec file.
 - **Partly implemented** → delete only the consumed `## Spec` / `## Plan` /
-  `## Pseudocode` / `## Tasks` sections, leaving what has not been built.
+  `## Tasks` sections, leaving what has not been built.
 
 This is gated on the documentation step actually having run. If this repo has no
 docs system, leave every spec in place and say so — deleting rationale with

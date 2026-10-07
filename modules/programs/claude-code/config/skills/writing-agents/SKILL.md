@@ -51,10 +51,9 @@ trusting a snapshot, since fields change.
 
 This config already ships a family of agents — read them as templates for the shape
 above. Most of them are stages of [[skill:code-writing-flow]], which the main
-session drives in order: [[agent:plan-writer]], [[agent:pseudocode-writer]],
-[[agent:pseudocode-verifier]], [[agent:code-writer]], [[agent:code-reviewer]],
-[[agent:doc-writer]], [[agent:doc-reviewer]], [[agent:comment-writer]], and
-[[agent:comment-style-enforcer]]. [[agent:simple-code-writer]] is the deliberate
+session drives in order: [[agent:plan-writer]], [[agent:code-writer]],
+[[agent:code-reviewer]], [[agent:doc-writer]], [[agent:doc-reviewer]],
+[[agent:comment-writer]], and [[agent:comment-style-enforcer]]. [[agent:simple-code-writer]] is the deliberate
 escape hatch from that flow.
 
 They lean on a supporting cast: [[agent:codebase-investigator]] and

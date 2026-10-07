@@ -115,7 +115,6 @@ Flake-level machinery and third-party tool wiring.
 One folder per program feature; converted ones carry a `flake.programs`
 declaration, the rest are hand-written aspects.
 
-- `beekeeper-studio/` — cross-platform SQL client.
 - `blender/` — 3D modeling/art, with HIP GPU rendering on AMD hosts.
 - `candy-icons/` — gradient vector icon theme.
 - `claude-code/` — Anthropic's terminal coding assistant, declaratively

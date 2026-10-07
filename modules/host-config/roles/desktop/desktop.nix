@@ -144,7 +144,6 @@
       copy-paste-remaps
       fish
       karabiner
-      beekeeper-studio
       libreoffice
       sioyek
     ];

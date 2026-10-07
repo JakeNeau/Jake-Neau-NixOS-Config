@@ -12,9 +12,6 @@ model](../explanation/standalone-homes.md).
 ## What it sets
 
 - `nixpkgs.config.allowUnfree = true` grants the shared unfree permission.
-- `nixpkgs.config.permittedInsecurePackages` permits
-  `beekeeper-studio-6.1.1`. That release bundles EOL Electron 39.8.1. Remove
-  the exception after nixpkgs updates Beekeeper Studio.
 - `nixpkgs.overlays = [ inputs.nur.overlays.default ]` adds the NUR overlay.
   Homes need NUR for packages such as `pkgs.nur.repos.rycee` Firefox addons.
   The system layer retains the nix-minecraft overlay because no home uses it.

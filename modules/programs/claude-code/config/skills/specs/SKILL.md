@@ -52,9 +52,8 @@ A spec is not a permanent source of truth; it is consumed:
 
 1. **Write** — [[agent:spec-writer]] reasons about the architecture and writes the
    `## Spec`; [[agent:plan-writer]] then fills `## Plan` and `## Tasks`.
-2. **Implement** — the stages of [[skill:code-writing-flow]] consume it: the
-   pseudocode goes into a `## Pseudocode` section, then [[agent:code-writer]]
-   builds it.
+2. **Implement** — the stages of [[skill:code-writing-flow]] consume it:
+   [[agent:code-writer]] builds the plan.
 3. **Document** — the durable *why* graduates into the project's Diátaxis docs
    (an explanation page or ADR — see [[skill:diataxis]]).
 4. **Delete** — [[agent:doc-writer]] removes the consumed spec once that

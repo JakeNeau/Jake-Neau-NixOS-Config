@@ -173,10 +173,10 @@ and returns the specific holes to fix.
 ## Execution handoff
 
 The plan is written by [[agent:plan-writer]] and verified by
-[[agent:plan-verifier]]. Once the user approves it, it does **not** go straight to
-code: the next stage is [[agent:pseudocode-writer]], whose per-section
-explanations are what the user builds their mental model from. See
-[[skill:code-writing-flow]] for the whole order.
+[[agent:plan-verifier]]. The session then walks the user through it task by task
+— their mental model is built from that walkthrough — and only once they approve
+does it go to [[agent:code-writer]]. See [[skill:code-writing-flow]] for the whole
+order.
 
 *Adapted from [Superpowers](https://github.com/obra/superpowers) by Jesse
 Vincent (MIT).*
@@ -189,4 +189,4 @@ Vincent (MIT).*
 - [[skill:code-writing-flow]] — the stage order the approved plan feeds into
 - [[agent:plan-writer]] — the agent that writes this plan
 - [[agent:plan-verifier]] — adversarial verification before execution
-- [[agent:pseudocode-writer]] — the stage that renders the approved plan next
+- [[agent:code-writer]] — the stage that builds the approved plan next
