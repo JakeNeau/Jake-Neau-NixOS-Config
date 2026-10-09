@@ -1,6 +1,6 @@
 diff -ruN pi-patch-old/dist/modes/interactive/components/assistant-message.js pi-patch-new/dist/modes/interactive/components/assistant-message.js
---- pi-patch-old/dist/modes/interactive/components/assistant-message.js	2026-09-27 10:04:23.179241257 -0500
-+++ pi-patch-new/dist/modes/interactive/components/assistant-message.js	2026-09-27 10:04:51.730599178 -0500
+--- pi-patch-old/dist/modes/interactive/components/assistant-message.js	2026-10-09 09:15:27.765414168 -0500
++++ pi-patch-new/dist/modes/interactive/components/assistant-message.js	2026-10-09 09:15:27.789715361 -0500
 @@ -17,14 +17,16 @@
      lastMessage;
      hasToolCalls = false;
@@ -69,10 +69,10 @@ diff -ruN pi-patch-old/dist/modes/interactive/components/assistant-message.js pi
              this.contentContainer.addChild(new Spacer(1));
              this.contentContainer.addChild(new Text(theme.fg("error", "Response was truncated before completion."), this.outputPad, 0));
 diff -ruN pi-patch-old/dist/modes/interactive/components/custom-entry.js pi-patch-new/dist/modes/interactive/components/custom-entry.js
---- pi-patch-old/dist/modes/interactive/components/custom-entry.js	2026-09-27 10:04:23.180241270 -0500
-+++ pi-patch-new/dist/modes/interactive/components/custom-entry.js	2026-09-27 10:04:12.130539285 -0500
-@@ -15,6 +15,9 @@
-         this.renderer = renderer;
+--- pi-patch-old/dist/modes/interactive/components/custom-entry.js	2026-10-09 09:15:27.765414168 -0500
++++ pi-patch-new/dist/modes/interactive/components/custom-entry.js	2026-10-09 09:15:27.790054531 -0500
+@@ -17,6 +17,9 @@
+         this.outputPad = outputPad;
          this.rebuild();
      }
 +    get customType() {
@@ -82,13 +82,14 @@ diff -ruN pi-patch-old/dist/modes/interactive/components/custom-entry.js pi-patc
          return this.customComponent !== undefined;
      }
 diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/dist/modes/interactive/interactive-mode.js
---- pi-patch-old/dist/modes/interactive/interactive-mode.js	2026-09-27 10:04:23.178241245 -0500
-+++ pi-patch-new/dist/modes/interactive/interactive-mode.js	2026-09-27 10:08:59.581017987 -0500
-@@ -92,6 +92,87 @@
+--- pi-patch-old/dist/modes/interactive/interactive-mode.js	2026-10-09 09:15:27.766537159 -0500
++++ pi-patch-new/dist/modes/interactive/interactive-mode.js	2026-10-09 09:15:27.790660574 -0500
+@@ -99,6 +99,90 @@
  function isExpandable(obj) {
      return typeof obj === "object" && obj !== null && "setExpanded" in obj && typeof obj.setExpanded === "function";
  }
 +const MINIMAL_TRANSCRIPT_DIFF_TYPE = "minimal-transcript-diff";
++const MINIMAL_TRANSCRIPT_REVIEW_TYPE = "workflow-review";
 +function isMinimalTranscriptEnabled() {
 +    return process.env.PI_MINIMAL_TRANSCRIPT === "1";
 +}
@@ -103,11 +104,13 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
 +    }
 +    isVisible(component) {
 +        const syntheticDiff = component instanceof CustomEntryComponent && component.customType === MINIMAL_TRANSCRIPT_DIFF_TYPE;
++        const workflowReview = component instanceof CustomEntryComponent && component.customType === MINIMAL_TRANSCRIPT_REVIEW_TYPE;
 +        if (!this.minimalTranscript)
 +            return !syntheticDiff && !(component instanceof MinimalTranscriptUserMessageComponent);
 +        return ((component instanceof UserMessageComponent && !(component instanceof FullTranscriptUserMessageComponent)) ||
 +            (component instanceof AssistantMessageComponent && component.isVisibleInMinimalTranscript()) ||
-+            syntheticDiff);
++            syntheticDiff ||
++            workflowReview);
 +    }
 +    addChild(component) {
 +        if (component instanceof AssistantMessageComponent) {
@@ -170,9 +173,9 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
 +    }
 +}
  class ExpandableText extends ThemedText {
-     getCollapsedText;
-     getExpandedText;
-@@ -221,6 +299,7 @@
+     state;
+     constructor(getCollapsedText, getExpandedText, expanded = false, paddingX = 0, paddingY = 0) {
+@@ -244,6 +325,7 @@
      fullscreenLayoutRoot;
      pendingMessagesContainer;
      statusContainer;
@@ -180,7 +183,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
      defaultEditor;
      editor;
      editorComponentFactory;
-@@ -232,6 +311,7 @@
+@@ -255,6 +337,7 @@
      activeSelectorDispose;
      footer;
      footerContainer;
@@ -188,7 +191,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
      footerDataProvider;
      // Stored so the same manager can be injected into custom editors, selectors, and extension UI.
      keybindings;
-@@ -265,6 +345,7 @@
+@@ -289,6 +372,7 @@
      pendingTools = new Map();
      // Tool output expansion state
      toolOutputExpanded = false;
@@ -196,7 +199,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
      // Thinking block visibility state
      hideThinkingBlock = false;
      outputPad = 1;
-@@ -356,13 +437,11 @@
+@@ -384,13 +468,11 @@
          this.ui.setClearOnShrink(this.settingsManager.getClearOnShrink());
          this.headerContainer = new Container();
          this.loadedResourcesContainer = new Container();
@@ -212,7 +215,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
          this.widgetContainerAbove = new Container();
          this.widgetContainerBelow = new Container();
          this.keybindings = KeybindingsManager.create();
-@@ -381,7 +460,9 @@
+@@ -409,7 +491,9 @@
          this.footer = new FooterComponent(this.session, this.footerDataProvider);
          this.footer.setAutoCompactEnabled(this.session.autoCompactionEnabled);
          this.footerContainer = new Container();
@@ -223,7 +226,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
          // Load hide thinking block setting
          this.hideThinkingBlock = this.settingsManager.getHideThinkingBlock();
          this.outputPad = this.settingsManager.getOutputPad();
-@@ -1523,7 +1604,7 @@
+@@ -1574,7 +1658,7 @@
          const clearOnShrink = this.settingsManager.getClearOnShrink();
          this.ui.setClearOnShrink(clearOnShrink);
          if (!clearOnShrink && !this.activeStatusIndicator) {
@@ -232,16 +235,16 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
          }
          const editorPaddingX = this.settingsManager.getEditorPaddingX();
          const autocompleteMaxVisible = this.settingsManager.getAutocompleteMaxVisible();
-@@ -1538,6 +1619,8 @@
-         const session = this.session;
+@@ -1590,6 +1674,8 @@
          this.unsubscribe?.();
          this.unsubscribe = undefined;
+         this.programStatus.reset();
 +        if (isMinimalTranscriptEnabled())
 +            this.setMinimalTranscript(true);
          this.applyRuntimeSettings();
          if (options.renderBeforeBind) {
              this.renderCurrentSessionState();
-@@ -1689,6 +1771,40 @@
+@@ -1766,6 +1852,40 @@
              return false;
          };
      }
@@ -282,7 +285,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
      /**
       * Set extension status text in the footer.
       */
-@@ -1698,7 +1814,7 @@
+@@ -1775,7 +1895,7 @@
      }
      setEditorWorkingStatusIndicator(indicator) {
          this.defaultEditor.setWorkingStatusIndicator(undefined);
@@ -291,7 +294,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
              return false;
          this.editor.setWorkingStatusIndicator(indicator);
          return true;
-@@ -1707,13 +1823,13 @@
+@@ -1784,13 +1904,13 @@
          this.activeStatusIndicator?.dispose();
          this.activeStatusIndicator = indicator;
          this.activeWorkingIndicatorEmbedded = false;
@@ -307,7 +310,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
      }
      clearStatusIndicator(kind) {
          if (kind && this.activeStatusIndicator?.kind !== kind) {
-@@ -1724,13 +1840,13 @@
+@@ -1801,13 +1921,13 @@
          clearedIndicator?.dispose();
          this.activeStatusIndicator = undefined;
          this.activeWorkingIndicatorEmbedded = false;
@@ -323,7 +326,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
          }
      }
      showWorkingStatusIndicator() {
-@@ -1760,7 +1876,7 @@
+@@ -1837,7 +1957,7 @@
      }
      setHiddenThinkingLabel(label) {
          this.hiddenThinkingLabel = label ?? this.defaultHiddenThinkingLabel;
@@ -332,7 +335,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
              if (child instanceof AssistantMessageComponent) {
                  child.setHiddenThinkingLabel(this.hiddenThinkingLabel);
              }
-@@ -1883,16 +1999,16 @@
+@@ -1960,16 +2080,16 @@
          if (this.customFooter?.dispose) {
              this.customFooter.dispose();
          }
@@ -352,7 +355,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
          }
          this.ui.requestRender();
      }
-@@ -2024,6 +2140,7 @@
+@@ -2101,6 +2221,7 @@
              },
              getToolsExpanded: () => this.toolOutputExpanded,
              setToolsExpanded: (expanded) => this.setToolsExpanded(expanded),
@@ -360,7 +363,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
          };
      }
      /**
-@@ -2210,10 +2327,10 @@
+@@ -2297,10 +2418,10 @@
          }
          this.editorContainer.addChild(this.editor);
          if (this.activeStatusIndicator) {
@@ -373,7 +376,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
              }
          }
          this.ui.setFocus(this.editor);
-@@ -2732,7 +2849,7 @@
+@@ -2833,7 +2954,7 @@
                      this.ui.requestRender();
                  }
                  else if (event.message.role === "assistant") {
@@ -382,7 +385,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
                      this.streamingMessage = event.message;
                      this.chatContainer.addChild(this.streamingComponent);
                      this.streamingComponent.updateContent(this.streamingMessage, true);
-@@ -2780,6 +2897,7 @@
+@@ -2882,6 +3003,7 @@
                          this.streamingMessage.errorMessage = errorMessage;
                      }
                      this.streamingComponent.updateContent(this.streamingMessage, false);
@@ -390,7 +393,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
                      if (this.streamingMessage.stopReason === "aborted" || this.streamingMessage.stopReason === "error") {
                          if (!errorMessage) {
                              errorMessage = this.streamingMessage.errorMessage || "Error";
-@@ -3022,12 +3140,8 @@
+@@ -3133,12 +3255,8 @@
          if (!component.hasContent()) {
              return;
          }
@@ -405,7 +408,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
          }
          this.chatContainer.addChild(component);
      }
-@@ -3082,9 +3196,12 @@
+@@ -3193,9 +3311,12 @@
                          // Render user message separately if present
                          if (skillBlock.userMessage) {
                              this.chatContainer.addChild(new Spacer(1));
@@ -419,7 +422,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
                      }
                      else {
                          const userComponent = new UserMessageComponent(textContent, this.getMarkdownThemeWithSettings(), this.outputPad, this.getMarkdownTransformers());
-@@ -3097,7 +3214,7 @@
+@@ -3208,7 +3329,7 @@
                  break;
              }
              case "assistant": {
@@ -428,7 +431,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
                  this.chatContainer.addChild(assistantComponent);
                  break;
              }
-@@ -3614,18 +3731,21 @@
+@@ -3736,18 +3857,21 @@
          if (isExpandable(activeHeader)) {
              activeHeader.setExpanded(expanded);
          }
@@ -456,7 +459,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
              if (child instanceof AssistantMessageComponent) {
                  child.setHideThinkingBlock(this.hideThinkingBlock);
              }
-@@ -3962,7 +4082,7 @@
+@@ -4087,7 +4211,7 @@
                  },
                  onShowImagesChange: (enabled) => {
                      this.settingsManager.setShowImages(enabled);
@@ -465,7 +468,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
                          if (child instanceof ToolExecutionComponent) {
                              child.setShowImages(enabled);
                          }
-@@ -3970,7 +4090,7 @@
+@@ -4095,7 +4219,7 @@
                  },
                  onImageWidthCellsChange: (width) => {
                      this.settingsManager.setImageWidthCells(width);
@@ -474,16 +477,18 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
                          if (child instanceof ToolExecutionComponent) {
                              child.setImageWidthCells(width);
                          }
-@@ -4078,7 +4198,7 @@
+@@ -4202,8 +4326,8 @@
+                 onOutputPadChange: (padding) => {
                      this.settingsManager.setOutputPad(padding);
                      this.outputPad = padding;
-                     if (this.streamingComponent || this.session.isStreaming) {
--                        for (const child of this.chatContainer.children) {
-+                        for (const child of this.chatContainer.getAllChildren()) {
-                             if (child instanceof AssistantMessageComponent ||
-                                 child instanceof CustomMessageComponent ||
-                                 child instanceof UserMessageComponent) {
-@@ -4104,7 +4224,7 @@
+-                    for (const container of [this.chatContainer, this.pendingMessagesContainer]) {
+-                        for (const child of container.children) {
++                    for (const children of [this.chatContainer.getAllChildren(), this.pendingMessagesContainer.children]) {
++                        for (const child of children) {
+                             if ("setOutputPad" in child && typeof child.setOutputPad === "function") {
+                                 child.setOutputPad(padding);
+                             }
+@@ -4222,7 +4346,7 @@
                      this.settingsManager.setClearOnShrink(enabled);
                      this.ui.setClearOnShrink(enabled);
                      if (!enabled && !this.activeStatusIndicator) {
@@ -492,7 +497,7 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
                      }
                  },
                  onShowTerminalProgressChange: (enabled) => {
-@@ -4118,7 +4238,7 @@
+@@ -4236,7 +4360,7 @@
                      }
                      this.settingsManager.setTuiMode(mode);
                      if (!this.activeStatusIndicator)

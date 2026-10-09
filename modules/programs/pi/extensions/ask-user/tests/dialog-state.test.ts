@@ -21,6 +21,45 @@ test("navigation changes the selected option and preview", () => {
   assert.equal(activePreview(options, state), undefined);
 });
 
+test("preview scrolling moves by lines and clamps at zero", () => {
+  let state = createDialogState(options.length);
+  assert.equal(state.previewOffset, 0);
+
+  ({ state } = reduceDialogState(state, { type: "scroll-preview", delta: 1 }));
+  assert.equal(state.previewOffset, 1);
+
+  ({ state } = reduceDialogState(state, { type: "scroll-preview", delta: -2 }));
+  assert.equal(state.previewOffset, 0);
+});
+
+test("navigation resets preview scrolling only after a row change", () => {
+  let state = {
+    ...createDialogState(options.length),
+    previewOffset: 7,
+  };
+
+  ({ state } = reduceDialogState(state, { type: "up" }));
+  assert.equal(state.previewOffset, 7);
+
+  ({ state } = reduceDialogState(state, { type: "down" }));
+  assert.equal(state.selectedIndex, 1);
+  assert.equal(state.previewOffset, 0);
+
+  state = { ...state, selectedIndex: options.length + 1, previewOffset: 5 };
+  ({ state } = reduceDialogState(state, { type: "down" }));
+  assert.equal(state.previewOffset, 5);
+});
+
+test("ordinary menu transitions preserve the preview offset", () => {
+  const state = {
+    ...createDialogState(options.length),
+    previewOffset: 4,
+  };
+
+  assert.equal(reduceDialogState(state, { type: "input", value: "ignored" }).state.previewOffset, 4);
+  assert.equal(reduceDialogState(state, { type: "enter" }).state.previewOffset, 4);
+});
+
 test("free-form input replaces only its action row until submission", () => {
   let state = createDialogState(options.length);
   state = { ...state, selectedIndex: options.length };

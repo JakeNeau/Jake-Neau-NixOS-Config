@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import {
+  workflowArtifactDetail,
+  workflowEntryType,
+} from "../artifacts.ts";
 import { workflowAutocompleteItems } from "../autocomplete.ts";
 import { workflowAnswerForDialogEvent } from "../question.ts";
 
@@ -20,6 +24,34 @@ test("returns slash-command completion values without a leading slash", () => {
     ),
     [{ value: "refine-spec", label: "refine-spec", description: "Refine a specification" }],
   );
+});
+
+test("marks proposal checkpoints as visible review entries", () => {
+  assert.equal(workflowEntryType("proposal"), "workflow-review");
+  assert.equal(workflowEntryType("question"), "workflow-artifact");
+  assert.equal(workflowEntryType(undefined), "workflow-artifact");
+});
+
+test("renders the complete proposal in a review entry", () => {
+  const artifact = {
+    schemaVersion: 1 as const,
+    runId: "run",
+    artifactId: "run:1",
+    workflow: "refine-plan",
+    stageType: "refine",
+    stageInvocationId: "run:refine:1",
+    parentArtifactIds: [],
+    createdAt: "2026-01-01T00:00:00.000Z",
+    artifactKind: "refinement-proposal",
+    outcome: "proposed",
+    summary: "Plan ready for review.",
+    payload: { design: "1. Change the filter.\n2. Test the review entry." },
+  };
+  const detail = workflowArtifactDetail(artifact, false, true);
+
+  assert.equal(detail?.dim, false);
+  assert.match(detail?.text ?? "", /1\. Change the filter\./);
+  assert.match(detail?.text ?? "", /2\. Test the review entry\./);
 });
 
 test("maps the shared question dialog events to workflow answers", () => {

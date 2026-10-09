@@ -9,6 +9,7 @@ import {
   Key,
   Markdown,
   matchesKey,
+  ScrollView,
   type TUI,
   truncateToWidth,
   visibleWidth,
@@ -29,17 +30,26 @@ const FREE_FORM_LABEL = "Type a free-form answer...";
 const CLARIFICATION_LABEL = "Ask a clarifying question...";
 const MAX_PREVIEW_LINES = 16;
 
-class AskUserDialog implements Focusable {
+export class AskUserDialog implements Focusable {
   private state: DialogState;
   private readonly input = new Input();
+  private readonly params: AskUserParams;
+  private readonly tui: TUI;
+  private readonly theme: Theme;
+  private readonly done: (event: DialogEvent) => void;
   private _focused = false;
+  private previewScrollable = false;
 
   constructor(
-    private readonly params: AskUserParams,
-    private readonly tui: TUI,
-    private readonly theme: Theme,
-    private readonly done: (event: DialogEvent) => void,
+    params: AskUserParams,
+    tui: TUI,
+    theme: Theme,
+    done: (event: DialogEvent) => void,
   ) {
+    this.params = params;
+    this.tui = tui;
+    this.theme = theme;
+    this.done = done;
     this.state = createDialogState(params.options.length);
   }
 
@@ -65,7 +75,11 @@ class AskUserDialog implements Focusable {
       return;
     }
 
-    if (matchesKey(data, Key.up)) this.apply({ type: "up" });
+    if (this.previewScrollable && matchesKey(data, Key.ctrlAlt("j"))) {
+      this.apply({ type: "scroll-preview", delta: 1 });
+    } else if (this.previewScrollable && matchesKey(data, Key.ctrlAlt("k"))) {
+      this.apply({ type: "scroll-preview", delta: -1 });
+    } else if (matchesKey(data, Key.up)) this.apply({ type: "up" });
     else if (matchesKey(data, Key.down)) this.apply({ type: "down" });
     else if (matchesKey(data, Key.enter)) this.apply({ type: "enter" });
     else if (matchesKey(data, Key.escape)) this.apply({ type: "escape" });
@@ -73,9 +87,13 @@ class AskUserDialog implements Focusable {
 
   private apply(action: DialogAction): void {
     const previousMode = this.state.mode;
+    const previousSelectedIndex = this.state.selectedIndex;
     const transition = reduceDialogState(this.state, action);
     this.state = transition.state;
 
+    if (previousSelectedIndex !== this.state.selectedIndex) {
+      this.previewScrollable = false;
+    }
     if (previousMode === "menu" && this.state.mode !== "menu") {
       this.input.setValue("");
     }
@@ -88,6 +106,7 @@ class AskUserDialog implements Focusable {
   render(width: number): string[] {
     const renderWidth = Math.max(1, width);
     const lines: string[] = [this.theme.fg("accent", "─".repeat(renderWidth))];
+    this.previewScrollable = false;
 
     this.addWrapped(lines, this.params.question, renderWidth, " ");
     lines.push("");
@@ -112,7 +131,9 @@ class AskUserDialog implements Focusable {
 
     lines.push("");
     const help = this.state.mode === "menu"
-      ? "↑↓ navigate • enter select • esc cancel"
+      ? `↑↓ navigate • enter select • esc cancel${
+          this.previewScrollable ? " • ctrl+alt+j/k scroll preview" : ""
+        }`
       : "enter submit • esc back";
     this.addWrapped(lines, this.theme.fg("dim", help), renderWidth, " ");
     lines.push(this.theme.fg("accent", "─".repeat(renderWidth)));
@@ -167,18 +188,33 @@ class AskUserDialog implements Focusable {
   }
 
   private renderPreview(preview: string, width: number): string[] {
-    if (width < 8) return [this.theme.fg("borderMuted", truncateToWidth("Preview", width, ""))];
+    if (width < 8) {
+      this.state = { ...this.state, previewOffset: 0 };
+      return [this.theme.fg("borderMuted", truncateToWidth("Preview", width, ""))];
+    }
 
     const contentWidth = width - 4;
     const markdown = new Markdown(preview, 0, 0, getMarkdownTheme());
-    const rendered = markdown.render(contentWidth);
-    const truncated = rendered.length > MAX_PREVIEW_LINES;
-    const content = truncated
-      ? [
-          ...rendered.slice(0, MAX_PREVIEW_LINES - 1),
-          this.theme.fg("dim", "… preview truncated"),
-        ]
-      : rendered;
+    const fullWidthLines = markdown.render(contentWidth);
+    this.previewScrollable = fullWidthLines.length > MAX_PREVIEW_LINES;
+
+    const viewport = new ScrollView(markdown, {
+      scrollbar: this.previewScrollable ? "always" : "hidden",
+      scrollbarTrackStyle: (text) => this.theme.fg("borderMuted", text),
+      scrollbarThumbStyle: (text) => this.theme.fg("accent", text),
+    });
+    const viewportHeight = Math.min(MAX_PREVIEW_LINES, fullWidthLines.length);
+    const layoutWidth = this.previewScrollable ? contentWidth - 1 : contentWidth;
+    const contentHeight = markdown.render(layoutWidth).length;
+    viewport.updateLayout(contentHeight, viewportHeight, () => {});
+    viewport.scrollTo(this.state.previewOffset, { disableFollow: true });
+    const rendered = viewport.render(contentWidth);
+    this.state = { ...this.state, previewOffset: viewport.scrollTop };
+
+    const visible = rendered.slice(viewport.scrollTop, viewport.scrollTop + viewportHeight);
+    const content = this.previewScrollable
+      ? this.paintScrollbar(visible, contentWidth, contentHeight, viewport)
+      : visible;
 
     const title = " Preview ";
     const top = `┌─${title}${"─".repeat(Math.max(0, width - visibleWidth(title) - 3))}┐`;
@@ -197,6 +233,33 @@ class AskUserDialog implements Focusable {
     }
     lines.push(this.theme.fg("borderMuted", bottom));
     return lines;
+  }
+
+  private paintScrollbar(
+    lines: string[],
+    width: number,
+    contentHeight: number,
+    viewport: ScrollView,
+  ): string[] {
+    const height = lines.length;
+    const thumbHeight = Math.max(
+      Math.min(2, height),
+      Math.min(height, Math.round((height * height) / contentHeight)),
+    );
+    const maxOffset = Math.max(0, contentHeight - height);
+    const maxThumbTop = height - thumbHeight;
+    const thumbTop = maxOffset === 0
+      ? 0
+      : Math.round((viewport.scrollTop / maxOffset) * maxThumbTop);
+
+    return lines.map((line, index) => {
+      const clipped = truncateToWidth(line, width - 1, "");
+      const padding = " ".repeat(Math.max(0, width - 1 - visibleWidth(clipped)));
+      const scrollbar = index >= thumbTop && index < thumbTop + thumbHeight
+        ? viewport.scrollbarThumbStyle("┃")
+        : viewport.scrollbarTrackStyle("│");
+      return clipped + padding + scrollbar;
+    });
   }
 
   invalidate(): void {

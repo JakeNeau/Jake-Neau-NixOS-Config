@@ -25,8 +25,8 @@ user: [coding agents](../explanation/coding-agents.md).
 ## Transcript modes
 
 The patched Pi package and `minimal-transcript` extension start each interactive
-session in minimal mode. This mode shows user prompts, file diffs, final
-assistant responses, and Pi's native transient status row. Pi hides startup
+session in minimal mode. This mode shows user prompts, file diffs, workflow
+proposal reviews, final assistant responses, and Pi's native transient status row. Pi hides startup
 notices, thinking, intermediate assistant messages, tool calls, tool results,
 unrelated custom entries, persistent extension statuses, the header, and the
 footer. Dialogs and the editor remain available.
@@ -87,11 +87,17 @@ commands, configuration, or another concrete example materially helps the user
 compare options. It must not use a preview to repeat the label, add generic
 explanation, or restate the question.
 
-The TUI shows the preview for the highlighted option in a bordered panel. Arrow
-keys change the highlighted option and preview. The panel renders Markdown and
-shows at most 16 content lines. Pi marks truncated previews. The extension does
-not support physical mouse-pointer hover because Pi's extension TUI API does not
-expose mouse events.
+The TUI shows the highlighted option's preview in a bordered Markdown panel.
+The panel has a 16-line content viewport. When the rendered preview overflows,
+a right-edge scrollbar shows the current position. `Ctrl+Alt+J` scrolls down by
+one line, and `Ctrl+Alt+K` scrolls up by one line. Holding either key repeats the
+movement. Changing the highlighted option resets the preview to its first line.
+
+Arrow keys remain dedicated to option selection. The help row shows the preview
+controls only while the selected preview overflows.
+
+The extension does not support physical mouse-pointer hover because Pi's
+extension TUI API does not expose mouse events.
 
 The dialog always includes actions for a free-form answer and a clarifying
 question. Selecting either action turns that row into a one-line input. The
@@ -104,11 +110,11 @@ the clarification first. The extension then reopens the original dialog unless
 the agent already called `ask_user` again. An answer or cancellation clears the
 pending question.
 
-The custom inline dialog and previews work in TUI mode. RPC mode uses Pi's
-separate selection and input dialogs, accepts the same option objects, and does
-not render previews. In print and JSON modes, the tool directs the agent to ask
-through normal text. The extension does not support multiple selections or
-multiple questions in one call.
+The custom inline dialog, previews, and preview scrolling work only in TUI mode.
+RPC mode uses Pi's separate selection and input dialogs. It accepts the same
+option objects and does not render previews. In print and JSON modes, the tool
+directs the agent to ask through normal text. The extension does not support
+multiple selections or multiple questions in one call.
 
 ## Workflow manager
 
@@ -128,8 +134,8 @@ selects one clear specification defect.
 
 The bundled `/refine-plan [specification or area]` workflow proposes one concise
 implementation plan. The plan names required files, symbols, behavior, data
-flow, errors, tests, and documentation changes. The user approves one plan file
-before Pi writes it.
+flow, errors, tests, and documentation changes. Pi keeps the complete proposal
+visible while the user approves one plan file before Pi writes it.
 
 Each bundled refinement workflow uses one proposal stage and one writer stage.
 It has no separate audit, conversation, retry, or verification pass.

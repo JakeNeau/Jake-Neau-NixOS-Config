@@ -120,6 +120,9 @@ export default function workflows(pi: ExtensionAPI): void {
   pi.registerEntryRenderer("workflow-artifact", (entry, options, theme) =>
     renderWorkflowArtifact(entry.data as WorkflowArtifact, options.expanded, theme)
   );
+  pi.registerEntryRenderer("workflow-review", (entry, options, theme) =>
+    renderWorkflowArtifact(entry.data as WorkflowArtifact, options.expanded, theme, true)
+  );
   pi.registerCommand("refine-spec", {
     description: "Refine a project specification",
     handler: async (args, ctx) => start("refine-spec", args.trim(), ctx),

@@ -171,7 +171,7 @@ export class WorkflowRuntime {
       parentArtifactIds,
       result.artifact,
     );
-    this.ui.appendArtifact(artifact);
+    this.ui.appendArtifact(artifact, stage.checkpoint);
     return artifact;
   }
 

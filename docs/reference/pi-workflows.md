@@ -114,8 +114,10 @@ one correction prompt. A second failure stops the stage.
 
 The parent assigns each artifact a run identity, stage identity, parent
 identities, timestamp, kind, outcome, summary, and payload. Parents must already
-exist. Pi stores artifacts as non-context session entries. The TUI shows a
-compact entry and reveals the payload when expanded.
+exist. Pi stores artifacts as non-context session entries. The TUI shows an
+ordinary artifact as a compact entry and reveals its payload when expanded. A
+proposal checkpoint uses a review entry that shows the complete design in both
+normal and minimal transcript modes.
 
 Escape, `/workflow stop`, reload, and session shutdown abort active work and
 clean up temporary files and processes.

@@ -3,7 +3,11 @@ import { BorderedLoader, CustomEditor } from "@earendil-works/pi-coding-agent";
 import { Text, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 
 import { runAskUserTui } from "../ask-user/dialog.ts";
-import type { WorkflowArtifact } from "./artifacts.ts";
+import {
+  type WorkflowArtifact,
+  workflowArtifactDetail,
+  workflowEntryType,
+} from "./artifacts.ts";
 import {
   type WorkflowAnswer,
   workflowAnswerForDialogEvent,
@@ -67,8 +71,11 @@ export class WorkflowUi {
     this.ctx.ui.setStatus("workflow", this.ctx.ui.theme.fg(this.state.color as any, status));
   }
 
-  appendArtifact(artifact: WorkflowArtifact): void {
-    this.pi.appendEntry("workflow-artifact", artifact);
+  appendArtifact(
+    artifact: WorkflowArtifact,
+    checkpoint?: "question" | "proposal",
+  ): void {
+    this.pi.appendEntry(workflowEntryType(checkpoint), artifact);
   }
 
   async runLoader<T>(label: string, action: (signal: AbortSignal) => Promise<T>): Promise<T | undefined> {
@@ -139,10 +146,16 @@ export class WorkflowUi {
   }
 }
 
-export function renderWorkflowArtifact(artifact: WorkflowArtifact, expanded: boolean, theme: any): Text {
+export function renderWorkflowArtifact(
+  artifact: WorkflowArtifact,
+  expanded: boolean,
+  theme: any,
+  review = false,
+): Text {
   const heading = `${artifact.workflow} · ${artifact.stageType} · ${artifact.artifactKind}`;
   let text = theme.fg("warning", theme.bold(heading));
   text += `\n${theme.fg("text", artifact.summary)}`;
-  if (expanded) text += `\n${theme.fg("dim", JSON.stringify(artifact.payload, null, 2))}`;
+  const detail = workflowArtifactDetail(artifact, expanded, review);
+  if (detail) text += `\n${theme.fg(detail.dim ? "dim" : "text", detail.text)}`;
   return new Text(text, 1, 0);
 }

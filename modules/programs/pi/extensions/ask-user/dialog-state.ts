@@ -10,11 +10,13 @@ export interface DialogState {
   selectedIndex: number;
   mode: DialogMode;
   input: string;
+  previewOffset: number;
 }
 
 export type DialogAction =
   | { type: "up" }
   | { type: "down" }
+  | { type: "scroll-preview"; delta: number }
   | { type: "enter" }
   | { type: "escape" }
   | { type: "input"; value: string };
@@ -31,7 +33,7 @@ export interface DialogTransition {
 }
 
 export function createDialogState(optionCount: number): DialogState {
-  return { optionCount, selectedIndex: 0, mode: "menu", input: "" };
+  return { optionCount, selectedIndex: 0, mode: "menu", input: "", previewOffset: 0 };
 }
 
 export function activePreview(
@@ -62,12 +64,23 @@ export function reduceDialogState(
   }
 
   const rowCount = state.optionCount + 2;
-  if (action.type === "up") {
-    return { state: { ...state, selectedIndex: Math.max(0, state.selectedIndex - 1) } };
-  }
-  if (action.type === "down") {
+  if (action.type === "scroll-preview") {
     return {
-      state: { ...state, selectedIndex: Math.min(rowCount - 1, state.selectedIndex + 1) },
+      state: {
+        ...state,
+        previewOffset: Math.max(0, state.previewOffset + action.delta),
+      },
+    };
+  }
+  if (action.type === "up" || action.type === "down") {
+    const delta = action.type === "up" ? -1 : 1;
+    const selectedIndex = Math.max(0, Math.min(rowCount - 1, state.selectedIndex + delta));
+    return {
+      state: {
+        ...state,
+        selectedIndex,
+        previewOffset: selectedIndex === state.selectedIndex ? state.previewOffset : 0,
+      },
     };
   }
   if (action.type === "escape") return { state, event: { type: "cancelled" } };

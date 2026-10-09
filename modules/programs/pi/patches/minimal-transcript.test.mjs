@@ -68,21 +68,22 @@ test("switches historical components between minimal and full transcripts", () =
   );
   const tool = new Text("tool output", 0, 0);
   const diff = customEntry("minimal-transcript-diff");
+  const review = customEntry("workflow-review");
   const custom = customEntry("workflow-artifact");
 
-  for (const component of [user, finalAnswer, intermediate, tool, diff, custom]) {
+  for (const component of [user, finalAnswer, intermediate, tool, diff, review, custom]) {
     transcript.addChild(component);
   }
 
-  assert.deepEqual(transcript.children, [user, finalAnswer, diff]);
+  assert.deepEqual(transcript.children, [user, finalAnswer, diff, review]);
   const minimalAnswerChildren = finalAnswer.contentContainer.children.length;
 
   transcript.setMinimalTranscript(false);
-  assert.deepEqual(transcript.children, [user, finalAnswer, intermediate, tool, custom]);
+  assert.deepEqual(transcript.children, [user, finalAnswer, intermediate, tool, review, custom]);
   assert.ok(finalAnswer.contentContainer.children.length > minimalAnswerChildren);
 
   transcript.setMinimalTranscript(true);
-  assert.deepEqual(transcript.children, [user, finalAnswer, diff]);
+  assert.deepEqual(transcript.children, [user, finalAnswer, diff, review]);
 });
 
 test("minimal chrome preserves transient status content", () => {

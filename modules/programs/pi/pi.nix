@@ -14,6 +14,9 @@ let
       nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.makeWrapper ];
       preInstall = (old.preInstall or "") + ''
         PI_SOURCE="$PWD" node --test ${./patches/minimal-transcript.test.mjs}
+        cp -R ${askUserSource} ask-user-tests
+        chmod -R u+w ask-user-tests
+        node --experimental-strip-types --test ask-user-tests/tests/*.test.ts
       '';
       postFixup = (old.postFixup or "") + ''
         wrapProgram "$out/bin/pi" --set PI_MINIMAL_TRANSCRIPT 1
@@ -117,15 +120,11 @@ let
     pkgs:
     pkgs.runCommand "pi-ask-user"
       {
-        nativeBuildInputs = [
-          inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
-          pkgs.nodejs
-        ];
+        nativeBuildInputs = [ (mkPiPackage pkgs) ];
       }
       ''
         cp -R ${askUserSource} ask-user
         chmod -R u+w ask-user
-        node --experimental-strip-types --test ask-user/tests/*.test.ts
 
         export HOME="$TMPDIR/home"
         mkdir -p "$HOME"

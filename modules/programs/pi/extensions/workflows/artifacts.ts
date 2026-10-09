@@ -24,6 +24,29 @@ export interface ArtifactCatalogEntry {
   parentArtifactIds: string[];
 }
 
+export function workflowEntryType(
+  checkpoint?: "question" | "proposal",
+): "workflow-artifact" | "workflow-review" {
+  return checkpoint === "proposal" ? "workflow-review" : "workflow-artifact";
+}
+
+export function workflowArtifactDetail(
+  artifact: WorkflowArtifact,
+  expanded: boolean,
+  review: boolean,
+): { text: string; dim: boolean } | undefined {
+  const payload = artifact.payload && typeof artifact.payload === "object"
+    ? artifact.payload as Record<string, unknown>
+    : {};
+  if (review && typeof payload.design === "string") {
+    return { text: payload.design, dim: false };
+  }
+  if (expanded) {
+    return { text: JSON.stringify(artifact.payload, null, 2), dim: true };
+  }
+  return undefined;
+}
+
 type JsonSchema = Record<string, unknown>;
 
 function valueType(value: unknown): string {
