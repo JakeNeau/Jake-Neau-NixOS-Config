@@ -28,7 +28,7 @@ A body without a short message is invalid.
 
 1. Reject an unrestored stash from an earlier `nr --staged` run.
 2. Stash unstaged tracked changes when `--staged` requires it.
-3. Pull the repository.
+3. Pull the repository as a fast-forward merge. A diverged history aborts.
 4. Update every flake input.
 5. Stage the selected changes unless `--no-git` is active.
 6. Evaluate every NixOS, nix-darwin, and Home Manager output.

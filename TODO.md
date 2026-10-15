@@ -395,6 +395,14 @@
       In `esmuellert/codediff.nvim` PR 557, codediff 4.0.4 replaced its own
       scroll sync with native `'scrollbind'` because of that fix. Without the
       fix, added or deleted lines taller than the window misalign the panes.
+- [ ] Remove the `typescript-language-server` overlay in
+      `modules/nix/tools/home-manager/common-nixpkgs.nix` once the locked
+      nixpkgs contains `NixOS/nixpkgs` PR 572951 (merge commit `eabfbbcf`). The
+      locked nixpkgs pins a stale hash for the package's pnpm dependencies, so
+      every home failed to build. Check with
+      `gh api repos/NixOS/nixpkgs/compare/eabfbbcf...<locked rev> --jq .status`,
+      which must print `ahead` or `identical`. Then confirm that the cedar home
+      still builds without the overlay.
 
 ## When I get a homelab
 

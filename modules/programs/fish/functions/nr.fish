@@ -66,7 +66,9 @@ function nr --description "Pulls, verifies every environment in the flake, commi
     set stash_hint "; your unstaged changes are stashed; run 'git -C $flake stash pop' to restore them"
   end
 
-  suu git -C $flake pull $git_quiet
+  # A clone's pull.rebase would refuse the uncommitted edits nr exists to
+  # commit; a fast-forward keeps them and the index, and divergence aborts
+  suu git -C $flake pull --no-rebase --ff-only $git_quiet
   or begin
     echo "nr: git pull failed, aborting$stash_hint" >&2
     return 1
