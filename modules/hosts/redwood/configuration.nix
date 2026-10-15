@@ -10,6 +10,7 @@
       "yazi"
       "fastfetch"
       "gh"
+      "home-assistant"
       "nautilus"
       "openpencil"
       "ungoogled-chromium"

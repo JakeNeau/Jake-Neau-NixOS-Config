@@ -151,6 +151,9 @@ declaration, the rest are hand-written aspects.
   activation about an unmanaged `~/.gitconfig`.
 - `homebrew/` — the Homebrew cask list for packages that work better
   outside nixpkgs.
+- `home-assistant/`: Home Assistant control app for personal machines. Linux
+  uses a Chromium app launcher, while macOS uses the official Companion cask.
+  See [Home Assistant control app](home-assistant.md).
 - `hyprlock/` — styled screen locker for niri sessions.
 - `jujutsu/` — jj, a git-compatible VCS, configured through home-manager.
 - `karabiner/` — the macOS key-remapping daemon (app from homebrew).

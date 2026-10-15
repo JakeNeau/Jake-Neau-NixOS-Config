@@ -9,6 +9,7 @@
       "firefox"
       "fastfetch"
       "gh"
+      "home-assistant"
       "openpencil"
       "steam"
       "ungoogled-chromium"

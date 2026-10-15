@@ -530,6 +530,20 @@ in
         fishEnabled = config.programs.fish.enable;
         fishShell = "${config.programs.fish.package}/bin/fish";
         settingsUpdater = mkPiSettingsUpdater pkgs;
+        homeAssistantMcpEnabled =
+          lib.attrByPath [ "programs" "home-assistant" "enableMcpIntegration" ] false config
+          && (
+            pkgs.stdenv.hostPlatform.isDarwin
+            || lib.attrByPath [ "programs" "home-assistant" "enable" ] false config
+          );
+        homeAssistantMcpFiles = lib.optionalAttrs homeAssistantMcpEnabled {
+          ".pi/agent/mcp.json".text = builtins.toJSON {
+            mcpServers."home-assistant" = {
+              url = "https://ha.jakeneau.com/api/mcp";
+              oauth.clientRegistration = "cimd";
+            };
+          };
+        };
         agentContext =
           builtins.readFile ./config/AGENTS.md
           + lib.optionalString fishEnabled ''
@@ -613,7 +627,7 @@ in
         };
       in
       {
-        home.file = fixedHomeFiles // promptHomeFiles;
+        home.file = fixedHomeFiles // promptHomeFiles // homeAssistantMcpFiles;
         home.activation.piShellPath = lib.hm.dag.entryAfter [ "writeBoundary" ] (
           if fishEnabled then
             ''

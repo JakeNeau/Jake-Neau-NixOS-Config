@@ -357,8 +357,13 @@ preserves functional directives and legal or generated provenance verbatim.
 
 ## Managed policy
 
-Home Manager owns two focused policy files:
+Home Manager owns the following focused policy and integration files:
 
+- `~/.pi/agent/mcp.json` conditionally registers the Home Assistant MCP server.
+  `programs.home-assistant.enableMcpIntegration` controls this file. Linux also
+  requires `programs.home-assistant.enable`. Home Manager does not manage the
+  OAuth tokens in `~/.pi/agent/mcp-auth.json`. See the [Home Assistant control
+  app](home-assistant.md).
 - `~/.pi/web-search.json` selects Exa, disables the interactive curator with
   `workflow = "none"`, and forbids browser-cookie extraction. This makes
   unattended runs return raw evidence to the main agent.
@@ -370,8 +375,10 @@ API keys are not stored in Nix. pi-web-access reads `EXA_API_KEY`,
 `BRAVE_API_KEY`, and its other supported provider variables from the process
 environment. Add credentials through sops-nix when needed.
 
-Nix does not manage Pi's authentication, model catalog, or session state. The
-module also leaves `~/.pi/agent/settings.json` mutable except for `shellPath`.
+Nix does not manage Pi's authentication, model catalog, or session state. Each
+machine with the integration enabled authenticates once with
+`pi mcp login home-assistant`. The module also leaves
+`~/.pi/agent/settings.json` mutable except for `shellPath`.
 A Home Manager activation merges that key into the live JSON when the home
 enables Fish. It removes only that key when the home disables Fish. Users can
 change every other setting through `/settings`.
