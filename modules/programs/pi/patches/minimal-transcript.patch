@@ -289,8 +289,8 @@ diff -ruN pi-patch-old/dist/modes/interactive/interactive-mode.js pi-patch-new/d
      }
      setEditorWorkingStatusIndicator(indicator) {
          this.defaultEditor.setWorkingStatusIndicator(undefined);
--        if (!isWorkingStatusEditor(this.editor))
-+        if (this.minimalTranscript || !isWorkingStatusEditor(this.editor))
+-        if (!isEmbeddedStatus(this.editor))
++        if (this.minimalTranscript || !isEmbeddedStatus(this.editor))
              return false;
          this.editor.setWorkingStatusIndicator(indicator);
          return true;
