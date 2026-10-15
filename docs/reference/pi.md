@@ -200,6 +200,30 @@ reproducible. Small generated `index.ts` files under
 `~/.pi/agent/extensions/` import each extension from its immutable store path.
 Home Manager links the bundled librarian skill under `~/.pi/agent/skills/`.
 
+## Provider and usage extensions
+
+The module pins four third-party extension sources as non-flake inputs. Home
+Manager writes store-backed entry points under `~/.pi/agent/extensions/`.
+Pi's mutable `settings.json` contains no package declarations for them.
+
+- `pi-anthropic-auth` `v3.4.2` shapes Anthropic OAuth requests while leaving API
+  key requests unchanged.
+- Pi uses `pi-claude-bridge` `v0.9.3` to expose Claude Code models.
+  Pi registers those models under `claude-bridge`.
+  Nix builds the runtime dependencies.
+  Nix removes physical copies of Pi's host-provided libraries.
+- The module pins `pi-usage` at commit `97c4344`. The extension reports provider
+  quota through a usage command.
+- `pi-usage-bar` `v0.2.4` records local token and cost events, adds usage
+  reports, and supplies a footer. Minimal transcript mode hides that footer.
+
+Both usage extensions register `usage`. Pi disambiguates the commands as
+`usage:1` and `usage:2`.
+
+Home Manager activation merges the Nix `claude` executable path into
+`~/.pi/agent/claude-bridge.json`. The file stays mutable so Claude Bridge can
+record notice fields and users can set other bridge options.
+
 ## Neovim ACP adapter
 
 `flake.lock` pins the unversioned non-flake `pi-acp` input to a commit.
@@ -361,9 +385,11 @@ Home Manager owns the following focused policy and integration files:
 
 - `~/.pi/agent/mcp.json` conditionally registers the Home Assistant MCP server.
   `programs.home-assistant.enableMcpIntegration` controls this file. Linux also
-  requires `programs.home-assistant.enable`. Home Manager does not manage the
-  OAuth tokens in `~/.pi/agent/mcp-auth.json`. See the [Home Assistant control
-  app](home-assistant.md).
+  requires `programs.home-assistant.enable`. When
+  `programs.home-assistant-filesystem.enable` is active, the same file adds a
+  filesystem MCP server rooted at `/mnt/home-assistant-www`. Home Manager does
+  not manage the OAuth tokens in `~/.pi/agent/mcp-auth.json`. See the [Home
+  Assistant control app](home-assistant.md).
 - `~/.pi/web-search.json` selects Exa, disables the interactive curator with
   `workflow = "none"`, and forbids browser-cookie extraction. This makes
   unattended runs return raw evidence to the main agent.

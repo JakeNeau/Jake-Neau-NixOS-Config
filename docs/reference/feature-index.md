@@ -154,6 +154,9 @@ declaration, the rest are hand-written aspects.
 - `home-assistant/`: Home Assistant control app for personal machines. Linux
   uses a Chromium app launcher, while macOS uses the official Companion cask.
   See [Home Assistant control app](home-assistant.md).
+- `home-assistant-filesystem/`: Redwood-only companion program that exposes
+  Home Assistant's `/config/www` through a restricted filesystem MCP server.
+  See [Home Assistant control app](home-assistant.md#filesystem-mcp-companion).
 - `hyprlock/` — styled screen locker for niri sessions.
 - `jujutsu/` — jj, a git-compatible VCS, configured through home-manager.
 - `karabiner/` — the macOS key-remapping daemon (app from homebrew).

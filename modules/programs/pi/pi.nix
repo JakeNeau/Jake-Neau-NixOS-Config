@@ -59,7 +59,7 @@ let
         settings="''${2:-}"
 
         case "$action" in
-          set-shell)
+          set-shell|set-claude-bridge)
             [ "$#" -eq 3 ] || exit 2
             ;;
           unset-shell)
@@ -89,14 +89,30 @@ let
         trap 'rm -f "$temporary"' EXIT
 
         if [ -e "$settings" ]; then
-          if [ "$action" = set-shell ]; then
-            jq --arg shell "$3" '.shellPath = $shell' "$settings" > "$temporary"
-          else
-            jq 'del(.shellPath)' "$settings" > "$temporary"
-          fi
+          case "$action" in
+            set-shell)
+              jq --arg shell "$3" '.shellPath = $shell' "$settings" > "$temporary"
+              ;;
+            set-claude-bridge)
+              jq --arg executable "$3" \
+                '.provider = (.provider // {}) | .provider.pathToClaudeCodeExecutable = $executable' \
+                "$settings" > "$temporary"
+              ;;
+            unset-shell)
+              jq 'del(.shellPath)' "$settings" > "$temporary"
+              ;;
+          esac
           chmod --reference="$settings" "$temporary"
         else
-          jq -n --arg shell "$3" '{shellPath: $shell}' > "$temporary"
+          case "$action" in
+            set-shell)
+              jq -n --arg shell "$3" '{shellPath: $shell}' > "$temporary"
+              ;;
+            set-claude-bridge)
+              jq -n --arg executable "$3" \
+                '{provider: {pathToClaudeCodeExecutable: $executable}}' > "$temporary"
+              ;;
+          esac
           chmod 600 "$temporary"
         fi
 
@@ -180,6 +196,13 @@ let
         before="$(sha256sum "$settings")"
         "$updater" set-shell "$settings" ${pkgs.fish}/bin/fish
         test "$(sha256sum "$settings")" = "$before"
+
+        bridge="$TMPDIR/claude-bridge.json"
+        printf '{"startupNoticeShown":"2026-01-01","provider":{"plan":"max"}}\n' > "$bridge"
+        "$updater" set-claude-bridge "$bridge" /nix/store/claude/bin/claude
+        test "$(jq -r .provider.pathToClaudeCodeExecutable "$bridge")" = /nix/store/claude/bin/claude
+        test "$(jq -r .provider.plan "$bridge")" = max
+        test "$(jq -r .startupNoticeShown "$bridge")" = 2026-01-01
 
         "$updater" unset-shell "$settings"
         test "$(jq -r '.shellPath // "missing"' "$settings")" = missing
@@ -399,6 +422,63 @@ let
         printf 'The parser reads the file.\n' | ${mkPiWritingLint pkgs}/bin/pi-writing-lint
         touch "$out"
       '';
+  mkPiClaudeBridge =
+    pkgs:
+    pkgs.buildNpmPackage {
+      pname = "pi-claude-bridge";
+      version = "0.9.3";
+      src = inputs.pi-claude-bridge;
+      npmDeps = pkgs.importNpmLock { npmRoot = inputs.pi-claude-bridge; };
+      npmConfigHook = pkgs.importNpmLock.npmConfigHook;
+      dontNpmBuild = true;
+      postInstall = ''
+        package="$out/lib/node_modules/pi-claude-bridge/node_modules"
+        rm -rf "$package/@earendil-works" "$package/typebox"
+      '';
+    };
+  mkPiThirdPartyExtensionsCheck =
+    pkgs:
+    let
+      claudeBridgeRoot = "${mkPiClaudeBridge pkgs}/lib/node_modules/pi-claude-bridge";
+    in
+    pkgs.runCommand "pi-third-party-extensions"
+      {
+        nativeBuildInputs = [ (mkPiPackage pkgs) ];
+      }
+      ''
+        mkdir -p extensions/{anthropic-auth,usage,usage-bar,claude-bridge}
+        cat > extensions/anthropic-auth/index.ts <<'EOF'
+        export { default } from "${inputs.pi-anthropic-auth}/src/index.ts";
+        EOF
+        cat > extensions/usage/index.ts <<'EOF'
+        export { default } from "${inputs.pi-usage}/extensions/usage/index.ts";
+        EOF
+        cat > extensions/usage-bar/index.ts <<'EOF'
+        export { default } from "${inputs.pi-usage-bar}/index.ts";
+        EOF
+        cat > extensions/claude-bridge/index.ts <<'EOF'
+        export { default } from "${claudeBridgeRoot}/src/index.ts";
+        EOF
+
+        export HOME="$TMPDIR/home"
+        mkdir -p "$HOME"
+        extension_args=(
+          --extension ./extensions/anthropic-auth/index.ts
+          --extension ./extensions/usage/index.ts
+          --extension ./extensions/usage-bar/index.ts
+          --extension ./extensions/claude-bridge/index.ts
+        )
+        printf '{"type":"get_commands"}\n' \
+          | pi --mode rpc --no-session --offline --no-extensions \
+            "''${extension_args[@]}" >rpc.jsonl
+        grep -q '"name":"anthropic-auth:status"' rpc.jsonl
+        grep -q '"name":"usage:1"' rpc.jsonl
+        grep -q '"name":"usage:2"' rpc.jsonl
+        pi --no-session --offline --no-extensions \
+          "''${extension_args[@]}" --list-models claude-bridge >models.txt
+        grep -q '^claude-bridge ' models.txt
+        touch "$out"
+      '';
   mkPiAcp =
     pkgs:
     pkgs.buildNpmPackage {
@@ -418,6 +498,7 @@ in
       pi-minimal-transcript = mkPiMinimalTranscriptCheck pkgs;
       pi-openpencil = mkPiOpenPencilCheck pkgs;
       pi-rust-tools = mkPiRustToolsCheck pkgs;
+      pi-third-party-extensions = mkPiThirdPartyExtensionsCheck pkgs;
       pi-workflows = mkPiWorkflowCheck pkgs;
       pi-typed-links = mkPiLinkRegistry pkgs;
       pi-writing = mkPiWritingCheck pkgs;
@@ -439,6 +520,22 @@ in
     };
     pi-agent-browser-native = {
       url = "github:fitchmultz/pi-agent-browser-native/v0.2.71";
+      flake = false;
+    };
+    pi-anthropic-auth = {
+      url = "github:gotgenes/pi-anthropic-auth/v3.4.2";
+      flake = false;
+    };
+    pi-claude-bridge = {
+      url = "github:elidickinson/pi-claude-bridge/v0.9.3";
+      flake = false;
+    };
+    pi-usage = {
+      url = "github:iefnaf/pi-usage/97c4344d712372505489e9bc9e70cca4d2315c9e";
+      flake = false;
+    };
+    pi-usage-bar = {
+      url = "github:ttiimmaahh/pi-usage-bar/v0.2.4";
       flake = false;
     };
     pi-web-access = {
@@ -517,6 +614,8 @@ in
           dontNpmPrune = true;
         };
         pi-web-access-root = "${pi-web-access}/lib/node_modules/pi-web-access";
+        pi-claude-bridge = mkPiClaudeBridge pkgs;
+        pi-claude-bridge-root = "${pi-claude-bridge}/lib/node_modules/pi-claude-bridge";
         linkRegistry = mkPiLinkRegistry pkgs;
         promptFiles = lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (
           builtins.readDir ./config/prompts
@@ -536,8 +635,11 @@ in
             pkgs.stdenv.hostPlatform.isDarwin
             || lib.attrByPath [ "programs" "home-assistant" "enable" ] false config
           );
-        homeAssistantFilesystemMcpEnabled =
-          lib.attrByPath [ "programs" "home-assistant-filesystem" "enable" ] false config;
+        homeAssistantFilesystemMcpEnabled = lib.attrByPath [
+          "programs"
+          "home-assistant-filesystem"
+          "enable"
+        ] false config;
         homeAssistantMcpFiles = lib.optionalAttrs homeAssistantMcpEnabled {
           ".pi/agent/mcp.json".text = builtins.toJSON {
             mcpServers = {
@@ -567,6 +669,18 @@ in
           '';
           ".pi/agent/extensions/pi-agent-browser-native/index.ts".text = ''
             export { default } from "${inputs.pi-agent-browser-native}/extensions/agent-browser/index.ts";
+          '';
+          ".pi/agent/extensions/pi-anthropic-auth/index.ts".text = ''
+            export { default } from "${inputs.pi-anthropic-auth}/src/index.ts";
+          '';
+          ".pi/agent/extensions/pi-usage/index.ts".text = ''
+            export { default } from "${inputs.pi-usage}/extensions/usage/index.ts";
+          '';
+          ".pi/agent/extensions/pi-usage-bar/index.ts".text = ''
+            export { default } from "${inputs.pi-usage-bar}/index.ts";
+          '';
+          ".pi/agent/extensions/pi-claude-bridge/index.ts".text = ''
+            export { default } from "${pi-claude-bridge-root}/src/index.ts";
           '';
           ".pi/agent/extensions/ask-user/index.ts".text = ''
             export { default } from "${askUserSource}/index.ts";
@@ -638,18 +752,25 @@ in
       in
       {
         home.file = fixedHomeFiles // promptHomeFiles // homeAssistantMcpFiles;
-        home.activation.piShellPath = lib.hm.dag.entryAfter [ "writeBoundary" ] (
-          if fishEnabled then
-            ''
-              $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
-                set-shell "$HOME/.pi/agent/settings.json" ${lib.escapeShellArg fishShell}
-            ''
-          else
-            ''
-              $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
-                unset-shell "$HOME/.pi/agent/settings.json"
-            ''
-        );
+        home.activation = {
+          piClaudeBridgePath = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
+              set-claude-bridge "$HOME/.pi/agent/claude-bridge.json" \
+              ${lib.escapeShellArg (lib.getExe pkgs.claude-code)}
+          '';
+          piShellPath = lib.hm.dag.entryAfter [ "writeBoundary" ] (
+            if fishEnabled then
+              ''
+                $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
+                  set-shell "$HOME/.pi/agent/settings.json" ${lib.escapeShellArg fishShell}
+              ''
+            else
+              ''
+                $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
+                  unset-shell "$HOME/.pi/agent/settings.json"
+              ''
+          );
+        };
       };
   };
 

@@ -487,11 +487,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792085665,
-        "narHash": "sha256-X9iN67cdW9KqLuvbyyr9rdF4Zssk1uFHh1UC/GZH08s=",
+        "lastModified": 1792098797,
+        "narHash": "sha256-u4DIIZgznEGzByxXrxWCXK19VcMtTBmi/M9gZ7Jk9bM=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "54ad640b81c5e9a32db1a29e7561fda628601117",
+        "rev": "640725978b99076e18e069f6e7d2959124584f8f",
         "type": "github"
       },
       "original": {
@@ -572,11 +572,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1792056293,
-        "narHash": "sha256-H2wGrjy3/l8hHZjpTabPSkM6EocN7v8pn/F4MR7cJmE=",
+        "lastModified": 1792107493,
+        "narHash": "sha256-R2ZNB6ABgRbf+qO0NMqt54YQswcri7XbV56qU1lqPus=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "4e80fdc9b04f4531a78c89f6dff66e0a4d920b3f",
+        "rev": "251dca483236f5f80a387f9d5e76fc51bc690b38",
         "type": "github"
       },
       "original": {
@@ -886,11 +886,11 @@
         "nixpkgs": "nixpkgs_7"
       },
       "locked": {
-        "lastModified": 1792087191,
-        "narHash": "sha256-W4jdz3fmH6VpxhCzq7pK4doc/sCcQ1UPrGJMkI4jPEY=",
+        "lastModified": 1792107107,
+        "narHash": "sha256-5K5R8a8vX7ZNt+m93Vgc8bYd42Ndtbt5dk4BB3cPLpU=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "6a470a4400d9995b32528a7f5cecc67451d38665",
+        "rev": "cd84991f52aa39bd7e7571642d19840cbee35ffb",
         "type": "github"
       },
       "original": {
@@ -993,6 +993,74 @@
         "type": "github"
       }
     },
+    "pi-anthropic-auth": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790888627,
+        "narHash": "sha256-mJ9JIwdmtGhGebyZLOXy+m1r04a310IW0gbu1FLLPfc=",
+        "owner": "gotgenes",
+        "repo": "pi-anthropic-auth",
+        "rev": "f648e814d479dae75f6e403d8ffa8ae5bc918783",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gotgenes",
+        "ref": "v3.4.2",
+        "repo": "pi-anthropic-auth",
+        "type": "github"
+      }
+    },
+    "pi-claude-bridge": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791922992,
+        "narHash": "sha256-2P81N6xWuvJdB3w7egU8QNguXWkOyyRUDePveXY7p0c=",
+        "owner": "elidickinson",
+        "repo": "pi-claude-bridge",
+        "rev": "874fa7c2678456336f23b64e784e2057e608d83e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "elidickinson",
+        "ref": "v0.9.3",
+        "repo": "pi-claude-bridge",
+        "type": "github"
+      }
+    },
+    "pi-usage": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790566671,
+        "narHash": "sha256-iQpJqyF+r0/YaDvjd4DzwVOWLLYjmXfIp7lTigxkC3g=",
+        "owner": "iefnaf",
+        "repo": "pi-usage",
+        "rev": "97c4344d712372505489e9bc9e70cca4d2315c9e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "iefnaf",
+        "repo": "pi-usage",
+        "rev": "97c4344d712372505489e9bc9e70cca4d2315c9e",
+        "type": "github"
+      }
+    },
+    "pi-usage-bar": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789506817,
+        "narHash": "sha256-TDehdXNHDlAOnBFdGlb4E9J2hseN/mC3kXEgAW1vDXo=",
+        "owner": "ttiimmaahh",
+        "repo": "pi-usage-bar",
+        "rev": "7b003c062b5c6a4ea04afe88ab5f6d164d7d0351",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ttiimmaahh",
+        "ref": "v0.2.4",
+        "repo": "pi-usage-bar",
+        "type": "github"
+      }
+    },
     "pi-web-access": {
       "flake": false,
       "locked": {
@@ -1055,6 +1123,10 @@
         "open-claude-in-chrome": "open-claude-in-chrome",
         "pi-acp": "pi-acp",
         "pi-agent-browser-native": "pi-agent-browser-native",
+        "pi-anthropic-auth": "pi-anthropic-auth",
+        "pi-claude-bridge": "pi-claude-bridge",
+        "pi-usage": "pi-usage",
+        "pi-usage-bar": "pi-usage-bar",
         "pi-web-access": "pi-web-access",
         "sops-nix": "sops-nix",
         "stylix": "stylix"

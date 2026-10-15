@@ -60,6 +60,22 @@
       url = "github:fitchmultz/pi-agent-browser-native/v0.2.71";
       flake = false;
     };
+    pi-anthropic-auth = {
+      url = "github:gotgenes/pi-anthropic-auth/v3.4.2";
+      flake = false;
+    };
+    pi-claude-bridge = {
+      url = "github:elidickinson/pi-claude-bridge/v0.9.3";
+      flake = false;
+    };
+    pi-usage = {
+      url = "github:iefnaf/pi-usage/97c4344d712372505489e9bc9e70cca4d2315c9e";
+      flake = false;
+    };
+    pi-usage-bar = {
+      url = "github:ttiimmaahh/pi-usage-bar/v0.2.4";
+      flake = false;
+    };
     pi-web-access = {
       url = "github:nicobailon/pi-web-access/v0.13.0";
       flake = false;
