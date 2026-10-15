@@ -536,11 +536,21 @@ in
             pkgs.stdenv.hostPlatform.isDarwin
             || lib.attrByPath [ "programs" "home-assistant" "enable" ] false config
           );
+        homeAssistantFilesystemMcpEnabled =
+          lib.attrByPath [ "programs" "home-assistant-filesystem" "enable" ] false config;
         homeAssistantMcpFiles = lib.optionalAttrs homeAssistantMcpEnabled {
           ".pi/agent/mcp.json".text = builtins.toJSON {
-            mcpServers."home-assistant" = {
-              url = "https://ha.jakeneau.com/api/mcp";
-              oauth.clientRegistration = "cimd";
+            mcpServers = {
+              "home-assistant" = {
+                url = "https://ha.jakeneau.com/api/mcp";
+                oauth.clientRegistration = "cimd";
+              };
+            }
+            // lib.optionalAttrs homeAssistantFilesystemMcpEnabled {
+              "home-assistant-filesystem" = {
+                command = lib.getExe pkgs.mcp-server-filesystem;
+                args = [ "/mnt/home-assistant-www" ];
+              };
             };
           };
         };

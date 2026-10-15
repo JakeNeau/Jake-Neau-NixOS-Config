@@ -11,6 +11,7 @@
       "fastfetch"
       "gh"
       "home-assistant"
+      "home-assistant-filesystem"
       "nautilus"
       "openpencil"
       "ungoogled-chromium"
@@ -28,6 +29,7 @@
         role-desktop
         lanzaboote
         nix-minecraft
+        home-assistant-filesystem
       ])
       ++ [ inputs.self.modules.generic.numtide-cache ];
 

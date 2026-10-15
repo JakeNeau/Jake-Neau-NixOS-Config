@@ -36,7 +36,10 @@
       defaultSopsFile = ../../../secrets/secrets.yaml;
       defaultSopsFormat = "yaml";
       age.keyFile = "/etc/nixos/secrets/keys.txt";
-      secrets.hashedPasswordJakeNeau.neededForUsers = true;
+      secrets = {
+        hashedPasswordJakeNeau.neededForUsers = true;
+        homeAssistantSambaCredentials.mode = "0400";
+      };
     };
   };
 }
