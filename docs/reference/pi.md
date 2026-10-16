@@ -219,17 +219,22 @@ Pi's mutable `settings.json` contains no package declarations for them.
   reports, and supplies the only custom footer. The footer remains visible in
   both transcript modes.
 - `pi-usage-limits` `0.1.4` publishes the active model's subscription limits as
-  the `model-usage` extension status. Claude Bridge models show five-hour and
-  seven-day utilization. Codex models show the short and weekly windows that
+  the `model-usage` extension status. Claude models from any provider show
+  five-hour and seven-day utilization. Codex models show the short and weekly windows that
   the provider reports. Unsupported models and request failures remain visible
   as extension statuses.
 
 `pi-usage-limits` refreshes at session startup, after model changes, and after
 agent runs settle. Refreshes run only in TUI mode and do not block Pi. A shared
 60-second disk cache at `~/.pi/agent/cache/pi-usage-limits.json` limits requests
-across concurrent Pi sessions. Nix supplies the Claude Agent SDK from the pinned
-`pi-claude-bridge` package. The Claude quota API is experimental and may require
-an extension update after an SDK change.
+across concurrent Pi sessions.
+
+The build patches the Claude quota query to use Pi's `anthropic` login. Upstream
+runs the Claude Agent SDK, which needs a separate Claude Code login. The patch
+sends the Pi OAuth token to the `api/oauth/usage` endpoint that Claude Code
+calls. Anthropic does not document that endpoint, so the patch may need an
+update after an API change. If Pi has no Anthropic login, the status shows
+`Claude: run /login anthropic`.
 
 `pi-usage-bar` renders the status through its `extensions` footer segment. It
 removes status colors and truncates each extension status to 28 visible columns.

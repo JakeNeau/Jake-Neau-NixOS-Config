@@ -1,0 +1,103 @@
+diff -ru a/claude_limits.ts b/claude_limits.ts
+--- a/claude_limits.ts
++++ b/claude_limits.ts
+@@ -1,8 +1,4 @@
+-import { query } from "@anthropic-ai/claude-agent-sdk";
+-
+ export type ClaudeLimits = {
+-  subscription: string;
+-  available: boolean;
+   rate_limits: {
+     five_hour: {
+       utilization: number;
+@@ -13,44 +9,24 @@
+   };
+ };
+ 
+-export const getLimits = async function (): Promise<ClaudeLimits> {
+-  const log: string[] = [];
+-  const q = query({
+-    prompt: (async function* () {
+-      await new Promise(() => {});
+-    })(),
+-    options: {
+-      persistSession: false,
+-      settingSources: [],
+-      strictMcpConfig: true,
+-      // pi-claude-bridge sets this in pi's process; the CLI then skips the usage fetch and returns null
+-      env: { ...process.env, CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: undefined },
+-      // CLI only explains a null usage result in its debug log
+-      extraArgs: { "debug-to-stderr": null },
+-      stderr: (s) => log.push(s),
++// undocumented endpoint that Claude Code calls; may change without notice
++const USAGE_URL = "https://api.anthropic.com/api/oauth/usage";
++
++export const getLimits = async function (token: string): Promise<ClaudeLimits> {
++  const res = await fetch(USAGE_URL, {
++    headers: {
++      Authorization: `Bearer ${token}`,
++      "anthropic-beta": "oauth-2025-04-20",
+     },
++    signal: AbortSignal.timeout(10_000),
+   });
+-
+-  let u;
+-  try {
+-    u = await q.usage_EXPERIMENTAL_MAY_CHANGE_DO_NOT_RELY_ON_THIS_API_YET({
+-      skipBehaviors: true,
+-    });
+-  } finally {
+-    q.close();
+-  }
+-
+-  if (!u.rate_limits) {
+-    const why = log
+-      .join("")
+-      .split("\n")
+-      .findLast((l) => l.includes("[ERROR]"));
+-    throw new Error(why?.replace(/^\S+ \[\w+\] /, "") ?? "no rate_limits");
+-  }
+-
++  if (!res.ok)
++    throw new Error(`Claude usage request failed: HTTP ${res.status}`);
++  const body = await res.json();
+   return {
+-    subscription: u.subscription_type,
+-    available: u.rate_limits_available,
+-    rate_limits: u.rate_limits,
++    rate_limits:
++      body?.five_hour && body?.seven_day
++        ? { five_hour: body.five_hour, seven_day: body.seven_day }
++        : null,
+   } as ClaudeLimits;
+ };
+diff -ru a/usage.ts b/usage.ts
+--- a/usage.ts
++++ b/usage.ts
+@@ -23,13 +23,13 @@
+   }
+ 
+   if (model.id.includes("claude")) {
+-    return getClaudeUsage();
++    return getClaudeUsage(auth);
+   }
+ 
+   return `${model.id} not supported yet`;
+ }
+ 
+-async function getClaudeUsage() {
++async function getClaudeUsage(auth: TokenSource) {
+   const state = await loadState();
+ 
+   if (
+@@ -39,7 +39,9 @@
+     return formatClaudeUsage(state.anthropic_last_limits) + " 󰃨";
+   }
+ 
+-  const limits = await getLimits();
++  const token = await auth.getApiKeyForProvider("anthropic");
++  if (!token) throw new Error("Claude: run /login anthropic");
++  const limits = await getLimits(token);
+ 
+   await saveState({
+     anthropic_last_api_call: Date.now(),

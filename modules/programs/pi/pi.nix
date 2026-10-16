@@ -436,16 +436,15 @@ let
         rm -rf "$package/@earendil-works" "$package/typebox"
       '';
     };
+  # Claude quota uses Pi's Anthropic login instead of a separate Claude Code login.
   mkPiUsageLimits =
     pkgs:
-    let
-      claudeBridgeRoot = "${mkPiClaudeBridge pkgs}/lib/node_modules/pi-claude-bridge";
-    in
     pkgs.runCommand "pi-usage-limits-0.1.4" { } ''
       root="$out/lib/node_modules/pi-usage-limits"
       mkdir -p "$root"
       cp -R ${inputs.pi-usage-limits}/. "$root"
-      ln -s ${claudeBridgeRoot}/node_modules "$root/node_modules"
+      chmod -R u+w "$root"
+      patch -d "$root" -p1 < ${./patches/pi-usage-limits-anthropic-oauth.patch}
     '';
   mkPiThirdPartyExtensionsCheck =
     pkgs:
