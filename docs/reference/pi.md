@@ -4,8 +4,9 @@
 and configuring the `pi` coding agent per user. It supplies two web
 capabilities: structured research through **pi-web-access**, and real-browser
 fallback through **pi-agent-browser-native** plus the `agent-browser` CLI. It
-also installs the `pi-acp` adapter used by Neovim. Why pi, and why it routes per
-user: [coding agents](../explanation/coding-agents.md).
+also installs `pi-subagents` for child-agent delegation and the `pi-acp` adapter
+used by Neovim. Why pi, and why it routes per user:
+[coding agents](../explanation/coding-agents.md).
 
 ## The declaration
 
@@ -201,6 +202,46 @@ reproducible. Small generated `index.ts` files under
 `~/.pi/agent/extensions/` import each extension from its immutable store path.
 Home Manager links the bundled librarian skill under `~/.pi/agent/skills/`.
 
+## Subagents
+
+The module pins `pi-subagents` at `v0.78.0` as a non-flake input. Nix installs
+its runtime dependencies from the upstream lockfile without development
+packages or physical copies of the libraries Pi supplies.
+
+Home Manager installs a store-backed entry point at
+`~/.pi/agent/extensions/subagent/index.ts`. The package discovers its bundled
+agents from its immutable store directory. User and trusted-project agent
+definitions can override bundled agents.
+
+The bundled roles include `scout`, `researcher`, `evidence-auditor`, `worker`,
+`reviewer`, `oracle`, and `delegate`. The research roles use the installed
+`pi-web-access` extension. Foreground children run inside the parent Pi
+process. Background children use a detached runner. Upstream fully validates
+standalone background execution only with official Pi 0.86.1 on Linux x64.
+This Nix package is outside that support target.
+
+Home Manager also links the `pi-subagents` and `council-mode` skills and all
+six bundled prompt templates. The templates add `/council`,
+`/gather-context-and-clarify`, `/parallel-cleanup`, `/parallel-research`,
+`/parallel-review`, and `/review-loop`.
+
+The extension registers these management commands:
+
+- `/subagents` lists available agents.
+- `/subagents-guide [topic]` opens the installed reference.
+- `/subagents-doctor` checks the setup.
+- `/subagents-fleet` inspects active children.
+
+Installing the extension does not start agents or enable automatic reviews.
+Delegation requires a user request or applicable instructions. Model selection,
+agent overrides, and other subagent settings remain user-owned. Pi's mutable
+`settings.json` contains no package declaration for this extension.
+
+The `pi-third-party-extensions` flake check verifies command registration with
+the packaged Pi executable. It also checks bundled resources and the absence
+of physical host-library copies. It does not make model requests or validate
+background execution.
+
 ## Provider and usage extensions
 
 The module pins five third-party extension sources as non-flake inputs. Home
@@ -212,7 +253,7 @@ Pi's mutable `settings.json` contains no package declarations for them.
 - Pi uses `pi-claude-bridge` `v0.9.3` to expose Claude Code models.
   Pi registers those models under `claude-bridge`.
   Nix builds the runtime dependencies.
-  Nix removes physical copies of Pi's host-provided libraries.
+  Nix removes physical copies of the libraries Pi supplies.
 - The module pins `pi-usage` at commit `97c4344`. The extension reports provider
   quota through a usage command.
 - `pi-usage-bar` `v0.2.4` records local token and cost events, adds usage

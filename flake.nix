@@ -68,6 +68,10 @@
       url = "github:elidickinson/pi-claude-bridge/v0.9.3";
       flake = false;
     };
+    pi-subagents = {
+      url = "github:nicobailon/pi-subagents/v0.78.0";
+      flake = false;
+    };
     pi-usage = {
       url = "github:iefnaf/pi-usage/97c4344d712372505489e9bc9e70cca4d2315c9e";
       flake = false;

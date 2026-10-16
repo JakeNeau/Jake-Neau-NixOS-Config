@@ -446,18 +446,43 @@ let
       chmod -R u+w "$root"
       patch -d "$root" -p1 < ${./patches/pi-usage-limits-anthropic-oauth.patch}
     '';
+  mkPiSubagents =
+    pkgs:
+    let
+      package = builtins.removeAttrs (pkgs.lib.importJSON (inputs.pi-subagents + "/package.json")) [
+        "devDependencies"
+      ];
+      lock = pkgs.lib.importJSON (inputs.pi-subagents + "/package-lock.json");
+    in
+    pkgs.buildNpmPackage {
+      pname = "pi-subagents";
+      version = "0.78.0";
+      src = inputs.pi-subagents;
+      npmDeps = pkgs.importNpmLock {
+        inherit package;
+        packageLock = lock // {
+          packages = pkgs.lib.mapAttrs (_: pkg: builtins.removeAttrs pkg [ "devDependencies" ]) (
+            pkgs.lib.filterAttrs (_: pkg: !(pkg.dev or false)) lock.packages
+          );
+        };
+      };
+      npmConfigHook = pkgs.importNpmLock.npmConfigHook;
+      dontNpmBuild = true;
+      dontNpmPrune = true;
+    };
   mkPiThirdPartyExtensionsCheck =
     pkgs:
     let
       claudeBridgeRoot = "${mkPiClaudeBridge pkgs}/lib/node_modules/pi-claude-bridge";
       usageLimitsRoot = "${mkPiUsageLimits pkgs}/lib/node_modules/pi-usage-limits";
+      subagentsRoot = "${mkPiSubagents pkgs}/lib/node_modules/pi-subagents";
     in
     pkgs.runCommand "pi-third-party-extensions"
       {
         nativeBuildInputs = [ (mkPiPackage pkgs) ];
       }
       ''
-        mkdir -p extensions/{anthropic-auth,usage,usage-bar,usage-limits,claude-bridge}
+        mkdir -p extensions/{anthropic-auth,usage,usage-bar,usage-limits,claude-bridge,subagents}
         cat > extensions/anthropic-auth/index.ts <<'EOF'
         export { default } from "${inputs.pi-anthropic-auth}/src/index.ts";
         EOF
@@ -473,6 +498,9 @@ let
         cat > extensions/claude-bridge/index.ts <<'EOF'
         export { default } from "${claudeBridgeRoot}/src/index.ts";
         EOF
+        cat > extensions/subagents/index.ts <<'EOF'
+        export { default } from "${subagentsRoot}/index.ts";
+        EOF
 
         export HOME="$TMPDIR/home"
         mkdir -p "$HOME"
@@ -482,6 +510,7 @@ let
           --extension ./extensions/usage-bar/index.ts
           --extension ./extensions/usage-limits/index.ts
           --extension ./extensions/claude-bridge/index.ts
+          --extension ./extensions/subagents/index.ts
         )
         printf '{"type":"get_commands"}\n' \
           | pi --mode rpc --no-session --offline --no-extensions \
@@ -489,6 +518,17 @@ let
         grep -q '"name":"anthropic-auth:status"' rpc.jsonl
         grep -q '"name":"usage:1"' rpc.jsonl
         grep -q '"name":"usage:2"' rpc.jsonl
+        grep -q '"name":"subagents"' rpc.jsonl
+        grep -q '"name":"subagents-doctor"' rpc.jsonl
+        grep -q '"name":"subagents-guide"' rpc.jsonl
+        test -s ${subagentsRoot}/agents/scout.md
+        test -s ${subagentsRoot}/agents/worker.md
+        test -s ${subagentsRoot}/agents/reviewer.md
+        test -s ${subagentsRoot}/skills/pi-subagents/SKILL.md
+        test -s ${subagentsRoot}/skills/council-mode/SKILL.md
+        test -s ${subagentsRoot}/prompts/parallel-review.md
+        test ! -e ${subagentsRoot}/node_modules/@earendil-works
+        test ! -e ${subagentsRoot}/node_modules/typebox
         pi --no-session --offline --no-extensions \
           "''${extension_args[@]}" --list-models claude-bridge >models.txt
         grep -q '^claude-bridge ' models.txt
@@ -543,6 +583,10 @@ in
     };
     pi-claude-bridge = {
       url = "github:elidickinson/pi-claude-bridge/v0.9.3";
+      flake = false;
+    };
+    pi-subagents = {
+      url = "github:nicobailon/pi-subagents/v0.78.0";
       flake = false;
     };
     pi-usage = {
@@ -637,6 +681,7 @@ in
         pi-claude-bridge-root = "${pi-claude-bridge}/lib/node_modules/pi-claude-bridge";
         pi-usage-limits = mkPiUsageLimits pkgs;
         pi-usage-limits-root = "${pi-usage-limits}/lib/node_modules/pi-usage-limits";
+        pi-subagents-root = "${mkPiSubagents pkgs}/lib/node_modules/pi-subagents";
         linkRegistry = mkPiLinkRegistry pkgs;
         promptFiles = lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (
           builtins.readDir ./config/prompts
@@ -647,6 +692,15 @@ in
             source = ./config/prompts + "/${name}";
           }
         ) promptFiles;
+        subagentPromptFiles = lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (
+          builtins.readDir (inputs.pi-subagents + "/prompts")
+        );
+        subagentPromptHomeFiles = lib.mapAttrs' (
+          name: _:
+          lib.nameValuePair ".pi/agent/prompts/${name}" {
+            source = "${pi-subagents-root}/prompts/${name}";
+          }
+        ) subagentPromptFiles;
         fishEnabled = config.programs.fish.enable;
         fishShell = "${config.programs.fish.package}/bin/fish";
         settingsUpdater = mkPiSettingsUpdater pkgs;
@@ -706,6 +760,9 @@ in
           ".pi/agent/extensions/pi-claude-bridge/index.ts".text = ''
             export { default } from "${pi-claude-bridge-root}/src/index.ts";
           '';
+          ".pi/agent/extensions/subagent/index.ts".text = ''
+            export { default } from "${pi-subagents-root}/index.ts";
+          '';
           ".pi/agent/extensions/ask-user/index.ts".text = ''
             export { default } from "${askUserSource}/index.ts";
           '';
@@ -749,6 +806,8 @@ in
           '';
           ".pi/agent/skills/brainstorming".source = ./config/skills/brainstorming;
           ".pi/agent/skills/pi-web-access".source = "${pi-web-access-root}/skills";
+          ".pi/agent/skills/pi-subagents".source = "${pi-subagents-root}/skills/pi-subagents";
+          ".pi/agent/skills/council-mode".source = "${pi-subagents-root}/skills/council-mode";
           ".pi/agent/skills/ui-system-initializer".source = ./config/skills/ui-system-initializer;
           ".pi/agent/skills/writing-pi-extensions".source = ./config/skills/writing-pi-extensions;
           ".pi/agent/link-registry.json".source = linkRegistry;
@@ -775,7 +834,7 @@ in
         };
       in
       {
-        home.file = fixedHomeFiles // promptHomeFiles // homeAssistantMcpFiles;
+        home.file = fixedHomeFiles // promptHomeFiles // subagentPromptHomeFiles // homeAssistantMcpFiles;
         home.activation = {
           piClaudeBridgePath = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
             $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \

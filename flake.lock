@@ -572,11 +572,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1792109769,
-        "narHash": "sha256-VGBhfNaXeMLjJ0Ou2ZyiWXBjNruWdfvfW+1x8JSbHV0=",
+        "lastModified": 1792111825,
+        "narHash": "sha256-JGHcOy4DiaRzvPTHEJ7O528V1yyjNZZlDc7p8rmND2E=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "e684216f738306af2b0964dae72e1a95e3e578ee",
+        "rev": "b711aa741409cd51bac109375cc6597c8b8f76cc",
         "type": "github"
       },
       "original": {
@@ -886,11 +886,11 @@
         "nixpkgs": "nixpkgs_7"
       },
       "locked": {
-        "lastModified": 1792111260,
-        "narHash": "sha256-b2DLbE/MsLihm7GO9b4TxSi5kt/6CCjADTX24Ltb4rM=",
+        "lastModified": 1792111863,
+        "narHash": "sha256-NtaJocRj5P3gPwkuabZneKiEwsZ9PCbUR/UO0dfg1VY=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "12ea382e31215ea3b254514228984ea586376c55",
+        "rev": "3a3f828244c15eb095c2c11ff71020cea012cfde",
         "type": "github"
       },
       "original": {
@@ -1027,6 +1027,23 @@
         "type": "github"
       }
     },
+    "pi-subagents": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791868852,
+        "narHash": "sha256-kTzwkgt+ZVRc5LoPCsryQcmMB9XJ5k5Tptrw3HV+9a8=",
+        "owner": "nicobailon",
+        "repo": "pi-subagents",
+        "rev": "a4c8ced69a8176cdf4179b127feddc8875e3418f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nicobailon",
+        "ref": "v0.78.0",
+        "repo": "pi-subagents",
+        "type": "github"
+      }
+    },
     "pi-usage": {
       "flake": false,
       "locked": {
@@ -1138,6 +1155,7 @@
         "pi-agent-browser-native": "pi-agent-browser-native",
         "pi-anthropic-auth": "pi-anthropic-auth",
         "pi-claude-bridge": "pi-claude-bridge",
+        "pi-subagents": "pi-subagents",
         "pi-usage": "pi-usage",
         "pi-usage-bar": "pi-usage-bar",
         "pi-usage-limits": "pi-usage-limits",
