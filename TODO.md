@@ -357,6 +357,10 @@
 
 ## Waiting on upstream
 
+- [ ] Reevaluate `pi-usage-limits` when `pi-claude-bridge` PR 37, or an
+      equivalent change, ships stable persistent quota status. Remove the
+      separate extension only after deciding how to preserve Codex footer
+      limits without producing duplicate Claude status.
 - [ ] When stylix PR #2497 lands, re-enable `stylix.targets.nvf` and remove
       the hand-wired nvf theming in `modules/nix/tools/stylix/stylix.nix`.
       That block works around stylix setting the renamed

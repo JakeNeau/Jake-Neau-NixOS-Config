@@ -572,11 +572,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1792108852,
-        "narHash": "sha256-mS/I3IRQfnEyI/qmlZYqjXkBUw0GvBOWgJ0h6TGcsgw=",
+        "lastModified": 1792109769,
+        "narHash": "sha256-VGBhfNaXeMLjJ0Ou2ZyiWXBjNruWdfvfW+1x8JSbHV0=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "af01f46dd7520c12ddb35a139171af9b879ee24d",
+        "rev": "e684216f738306af2b0964dae72e1a95e3e578ee",
         "type": "github"
       },
       "original": {
@@ -652,11 +652,11 @@
     "nix-browser-addons-data": {
       "flake": false,
       "locked": {
-        "lastModified": 1791937791,
-        "narHash": "sha256-c0vGCIDwQ6oi/s8NDa2V8eoz80AtkCon3yGcu5hXVDo=",
+        "lastModified": 1792110599,
+        "narHash": "sha256-XLG/hBrTPSgIGfTl0x4IZdAALs6K9eLK6kdZERdfMYM=",
         "owner": "andre4ik3",
         "repo": "nix-browser-addons",
-        "rev": "1c911447c3bd9b663b5882a0518eb9b73e5b888c",
+        "rev": "97013d7630fbe61d0a350df2b3458ecffaa56942",
         "type": "github"
       },
       "original": {
@@ -886,11 +886,11 @@
         "nixpkgs": "nixpkgs_7"
       },
       "locked": {
-        "lastModified": 1792108565,
-        "narHash": "sha256-hM17L0KEYuVxN2fFHZ6JzNbJBuHJK6Np6lRPxN4Ktuw=",
+        "lastModified": 1792110454,
+        "narHash": "sha256-Zu3HOCnGNsFaZ2Zrw81TtiztDTPRwUnrHKFr6+yqPV0=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "3e0cc341424f648fb71d87779f48abefb90c6e07",
+        "rev": "b7b56b218a886d359b146279e2483aba040a0b1b",
         "type": "github"
       },
       "original": {
@@ -1061,6 +1061,19 @@
         "type": "github"
       }
     },
+    "pi-usage-limits": {
+      "flake": false,
+      "locked": {
+        "lastModified": 499162500,
+        "narHash": "sha256-kLfgXegBy7393vIQzN4w5gYTBI3SRJL4c+608KPOKnQ=",
+        "type": "tarball",
+        "url": "https://registry.npmjs.org/pi-usage-limits/-/pi-usage-limits-0.1.4.tgz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://registry.npmjs.org/pi-usage-limits/-/pi-usage-limits-0.1.4.tgz"
+      }
+    },
     "pi-web-access": {
       "flake": false,
       "locked": {
@@ -1127,6 +1140,7 @@
         "pi-claude-bridge": "pi-claude-bridge",
         "pi-usage": "pi-usage",
         "pi-usage-bar": "pi-usage-bar",
+        "pi-usage-limits": "pi-usage-limits",
         "pi-web-access": "pi-web-access",
         "sops-nix": "sops-nix",
         "stylix": "stylix"

@@ -76,6 +76,10 @@
       url = "github:ttiimmaahh/pi-usage-bar/v0.2.4";
       flake = false;
     };
+    pi-usage-limits = {
+      url = "https://registry.npmjs.org/pi-usage-limits/-/pi-usage-limits-0.1.4.tgz";
+      flake = false;
+    };
     pi-web-access = {
       url = "github:nicobailon/pi-web-access/v0.13.0";
       flake = false;

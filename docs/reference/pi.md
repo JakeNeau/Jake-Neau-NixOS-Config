@@ -203,7 +203,7 @@ Home Manager links the bundled librarian skill under `~/.pi/agent/skills/`.
 
 ## Provider and usage extensions
 
-The module pins four third-party extension sources as non-flake inputs. Home
+The module pins five third-party extension sources as non-flake inputs. Home
 Manager writes store-backed entry points under `~/.pi/agent/extensions/`.
 Pi's mutable `settings.json` contains no package declarations for them.
 
@@ -216,10 +216,28 @@ Pi's mutable `settings.json` contains no package declarations for them.
 - The module pins `pi-usage` at commit `97c4344`. The extension reports provider
   quota through a usage command.
 - `pi-usage-bar` `v0.2.4` records local token and cost events, adds usage
-  reports, and supplies a footer. The footer remains visible in both transcript modes.
+  reports, and supplies the only custom footer. The footer remains visible in
+  both transcript modes.
+- `pi-usage-limits` `0.1.4` publishes the active model's subscription limits as
+  the `model-usage` extension status. Claude Bridge models show five-hour and
+  seven-day utilization. Codex models show the short and weekly windows that
+  the provider reports. Unsupported models and request failures remain visible
+  as extension statuses.
 
-Both usage extensions register `usage`. Pi disambiguates the commands as
-`usage:1` and `usage:2`.
+`pi-usage-limits` refreshes at session startup, after model changes, and after
+agent runs settle. Refreshes run only in TUI mode and do not block Pi. A shared
+60-second disk cache at `~/.pi/agent/cache/pi-usage-limits.json` limits requests
+across concurrent Pi sessions. Nix supplies the Claude Agent SDK from the pinned
+`pi-claude-bridge` package. The Claude quota API is experimental and may require
+an extension update after an SDK change.
+
+`pi-usage-bar` renders the status through its `extensions` footer segment. It
+removes status colors and truncates each extension status to 28 visible columns.
+The quota extension does not replace the footer or alter RPC, print, and JSON
+behavior.
+
+`pi-usage` and `pi-usage-bar` both register `usage`. Pi disambiguates the
+commands as `usage:1` and `usage:2`.
 
 Home Manager activation merges the Nix `claude` executable path into
 `~/.pi/agent/claude-bridge.json`. The file stays mutable so Claude Bridge can

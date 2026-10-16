@@ -436,17 +436,29 @@ let
         rm -rf "$package/@earendil-works" "$package/typebox"
       '';
     };
+  mkPiUsageLimits =
+    pkgs:
+    let
+      claudeBridgeRoot = "${mkPiClaudeBridge pkgs}/lib/node_modules/pi-claude-bridge";
+    in
+    pkgs.runCommand "pi-usage-limits-0.1.4" { } ''
+      root="$out/lib/node_modules/pi-usage-limits"
+      mkdir -p "$root"
+      cp -R ${inputs.pi-usage-limits}/. "$root"
+      ln -s ${claudeBridgeRoot}/node_modules "$root/node_modules"
+    '';
   mkPiThirdPartyExtensionsCheck =
     pkgs:
     let
       claudeBridgeRoot = "${mkPiClaudeBridge pkgs}/lib/node_modules/pi-claude-bridge";
+      usageLimitsRoot = "${mkPiUsageLimits pkgs}/lib/node_modules/pi-usage-limits";
     in
     pkgs.runCommand "pi-third-party-extensions"
       {
         nativeBuildInputs = [ (mkPiPackage pkgs) ];
       }
       ''
-        mkdir -p extensions/{anthropic-auth,usage,usage-bar,claude-bridge}
+        mkdir -p extensions/{anthropic-auth,usage,usage-bar,usage-limits,claude-bridge}
         cat > extensions/anthropic-auth/index.ts <<'EOF'
         export { default } from "${inputs.pi-anthropic-auth}/src/index.ts";
         EOF
@@ -455,6 +467,9 @@ let
         EOF
         cat > extensions/usage-bar/index.ts <<'EOF'
         export { default } from "${inputs.pi-usage-bar}/index.ts";
+        EOF
+        cat > extensions/usage-limits/index.ts <<'EOF'
+        export { default } from "${usageLimitsRoot}/index.ts";
         EOF
         cat > extensions/claude-bridge/index.ts <<'EOF'
         export { default } from "${claudeBridgeRoot}/src/index.ts";
@@ -466,6 +481,7 @@ let
           --extension ./extensions/anthropic-auth/index.ts
           --extension ./extensions/usage/index.ts
           --extension ./extensions/usage-bar/index.ts
+          --extension ./extensions/usage-limits/index.ts
           --extension ./extensions/claude-bridge/index.ts
         )
         printf '{"type":"get_commands"}\n' \
@@ -536,6 +552,10 @@ in
     };
     pi-usage-bar = {
       url = "github:ttiimmaahh/pi-usage-bar/v0.2.4";
+      flake = false;
+    };
+    pi-usage-limits = {
+      url = "https://registry.npmjs.org/pi-usage-limits/-/pi-usage-limits-0.1.4.tgz";
       flake = false;
     };
     pi-web-access = {
@@ -616,6 +636,8 @@ in
         pi-web-access-root = "${pi-web-access}/lib/node_modules/pi-web-access";
         pi-claude-bridge = mkPiClaudeBridge pkgs;
         pi-claude-bridge-root = "${pi-claude-bridge}/lib/node_modules/pi-claude-bridge";
+        pi-usage-limits = mkPiUsageLimits pkgs;
+        pi-usage-limits-root = "${pi-usage-limits}/lib/node_modules/pi-usage-limits";
         linkRegistry = mkPiLinkRegistry pkgs;
         promptFiles = lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (
           builtins.readDir ./config/prompts
@@ -678,6 +700,9 @@ in
           '';
           ".pi/agent/extensions/pi-usage-bar/index.ts".text = ''
             export { default } from "${inputs.pi-usage-bar}/index.ts";
+          '';
+          ".pi/agent/extensions/pi-usage-limits/index.ts".text = ''
+            export { default } from "${pi-usage-limits-root}/index.ts";
           '';
           ".pi/agent/extensions/pi-claude-bridge/index.ts".text = ''
             export { default } from "${pi-claude-bridge-root}/src/index.ts";
