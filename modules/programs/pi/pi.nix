@@ -5,6 +5,7 @@ let
   rustToolsSource = "${extensionSource}/rust-tools";
   openPencilSource = "${extensionSource}/openpencil";
   minimalTranscriptSource = "${extensionSource}/minimal-transcript";
+  tuneSource = "${extensionSource}/tune";
   workflowSource = "${extensionSource}/workflows";
   writingSource = ./writing;
   mkPiPackage =
@@ -170,6 +171,28 @@ let
           | pi --mode rpc --no-session --offline --no-extensions \
             --extension ./minimal-transcript/index.ts >rpc.jsonl
         grep -q '"success":true' rpc.jsonl
+        touch "$out"
+      '';
+  mkPiTuneCheck =
+    pkgs:
+    pkgs.runCommand "pi-tune"
+      {
+        nativeBuildInputs = [
+          (mkPiPackage pkgs)
+          pkgs.nodejs
+        ];
+      }
+      ''
+        cp -R ${tuneSource} tune
+        chmod -R u+w tune
+        node --experimental-strip-types --test tune/tests/*.test.ts
+
+        export HOME="$TMPDIR/home"
+        mkdir -p "$HOME"
+        printf '{"type":"get_commands"}\n' \
+          | pi --mode rpc --no-session --offline --no-extensions \
+            --extension ./tune/index.ts >rpc.jsonl
+        grep -q '"name":"tune"' rpc.jsonl
         touch "$out"
       '';
   mkPiFishShellCheck =
@@ -554,6 +577,7 @@ in
       pi-openpencil = mkPiOpenPencilCheck pkgs;
       pi-rust-tools = mkPiRustToolsCheck pkgs;
       pi-third-party-extensions = mkPiThirdPartyExtensionsCheck pkgs;
+      pi-tune = mkPiTuneCheck pkgs;
       pi-workflows = mkPiWorkflowCheck pkgs;
       pi-typed-links = mkPiLinkRegistry pkgs;
       pi-writing = mkPiWritingCheck pkgs;
@@ -775,6 +799,9 @@ in
           '';
           ".pi/agent/extensions/minimal-transcript/index.ts".text = ''
             export { default } from "${minimalTranscriptSource}/index.ts";
+          '';
+          ".pi/agent/extensions/tune/index.ts".text = ''
+            export { default } from "${tuneSource}/index.ts";
           '';
           ".pi/agent/extensions/workflows/index.ts".text = ''
             export { default } from "${workflowSource}/index.ts";

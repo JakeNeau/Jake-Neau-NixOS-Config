@@ -118,6 +118,60 @@ option objects and does not render previews. In print and JSON modes, the tool
 directs the agent to ask through normal text. The extension does not support
 multiple selections or multiple questions in one call.
 
+## Prompt tuning
+
+The global `tune` extension registers the `/tune <draft>` command. The command
+turns a draft prompt into a tuned prompt through an exchange with the agent.
+After the user accepts the result, Pi removes the exchange from the model
+context and submits the tuned prompt.
+
+`/tune` works only in interactive mode. Pi rejects the command in these cases
+and leaves the session unchanged:
+
+- The draft is blank. Pi shows `Usage: /tune <draft prompt>`.
+- Pi runs in RPC, print, or JSON mode.
+- The agent is busy, or Pi has queued messages.
+- Another `/tune` run is active.
+
+The agent receives the draft with tuning instructions from
+`modules/programs/pi/extensions/tune/instructions.md`. The agent also sees the
+existing conversation. It reads the project's agent instructions and
+documentation before code, and it answers repository questions from evidence.
+It asks the user one material question per turn through `ask_user`. It does no
+implementation work.
+
+The agent ends each run with a `propose_prompt` call. The proposal must stand
+alone without the exchange. It names the relevant files, documentation, and
+skills, and it states constraints and success criteria. Outside a `/tune` run,
+`propose_prompt` returns an error.
+
+Pi shows the proposal with four choices:
+
+- **Accept:** Pi rewinds the session and submits the proposal as the next user
+  message.
+- **Edit:** The user changes the proposal in an editor. Pi then shows the
+  choices again. A blank edit keeps the earlier proposal.
+- **Keep tuning:** The user enters feedback, and the agent produces a new
+  proposal. Pi then shows the choices again. Blank feedback starts no run.
+- **Cancel:** Pi rewinds the session and submits nothing. Escape has the same
+  effect.
+
+If a run ends without a proposal, Pi rewinds the session and submits nothing.
+Pi then warns that the agent proposed no prompt. An agent question in plain
+text causes this result.
+
+The rewind uses no branch summary. It restores the model context from before
+`/tune`, including an empty session. The rewind also keeps the editor text that
+the user had before it. The exchange remains in the session tree as an
+abandoned branch, and `/tree` can open it.
+
+The instructions live in the extension directory instead of a skill. Pi lists
+every skill in each session's startup context, so a skill would add that cost
+to every session.
+
+The `pi-tune` flake check runs the extension's unit tests. It also confirms
+that the packaged Pi registers the `tune` command in RPC mode.
+
 ## Workflow manager
 
 The `workflows` extension adds exclusive, artifact-driven workflow modes.
