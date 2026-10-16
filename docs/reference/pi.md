@@ -26,10 +26,11 @@ user: [coding agents](../explanation/coding-agents.md).
 
 The patched Pi package and `minimal-transcript` extension start each interactive
 session in minimal mode. This mode shows user prompts, file diffs, workflow
-proposal reviews, final assistant responses, and Pi's native transient status row. Pi hides startup
-notices, thinking, intermediate assistant messages, tool calls, tool results,
-unrelated custom entries, persistent extension statuses, the header, and the
-footer. Dialogs and the editor remain available.
+proposal reviews, final assistant responses, and Pi's native transient status row.
+The footer remains visible, including custom footers and persistent extension statuses.
+Pi hides startup notices, thinking, intermediate assistant messages, tool calls,
+tool results, unrelated custom entries, and the header.
+Dialogs and the editor remain available.
 
 The status row shows Pi's animated spinner while an agent turn is active. A turn
 starts with `Thinking…`, and assistant text streaming changes the label to
@@ -215,7 +216,7 @@ Pi's mutable `settings.json` contains no package declarations for them.
 - The module pins `pi-usage` at commit `97c4344`. The extension reports provider
   quota through a usage command.
 - `pi-usage-bar` `v0.2.4` records local token and cost events, adds usage
-  reports, and supplies a footer. Minimal transcript mode hides that footer.
+  reports, and supplies a footer. The footer remains visible in both transcript modes.
 
 Both usage extensions register `usage`. Pi disambiguates the commands as
 `usage:1` and `usage:2`.

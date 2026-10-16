@@ -86,30 +86,35 @@ test("switches historical components between minimal and full transcripts", () =
   assert.deepEqual(transcript.children, [user, finalAnswer, diff, review]);
 });
 
-test("minimal chrome preserves transient status content", () => {
-  function harness(minimalTranscript) {
-    const mode = Object.create(InteractiveMode.prototype);
-    mode.minimalTranscript = minimalTranscript;
-    mode.documentContainer = new Container();
-    mode.headerContainer = new Container();
-    mode.loadedResourcesContainer = new Container();
-    mode.chatContainer = new Container();
-    mode.footerContainer = new Container();
-    mode.footerContentContainer = new Container();
-    mode.statusContainer = new Container();
-    mode.statusContentContainer = new Container();
-    mode.activeStatusIndicator = undefined;
-    mode.setEditorWorkingStatusIndicator = () => false;
-    return mode;
-  }
+function chromeHarness(minimalTranscript) {
+  const mode = Object.create(InteractiveMode.prototype);
+  mode.minimalTranscript = minimalTranscript;
+  mode.documentContainer = new Container();
+  mode.headerContainer = new Container();
+  mode.loadedResourcesContainer = new Container();
+  mode.chatContainer = new TranscriptContainer(minimalTranscript);
+  mode.footerContainer = new Container();
+  mode.footerContentContainer = new Container();
+  mode.footer = new Text("built-in footer", 0, 0);
+  mode.footerContentContainer.addChild(mode.footer);
+  mode.footerDataProvider = {};
+  mode.statusContainer = new Container();
+  mode.statusContentContainer = new Container();
+  mode.activeStatusIndicator = undefined;
+  mode.setEditorWorkingStatusIndicator = () => false;
+  mode.ui = { requestRender() {} };
+  return mode;
+}
 
-  const minimal = harness(true);
+test("minimal chrome preserves the footer and transient status content", () => {
+  const minimal = chromeHarness(true);
   minimal.syncTranscriptChrome();
   assert.deepEqual(minimal.documentContainer.children, [minimal.chatContainer]);
-  assert.deepEqual(minimal.footerContainer.children, []);
+  assert.deepEqual(minimal.footerContainer.children, [minimal.footerContentContainer]);
+  assert.deepEqual(minimal.footerContainer.render(80), ["built-in footer".padEnd(80)]);
   assert.deepEqual(minimal.statusContainer.children, [minimal.statusContentContainer]);
 
-  const full = harness(false);
+  const full = chromeHarness(false);
   full.syncTranscriptChrome();
   assert.deepEqual(full.documentContainer.children, [
     full.headerContainer,
@@ -118,6 +123,38 @@ test("minimal chrome preserves transient status content", () => {
   ]);
   assert.deepEqual(full.footerContainer.children, [full.footerContentContainer]);
   assert.deepEqual(full.statusContainer.children, [full.statusContentContainer]);
+});
+
+test("keeps custom and restored footers visible across transcript toggles", () => {
+  const previous = process.env.PI_MINIMAL_TRANSCRIPT;
+  process.env.PI_MINIMAL_TRANSCRIPT = "1";
+  try {
+    const mode = chromeHarness(true);
+    mode.syncTranscriptChrome();
+    let disposed = 0;
+    const customFooter = new Text("usage bar", 0, 0);
+    customFooter.dispose = () => disposed++;
+
+    mode.setExtensionFooter((_ui, _theme, data) => {
+      assert.equal(data, mode.footerDataProvider);
+      return customFooter;
+    });
+    assert.deepEqual(mode.footerContainer.render(80), ["usage bar".padEnd(80)]);
+
+    for (const minimal of [false, true, false, true]) {
+      mode.setMinimalTranscript(minimal);
+      assert.deepEqual(mode.footerContainer.children, [mode.footerContentContainer]);
+      assert.deepEqual(mode.footerContainer.render(80), ["usage bar".padEnd(80)]);
+      assert.equal(disposed, 0);
+    }
+
+    mode.setExtensionFooter(undefined);
+    assert.equal(disposed, 1);
+    assert.deepEqual(mode.footerContainer.render(80), ["built-in footer".padEnd(80)]);
+  } finally {
+    if (previous === undefined) delete process.env.PI_MINIMAL_TRANSCRIPT;
+    else process.env.PI_MINIMAL_TRANSCRIPT = previous;
+  }
 });
 
 test("preserves a streaming component across mode changes", () => {
