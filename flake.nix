@@ -57,27 +57,27 @@
       flake = false;
     };
     pi-agent-browser-native = {
-      url = "github:fitchmultz/pi-agent-browser-native/v0.2.71";
+      url = "github:fitchmultz/pi-agent-browser-native";
       flake = false;
     };
     pi-anthropic-auth = {
-      url = "github:gotgenes/pi-anthropic-auth/v3.4.2";
+      url = "github:gotgenes/pi-anthropic-auth";
       flake = false;
     };
     pi-claude-bridge = {
-      url = "github:elidickinson/pi-claude-bridge/v0.9.3";
+      url = "github:elidickinson/pi-claude-bridge";
       flake = false;
     };
     pi-subagents = {
-      url = "github:nicobailon/pi-subagents/v0.78.0";
+      url = "github:nicobailon/pi-subagents";
       flake = false;
     };
     pi-usage = {
-      url = "github:iefnaf/pi-usage/97c4344d712372505489e9bc9e70cca4d2315c9e";
+      url = "github:iefnaf/pi-usage";
       flake = false;
     };
     pi-usage-bar = {
-      url = "github:ttiimmaahh/pi-usage-bar/v0.2.4";
+      url = "github:ttiimmaahh/pi-usage-bar";
       flake = false;
     };
     pi-usage-limits = {
@@ -85,7 +85,7 @@
       flake = false;
     };
     pi-web-access = {
-      url = "github:nicobailon/pi-web-access/v0.13.0";
+      url = "github:nicobailon/pi-web-access";
       flake = false;
     };
     sops-nix = {

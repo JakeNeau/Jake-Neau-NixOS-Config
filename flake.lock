@@ -886,11 +886,11 @@
         "nixpkgs": "nixpkgs_7"
       },
       "locked": {
-        "lastModified": 1792115759,
-        "narHash": "sha256-gpKDdU4SL1zomGl5ARdqv4oB0NRNfoq0yuW4SOOHexQ=",
+        "lastModified": 1792116612,
+        "narHash": "sha256-gCGBnGUS8jVu6hrTirxMx8QQvKWu31kZJWZY7hgW6jU=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "5acf58b6210f29eb39204ae2bb6a437408578fe9",
+        "rev": "06a2168c1f869219f5cd4710068d5198ad4c5064",
         "type": "github"
       },
       "original": {
@@ -979,16 +979,15 @@
     "pi-agent-browser-native": {
       "flake": false,
       "locked": {
-        "lastModified": 1784406670,
-        "narHash": "sha256-KoYqneQRb4FrkcRWyfZRNPDCWPT6b6erQm03k2z33X0=",
+        "lastModified": 1791942082,
+        "narHash": "sha256-6ocKM+/38qC9+0Q7enAvl6i/TDODmfYNWqRv+2VdTVk=",
         "owner": "fitchmultz",
         "repo": "pi-agent-browser-native",
-        "rev": "159ea9e1a272bd24e76a2add239a06750d8cda46",
+        "rev": "cb4052d818d7af895b12e28b72f705e918d3b4e2",
         "type": "github"
       },
       "original": {
         "owner": "fitchmultz",
-        "ref": "v0.2.71",
         "repo": "pi-agent-browser-native",
         "type": "github"
       }
@@ -1005,7 +1004,6 @@
       },
       "original": {
         "owner": "gotgenes",
-        "ref": "v3.4.2",
         "repo": "pi-anthropic-auth",
         "type": "github"
       }
@@ -1022,7 +1020,6 @@
       },
       "original": {
         "owner": "elidickinson",
-        "ref": "v0.9.3",
         "repo": "pi-claude-bridge",
         "type": "github"
       }
@@ -1030,16 +1027,15 @@
     "pi-subagents": {
       "flake": false,
       "locked": {
-        "lastModified": 1791868852,
-        "narHash": "sha256-kTzwkgt+ZVRc5LoPCsryQcmMB9XJ5k5Tptrw3HV+9a8=",
+        "lastModified": 1792072278,
+        "narHash": "sha256-8n09hvNoJe9oGnmr3CQV5j9sYYAMQgt/bCR5KehXO38=",
         "owner": "nicobailon",
         "repo": "pi-subagents",
-        "rev": "a4c8ced69a8176cdf4179b127feddc8875e3418f",
+        "rev": "475600bc8156bd620425f1956cb7b95c53ee4458",
         "type": "github"
       },
       "original": {
         "owner": "nicobailon",
-        "ref": "v0.78.0",
         "repo": "pi-subagents",
         "type": "github"
       }
@@ -1057,7 +1053,6 @@
       "original": {
         "owner": "iefnaf",
         "repo": "pi-usage",
-        "rev": "97c4344d712372505489e9bc9e70cca4d2315c9e",
         "type": "github"
       }
     },
@@ -1073,7 +1068,6 @@
       },
       "original": {
         "owner": "ttiimmaahh",
-        "ref": "v0.2.4",
         "repo": "pi-usage-bar",
         "type": "github"
       }
@@ -1094,16 +1088,15 @@
     "pi-web-access": {
       "flake": false,
       "locked": {
-        "lastModified": 1782373265,
-        "narHash": "sha256-TPtkurLY8Z9qxa597e0C5yWlNvgz4ywv2GdQstTB33A=",
+        "lastModified": 1792040036,
+        "narHash": "sha256-rO7rj3RVS/79cUpWUZCXktaxJbjLO4QDPezRTn+H120=",
         "owner": "nicobailon",
         "repo": "pi-web-access",
-        "rev": "7bdc30a65cf77273eb9c0034647b373bda4060d7",
+        "rev": "d47dc040552505e3b135d0136a0b15eaf4bdba52",
         "type": "github"
       },
       "original": {
         "owner": "nicobailon",
-        "ref": "v0.13.0",
         "repo": "pi-web-access",
         "type": "github"
       }

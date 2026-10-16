@@ -445,11 +445,12 @@ let
         printf 'The parser reads the file.\n' | ${mkPiWritingLint pkgs}/bin/pi-writing-lint
         touch "$out"
       '';
+  npmVersion = src: (builtins.fromJSON (builtins.readFile (src + "/package.json"))).version;
   mkPiClaudeBridge =
     pkgs:
     pkgs.buildNpmPackage {
       pname = "pi-claude-bridge";
-      version = "0.9.3";
+      version = npmVersion inputs.pi-claude-bridge;
       src = inputs.pi-claude-bridge;
       npmDeps = pkgs.importNpmLock { npmRoot = inputs.pi-claude-bridge; };
       npmConfigHook = pkgs.importNpmLock.npmConfigHook;
@@ -462,7 +463,7 @@ let
   # Claude quota uses Pi's Anthropic login instead of a separate Claude Code login.
   mkPiUsageLimits =
     pkgs:
-    pkgs.runCommand "pi-usage-limits-0.1.4" { } ''
+    pkgs.runCommand "pi-usage-limits-${npmVersion inputs.pi-usage-limits}" { } ''
       root="$out/lib/node_modules/pi-usage-limits"
       mkdir -p "$root"
       cp -R ${inputs.pi-usage-limits}/. "$root"
@@ -479,7 +480,7 @@ let
     in
     pkgs.buildNpmPackage {
       pname = "pi-subagents";
-      version = "0.78.0";
+      version = package.version;
       src = inputs.pi-subagents;
       npmDeps = pkgs.importNpmLock {
         inherit package;
@@ -493,9 +494,34 @@ let
       dontNpmBuild = true;
       dontNpmPrune = true;
     };
+  mkPiWebAccess =
+    pkgs:
+    pkgs.buildNpmPackage {
+      pname = "pi-web-access";
+      version = npmVersion inputs.pi-web-access;
+      src = inputs.pi-web-access;
+      npmDeps = pkgs.importNpmLock { npmRoot = inputs.pi-web-access; };
+      npmConfigHook = pkgs.importNpmLock.npmConfigHook;
+      dontNpmBuild = true;
+      postInstall = ''
+        rm -rf "$out/lib/node_modules/pi-web-access/node_modules"/{@earendil-works,typebox}
+      '';
+    };
+  mkPiAgentBrowserNative =
+    pkgs:
+    pkgs.buildNpmPackage {
+      pname = "pi-agent-browser-native";
+      version = npmVersion inputs.pi-agent-browser-native;
+      src = inputs.pi-agent-browser-native;
+      npmDeps = pkgs.importNpmLock { npmRoot = inputs.pi-agent-browser-native; };
+      npmConfigHook = pkgs.importNpmLock.npmConfigHook;
+      npmBuildScript = "build";
+    };
   mkPiThirdPartyExtensionsCheck =
     pkgs:
     let
+      webAccessRoot = "${mkPiWebAccess pkgs}/lib/node_modules/pi-web-access";
+      agentBrowserRoot = "${mkPiAgentBrowserNative pkgs}/lib/node_modules/pi-agent-browser-native";
       claudeBridgeRoot = "${mkPiClaudeBridge pkgs}/lib/node_modules/pi-claude-bridge";
       usageLimitsRoot = "${mkPiUsageLimits pkgs}/lib/node_modules/pi-usage-limits";
       subagentsRoot = "${mkPiSubagents pkgs}/lib/node_modules/pi-subagents";
@@ -505,7 +531,13 @@ let
         nativeBuildInputs = [ (mkPiPackage pkgs) ];
       }
       ''
-        mkdir -p extensions/{anthropic-auth,usage,usage-bar,usage-limits,claude-bridge,subagents}
+        mkdir -p extensions/{web-access,agent-browser,anthropic-auth,usage,usage-bar,usage-limits,claude-bridge,subagents}
+        cat > extensions/web-access/index.ts <<'EOF'
+        export { default } from "${webAccessRoot}/index.ts";
+        EOF
+        cat > extensions/agent-browser/index.ts <<'EOF'
+        export { default } from "${agentBrowserRoot}/dist/extensions/agent-browser/index.js";
+        EOF
         cat > extensions/anthropic-auth/index.ts <<'EOF'
         export { default } from "${inputs.pi-anthropic-auth}/src/index.ts";
         EOF
@@ -528,6 +560,8 @@ let
         export HOME="$TMPDIR/home"
         mkdir -p "$HOME"
         extension_args=(
+          --extension ./extensions/web-access/index.ts
+          --extension ./extensions/agent-browser/index.ts
           --extension ./extensions/anthropic-auth/index.ts
           --extension ./extensions/usage/index.ts
           --extension ./extensions/usage-bar/index.ts
@@ -538,6 +572,7 @@ let
         printf '{"type":"get_commands"}\n' \
           | pi --mode rpc --no-session --offline --no-extensions \
             "''${extension_args[@]}" >rpc.jsonl
+        grep -q '"name":"websearch"' rpc.jsonl
         grep -q '"name":"anthropic-auth:status"' rpc.jsonl
         grep -q '"name":"usage:1"' rpc.jsonl
         grep -q '"name":"usage:2"' rpc.jsonl
@@ -552,6 +587,8 @@ let
         test -s ${subagentsRoot}/prompts/parallel-review.md
         test ! -e ${subagentsRoot}/node_modules/@earendil-works
         test ! -e ${subagentsRoot}/node_modules/typebox
+        test ! -e ${webAccessRoot}/node_modules/@earendil-works
+        test ! -e ${webAccessRoot}/node_modules/typebox
         pi --no-session --offline --no-extensions \
           "''${extension_args[@]}" --list-models claude-bridge >models.txt
         grep -q '^claude-bridge ' models.txt
@@ -590,6 +627,7 @@ in
 
   # Pi comes from llm-agents.nix and receives a small transcript patch. The
   # package keeps the cached npm dependencies and builds its Bun executable locally.
+  # Extensions track their default branches so `nix flake update` moves them with Pi.
   flake-file.inputs = {
     llm-agents.url = "github:numtide/llm-agents.nix";
     # Pi exposes RPC but not ACP, so editors need this protocol adapter.
@@ -598,27 +636,27 @@ in
       flake = false;
     };
     pi-agent-browser-native = {
-      url = "github:fitchmultz/pi-agent-browser-native/v0.2.71";
+      url = "github:fitchmultz/pi-agent-browser-native";
       flake = false;
     };
     pi-anthropic-auth = {
-      url = "github:gotgenes/pi-anthropic-auth/v3.4.2";
+      url = "github:gotgenes/pi-anthropic-auth";
       flake = false;
     };
     pi-claude-bridge = {
-      url = "github:elidickinson/pi-claude-bridge/v0.9.3";
+      url = "github:elidickinson/pi-claude-bridge";
       flake = false;
     };
     pi-subagents = {
-      url = "github:nicobailon/pi-subagents/v0.78.0";
+      url = "github:nicobailon/pi-subagents";
       flake = false;
     };
     pi-usage = {
-      url = "github:iefnaf/pi-usage/97c4344d712372505489e9bc9e70cca4d2315c9e";
+      url = "github:iefnaf/pi-usage";
       flake = false;
     };
     pi-usage-bar = {
-      url = "github:ttiimmaahh/pi-usage-bar/v0.2.4";
+      url = "github:ttiimmaahh/pi-usage-bar";
       flake = false;
     };
     pi-usage-limits = {
@@ -626,7 +664,7 @@ in
       flake = false;
     };
     pi-web-access = {
-      url = "github:nicobailon/pi-web-access/v0.13.0";
+      url = "github:nicobailon/pi-web-access";
       flake = false;
     };
   };
@@ -640,44 +678,12 @@ in
       pkgs:
       let
         system = pkgs.stdenv.hostPlatform.system;
-        release = builtins.getAttr system {
-          x86_64-linux = {
-            name = "linux-x64";
-            hash = "sha256-ZmoRKS/xr7KBwCMhL2YguX+BAmy7SY4xTc+vZ+CpKck=";
-          };
-          aarch64-linux = {
-            name = "linux-arm64";
-            hash = "sha256-vMJPygfxJ5LjHxbLT7s4iT692cu+lEYxQ5sqVh1yX7w=";
-          };
-          x86_64-darwin = {
-            name = "darwin-x64";
-            hash = "sha256-RjD/d8b9vagJ/WKmzOgHhS4PH/qqPmCg/05GkZ9hiMo=";
-          };
-          aarch64-darwin = {
-            name = "darwin-arm64";
-            hash = "sha256-uVjIHCmwxr8EB0efk/7549VA6OFYi8QvdqzDP6GpKHo=";
-          };
-        };
-        agent-browser = pkgs.stdenvNoCC.mkDerivation {
-          pname = "agent-browser";
-          version = "0.32.2";
-          src = pkgs.fetchurl {
-            url = "https://github.com/vercel-labs/agent-browser/releases/download/v0.32.2/agent-browser-${release.name}";
-            inherit (release) hash;
-          };
-          dontUnpack = true;
-          nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.autoPatchelfHook ];
-          buildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.stdenv.cc.cc.lib ];
-          installPhase = ''
-            install -Dm755 "$src" "$out/bin/agent-browser"
-          '';
-        };
       in
       [
         (mkPiPackage pkgs)
         inputs.self.packages.${system}.pi-acp
         inputs.self.packages.${system}.pi-writing-lint
-        agent-browser
+        inputs.llm-agents.packages.${system}.agent-browser
       ];
 
     config =
@@ -688,19 +694,8 @@ in
         ...
       }:
       let
-        pi-web-access = pkgs.buildNpmPackage {
-          pname = "pi-web-access";
-          version = "0.13.0";
-          src = inputs.pi-web-access;
-          npmDepsHash = "sha256-8onTvv7nUrTXMGvwkMkPEYc+mtpxolzF6Z9EuuB9pbs=";
-          postPatch = ''
-            cp ${./pi-web-access-package-lock.json} package-lock.json
-          '';
-          npmInstallFlags = [ "--legacy-peer-deps" ];
-          dontNpmBuild = true;
-          dontNpmPrune = true;
-        };
-        pi-web-access-root = "${pi-web-access}/lib/node_modules/pi-web-access";
+        pi-web-access-root = "${mkPiWebAccess pkgs}/lib/node_modules/pi-web-access";
+        pi-agent-browser-native-root = "${mkPiAgentBrowserNative pkgs}/lib/node_modules/pi-agent-browser-native";
         pi-claude-bridge = mkPiClaudeBridge pkgs;
         pi-claude-bridge-root = "${pi-claude-bridge}/lib/node_modules/pi-claude-bridge";
         pi-usage-limits = mkPiUsageLimits pkgs;
@@ -767,7 +762,7 @@ in
             export { default } from "${pi-web-access-root}/index.ts";
           '';
           ".pi/agent/extensions/pi-agent-browser-native/index.ts".text = ''
-            export { default } from "${inputs.pi-agent-browser-native}/extensions/agent-browser/index.ts";
+            export { default } from "${pi-agent-browser-native-root}/dist/extensions/agent-browser/index.js";
           '';
           ".pi/agent/extensions/pi-anthropic-auth/index.ts".text = ''
             export { default } from "${inputs.pi-anthropic-auth}/src/index.ts";

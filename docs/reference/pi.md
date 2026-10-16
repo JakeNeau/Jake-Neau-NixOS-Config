@@ -19,9 +19,8 @@ used by Neovim. Why pi, and why it routes per user:
   does not follow this flake's nixpkgs. The module patches the packaged
   JavaScript and rebuilds the Bun executable locally with cached npm
   dependencies.
-- `agent-browser` uses the upstream release binary with a hash for each
-  supported Linux/macOS architecture. The module patches Linux binaries for
-  NixOS.
+- `agent-browser` also comes from llm-agents.nix. It updates with Pi, so the
+  CLI and `pi-agent-browser-native` stay on current upstream releases.
 
 ## Transcript modes
 
@@ -240,25 +239,35 @@ fresh CLI verification succeeds. Initialization stops before feature UI design.
 [UI system initialization](../explanation/ui-system-initialization.md) explains
 this boundary and the independent verification requirement.
 
+## Extension updates
+
+Each GitHub extension input follows its repository's default branch.
+`nix flake update` moves these inputs with llm-agents.nix, so `nr` updates them
+with Pi. Each build reads its version from the extension's `package.json`.
+
+`pi-usage-limits` is the exception. It exists only as an npm tarball, and the
+tarball URL names version `0.1.4`. A new release requires a URL change.
+
 ## Web extensions
 
-The module pins both extension sources as non-flake inputs:
+Both extension sources are non-flake inputs:
 
-- `pi-web-access` `v0.13.0`: `web_search`, content extraction, PDFs, GitHub,
+- `pi-web-access`: `web_search`, content extraction, PDFs, GitHub,
   video handling, and its librarian skill.
-- `pi-agent-browser-native` `v0.2.71`: the native `agent_browser` tool for
-  JavaScript rendering and interactive browser workflows. It targets the
-  installed `agent-browser` `0.32.2` release.
+- `pi-agent-browser-native`: the native `agent_browser` tools for JavaScript
+  rendering and interactive browser workflows.
 
-Pi uses `buildNpmPackage` for pi-web-access's runtime packages. The
-committed `pi-web-access-package-lock.json` and `npmDepsHash` make that build
-reproducible. Small generated `index.ts` files under
-`~/.pi/agent/extensions/` import each extension from its immutable store path.
+Nix builds both with `buildNpmPackage` from each upstream `package-lock.json`.
+The builds need no hash in this repository. Nix compiles
+`pi-agent-browser-native` to `dist/`. Nix removes pi-web-access's development
+packages and its copies of the libraries Pi supplies. Small generated
+`index.ts` files under `~/.pi/agent/extensions/` import each extension from its
+immutable store path.
 Home Manager links the bundled librarian skill under `~/.pi/agent/skills/`.
 
 ## Subagents
 
-The module pins `pi-subagents` at `v0.78.0` as a non-flake input. Nix installs
+`pi-subagents` is a non-flake input. Nix installs
 its runtime dependencies from the upstream lockfile without development
 packages or physical copies of the libraries Pi supplies.
 
@@ -291,29 +300,29 @@ Delegation requires a user request or applicable instructions. Model selection,
 agent overrides, and other subagent settings remain user-owned. Pi's mutable
 `settings.json` contains no package declaration for this extension.
 
-The `pi-third-party-extensions` flake check verifies command registration with
-the packaged Pi executable. It also checks bundled resources and the absence
+The `pi-third-party-extensions` flake check loads every third-party extension
+with the packaged Pi executable. Pi fails the check when an extension does not
+load. The check also verifies command registration. It also checks bundled resources and the absence
 of physical host-library copies. It does not make model requests or validate
 background execution.
 
 ## Provider and usage extensions
 
-The module pins five third-party extension sources as non-flake inputs. Home
+Five more third-party extension sources are non-flake inputs. Home
 Manager writes store-backed entry points under `~/.pi/agent/extensions/`.
 Pi's mutable `settings.json` contains no package declarations for them.
 
-- `pi-anthropic-auth` `v3.4.2` shapes Anthropic OAuth requests while leaving API
+- `pi-anthropic-auth` shapes Anthropic OAuth requests while leaving API
   key requests unchanged.
-- Pi uses `pi-claude-bridge` `v0.9.3` to expose Claude Code models.
+- Pi uses `pi-claude-bridge` to expose Claude Code models.
   Pi registers those models under `claude-bridge`.
   Nix builds the runtime dependencies.
   Nix removes physical copies of the libraries Pi supplies.
-- The module pins `pi-usage` at commit `97c4344`. The extension reports provider
-  quota through a usage command.
-- `pi-usage-bar` `v0.2.4` records local token and cost events, adds usage
+- `pi-usage` reports provider quota through a usage command.
+- `pi-usage-bar` records local token and cost events, adds usage
   reports, and supplies the only custom footer. The footer remains visible in
   both transcript modes.
-- `pi-usage-limits` `0.1.4` publishes the active model's subscription limits as
+- `pi-usage-limits` publishes the active model's subscription limits as
   the `model-usage` extension status. Claude models from any provider show
   five-hour and seven-day utilization. Codex models show the short and weekly windows that
   the provider reports. Unsupported models and request failures remain visible
@@ -345,8 +354,7 @@ record notice fields and users can set other bridge options.
 
 ## Neovim ACP adapter
 
-`flake.lock` pins the unversioned non-flake `pi-acp` input to a commit.
-`buildNpmPackage` builds the input. Upstream Pi exposes `pi --mode rpc`, while
+`buildNpmPackage` builds the non-flake `pi-acp` input. Upstream Pi exposes `pi --mode rpc`, while
 codecompanion.nvim speaks the standard Agent Client Protocol. `pi-acp` bridges
 the two JSON protocols over stdio.
 
