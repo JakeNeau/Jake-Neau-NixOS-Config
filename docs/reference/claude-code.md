@@ -27,6 +27,10 @@ Home Manager materializes this content from Nix. `settings.json` remains
 mutable because Claude Code rewrites runtime preferences. Home activation
 merges the declared policy into that file with `jq`.
 
+The policy sets `autoMemoryEnabled` to `false`. Claude Code then writes no
+per-project notes under `~/.claude/projects/*/memory/`. `CLAUDE.md` and the
+rule files still load.
+
 ## Hook registration
 
 `settingsPolicy.hooks` contains the complete registration array for each event.

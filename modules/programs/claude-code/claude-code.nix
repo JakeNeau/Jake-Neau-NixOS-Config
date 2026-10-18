@@ -74,6 +74,9 @@
           network.allowedDomains = import ./_sandbox-allowed-domains.nix;
         };
 
+        # Stops self-written per-project notes only; CLAUDE.md and rules still load.
+        settingsPolicy.autoMemoryEnabled = false;
+
         # Force-enable plugins. Claude Code never auto-fetches plugins from settings
         # alone, so each machine's cache is populated once via `claude plugin install
         # <plugin>@claude-plugins-official`; these entries just keep them enabled
