@@ -1,0 +1,188 @@
+diff -ruN a/claude_limits.ts b/claude_limits.ts
+--- a/claude_limits.ts
++++ b/claude_limits.ts
+@@ -2,9 +2,11 @@
+   rate_limits: {
+     five_hour: {
+       utilization: number;
++      resets_at?: string | null;
+     };
+     seven_day: {
+       utilization: number;
++      resets_at?: string | null;
+     };
+   };
+ };
+diff -ruN a/index.ts b/index.ts
+--- a/index.ts
++++ b/index.ts
+@@ -7,10 +7,12 @@
+ 
+ export default function (pi: ExtensionAPI) {
+   let generation = 0;
++  let ticker: ReturnType<typeof setInterval> | undefined;
+ 
+   // pi awaits handler promises, so awaiting here blocks the redraw.
+   function refresh(_event: ExtensionEvent, ctx: ExtensionContext) {
+     const current = ++generation;
++    clearInterval(ticker);
+     if (ctx.mode !== "tui" || !ctx.model) return;
+ 
+     const setStatus = (text: string) => {
+@@ -18,11 +20,18 @@
+       if (current !== generation) return;
+       ctx.ui.setStatus("model-usage", ctx.ui.theme.fg("dim", text));
+     };
+-    getUsage(ctx.model, ctx.modelRegistry).then(setStatus, setStatus);
++    const show = (render: (now: number) => string) => {
++      if (current !== generation) return;
++      setStatus(render(Date.now()));
++      // Refreshes follow only session, model, and prompt events, so idle countdowns need a redraw.
++      ticker = setInterval(() => setStatus(render(Date.now())), 60_000);
++    };
++    getUsage(ctx.model, ctx.modelRegistry).then(show, setStatus);
+   }
+ 
+   pi.on("session_shutdown", () => {
+     generation++;
++    clearInterval(ticker);
+   });
+   pi.on("session_start", refresh);
+   pi.on("model_select", refresh);
+diff -ruN a/resets.ts b/resets.ts
+--- a/resets.ts
++++ b/resets.ts
+@@ -0,0 +1,32 @@
++const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
++const pad = (n: number) => String(n).padStart(2, "0");
++
++export function formatReset(
++  resetsAt: string | number | null | undefined,
++  now: number,
++): string {
++  if (resetsAt === null || resetsAt === undefined) return "";
++  const exact = new Date(resetsAt).getTime();
++  if (Number.isNaN(exact)) return "";
++
++  // The API reports a reset up to a second either side of its minute.
++  const at = new Date(Math.round(exact / 60_000) * 60_000);
++  // Whole clock minutes, so the current time plus the countdown equals the clock.
++  const minutes = Math.max(
++    0,
++    at.getTime() / 60_000 - Math.floor(now / 60_000),
++  );
++  const days = Math.floor(minutes / 1440);
++  const hours = Math.floor((minutes % 1440) / 60);
++  const countdown = days
++    ? `${days}d${hours}h`
++    : hours
++      ? `${hours}h${minutes % 60}m`
++      : `${minutes}m`;
++
++  const day =
++    at.toDateString() === new Date(now).toDateString()
++      ? ""
++      : `${WEEKDAYS[at.getDay()]} `;
++  return ` ↻${countdown} ${day}${pad(at.getHours())}:${pad(at.getMinutes())}`;
++}
+diff -ruN a/usage.ts b/usage.ts
+--- a/usage.ts
++++ b/usage.ts
+@@ -5,6 +5,7 @@
+   type CodexLimits,
+   type CodexWindow,
+ } from "./codex_limits";
++import { formatReset } from "./resets";
+ 
+ type TokenSource = {
+   getApiKeyForProvider(provider: string): Promise<string | undefined>;
+@@ -13,7 +14,7 @@
+ export async function getUsage(
+   model: { id: string; provider?: string },
+   auth: TokenSource,
+-): Promise<string> {
++): Promise<(now: number) => string> {
+   if (
+     model.provider === "openai" ||
+     model.provider === "openai-codex" ||
+@@ -26,7 +27,7 @@
+     return getClaudeUsage(auth);
+   }
+ 
+-  return `${model.id} not supported yet`;
++  return () => `${model.id} not supported yet`;
+ }
+ 
+ async function getClaudeUsage(auth: TokenSource) {
+@@ -36,7 +37,8 @@
+     state?.anthropic_last_limits &&
+     Date.now() - (state.anthropic_last_api_call ?? 0) < 60_000
+   ) {
+-    return formatClaudeUsage(state.anthropic_last_limits) + " 󰃨";
++    const limits = state.anthropic_last_limits;
++    return (now) => formatClaudeUsage(limits, now) + " 󰃨";
+   }
+ 
+   const token = await auth.getApiKeyForProvider("anthropic");
+@@ -48,17 +50,20 @@
+     anthropic_last_limits: limits,
+   });
+ 
+-  return formatClaudeUsage(limits);
++  return (now) => formatClaudeUsage(limits, now);
+ }
+ 
+-async function getCodexUsage(auth: TokenSource): Promise<string> {
++async function getCodexUsage(
++  auth: TokenSource,
++): Promise<(now: number) => string> {
+   const state = await loadState();
+ 
+   if (
+     state?.codex_last_limits &&
+     Date.now() - (state.codex_last_api_call ?? 0) < 60_000
+   ) {
+-    return formatCodexUsage(state.codex_last_limits) + " 󰃨";
++    const limits = state.codex_last_limits;
++    return (now) => formatCodexUsage(limits, now) + " 󰃨";
+   }
+   // pi's own openai-codex login; pi refreshes the token, we never touch ~/.codex/auth.json
+   const token = await auth.getApiKeyForProvider("openai-codex");
+@@ -70,10 +75,10 @@
+     codex_last_limits: limits,
+   });
+ 
+-  return formatCodexUsage(limits);
++  return (now) => formatCodexUsage(limits, now);
+ }
+ 
+-function formatCodexUsage(limits: CodexLimits): string {
++function formatCodexUsage(limits: CodexLimits, now: number): string {
+   const window = (value: CodexWindow | null, fallback: string) => {
+     if (!value) return undefined;
+     const minutes = value.windowDurationMins;
+@@ -84,7 +89,9 @@
+         : minutes % 60 === 0
+           ? `${minutes / 60}h`
+           : `${minutes}m`;
+-    return `${label}: ${value.usedPercent}%`;
++    // Codex reports reset times in epoch seconds.
++    const reset = value.resetsAt === null ? null : value.resetsAt * 1000;
++    return `${label}: ${value.usedPercent}%${formatReset(reset, now)}`;
+   };
+   return (
+     [window(limits.primary, "primary"), window(limits.secondary, "secondary")]
+@@ -93,10 +100,9 @@
+   );
+ }
+ 
+-function formatClaudeUsage(limits: ClaudeLimits) {
++function formatClaudeUsage(limits: ClaudeLimits, now: number) {
+   // SDK returns null when its usage fetch fails (throttled/unavailable)
+   if (!limits.rate_limits) return "usage unavailable";
+-  const h = limits.rate_limits.five_hour.utilization;
+-  const w = limits.rate_limits.seven_day.utilization;
+-  return `5h: ${h}%, 7d: ${w}%`;
++  const { five_hour: h, seven_day: w } = limits.rate_limits;
++  return `5h: ${h.utilization}%${formatReset(h.resets_at, now)}, 7d: ${w.utilization}%${formatReset(w.resets_at, now)}`;
+ }

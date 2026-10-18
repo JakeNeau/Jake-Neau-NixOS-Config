@@ -498,16 +498,26 @@ let
       '';
     };
   # Claude quota uses Pi's Anthropic login instead of a separate Claude Code login.
+  # The status also shows when each limit resets.
   mkPiUsageLimits =
     pkgs:
-    pkgs.runCommand "pi-usage-limits-${npmVersion inputs.pi-usage-limits}" { } ''
-      root="$out/lib/node_modules/pi-usage-limits"
-      mkdir -p "$root"
-      cp -R ${inputs.pi-usage-limits}/. "$root"
-      chmod -R u+w "$root"
-      patch -d "$root" -p1 < ${./patches/pi-usage-limits-anthropic-oauth.patch}
-    '';
+    pkgs.runCommand "pi-usage-limits-${npmVersion inputs.pi-usage-limits}"
+      {
+        nativeBuildInputs = [ pkgs.nodejs ];
+      }
+      ''
+        # Node refuses type stripping under node_modules, so the tests run before the copy.
+        cp -R ${inputs.pi-usage-limits} source
+        chmod -R u+w source
+        patch -d source -p1 < ${./patches/pi-usage-limits-anthropic-oauth.patch}
+        patch -d source -p1 < ${./patches/pi-usage-limits-resets.patch}
+        TZ=UTC PI_USAGE_LIMITS_SOURCE="$PWD/source" node --experimental-strip-types \
+          --test ${./patches/pi-usage-limits-resets.test.mjs}
+        mkdir -p "$out/lib/node_modules"
+        cp -R source "$out/lib/node_modules/pi-usage-limits"
+      '';
   # The footer gauge tells the user when to start a new session.
+  # The second footer line carries the subscription limits status.
   mkPiUsageBar =
     pkgs:
     pkgs.runCommand "pi-usage-bar-${npmVersion inputs.pi-usage-bar}"
@@ -519,8 +529,10 @@ let
         cp -R ${inputs.pi-usage-bar} "$out"
         chmod -R u+w "$out"
         patch -d "$out" -p1 < ${./patches/pi-usage-bar-context-warnings.patch}
+        patch -d "$out" -p1 < ${./patches/pi-usage-bar-usage-limits.patch}
         PI_USAGE_BAR_SOURCE="$out" node --experimental-strip-types \
-          --test ${./patches/pi-usage-bar-context-warnings.test.mjs}
+          --test ${./patches/pi-usage-bar-context-warnings.test.mjs} \
+          ${./patches/pi-usage-bar-usage-limits.test.mjs}
       '';
   mkPiSubagents =
     pkgs:

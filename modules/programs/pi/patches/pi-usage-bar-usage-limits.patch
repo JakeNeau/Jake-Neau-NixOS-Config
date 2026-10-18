@@ -1,0 +1,94 @@
+diff -ruN a/src/extension.ts b/src/extension.ts
+--- a/src/extension.ts
++++ b/src/extension.ts
+@@ -16,12 +16,11 @@
+ 	saveConfig,
+ } from "./config.ts";
+ import { contextSegment } from "./context-level.ts";
++import { footerStatuses } from "./footer-statuses.ts";
+ import {
+ 	formatModelName,
+ 	formatMoney,
+ 	formatTokens,
+-	stripAnsi,
+-	truncatePlain,
+ } from "./format.ts";
+ import { UsageLedger } from "./ledger.ts";
+ import { pricingFromModel } from "./pricing.ts";
+@@ -65,15 +64,6 @@
+ 	requestRender?: () => void;
+ };
+ 
+-function visibleExtensionStatuses(
+-	statuses: ReadonlyMap<string, string>,
+-): string | null {
+-	const values = [...statuses.entries()]
+-		.filter(([key, value]) => key !== "pi-usage-bar" && value.trim().length > 0)
+-		.map(([, value]) => truncatePlain(stripAnsi(value), 28));
+-	return values.length > 0 ? values.join(" ❯ ") : null;
+-}
+-
+ function isAmbiguousRootProject(projectKey: string): boolean {
+ 	return projectKey.endsWith("/_root");
+ }
+@@ -173,8 +163,9 @@
+ 				},
+ 				invalidate() {},
+ 				render(width: number): string[] {
+-					const extensionStatuses = visibleExtensionStatuses(
++					const extensionStatuses = footerStatuses(
+ 						footerData.getExtensionStatuses?.() ?? new Map(),
++						state.config.showSecondLine,
+ 					);
+ 					const thinkingSegment = `${theme.fg("text", "thinking:")} ${theme.fg(
+ 						"muted",
+@@ -201,8 +192,8 @@
+ 								: "muted",
+ 							displayProjectLabel(state.project, state.config),
+ 						),
+-						extensions: extensionStatuses
+-							? theme.fg("text", extensionStatuses)
++						extensions: extensionStatuses.lineOne
++							? theme.fg("text", extensionStatuses.lineOne)
+ 							: null,
+ 						thinking: thinkingSegment,
+ 					};
+@@ -219,9 +210,12 @@
+ 					const branch = state.project.gitBranch
+ 						? ` · ${state.project.gitBranch}`
+ 						: "";
++					const limits = extensionStatuses.lineTwo
++						? ` ${SEGMENT_SEPARATOR} ${extensionStatuses.lineTwo}`
++						: "";
+ 					const lineTwo = theme.fg(
+ 						"dim",
+-						`▶ ${formatUsageLine(state.sessionTotals)} · project today ${formatTokens(state.todayProjectTotals.totalTokens)}${branch}`,
++						`▶ ${formatUsageLine(state.sessionTotals)} · project today ${formatTokens(state.todayProjectTotals.totalTokens)}${branch}${limits}`,
+ 					);
+ 					return [
+ 						truncateToWidth(lineOne, width),
+diff -ruN a/src/footer-statuses.ts b/src/footer-statuses.ts
+--- a/src/footer-statuses.ts
++++ b/src/footer-statuses.ts
+@@ -0,0 +1,21 @@
++import { stripAnsi, truncatePlain } from "./format.ts";
++
++// pi-usage-limits publishes subscription limits and reset times under this key.
++const LIMITS_STATUS = "model-usage";
++
++export function footerStatuses(
++	statuses: ReadonlyMap<string, string>,
++	showSecondLine: boolean,
++): { lineOne: string | null; lineTwo: string | null } {
++	const lineOne: string[] = [];
++	let lineTwo: string | null = null;
++	for (const [key, value] of statuses) {
++		if (key === "pi-usage-bar" || value.trim().length === 0) continue;
++		if (showSecondLine && key === LIMITS_STATUS) lineTwo = stripAnsi(value);
++		else lineOne.push(truncatePlain(stripAnsi(value), 28));
++	}
++	return {
++		lineOne: lineOne.length > 0 ? lineOne.join(" ❯ ") : null,
++		lineTwo,
++	};
++}

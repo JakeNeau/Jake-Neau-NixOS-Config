@@ -254,8 +254,8 @@ with Pi. Each build reads its version from the extension's `package.json`.
 `pi-usage-limits` is the exception. It exists only as an npm tarball, and the
 tarball URL names version `0.1.4`. A new release requires a URL change.
 
-An upstream `pi-usage-bar` change can stop the context-warning patch from
-applying. The home build then fails.
+An upstream `pi-usage-bar` or `pi-usage-limits` change can stop a local patch
+from applying. The home build then fails.
 
 ## Web extensions
 
@@ -333,9 +333,10 @@ Pi's mutable `settings.json` contains no package declarations for them.
   [context warning levels](#context-warning-levels).
 - `pi-usage-limits` publishes the active model's subscription limits as
   the `model-usage` extension status. Claude models from any provider show
-  five-hour and seven-day utilization. Codex models show the short and weekly windows that
-  the provider reports. Unsupported models and request failures remain visible
-  as extension statuses.
+  five-hour and seven-day utilization. Codex models show the short and weekly
+  windows that the provider reports. Each window also shows when it resets.
+  Unsupported models and request failures remain visible as extension
+  statuses.
 
 `pi-usage-limits` refreshes at session startup, after model changes, and after
 agent runs settle. Refreshes run only in TUI mode and do not block Pi. A shared
@@ -349,8 +350,30 @@ calls. Anthropic does not document that endpoint, so the patch may need an
 update after an API change. If Pi has no Anthropic login, the status shows
 `Claude: run /login anthropic`.
 
-`pi-usage-bar` renders the status through its `extensions` footer segment. It
-removes status colors and truncates each extension status to 28 visible columns.
+A second patch adds a reset countdown and a local reset time to each window:
+
+```text
+5h: 75% ↻2h53m 13:30, 7d: 12% ↻1d4h Mon 15:00
+```
+
+- The reset time omits the weekday when the reset falls on the current day.
+- The reset time uses the 24-hour clock.
+- The patch rounds each reset time to the nearest minute.
+- The countdown counts whole clock minutes. The current time plus the
+  countdown equals the reset time.
+- The extension redraws the status every minute from the last result. This
+  redraw keeps the countdown current while Pi is idle and sends no request.
+
+The build runs a test for the reset format and fails when the format is wrong.
+
+`pi-usage-bar` renders the `model-usage` status in full at the end of the
+second footer line. A narrow terminal cuts the end of that line first, so the
+seven-day reset disappears before the five-hour status. The first line's
+`extensions` segment holds every other extension status, truncated to 28
+visible columns. When `/usage segments second-line off` hides the second line,
+the limits status returns to that segment with the same truncation. The footer
+removes status colors. A build test checks this placement.
+
 The quota extension does not replace the footer or alter RPC, print, and JSON
 behavior.
 
