@@ -59,12 +59,27 @@ let
         action="''${1:-}"
         settings="''${2:-}"
 
+        # shellcheck disable=SC2016
         case "$action" in
-          set-shell|set-claude-bridge)
+          set-shell)
             [ "$#" -eq 3 ] || exit 2
+            filter='.shellPath = $value'
+            ;;
+          set-claude-bridge)
+            [ "$#" -eq 3 ] || exit 2
+            filter='.provider = (.provider // {}) | .provider.pathToClaudeCodeExecutable = $value'
             ;;
           unset-shell)
             [ "$#" -eq 2 ] || exit 2
+            filter='del(.shellPath)'
+            ;;
+          disable-compaction)
+            [ "$#" -eq 2 ] || exit 2
+            filter='.compaction = (.compaction // {}) | .compaction.enabled = false'
+            ;;
+          set-usage-bar-thresholds)
+            [ "$#" -eq 2 ] || exit 2
+            filter='.warningThreshold = 20 | .errorThreshold = 50'
             ;;
           *)
             exit 2
@@ -86,34 +101,14 @@ let
 
         directory="$(dirname "$settings")"
         mkdir -p "$directory"
-        temporary="$(mktemp "$directory/.settings.json.XXXXXX")"
+        temporary="$(mktemp "$directory/.$(basename "$settings").XXXXXX")"
         trap 'rm -f "$temporary"' EXIT
 
         if [ -e "$settings" ]; then
-          case "$action" in
-            set-shell)
-              jq --arg shell "$3" '.shellPath = $shell' "$settings" > "$temporary"
-              ;;
-            set-claude-bridge)
-              jq --arg executable "$3" \
-                '.provider = (.provider // {}) | .provider.pathToClaudeCodeExecutable = $executable' \
-                "$settings" > "$temporary"
-              ;;
-            unset-shell)
-              jq 'del(.shellPath)' "$settings" > "$temporary"
-              ;;
-          esac
+          jq --arg value "''${3:-}" "$filter" "$settings" > "$temporary"
           chmod --reference="$settings" "$temporary"
         else
-          case "$action" in
-            set-shell)
-              jq -n --arg shell "$3" '{shellPath: $shell}' > "$temporary"
-              ;;
-            set-claude-bridge)
-              jq -n --arg executable "$3" \
-                '{provider: {pathToClaudeCodeExecutable: $executable}}' > "$temporary"
-              ;;
-          esac
+          jq -n --arg value "''${3:-}" "{} | $filter" > "$temporary"
           chmod 600 "$temporary"
         fi
 
@@ -241,6 +236,10 @@ let
           exit 1
         fi
         cmp "$malformed" "$malformed.expected"
+        if "$updater" disable-compaction "$malformed"; then
+          exit 1
+        fi
+        cmp "$malformed" "$malformed.expected"
 
         target="$TMPDIR/target.json"
         link="$TMPDIR/link.json"
@@ -251,6 +250,40 @@ let
         fi
         test -L "$link"
         test "$(cat "$target")" = '{}'
+        if "$updater" disable-compaction "$link"; then
+          exit 1
+        fi
+        test -L "$link"
+        test "$(cat "$target")" = '{}'
+
+        compaction="$TMPDIR/compaction.json"
+        printf '{"theme":"light","compaction":{"reserveTokens":16384}}\n' > "$compaction"
+        chmod 640 "$compaction"
+        "$updater" disable-compaction "$compaction"
+        test "$(jq -r .compaction.enabled "$compaction")" = false
+        test "$(jq -r .compaction.reserveTokens "$compaction")" = 16384
+        test "$(jq -r .theme "$compaction")" = light
+        test "$(stat -c %a "$compaction")" = 640
+        before="$(sha256sum "$compaction")"
+        "$updater" disable-compaction "$compaction"
+        test "$(sha256sum "$compaction")" = "$before"
+
+        new_compaction="$TMPDIR/new-compaction.json"
+        "$updater" disable-compaction "$new_compaction"
+        test "$(jq -c . "$new_compaction")" = '{"compaction":{"enabled":false}}'
+        test "$(stat -c %a "$new_compaction")" = 600
+
+        usage_bar="$TMPDIR/usage-bar.json"
+        printf '{"segments":["model","context"],"showSecondLine":false,"warningThreshold":70,"errorThreshold":90}\n' > "$usage_bar"
+        "$updater" set-usage-bar-thresholds "$usage_bar"
+        test "$(jq -r .warningThreshold "$usage_bar")" = 20
+        test "$(jq -r .errorThreshold "$usage_bar")" = 50
+        test "$(jq -c .segments "$usage_bar")" = '["model","context"]'
+        test "$(jq -r .showSecondLine "$usage_bar")" = false
+
+        new_usage_bar="$TMPDIR/agent/pi-usage-bar/config.json"
+        "$updater" set-usage-bar-thresholds "$new_usage_bar"
+        test "$(jq -c . "$new_usage_bar")" = '{"warningThreshold":20,"errorThreshold":50}'
 
         export HOME="$TMPDIR/home"
         export XDG_CONFIG_HOME="$HOME/.config"
@@ -470,6 +503,21 @@ let
       chmod -R u+w "$root"
       patch -d "$root" -p1 < ${./patches/pi-usage-limits-anthropic-oauth.patch}
     '';
+  # The footer gauge tells the user when to start a new session.
+  mkPiUsageBar =
+    pkgs:
+    pkgs.runCommand "pi-usage-bar-${npmVersion inputs.pi-usage-bar}"
+      {
+        nativeBuildInputs = [ pkgs.nodejs ];
+      }
+      ''
+        # Node refuses type stripping under node_modules, so the source stays at the root.
+        cp -R ${inputs.pi-usage-bar} "$out"
+        chmod -R u+w "$out"
+        patch -d "$out" -p1 < ${./patches/pi-usage-bar-context-warnings.patch}
+        PI_USAGE_BAR_SOURCE="$out" node --experimental-strip-types \
+          --test ${./patches/pi-usage-bar-context-warnings.test.mjs}
+      '';
   mkPiSubagents =
     pkgs:
     let
@@ -545,7 +593,7 @@ let
         export { default } from "${inputs.pi-usage}/extensions/usage/index.ts";
         EOF
         cat > extensions/usage-bar/index.ts <<'EOF'
-        export { default } from "${inputs.pi-usage-bar}/index.ts";
+        export { default } from "${mkPiUsageBar pkgs}/index.ts";
         EOF
         cat > extensions/usage-limits/index.ts <<'EOF'
         export { default } from "${usageLimitsRoot}/index.ts";
@@ -698,6 +746,7 @@ in
         pi-agent-browser-native-root = "${mkPiAgentBrowserNative pkgs}/lib/node_modules/pi-agent-browser-native";
         pi-claude-bridge = mkPiClaudeBridge pkgs;
         pi-claude-bridge-root = "${pi-claude-bridge}/lib/node_modules/pi-claude-bridge";
+        pi-usage-bar = mkPiUsageBar pkgs;
         pi-usage-limits = mkPiUsageLimits pkgs;
         pi-usage-limits-root = "${pi-usage-limits}/lib/node_modules/pi-usage-limits";
         pi-subagents-root = "${mkPiSubagents pkgs}/lib/node_modules/pi-subagents";
@@ -771,7 +820,7 @@ in
             export { default } from "${inputs.pi-usage}/extensions/usage/index.ts";
           '';
           ".pi/agent/extensions/pi-usage-bar/index.ts".text = ''
-            export { default } from "${inputs.pi-usage-bar}/index.ts";
+            export { default } from "${pi-usage-bar}/index.ts";
           '';
           ".pi/agent/extensions/pi-usage-limits/index.ts".text = ''
             export { default } from "${pi-usage-limits-root}/index.ts";
@@ -858,6 +907,14 @@ in
       {
         home.file = fixedHomeFiles // promptHomeFiles // subagentPromptHomeFiles // homeAssistantMcpFiles;
         home.activation = {
+          piCompaction = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
+              disable-compaction "$HOME/.pi/agent/settings.json"
+          '';
+          piUsageBarThresholds = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
+              set-usage-bar-thresholds "$HOME/.pi/agent/pi-usage-bar/config.json"
+          '';
           piClaudeBridgePath = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
             $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
               set-claude-bridge "$HOME/.pi/agent/claude-bridge.json" \

@@ -1,0 +1,106 @@
+diff -ruN a/src/context-level.ts b/src/context-level.ts
+--- a/src/context-level.ts
++++ b/src/context-level.ts
+@@ -0,0 +1,36 @@
++import type { ThemeColor } from "@earendil-works/pi-coding-agent";
++import { formatTokens, progressBar } from "./format.ts";
++import type { UsageBarConfig } from "./types.ts";
++
++type ContextThresholds = Pick<
++	UsageBarConfig,
++	"warningThreshold" | "errorThreshold"
++>;
++
++export function contextColor(
++	percent: number | null | undefined,
++	config: ContextThresholds,
++): ThemeColor {
++	if (percent === null || percent === undefined) return "muted";
++	if (percent >= config.errorThreshold) return "error";
++	if (percent >= config.warningThreshold) return "warning";
++	return "success";
++}
++
++const WARNING_TEXT: Partial<Record<ThemeColor, string>> = {
++	warning: " consider new session",
++	error: " start new session",
++};
++
++export function contextSegment(
++	usage: { percent: number | null; contextWindow: number } | undefined,
++	config: ContextThresholds,
++	fg: (color: ThemeColor, text: string) => string,
++): string {
++	const percent = usage?.percent ?? null;
++	const gauge = usage
++		? `${progressBar(percent, 10)} ${percent !== null ? `${percent.toFixed(0)}%` : "—%"} (${formatTokens(usage.contextWindow)})`
++		: `${progressBar(null, 10)} —`;
++	const color = contextColor(percent, config);
++	return fg(color, `${gauge}${WARNING_TEXT[color] ?? ""}`);
++}
+diff -ruN a/src/extension.ts b/src/extension.ts
+--- a/src/extension.ts
++++ b/src/extension.ts
+@@ -1,6 +1,6 @@
+ import { mkdirSync, writeFileSync } from "node:fs";
+ import { join } from "node:path";
+-import type { ExtensionAPI, ThemeColor } from "@earendil-works/pi-coding-agent";
++import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+ import { getAgentDir } from "@earendil-works/pi-coding-agent";
+ import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+ import {
+@@ -15,11 +15,11 @@
+ 	normalizeProjectKey,
+ 	saveConfig,
+ } from "./config.ts";
++import { contextSegment } from "./context-level.ts";
+ import {
+ 	formatModelName,
+ 	formatMoney,
+ 	formatTokens,
+-	progressBar,
+ 	stripAnsi,
+ 	truncatePlain,
+ } from "./format.ts";
+@@ -65,16 +65,6 @@
+ 	requestRender?: () => void;
+ };
+ 
+-function contextColor(
+-	percent: number | null | undefined,
+-	config: UsageBarConfig,
+-): ThemeColor {
+-	if (percent === null || percent === undefined) return "muted";
+-	if (percent >= config.errorThreshold) return "error";
+-	if (percent >= config.warningThreshold) return "warning";
+-	return "success";
+-}
+-
+ function visibleExtensionStatuses(
+ 	statuses: ReadonlyMap<string, string>,
+ ): string | null {
+@@ -183,11 +173,6 @@
+ 				},
+ 				invalidate() {},
+ 				render(width: number): string[] {
+-					const usage = ctx.getContextUsage();
+-					const percent = usage?.percent ?? null;
+-					const contextText = usage
+-						? `${progressBar(percent, 10)} ${percent !== null ? `${percent.toFixed(0)}%` : "—%"} (${formatTokens(usage.contextWindow)})`
+-						: `${progressBar(null, 10)} —`;
+ 					const extensionStatuses = visibleExtensionStatuses(
+ 						footerData.getExtensionStatuses?.() ?? new Map(),
+ 					);
+@@ -197,7 +182,11 @@
+ 					)}`;
+ 					const segments: Record<SegmentName, string | null> = {
+ 						model: theme.fg("accent", formatModelName(ctx.model?.id)),
+-						context: theme.fg(contextColor(percent, state.config), contextText),
++						context: contextSegment(
++							ctx.getContextUsage(),
++							state.config,
++							(color, text) => theme.fg(color, text),
++						),
+ 						session: theme.fg(
+ 							"text",
+ 							`sess ${formatTokens(state.sessionTotals.totalTokens)}`,

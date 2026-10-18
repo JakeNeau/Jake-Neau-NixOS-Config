@@ -248,6 +248,9 @@ with Pi. Each build reads its version from the extension's `package.json`.
 `pi-usage-limits` is the exception. It exists only as an npm tarball, and the
 tarball URL names version `0.1.4`. A new release requires a URL change.
 
+An upstream `pi-usage-bar` change can stop the context-warning patch from
+applying. The home build then fails.
+
 ## Web extensions
 
 Both extension sources are non-flake inputs:
@@ -321,7 +324,8 @@ Pi's mutable `settings.json` contains no package declarations for them.
 - `pi-usage` reports provider quota through a usage command.
 - `pi-usage-bar` records local token and cost events, adds usage
   reports, and supplies the only custom footer. The footer remains visible in
-  both transcript modes.
+  both transcript modes. Its context gauge shows the
+  [context warning levels](#context-warning-levels).
 - `pi-usage-limits` publishes the active model's subscription limits as
   the `model-usage` extension status. Claude models from any provider show
   five-hour and seven-day utilization. Codex models show the short and weekly windows that
@@ -347,6 +351,40 @@ behavior.
 
 `pi-usage` and `pi-usage-bar` both register `usage`. Pi disambiguates the
 commands as `usage:1` and `usage:2`.
+
+### Context warning levels
+
+The footer's context gauge tells the user when to start a new session. Pi does
+not compact automatically, so these levels replace that safeguard. The level
+depends on the share of the context window in use:
+
+| Used context | Gauge color | Warning text |
+|---|---|---|
+| below 20% | green (`success`) | none |
+| 20% to below 50% | yellow (`warning`) | `consider new session` |
+| 50% and above | red (`error`) | `start new session` |
+
+- The levels use the unrounded percentage. A context at 49.6% displays `50%`
+  but stays yellow.
+- Each boundary takes the higher level. Exactly 20% is yellow, and exactly 50%
+  is red.
+- The warning text follows the gauge inside the context segment and has the
+  gauge color, for example `███░░░░░░░ 34% (200k) consider new session`.
+- Footer truncation removes the end of the line first. Later segments therefore
+  disappear before the warning text.
+- When Pi reports no usage, the gauge stays muted and shows no warning text.
+- Other footer segments keep their upstream colors.
+
+Nix builds `pi-usage-bar` with a context-warning patch. The build also runs a
+footer test, which fails the build when a level renders the wrong color or
+text.
+
+Home Manager activation sets `warningThreshold` to 20 and `errorThreshold` to
+50 in `~/.pi/agent/pi-usage-bar/config.json`. It preserves the other keys. The
+file stays mutable because `/usage` commands save their settings there. A saved
+config overrides the upstream defaults, so a patched default alone would not
+set the levels. A `/usage` change to either threshold lasts only until the next
+activation.
 
 Home Manager activation merges the Nix `claude` executable path into
 `~/.pi/agent/claude-bridge.json`. The file stays mutable so Claude Bridge can
@@ -531,14 +569,31 @@ environment. Add credentials through sops-nix when needed.
 Nix does not manage Pi's authentication, model catalog, or session state. Each
 machine with the integration enabled authenticates once with
 `pi mcp login home-assistant`. The module also leaves
-`~/.pi/agent/settings.json` mutable except for `shellPath`.
-A Home Manager activation merges that key into the live JSON when the home
-enables Fish. It removes only that key when the home disables Fish. Users can
-change every other setting through `/settings`.
+`~/.pi/agent/settings.json` mutable except for `shellPath` and
+`compaction.enabled`. Users can change every other setting through
+`/settings`.
 
-The activation refuses malformed JSON and symbolic links instead of replacing
-them. Do not save `/settings` during home activation because Pi and Home Manager
-do not share a settings lock. A trusted project's `.pi/settings.json` can
+A Home Manager activation merges `shellPath` into the live JSON when the home
+enables Fish. It removes only that key when the home disables Fish.
+
+A second activation always sets `compaction.enabled` to `false`. It preserves
+the other `compaction` keys. The setting has these effects:
+
+- Pi never compacts at the size threshold.
+- Pi skips its compact-and-retry recovery on context overflow. A full context
+  therefore shows a provider error.
+- Manual `/compact` remains available.
+
+The [context warning levels](#context-warning-levels) prompt a new session
+before the context fills. A `/settings` change to `compaction.enabled` lasts
+only until the next activation. Existing Pi processes require a restart after
+activation to read the key.
+
+Each activation that edits Pi JSON refuses malformed JSON and symbolic links
+instead of replacing them. This rule covers the shell, compaction, Claude
+Bridge, and usage-bar threshold activations. Do not save `/settings` or
+`/usage` changes during home activation because Pi and Home Manager do not
+share a lock. A trusted project's `.pi/settings.json` can
 override the global shell path.
 
 The managed path names the Fish package selected by Home Manager. Pi starts
