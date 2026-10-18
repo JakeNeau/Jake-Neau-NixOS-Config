@@ -72,6 +72,14 @@
       url = "github:nicobailon/pi-subagents";
       flake = false;
     };
+    pi-tidy-tools = {
+      url = "https://registry.npmjs.org/@mobrienv/pi-tidy-tools/-/pi-tidy-tools-0.5.4.tgz";
+      flake = false;
+    };
+    pi-tidy-tools-semver = {
+      url = "https://registry.npmjs.org/semver/-/semver-7.8.5.tgz";
+      flake = false;
+    };
     pi-usage = {
       url = "github:iefnaf/pi-usage";
       flake = false;

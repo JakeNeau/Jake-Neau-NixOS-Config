@@ -4,23 +4,16 @@ let
   askUserSource = "${extensionSource}/ask-user";
   rustToolsSource = "${extensionSource}/rust-tools";
   openPencilSource = "${extensionSource}/openpencil";
-  minimalTranscriptSource = "${extensionSource}/minimal-transcript";
   tuneSource = "${extensionSource}/tune";
   workflowSource = "${extensionSource}/workflows";
   writingSource = ./writing;
   mkPiPackage =
     pkgs:
     inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi.overrideAttrs (old: {
-      patches = (old.patches or [ ]) ++ [ ./patches/minimal-transcript.patch ];
-      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.makeWrapper ];
       preInstall = (old.preInstall or "") + ''
-        PI_SOURCE="$PWD" node --test ${./patches/minimal-transcript.test.mjs}
         cp -R ${askUserSource} ask-user-tests
         chmod -R u+w ask-user-tests
         node --experimental-strip-types --test ask-user-tests/tests/*.test.ts
-      '';
-      postFixup = (old.postFixup or "") + ''
-        wrapProgram "$out/bin/pi" --set PI_MINIMAL_TRANSCRIPT 1
       '';
     });
   mkPiLinkRegistry =
@@ -80,6 +73,14 @@ let
           set-usage-bar-thresholds)
             [ "$#" -eq 2 ] || exit 2
             filter='.warningThreshold = 20 | .errorThreshold = 50'
+            ;;
+          set-tidy-tools)
+            [ "$#" -eq 2 ] || exit 2
+            filter='.enabled = true | .mode = "default" | .icons = true | .outputReasoning = true'
+            ;;
+          hide-thinking)
+            [ "$#" -eq 2 ] || exit 2
+            filter='.hideThinkingBlock = true'
             ;;
           *)
             exit 2
@@ -143,28 +144,6 @@ let
         printf '{"type":"get_state"}\n' \
           | pi --mode rpc --no-session --offline --no-extensions \
             --extension ./ask-user/index.ts >rpc.jsonl
-        grep -q '"success":true' rpc.jsonl
-        touch "$out"
-      '';
-  mkPiMinimalTranscriptCheck =
-    pkgs:
-    pkgs.runCommand "pi-minimal-transcript"
-      {
-        nativeBuildInputs = [
-          (mkPiPackage pkgs)
-          pkgs.nodejs
-        ];
-      }
-      ''
-        cp -R ${minimalTranscriptSource} minimal-transcript
-        chmod -R u+w minimal-transcript
-        node --experimental-strip-types --test minimal-transcript/tests/*.test.ts
-
-        export HOME="$TMPDIR/home"
-        mkdir -p "$HOME"
-        printf '{"type":"get_state"}\n' \
-          | pi --mode rpc --no-session --offline --no-extensions \
-            --extension ./minimal-transcript/index.ts >rpc.jsonl
         grep -q '"success":true' rpc.jsonl
         touch "$out"
       '';
@@ -284,6 +263,31 @@ let
         new_usage_bar="$TMPDIR/agent/pi-usage-bar/config.json"
         "$updater" set-usage-bar-thresholds "$new_usage_bar"
         test "$(jq -c . "$new_usage_bar")" = '{"warningThreshold":20,"errorThreshold":50}'
+
+        tidy_tools="$TMPDIR/tidy-tools.json"
+        printf '{"mode":"result","icons":false,"outputReasoning":false,"outputReasoningModel":"fixture"}\n' > "$tidy_tools"
+        "$updater" set-tidy-tools "$tidy_tools"
+        test "$(jq -r .enabled "$tidy_tools")" = true
+        test "$(jq -r .mode "$tidy_tools")" = default
+        test "$(jq -r .icons "$tidy_tools")" = true
+        test "$(jq -r .outputReasoning "$tidy_tools")" = true
+        test "$(jq -r .outputReasoningModel "$tidy_tools")" = fixture
+        before="$(sha256sum "$tidy_tools")"
+        "$updater" set-tidy-tools "$tidy_tools"
+        test "$(sha256sum "$tidy_tools")" = "$before"
+
+        new_tidy_tools="$TMPDIR/agent/pi-tidy-tools.json"
+        "$updater" set-tidy-tools "$new_tidy_tools"
+        test "$(jq -c . "$new_tidy_tools")" = '{"enabled":true,"mode":"default","icons":true,"outputReasoning":true}'
+
+        thinking="$TMPDIR/thinking.json"
+        printf '{"theme":"light","hideThinkingBlock":false}\n' > "$thinking"
+        "$updater" hide-thinking "$thinking"
+        test "$(jq -r .hideThinkingBlock "$thinking")" = true
+        test "$(jq -r .theme "$thinking")" = light
+        before="$(sha256sum "$thinking")"
+        "$updater" hide-thinking "$thinking"
+        test "$(sha256sum "$thinking")" = "$before"
 
         export HOME="$TMPDIR/home"
         export XDG_CONFIG_HOME="$HOME/.config"
@@ -565,6 +569,18 @@ let
       npmConfigHook = pkgs.importNpmLock.npmConfigHook;
       npmBuildScript = "build";
     };
+  # importNpmLock rejects the upstream workspace lockfile, so the published
+  # tarball supplies the bundled source and its one runtime dependency.
+  mkPiTidyTools =
+    pkgs:
+    pkgs.runCommand "pi-tidy-tools-${npmVersion inputs.pi-tidy-tools}" { } ''
+      root="$out/lib/node_modules/@mobrienv/pi-tidy-tools"
+      mkdir -p "$root"
+      cp -R ${inputs.pi-tidy-tools}/. "$root"
+      chmod -R u+w "$root"
+      mkdir -p "$root/node_modules"
+      cp -R ${inputs.pi-tidy-tools-semver} "$root/node_modules/semver"
+    '';
   mkPiThirdPartyExtensionsCheck =
     pkgs:
     let
@@ -573,13 +589,14 @@ let
       claudeBridgeRoot = "${mkPiClaudeBridge pkgs}/lib/node_modules/pi-claude-bridge";
       usageLimitsRoot = "${mkPiUsageLimits pkgs}/lib/node_modules/pi-usage-limits";
       subagentsRoot = "${mkPiSubagents pkgs}/lib/node_modules/pi-subagents";
+      tidyToolsRoot = "${mkPiTidyTools pkgs}/lib/node_modules/@mobrienv/pi-tidy-tools";
     in
     pkgs.runCommand "pi-third-party-extensions"
       {
         nativeBuildInputs = [ (mkPiPackage pkgs) ];
       }
       ''
-        mkdir -p extensions/{web-access,agent-browser,anthropic-auth,usage,usage-bar,usage-limits,claude-bridge,subagents}
+        mkdir -p extensions/{web-access,agent-browser,anthropic-auth,usage,usage-bar,usage-limits,claude-bridge,subagents,tidy-tools}
         cat > extensions/web-access/index.ts <<'EOF'
         export { default } from "${webAccessRoot}/index.ts";
         EOF
@@ -604,6 +621,9 @@ let
         cat > extensions/subagents/index.ts <<'EOF'
         export { default } from "${subagentsRoot}/index.ts";
         EOF
+        cat > extensions/tidy-tools/index.ts <<'EOF'
+        export { default } from "${tidyToolsRoot}/index.ts";
+        EOF
 
         export HOME="$TMPDIR/home"
         mkdir -p "$HOME"
@@ -616,6 +636,7 @@ let
           --extension ./extensions/usage-limits/index.ts
           --extension ./extensions/claude-bridge/index.ts
           --extension ./extensions/subagents/index.ts
+          --extension ./extensions/tidy-tools/index.ts
         )
         printf '{"type":"get_commands"}\n' \
           | pi --mode rpc --no-session --offline --no-extensions \
@@ -627,6 +648,8 @@ let
         grep -q '"name":"subagents"' rpc.jsonl
         grep -q '"name":"subagents-doctor"' rpc.jsonl
         grep -q '"name":"subagents-guide"' rpc.jsonl
+        grep -q '"name":"tidy"' rpc.jsonl
+        grep -q '"name":"diff"' rpc.jsonl
         test -s ${subagentsRoot}/agents/scout.md
         test -s ${subagentsRoot}/agents/worker.md
         test -s ${subagentsRoot}/agents/reviewer.md
@@ -637,6 +660,8 @@ let
         test ! -e ${subagentsRoot}/node_modules/typebox
         test ! -e ${webAccessRoot}/node_modules/@earendil-works
         test ! -e ${webAccessRoot}/node_modules/typebox
+        test ! -e ${tidyToolsRoot}/node_modules/@earendil-works
+        test ! -e ${tidyToolsRoot}/node_modules/typebox
         pi --no-session --offline --no-extensions \
           "''${extension_args[@]}" --list-models claude-bridge >models.txt
         grep -q '^claude-bridge ' models.txt
@@ -658,7 +683,6 @@ in
     checks = {
       pi-ask-user = mkPiAskUserCheck pkgs;
       pi-fish-shell = mkPiFishShellCheck pkgs;
-      pi-minimal-transcript = mkPiMinimalTranscriptCheck pkgs;
       pi-openpencil = mkPiOpenPencilCheck pkgs;
       pi-rust-tools = mkPiRustToolsCheck pkgs;
       pi-third-party-extensions = mkPiThirdPartyExtensionsCheck pkgs;
@@ -673,8 +697,7 @@ in
     };
   };
 
-  # Pi comes from llm-agents.nix and receives a small transcript patch. The
-  # package keeps the cached npm dependencies and builds its Bun executable locally.
+  # Pi comes from llm-agents.nix. The package keeps the cached npm dependencies and builds its Bun executable locally.
   # Extensions track their default branches so `nix flake update` moves them with Pi.
   flake-file.inputs = {
     llm-agents.url = "github:numtide/llm-agents.nix";
@@ -697,6 +720,14 @@ in
     };
     pi-subagents = {
       url = "github:nicobailon/pi-subagents";
+      flake = false;
+    };
+    pi-tidy-tools = {
+      url = "https://registry.npmjs.org/@mobrienv/pi-tidy-tools/-/pi-tidy-tools-0.5.4.tgz";
+      flake = false;
+    };
+    pi-tidy-tools-semver = {
+      url = "https://registry.npmjs.org/semver/-/semver-7.8.5.tgz";
       flake = false;
     };
     pi-usage = {
@@ -750,6 +781,7 @@ in
         pi-usage-limits = mkPiUsageLimits pkgs;
         pi-usage-limits-root = "${pi-usage-limits}/lib/node_modules/pi-usage-limits";
         pi-subagents-root = "${mkPiSubagents pkgs}/lib/node_modules/pi-subagents";
+        pi-tidy-tools-root = "${mkPiTidyTools pkgs}/lib/node_modules/@mobrienv/pi-tidy-tools";
         linkRegistry = mkPiLinkRegistry pkgs;
         promptFiles = lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (
           builtins.readDir ./config/prompts
@@ -831,6 +863,9 @@ in
           ".pi/agent/extensions/subagent/index.ts".text = ''
             export { default } from "${pi-subagents-root}/index.ts";
           '';
+          ".pi/agent/extensions/pi-tidy-tools/index.ts".text = ''
+            export { default } from "${pi-tidy-tools-root}/index.ts";
+          '';
           ".pi/agent/extensions/ask-user/index.ts".text = ''
             export { default } from "${askUserSource}/index.ts";
           '';
@@ -840,9 +875,6 @@ in
             export default createOpenPencilExtension({
               serverPath: "${config.home.profileDirectory}/bin/openpencil-mcp",
             });
-          '';
-          ".pi/agent/extensions/minimal-transcript/index.ts".text = ''
-            export { default } from "${minimalTranscriptSource}/index.ts";
           '';
           ".pi/agent/extensions/tune/index.ts".text = ''
             export { default } from "${tuneSource}/index.ts";
@@ -914,6 +946,14 @@ in
           piUsageBarThresholds = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
             $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
               set-usage-bar-thresholds "$HOME/.pi/agent/pi-usage-bar/config.json"
+          '';
+          piTidyTools = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
+              set-tidy-tools "$HOME/.pi/agent/pi-tidy-tools.json"
+          '';
+          piHideThinking = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+            $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
+              hide-thinking "$HOME/.pi/agent/settings.json"
           '';
           piClaudeBridgePath = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
             $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \

@@ -165,8 +165,7 @@ Pi 1.3.0 source in the installed bundle sets these constraints:
 - `modules/programs/pi/extensions/tune/instructions.md`: the tuning
   instructions.
 - `modules/programs/pi/extensions/tune/tests/core.test.ts`: a fake `pi` and a
-  fake command context, using the `minimal-transcript/tests/extension.test.ts`
-  pattern.
+  fake command context.
 - `modules/programs/pi/pi.nix`: the source binding, check, check registration,
   and home entry.
 - `docs/reference/pi.md`: a new `Prompt tuning` section.
@@ -231,9 +230,8 @@ Pi 1.3.0 source in the installed bundle sets these constraints:
    - `finally` calls `state.end()`.
 
 The abandoned branch keeps the anchor, draft, feedback, `ask_user` calls, and
-proposals, and `/tree` can show it. Minimal mode already hides custom messages
-and tool rows. During tuning the TUI therefore shows only the spinner,
-`ask_user` dialogs, and the choice dialog.
+proposals, and `/tree` can show it. During tuning the TUI shows the exchange's
+tool rows, `ask_user` dialogs, and the choice dialog.
 
 ### `instructions.md` content
 

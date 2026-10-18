@@ -16,60 +16,66 @@ used by Neovim. Why pi, and why it routes per user:
   toggle and installs both pi and `agent-browser` behind it.
 - Pi comes from `inputs.llm-agents.packages.<system>.pi`, via
   **llm-agents.nix** (`github:numtide/llm-agents.nix`). The input deliberately
-  does not follow this flake's nixpkgs. The module patches the packaged
-  JavaScript and rebuilds the Bun executable locally with cached npm
-  dependencies.
+  does not follow this flake's nixpkgs. The module runs the `ask-user` tests
+  inside the Pi build, so Nix rebuilds the Bun executable locally with cached
+  npm dependencies.
 - `agent-browser` also comes from llm-agents.nix. It updates with Pi, so the
   CLI and `pi-agent-browser-native` stay on current upstream releases.
 
-## Transcript modes
+## Tool rows
 
-The patched Pi package and `minimal-transcript` extension start each interactive
-session in minimal mode. This mode shows user prompts, file diffs, workflow
-proposal reviews, final assistant responses, and Pi's native transient status row.
-The footer remains visible, including custom footers and persistent extension statuses.
-Pi hides startup notices, thinking, intermediate assistant messages, tool calls,
-tool results, unrelated custom entries, and the header.
-Dialogs and the editor remain available.
+The `pi-tidy-tools` extension compacts tool rows instead of hiding them. An
+interactive session shows user prompts, all assistant text, and tool rows. Pi
+hides thinking blocks.
 
-The status row shows Pi's animated spinner while an agent turn is active. A turn
-starts with `Thinking…`, and assistant text streaming changes the label to
-`Writing response…`. Before each tool batch, the agent writes one plain-text
-activity line in the same assistant message. The extension shows a valid line
-beside the spinner while the batch runs.
+Rows for `read`, `write`, `edit`, `bash`, `grep`, `find`, and `ls` use the
+`default` layout:
 
-A line must describe current activity rather than hidden reasoning and use no
-more than 48 visible columns. A missing or invalid line produces `Working…`.
-Retry countdowns, context compaction, and branch summarization use Pi's native
-transient indicators in the same row. The row disappears when Pi settles.
+- Line 1 shows the tool and the agent's goal for the call.
+- Line 2 shows the target and a result summary.
 
-`Alt+T` switches between minimal mode and normal Pi output. The switch updates
-the complete current transcript and working label, including content produced
-before or during an active response. Full mode shows progress lines as normal
-assistant text and uses Pi's default working message. It follows Pi's normal
-thinking-block and tool-expansion settings.
+An `edit` row summarizes its change as `+adds/-dels`. A text `write` row shows
+a line count. `Alt+O` (`app.tools.expand`) expands every tool row. An expanded
+`edit` row shows a colored diff with line numbers.
 
-A new, resumed, forked, or replaced session starts in minimal mode. The activity
-row is TUI-only. RPC, print, and JSON modes remain unchanged.
+`/diff` shows the colored diffs of the previous turn's successful `edit` and
+`write` calls. The diffs include new files and overwrites. The extension's
+`Ctrl+Shift+O` shortcut for `/diff` conflicts with
+`app.tree.filter.cycleBackward`, so use the command.
 
-The extension records successful `edit` and `write` calls as durable custom
-entries.
+Each `codemode` script starts with a `// @reasoning: <goal>` line, and the row
+shows that goal. After the script finishes, a nested model call writes a
+one-sentence summary of its output for the row. The main model never sees that
+summary. MCP tools and tools from other extensions keep Pi's default rendering.
 
-Each entry opens as a colored unified diff in minimal mode. Full mode hides
-these synthetic entries because normal Pi already renders the underlying tool
-calls.
+A Home Manager activation merges these values into
+`~/.pi/agent/pi-tidy-tools.json`:
 
-`Alt+O` expands or collapses file diffs in minimal mode and normal tool output
-in full mode. `Ctrl+O` and `Ctrl+Shift+O` are unbound. Pi retains `Ctrl+T` for
-thinking-block visibility in full mode.
+- `enabled = true`
+- `mode = "default"`
+- `icons = true`
+- `outputReasoning = true`
 
-Both shortcuts are application-wide in TUI mode. They remain active while
-selectors, custom tool dialogs, loaders, and overlays own keyboard focus.
+A second activation sets `hideThinkingBlock = true` in
+`~/.pi/agent/settings.json`. A `/tidy` or `/settings` change to these keys
+lasts only until the next activation. Other keys stay user-owned. For example,
+`outputReasoningModel` stays unset, so the summary uses the extension's default
+model.
 
-The minimal filter applies to every tool renderer, including tools from
-third-party extensions. Diff capture is narrower because only `edit` and
-`write` expose a bounded text-file mutation contract. File changes made through
-`bash` or another custom tool do not produce diff entries.
+The extension saves its file by an atomic rename. That rename would replace a
+Home Manager link with a regular file, and Home Manager would then refuse to
+overwrite it. Activation therefore merges the keys into the live file instead
+of linking it.
+
+The extension comes from the published npm tarball of
+`@mobrienv/pi-tidy-tools`, a non-flake input. A second tarball input supplies
+`semver`, its only runtime dependency. The upstream repository is an npm
+workspace, and `importNpmLock` rejects its lockfile. A new release therefore
+requires a change to both input URLs. The package contains no copies of Pi's
+host libraries.
+
+Sessions recorded before this extension can contain `minimal-transcript-diff`
+entries. Pi no longer renders them.
 
 ## Selectable questions
 
@@ -323,8 +329,7 @@ Pi's mutable `settings.json` contains no package declarations for them.
   Nix removes physical copies of the libraries Pi supplies.
 - `pi-usage` reports provider quota through a usage command.
 - `pi-usage-bar` records local token and cost events, adds usage
-  reports, and supplies the only custom footer. The footer remains visible in
-  both transcript modes. Its context gauge shows the
+  reports, and supplies the only custom footer. Its context gauge shows the
   [context warning levels](#context-warning-levels).
 - `pi-usage-limits` publishes the active model's subscription limits as
   the `model-usage` extension status. Claude models from any provider show
@@ -569,8 +574,8 @@ environment. Add credentials through sops-nix when needed.
 Nix does not manage Pi's authentication, model catalog, or session state. Each
 machine with the integration enabled authenticates once with
 `pi mcp login home-assistant`. The module also leaves
-`~/.pi/agent/settings.json` mutable except for `shellPath` and
-`compaction.enabled`. Users can change every other setting through
+`~/.pi/agent/settings.json` mutable except for `shellPath`,
+`compaction.enabled`, and `hideThinkingBlock`. Users can change every other setting through
 `/settings`.
 
 A Home Manager activation merges `shellPath` into the live JSON when the home
@@ -591,9 +596,9 @@ activation to read the key.
 
 Each activation that edits Pi JSON refuses malformed JSON and symbolic links
 instead of replacing them. This rule covers the shell, compaction, Claude
-Bridge, and usage-bar threshold activations. Do not save `/settings` or
-`/usage` changes during home activation because Pi and Home Manager do not
-share a lock. A trusted project's `.pi/settings.json` can
+Bridge, usage-bar threshold, tidy-tools, and hide-thinking activations. Do not
+save `/settings`, `/usage`, or `/tidy` changes during home activation because
+Pi and Home Manager do not share a lock. A trusted project's `.pi/settings.json` can
 override the global shell path.
 
 The managed path names the Fish package selected by Home Manager. Pi starts

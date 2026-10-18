@@ -886,11 +886,11 @@
         "nixpkgs": "nixpkgs_7"
       },
       "locked": {
-        "lastModified": 1792331103,
-        "narHash": "sha256-T1+BPSKQWaWOAUWOZAVuiR0KWDA23g79AQpUg2blYW0=",
+        "lastModified": 1792334356,
+        "narHash": "sha256-D2ChjXKU+H0Ai1i09nkXWXxaJHCOCLxtXHQRAKgBL5w=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "a44c806d8cf3e07d27237f1bc6dfb402aa5e45c5",
+        "rev": "4fec6d1111e6a19e1940e54309c4c1068aa2d077",
         "type": "github"
       },
       "original": {
@@ -1040,6 +1040,32 @@
         "type": "github"
       }
     },
+    "pi-tidy-tools": {
+      "flake": false,
+      "locked": {
+        "lastModified": 499162500,
+        "narHash": "sha256-gYiT8UMgeqRKxHlU1SfsMplJ+w6QhIjZcDPIPPlDksY=",
+        "type": "tarball",
+        "url": "https://registry.npmjs.org/@mobrienv/pi-tidy-tools/-/pi-tidy-tools-0.5.4.tgz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://registry.npmjs.org/@mobrienv/pi-tidy-tools/-/pi-tidy-tools-0.5.4.tgz"
+      }
+    },
+    "pi-tidy-tools-semver": {
+      "flake": false,
+      "locked": {
+        "lastModified": 499162500,
+        "narHash": "sha256-gDDGCQ1GrrkHkuIkEnxjPOnEY0ch2VMGojZmqQi/yMk=",
+        "type": "tarball",
+        "url": "https://registry.npmjs.org/semver/-/semver-7.8.5.tgz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://registry.npmjs.org/semver/-/semver-7.8.5.tgz"
+      }
+    },
     "pi-usage": {
       "flake": false,
       "locked": {
@@ -1149,6 +1175,8 @@
         "pi-anthropic-auth": "pi-anthropic-auth",
         "pi-claude-bridge": "pi-claude-bridge",
         "pi-subagents": "pi-subagents",
+        "pi-tidy-tools": "pi-tidy-tools",
+        "pi-tidy-tools-semver": "pi-tidy-tools-semver",
         "pi-usage": "pi-usage",
         "pi-usage-bar": "pi-usage-bar",
         "pi-usage-limits": "pi-usage-limits",
