@@ -27,7 +27,7 @@
       claudeAi = lib.attrByPath [ "programs" "claude-code" "enable" ] false config;
       piAi = lib.attrByPath [ "programs" "pi" "enable" ] false config;
       kubernetes = lib.attrByPath [ "programs" "kubernetes" "enable" ] false config;
-      piAcp = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pi-acp;
+      piAcp = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi-acp;
     in
     {
       imports = [ inputs.nvf.homeManagerModules.default ];

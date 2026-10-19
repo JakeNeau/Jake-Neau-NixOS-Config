@@ -83,3 +83,17 @@ declared where they are used — each feature sets `flake-file.inputs`
 `nix run .#write-flake` regenerates `flake.nix` from the merged
 declarations. The outputs expression is the single import-tree line above,
 declared in `dendritic-tools.nix`.
+
+## Nothing is pinned by hand
+
+The config never pins a version itself. `flake.lock` records the exact commit
+of every input, and `nrr` (through `nix flake update`) moves every input
+forward together. A hand-written pin would silently opt that dependency out of
+the update.
+
+Therefore an input URL names a repository without a release tag or `ref`. A
+package comes from nixpkgs or llm-agents.nix when either provides it. Otherwise
+it is built from a tag-free input. No `fetchurl` URL names a release, and no
+`npmDepsHash` ties a build to one release. An npm project builds through
+`importNpmLock` from its upstream `package-lock.json`, which carries its own
+integrity hashes. An input update therefore needs no hash edit.

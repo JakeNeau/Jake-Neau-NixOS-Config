@@ -19,8 +19,9 @@ used by Neovim. Why pi, and why it routes per user:
   does not follow this flake's nixpkgs. The module runs the `ask-user` tests
   inside the Pi build, so Nix rebuilds the Bun executable locally with cached
   npm dependencies.
-- `agent-browser` also comes from llm-agents.nix. It updates with Pi, so the
-  CLI and `pi-agent-browser-native` stay on current upstream releases.
+- `agent-browser` and `pi-acp` also come from llm-agents.nix. They update with
+  Pi, so the CLI and `pi-agent-browser-native` stay on current upstream
+  releases.
 
 ## Tool rows
 
@@ -261,8 +262,8 @@ from applying. The home build then fails.
 
 Both extension sources are non-flake inputs:
 
-- `pi-web-access`: `web_search`, content extraction, PDFs, GitHub,
-  video handling, and its librarian skill.
+- `pi-web-access`: `web_search`, content extraction, PDFs, GitHub, and video
+  handling.
 - `pi-agent-browser-native`: the native `agent_browser` tools for JavaScript
   rendering and interactive browser workflows.
 
@@ -272,7 +273,22 @@ The builds need no hash in this repository. Nix compiles
 packages and its copies of the libraries Pi supplies. Small generated
 `index.ts` files under `~/.pi/agent/extensions/` import each extension from its
 immutable store path.
-Home Manager links the bundled librarian skill under `~/.pi/agent/skills/`.
+
+## Side questions
+
+`pi-btw` is a non-flake input that tracks its default branch. Its `/btw` commands
+ask a side question in a separate sub-session while the main agent keeps
+working. pi-btw has only peer dependencies, so a generated `index.ts`
+re-exports `extensions/btw.ts` directly. pi-btw loads no extensions into its
+side sessions unless a `btw.json` file lists them.
+
+The local `status` extension adds `/status`. That command dispatches
+`/btw:new` with a fixed question. The question asks for a fast, tool-free
+summary of the run since the later of the last user message and the last
+`ask_user` answer. `/status` uses `/btw:new` because that command reseeds the
+side thread from the current session. A reused `/btw:ask` thread keeps the
+context from its first question. The `pi-status` check runs the extension tests
+and confirms that headless pi registers `/status`.
 
 ## Subagents
 
@@ -420,7 +436,7 @@ record notice fields and users can set other bridge options.
 
 ## Neovim ACP adapter
 
-`buildNpmPackage` builds the non-flake `pi-acp` input. Upstream Pi exposes `pi --mode rpc`, while
+`pi-acp` comes from llm-agents.nix. Upstream Pi exposes `pi --mode rpc`, while
 codecompanion.nvim speaks the standard Agent Client Protocol. `pi-acp` bridges
 the two JSON protocols over stdio.
 

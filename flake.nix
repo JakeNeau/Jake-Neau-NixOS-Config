@@ -52,16 +52,16 @@
       url = "github:noemica-io/open-claude-in-chrome";
       flake = false;
     };
-    pi-acp = {
-      url = "github:svkozak/pi-acp";
-      flake = false;
-    };
     pi-agent-browser-native = {
       url = "github:fitchmultz/pi-agent-browser-native";
       flake = false;
     };
     pi-anthropic-auth = {
       url = "github:gotgenes/pi-anthropic-auth";
+      flake = false;
+    };
+    pi-btw = {
+      url = "github:dbachelder/pi-btw";
       flake = false;
     };
     pi-claude-bridge = {

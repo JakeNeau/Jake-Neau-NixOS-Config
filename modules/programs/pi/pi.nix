@@ -6,6 +6,7 @@ let
   openPencilSource = "${extensionSource}/openpencil";
   tuneSource = "${extensionSource}/tune";
   workflowSource = "${extensionSource}/workflows";
+  statusSource = "${extensionSource}/status";
   writingSource = ./writing;
   mkPiPackage =
     pkgs:
@@ -167,6 +168,28 @@ let
           | pi --mode rpc --no-session --offline --no-extensions \
             --extension ./tune/index.ts >rpc.jsonl
         grep -q '"name":"tune"' rpc.jsonl
+        touch "$out"
+      '';
+  mkPiStatusCheck =
+    pkgs:
+    pkgs.runCommand "pi-status"
+      {
+        nativeBuildInputs = [
+          inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
+          pkgs.nodejs
+        ];
+      }
+      ''
+        cp -R ${statusSource} status
+        chmod -R u+w status
+        node --experimental-strip-types --test status/tests/*.test.ts
+
+        export HOME="$TMPDIR/home"
+        mkdir -p "$HOME"
+        printf '{"type":"get_commands"}\n' \
+          | pi --mode rpc --no-session --offline --no-extensions \
+            --extension ./status/index.ts >rpc.jsonl
+        grep -q '"name":"status"' rpc.jsonl
         touch "$out"
       '';
   mkPiFishShellCheck =
@@ -679,16 +702,6 @@ let
         grep -q '^claude-bridge ' models.txt
         touch "$out"
       '';
-  mkPiAcp =
-    pkgs:
-    pkgs.buildNpmPackage {
-      pname = "pi-acp";
-      version = inputs.pi-acp.shortRev or "unstable";
-      src = inputs.pi-acp;
-      npmDeps = pkgs.importNpmLock { npmRoot = inputs.pi-acp; };
-      npmConfigHook = pkgs.importNpmLock.npmConfigHook;
-      npmBuildScript = "build";
-    };
 in
 {
   perSystem = { pkgs, ... }: {
@@ -697,6 +710,7 @@ in
       pi-fish-shell = mkPiFishShellCheck pkgs;
       pi-openpencil = mkPiOpenPencilCheck pkgs;
       pi-rust-tools = mkPiRustToolsCheck pkgs;
+      pi-status = mkPiStatusCheck pkgs;
       pi-third-party-extensions = mkPiThirdPartyExtensionsCheck pkgs;
       pi-tune = mkPiTuneCheck pkgs;
       pi-workflows = mkPiWorkflowCheck pkgs;
@@ -704,7 +718,6 @@ in
       pi-writing = mkPiWritingCheck pkgs;
     };
     packages = {
-      pi-acp = mkPiAcp pkgs;
       pi-writing-lint = mkPiWritingLint pkgs;
     };
   };
@@ -713,11 +726,6 @@ in
   # Extensions track their default branches so `nix flake update` moves them with Pi.
   flake-file.inputs = {
     llm-agents.url = "github:numtide/llm-agents.nix";
-    # Pi exposes RPC but not ACP, so editors need this protocol adapter.
-    pi-acp = {
-      url = "github:svkozak/pi-acp";
-      flake = false;
-    };
     pi-agent-browser-native = {
       url = "github:fitchmultz/pi-agent-browser-native";
       flake = false;
@@ -754,6 +762,10 @@ in
       url = "https://registry.npmjs.org/pi-usage-limits/-/pi-usage-limits-0.1.4.tgz";
       flake = false;
     };
+    pi-btw = {
+      url = "github:dbachelder/pi-btw";
+      flake = false;
+    };
     pi-web-access = {
       url = "github:nicobailon/pi-web-access";
       flake = false;
@@ -772,7 +784,8 @@ in
       in
       [
         (mkPiPackage pkgs)
-        inputs.self.packages.${system}.pi-acp
+        # Pi exposes RPC but not ACP, so editors need this protocol adapter.
+        inputs.llm-agents.packages.${system}.pi-acp
         inputs.self.packages.${system}.pi-writing-lint
         inputs.llm-agents.packages.${system}.agent-browser
       ];
@@ -878,6 +891,12 @@ in
           ".pi/agent/extensions/pi-tidy-tools/index.ts".text = ''
             export { default } from "${pi-tidy-tools-root}/index.ts";
           '';
+          ".pi/agent/extensions/pi-btw/index.ts".text = ''
+            export { default } from "${inputs.pi-btw}/extensions/btw.ts";
+          '';
+          ".pi/agent/extensions/status/index.ts".text = ''
+            export { default } from "${statusSource}/index.ts";
+          '';
           ".pi/agent/extensions/ask-user/index.ts".text = ''
             export { default } from "${askUserSource}/index.ts";
           '';
@@ -920,7 +939,6 @@ in
             });
           '';
           ".pi/agent/skills/brainstorming".source = ./config/skills/brainstorming;
-          ".pi/agent/skills/pi-web-access".source = "${pi-web-access-root}/skills";
           ".pi/agent/skills/pi-subagents".source = "${pi-subagents-root}/skills/pi-subagents";
           ".pi/agent/skills/council-mode".source = "${pi-subagents-root}/skills/council-mode";
           ".pi/agent/skills/ui-system-initializer".source = ./config/skills/ui-system-initializer;

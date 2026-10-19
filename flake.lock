@@ -487,11 +487,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792098797,
-        "narHash": "sha256-u4DIIZgznEGzByxXrxWCXK19VcMtTBmi/M9gZ7Jk9bM=",
+        "lastModified": 1792421589,
+        "narHash": "sha256-kd1uAerzkPNEBTh+Bl5wdfVqP2MPpxTRvcWtfbIP1kI=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "640725978b99076e18e069f6e7d2959124584f8f",
+        "rev": "94c556362d7ef878175d2f0eb3045565d1685b0c",
         "type": "github"
       },
       "original": {
@@ -572,11 +572,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1792315957,
-        "narHash": "sha256-LzC5I1T+RoNzolKqp2xYk1x/SraHlmYnJzK27PU+ewg=",
+        "lastModified": 1792412467,
+        "narHash": "sha256-+8HD0xrtrXiSMgxVSLVzxEk2EicPZBz9/bBHc2u6vb0=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "14f2728181ecf9f5da168b72799bc9f42ae51803",
+        "rev": "8fa7ff4193be923056b342d48d5bb38466791fe1",
         "type": "github"
       },
       "original": {
@@ -652,11 +652,11 @@
     "nix-browser-addons-data": {
       "flake": false,
       "locked": {
-        "lastModified": 1792197049,
-        "narHash": "sha256-GheqYFv+wi7DiVAxShjQX+E7KkKqvlw9IgGfq0v5Df4=",
+        "lastModified": 1792370013,
+        "narHash": "sha256-fj4G/OEgB7FAoGJAs5DmjD9MkTU9aEAImkulSm5kH/g=",
         "owner": "andre4ik3",
         "repo": "nix-browser-addons",
-        "rev": "c3806147c4b602852d6752039a39a016a51a7c4e",
+        "rev": "7a1363b87936eaf32e63a608391dfd94d0277785",
         "type": "github"
       },
       "original": {
@@ -673,11 +673,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786845137,
-        "narHash": "sha256-oQFip+v0luP8NIxJzmiW4Wu8bILsbFWom5l0zonl8hQ=",
+        "lastModified": 1792366139,
+        "narHash": "sha256-jto4pdsl0bgErQ5vaMc3gOyj//PILLRJuqX3I7fUk6s=",
         "owner": "nix-darwin",
         "repo": "nix-darwin",
-        "rev": "4cff07de74b50e64bdd68cd4e722ab5b6b35ee48",
+        "rev": "f0ec2b3fae4df92ea7788359aef9e07bb88d720f",
         "type": "github"
       },
       "original": {
@@ -712,11 +712,11 @@
         "systems": "systems_5"
       },
       "locked": {
-        "lastModified": 1792296534,
-        "narHash": "sha256-JACzTKgjoJbXCA/Tk/vmZXYmcCE0MAexM3VO5AmkXg0=",
+        "lastModified": 1792383456,
+        "narHash": "sha256-q+nkeiMwyvwuuiZApw7ISlwauxvblZjFKbLiLZ1M2ss=",
         "owner": "Infinidoge",
         "repo": "nix-minecraft",
-        "rev": "4540eb8c8aeca13b57263db9e84f5676da316df1",
+        "rev": "47c164a6f0a7846cab5e14825079cf096dc08752",
         "type": "github"
       },
       "original": {
@@ -886,11 +886,11 @@
         "nixpkgs": "nixpkgs_7"
       },
       "locked": {
-        "lastModified": 1792337154,
-        "narHash": "sha256-9CvKErP93Bg3240c/OhsIdgwdvaFUTLaPrf7l5iJYIM=",
+        "lastModified": 1792431562,
+        "narHash": "sha256-RYDaEi/Hj7X8dhuMmljDt+V8vroif3m+y+SucjbmVdw=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "df1e67fbb7bb47e65dc66343a584094ce5a9c67b",
+        "rev": "ed3f6546bc36289fa8bac7ec501a82c7caffe28b",
         "type": "github"
       },
       "original": {
@@ -960,22 +960,6 @@
         "type": "github"
       }
     },
-    "pi-acp": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1791262053,
-        "narHash": "sha256-V9+WNpJQK2a/S3e5KVXfiK1bhQlXrUKIaowhOZa6BIg=",
-        "owner": "svkozak",
-        "repo": "pi-acp",
-        "rev": "04d0a15d6bb42bb65cce5c9caedcdcb2cdcb6905",
-        "type": "github"
-      },
-      "original": {
-        "owner": "svkozak",
-        "repo": "pi-acp",
-        "type": "github"
-      }
-    },
     "pi-agent-browser-native": {
       "flake": false,
       "locked": {
@@ -1005,6 +989,22 @@
       "original": {
         "owner": "gotgenes",
         "repo": "pi-anthropic-auth",
+        "type": "github"
+      }
+    },
+    "pi-btw": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791649362,
+        "narHash": "sha256-ktDQhWAmv8AaiVkiNFrpUp5iwRueYZ6dqrLDSCKUxJ0=",
+        "owner": "dbachelder",
+        "repo": "pi-btw",
+        "rev": "2bf85893c3755a09e987ce23468757d82bc20e16",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dbachelder",
+        "repo": "pi-btw",
         "type": "github"
       }
     },
@@ -1170,9 +1170,9 @@
         "nur": "nur",
         "nvf": "nvf",
         "open-claude-in-chrome": "open-claude-in-chrome",
-        "pi-acp": "pi-acp",
         "pi-agent-browser-native": "pi-agent-browser-native",
         "pi-anthropic-auth": "pi-anthropic-auth",
+        "pi-btw": "pi-btw",
         "pi-claude-bridge": "pi-claude-bridge",
         "pi-subagents": "pi-subagents",
         "pi-tidy-tools": "pi-tidy-tools",

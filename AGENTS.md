@@ -34,6 +34,10 @@ Core design principles (from the README):
 - **home-manager first.** Configure programs through home-manager — not
   imperatively, not at the system level — whenever home-manager can do it.
 - **Prefer flakes.** Favor implementations that fully use flakes.
+- **Never pin versions by hand.** `flake.lock` pins and `nrr` moves everything
+  forward: no release tags in input URLs, no versioned `fetchurl`, no
+  `npmDepsHash` (use `importNpmLock`). See
+  `docs/explanation/flake-machinery.md`.
 - **Formatting.** Format Nix with **`nix fmt`** (nixfmt, RFC 166 style); match
   the existing 2-space indentation.
 ## Validating changes (dry-build; don't switch)
