@@ -604,15 +604,20 @@ let
       npmConfigHook = pkgs.importNpmLock.npmConfigHook;
       npmBuildScript = "build";
     };
-  # importNpmLock rejects the upstream workspace lockfile, so the published
-  # tarball supplies the bundled source and its one runtime dependency.
+  # importNpmLock rejects the upstream workspace lockfile, so the build assembles
+  # the package itself: upstream's script vendors one sibling file, and semver is
+  # the only runtime dependency.
   mkPiTidyTools =
     pkgs:
-    pkgs.runCommand "pi-tidy-tools-${npmVersion inputs.pi-tidy-tools}" { } ''
+    let
+      source = "${inputs.pi-tidy-tools}/packages/pi-tidy-tools";
+    in
+    pkgs.runCommand "pi-tidy-tools-${npmVersion source}" { nativeBuildInputs = [ pkgs.nodejs ]; } ''
       root="$out/lib/node_modules/@mobrienv/pi-tidy-tools"
       mkdir -p "$root"
-      cp -R ${inputs.pi-tidy-tools}/. "$root"
+      cp -R ${source}/. "$root"
       chmod -R u+w "$root"
+      node ${inputs.pi-tidy-tools}/scripts/bundle-core.mjs "$root"
       mkdir -p "$root/node_modules"
       cp -R ${inputs.pi-tidy-tools-semver} "$root/node_modules/semver"
     '';
@@ -743,11 +748,11 @@ in
       flake = false;
     };
     pi-tidy-tools = {
-      url = "https://registry.npmjs.org/@mobrienv/pi-tidy-tools/-/pi-tidy-tools-0.5.4.tgz";
+      url = "github:mikeyobrien/pi-tidy-tools";
       flake = false;
     };
     pi-tidy-tools-semver = {
-      url = "https://registry.npmjs.org/semver/-/semver-7.8.5.tgz";
+      url = "github:npm/node-semver";
       flake = false;
     };
     pi-usage = {

@@ -96,4 +96,20 @@ package comes from nixpkgs or llm-agents.nix when either provides it. Otherwise
 it is built from a tag-free input. No `fetchurl` URL names a release, and no
 `npmDepsHash` ties a build to one release. An npm project builds through
 `importNpmLock` from its upstream `package-lock.json`, which carries its own
-integrity hashes. An input update therefore needs no hash edit.
+integrity hashes. An input update therefore needs no hash edit. A single file
+becomes a `file+https` input, so `flake.lock` records its hash too.
+
+A pin remains only where floating would break something:
+
+- `pi-usage-limits` exists only as a versioned npm tarball, with no public
+  source repository.
+- `codediff.nvim` stays at 3.1.4 until Neovim restores a scrollbind fix.
+- The Minecraft server package names its game version, because a newer server
+  upgrades the world irreversibly and locks out older clients.
+- OpenPencil downloads versioned release assets and npm packages. Its Bun
+  monorepo cannot be built without a hand-written dependency hash. Its npm
+  tools ship no lockfile, and they must match the app's version.
+
+`nrr` never moves these pins.
+[Update the manual pins](../how-to/update-manual-pins.md) gives the procedure
+for each one.

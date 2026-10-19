@@ -10,17 +10,21 @@
       url = "git+https://github.com/vinceliuice/grub2-themes.git";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    home-assistant-icon = {
+      url = "file+https://brands.home-assistant.io/_/homeassistant/icon.png";
+      flake = false;
+    };
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     import-tree.url = "github:vic/import-tree";
     kubectl-nvim = {
-      url = "github:Ramilito/kubectl.nvim/v2.44.1";
+      url = "github:Ramilito/kubectl.nvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     lanzaboote = {
-      url = "github:nix-community/lanzaboote/v1.1.0";
+      url = "github:nix-community/lanzaboote";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     llm-agents.url = "github:numtide/llm-agents.nix";
@@ -73,11 +77,11 @@
       flake = false;
     };
     pi-tidy-tools = {
-      url = "https://registry.npmjs.org/@mobrienv/pi-tidy-tools/-/pi-tidy-tools-0.5.4.tgz";
+      url = "github:mikeyobrien/pi-tidy-tools";
       flake = false;
     };
     pi-tidy-tools-semver = {
-      url = "https://registry.npmjs.org/semver/-/semver-7.8.5.tgz";
+      url = "github:npm/node-semver";
       flake = false;
     };
     pi-usage = {
@@ -99,6 +103,10 @@
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+    steamvr-kernel-patch = {
+      url = "file+https://github.com/Frogging-Family/community-patches/raw/master/linux61-tkg/cap_sys_nice_begone.mypatch";
+      flake = false;
     };
     stylix = {
       url = "github:danth/stylix";

@@ -68,12 +68,13 @@ Home Manager link with a regular file, and Home Manager would then refuse to
 overwrite it. Activation therefore merges the keys into the live file instead
 of linking it.
 
-The extension comes from the published npm tarball of
-`@mobrienv/pi-tidy-tools`, a non-flake input. A second tarball input supplies
-`semver`, its only runtime dependency. The upstream repository is an npm
-workspace, and `importNpmLock` rejects its lockfile. A new release therefore
-requires a change to both input URLs. The package contains no copies of Pi's
-host libraries.
+The extension comes from the `packages/pi-tidy-tools` directory of the
+`mikeyobrien/pi-tidy-tools` repository. The upstream repository is an npm
+workspace, and `importNpmLock` rejects its lockfile. The build therefore runs
+upstream's `bundle-core.mjs`, which vendors one file from `pi-tidy-core`, and
+adds `semver` from the `npm/node-semver` repository. `semver` is the only
+runtime dependency. Both inputs track their default branch. The package contains
+no copies of Pi's host libraries.
 
 Sessions recorded before this extension can contain `minimal-transcript-diff`
 entries. Pi no longer renders them.

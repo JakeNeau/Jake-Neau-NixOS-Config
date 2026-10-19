@@ -19,18 +19,7 @@
     # from pkgs.nur.repos.rycee). nix-minecraft's overlay stays at the
     # system layer because no home consumes it. No marker is needed here
     # because the wrapper exempts lists.
-    nixpkgs.overlays = [
-      inputs.nur.overlays.default
-
-      # Stale pnpm hash; drop once nixpkgs carries NixOS/nixpkgs#572951.
-      (final: prev: {
-        typescript-language-server = prev.typescript-language-server.overrideAttrs (old: {
-          pnpmDeps = old.pnpmDeps.overrideAttrs {
-            outputHash = "sha256-xR/EF60lVBsITKgH7wCM2wHM46PFQevD51KfCENSUH4=";
-          };
-        });
-      })
-    ];
+    nixpkgs.overlays = [ inputs.nur.overlays.default ];
 
     # standalone homes need the home-manager CLI on PATH to switch themselves
     programs.home-manager.enable = true;

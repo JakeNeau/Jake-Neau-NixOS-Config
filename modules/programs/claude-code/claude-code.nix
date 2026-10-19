@@ -81,7 +81,7 @@
         # alone, so each machine's cache is populated once via `claude plugin install
         # <plugin>@claude-plugins-official`; these entries just keep them enabled
         # across rebuilds and machines.
-        settingsPolicy.enabledPlugins."security-guidance@claude-plugins-official" = true; # in-session vuln review
+        settingsPolicy.enabledPlugins."security-guidance@claude-plugins-official" = false; # removed; false keeps it off on machines that still cache it
         settingsPolicy.enabledPlugins."code-simplifier@claude-plugins-official" = false; # disabled: JS/TS-flavored, redundant with comment-style-enforcer + code-reviewer, fires proactively
         settingsPolicy.enabledPlugins."claude-md-management@claude-plugins-official" = true; # CLAUDE.md audit/maintenance
 

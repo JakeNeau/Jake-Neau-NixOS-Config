@@ -7,10 +7,9 @@
   # namespace is identical between the NixOS and home-manager nvf modules.
 
   flake-file.inputs.nvf.url = "github:notashelf/nvf";
-  # Uncached: its Rust/Go client recompiles whenever the tag or nixpkgs moves,
-  # so the tag stays pinned rather than tracking main.
+  # Uncached: its Rust/Go client recompiles whenever this input or nixpkgs moves.
   flake-file.inputs.kubectl-nvim = {
-    url = "github:Ramilito/kubectl.nvim/v2.44.1";
+    url = "github:Ramilito/kubectl.nvim";
     inputs.nixpkgs.follows = "nixpkgs";
   };
 

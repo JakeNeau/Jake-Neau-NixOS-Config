@@ -1,5 +1,10 @@
-{ lib, ... }:
+{ inputs, lib, ... }:
 {
+  flake-file.inputs.home-assistant-icon = {
+    url = "file+https://brands.home-assistant.io/_/homeassistant/icon.png";
+    flake = false;
+  };
+
   flake.programs.home-assistant = {
     install.linux = [ "home" ];
     install.macos = [ "cask" ];
@@ -8,10 +13,7 @@
     packages =
       pkgs:
       let
-        icon = pkgs.fetchurl {
-          url = "https://brands.home-assistant.io/_/homeassistant/icon.png";
-          hash = "sha256-thnaMhzd9GtWWqZMXxZ18M7RpEXr8j9uKUEwYdbpJcA=";
-        };
+        icon = "${inputs.home-assistant-icon}";
         launcher = pkgs.writeShellApplication {
           name = "home-assistant";
           text = ''
