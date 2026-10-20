@@ -1,14 +1,21 @@
 { ... }:
 let
-  version = "0.14.0";
+  version = "0.16.0";
   mkOpenPencilTools =
     pkgs:
     pkgs.buildNpmPackage {
       pname = "openpencil-tools";
       inherit version;
       src = ./npm;
-      npmDepsHash = "sha256-WbwkB76bG0Gz4fMopTrsVObAjgNUoGfOdmFgXiDR5b8=";
+      npmDepsHash = "sha256-altDBhKKTTJYgA2qDsh5MttX9Ed9+UyJfYHbdwufabM=";
       dontNpmBuild = true;
+      # buildNpmPackage links only this wrapper's own bins, not its dependencies'.
+      postInstall = ''
+        mkdir -p "$out/bin"
+        for command in openpencil openpencil-mcp openpencil-mcp-http; do
+          ln -s "$out/lib/node_modules/openpencil-tools/node_modules/.bin/$command" "$out/bin/$command"
+        done
+      '';
     };
   mkOpenPencilApp =
     pkgs:
@@ -18,7 +25,7 @@ let
         inherit version;
         src = pkgs.fetchurl {
           url = "https://github.com/open-pencil/open-pencil/releases/download/v${version}/OpenPencil_aarch64.app.tar.gz";
-          hash = "sha256-SfNo7MfC0yA8VqSGNf+KMBFC9h9KurDb/o0ltrmz2Ec=";
+          hash = "sha256-MdP8W93nrP+lBuBjJj0qG8uRP0Bd3vR9QFdCUU7mVSc=";
         };
         sourceRoot = ".";
         installPhase = ''
@@ -34,7 +41,7 @@ let
         inherit version;
         src = pkgs.fetchurl {
           url = "https://github.com/open-pencil/open-pencil/releases/download/v${version}/OpenPencil_${version}_amd64.AppImage";
-          hash = "sha256-UpgOigckZL5945LHGdaGy9CJ06zZbQjp3O/gmFV8UJ0=";
+          hash = "sha256-p9iTrDU2fI6gALAIkBNs5YYaE78ldLRHYPd4Sc/fd6I=";
         };
       };
 in
