@@ -168,8 +168,10 @@ declaration, the rest are hand-written aspects.
 - `nautilus/`: graphical file manager installed for Redwood users.
 - `nvf/` — declarative Neovim, the same editor on every host. `indent.nix` holds
   every tab and space setting. See [Neovim indentation
-  settings](neovim-indentation.md) and [Neovim
-  indentation](../explanation/neovim-indentation.md).
+  settings](neovim-indentation.md), [Neovim
+  indentation](../explanation/neovim-indentation.md), [Neovim git diff
+  keymaps](neovim-git-diff.md), and [Neovim git
+  diff](../explanation/neovim-git-diff.md).
 - `onedrive/`: macOS OneDrive app installed through a Homebrew cask.
 - `openpencil/` — local open-source UI design editor plus its MCP servers. Every host receives it through `globalPrograms`.
 - `papirus-icon-theme/` — fallback icon set.

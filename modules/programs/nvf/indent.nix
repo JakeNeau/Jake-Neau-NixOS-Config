@@ -8,7 +8,8 @@
   # `.editorconfig` is the keystone: Neovim, sleuth, stylua, shfmt and prettier
   # all read it, so one project file configures editor and formatters alike.
   #
-  # Design and the measurements behind every value: specs/neovim-indentation.md.
+  # Design and the measurements behind every value:
+  # docs/explanation/neovim-indentation.md.
   flake.modules.homeManager.nvf =
     { lib, ... }:
     let

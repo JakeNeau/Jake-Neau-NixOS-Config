@@ -523,14 +523,14 @@
                   {
                     key = "<leader>gdb";
                     mode = "n";
-                    lua = true;
-                    action = ''
-                      function()
-                        local base = codediff_branch_base()
-                        if base then vim.cmd("CodeDiff file " .. base .. "...") end
-                      end
-                    '';
+                    action = "<cmd>lua codediff_vs_base('CodeDiff file')<cr>";
                     desc = "Diff file vs branch base";
+                  }
+                  {
+                    key = "<leader>gdB";
+                    mode = "n";
+                    action = "<cmd>lua codediff_vs_base('CodeDiff file', true)<cr>";
+                    desc = "Diff file vs picked branch";
                   }
                   {
                     # ":" keeps the visual range, which codediff turns into
@@ -561,14 +561,14 @@
                   {
                     key = "<leader>gDb";
                     mode = "n";
-                    lua = true;
-                    action = ''
-                      function()
-                        local base = codediff_branch_base()
-                        if base then vim.cmd("CodeDiff " .. base .. "...") end
-                      end
-                    '';
+                    action = "<cmd>lua codediff_vs_base('CodeDiff')<cr>";
                     desc = "Diff branch (vs branch base)";
+                  }
+                  {
+                    key = "<leader>gDB";
+                    mode = "n";
+                    action = "<cmd>lua codediff_vs_base('CodeDiff', true)<cr>";
+                    desc = "Diff branch (vs picked branch)";
                   }
                 ];
               };
@@ -1531,22 +1531,43 @@
             vim.env.CODEDIFF_WATCHER_NO_AUTO_INSTALL = "1"
           '';
 
-          # Branch base for the codediff "diff branch" keys: the trunk the remote
-          # points origin/HEAD at, falling back to a local main/master. Runs in
-          # Neovim's cwd, matching how codediff itself resolves the working repo.
+          # Bases for the codediff "diff branch" keys: branches HEAD forked from,
+          # nearest first, so a stacked branch's parent comes before trunk.
           luaConfigRC.codediffBranchBase = ''
-            function codediff_branch_base()
-              local ref = vim.fn.systemlist("git symbolic-ref -q --short refs/remotes/origin/HEAD")[1]
-              if vim.v.shell_error == 0 and ref and ref ~= "" then
-                return ref
+            function codediff_branch_bases()
+              -- Ask the buffer's repo, as codediff does; -C "" keeps Neovim's cwd.
+              local dir = vim.fn.expand("%:p:h")
+              local git = function(...)
+                local out = vim.fn.systemlist({ "git", "-C", vim.fn.isdirectory(dir) == 1 and dir or "", ... })
+                return vim.v.shell_error == 0 and out or {}
               end
-              for _, branch in ipairs({ "main", "master" }) do
-                vim.fn.systemlist("git rev-parse -q --verify " .. branch)
-                if vim.v.shell_error == 0 then
-                  return branch
-                end
+              local current = git("branch", "--show-current")[1] or ""
+              local bases = {}
+              for _, line in ipairs(git(
+                "for-each-ref", "--no-contains", "HEAD",
+                -- Skip our own remote copy; it lags only by unpushed commits.
+                "--exclude", "refs/remotes/*/" .. current, "--exclude", "refs/remotes/*/HEAD",
+                "--format=%(ahead-behind:HEAD) %(refname:short)", "refs/heads", "refs/remotes"
+              )) do
+                local behind, ref = line:match("^%d+ (%d+) (.+)$")
+                if ref then table.insert(bases, { ref = ref, behind = tonumber(behind) }) end
               end
-              vim.notify("no branch base found (origin/HEAD, main, master)", vim.log.levels.WARN)
+              table.sort(bases, function(a, b) return a.behind < b.behind end)
+              return vim.tbl_map(function(b) return b.ref end, bases), current ~= ""
+            end
+
+            -- The inferred base guesses wrong when HEAD has a child branch that
+            -- forked before HEAD's latest commits; pick covers that case.
+            function codediff_vs_base(cmd, pick)
+              local bases, on_branch = codediff_branch_bases()
+              if #bases == 0 then return vim.notify("no branch base found", vim.log.levels.WARN) end
+              local diff = function(base) if base then vim.cmd(cmd .. " " .. base .. "...") end end
+              -- A detached HEAD (as under jj) can't exclude its own copies, so never guess.
+              if pick or not on_branch then
+                vim.ui.select(bases, { prompt = "Diff against" }, diff)
+              else
+                diff(bases[1])
+              end
             end
           '';
 

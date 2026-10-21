@@ -265,6 +265,10 @@ Format Nix with **`nix fmt`** (nixfmt, 2-space indent), matching the rest of the
   `docs/reference/neovim-indentation.md` for the values and
   `docs/explanation/neovim-indentation.md` for the precedence ladder before
   changing any of them.
+- Git diff keymaps: read `docs/reference/neovim-git-diff.md` for the
+  codediff.nvim keys and how the branch-base keys choose a base, and
+  `docs/explanation/neovim-git-diff.md` for why the base is inferred that way,
+  before changing them.
 - nvf manual: <https://nvf.notashelf.dev/>
 - Options reference (authoritative; search before inventing config):
   <https://nvf.notashelf.dev/options.html>
