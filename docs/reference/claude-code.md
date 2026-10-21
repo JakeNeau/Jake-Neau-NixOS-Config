@@ -31,6 +31,14 @@ The policy sets `autoMemoryEnabled` to `false`. Claude Code then writes no
 per-project notes under `~/.claude/projects/*/memory/`. `CLAUDE.md` and the
 rule files still load.
 
+The policy sets `instructionFiles` to `claude-md-and-agents-md`. Claude Code
+then loads a project's `AGENTS.md` files beside its `CLAUDE.md` files. The
+upstream default loads `AGENTS.md` only in a project without a `CLAUDE.md`.
+
+Claude Code does not discover skills under `.agents/skills/`. The
+`agents-skills-context` `SessionStart` hook lists each such skill's path and
+frontmatter at session start.
+
 ## Hook registration
 
 `settingsPolicy.hooks` contains the complete registration array for each event.

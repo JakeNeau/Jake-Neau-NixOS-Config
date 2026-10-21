@@ -946,7 +946,6 @@ in
           ".pi/agent/skills/brainstorming".source = ./config/skills/brainstorming;
           ".pi/agent/skills/pi-subagents".source = "${pi-subagents-root}/skills/pi-subagents";
           ".pi/agent/skills/council-mode".source = "${pi-subagents-root}/skills/council-mode";
-          ".pi/agent/skills/ui-system-initializer".source = ./config/skills/ui-system-initializer;
           ".pi/agent/skills/writing-pi-extensions".source = ./config/skills/writing-pi-extensions;
           ".pi/agent/link-registry.json".source = linkRegistry;
           ".pi/agent/keybindings.json".text = builtins.toJSON {

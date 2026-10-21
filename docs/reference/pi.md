@@ -235,17 +235,10 @@ inside the trusted project. `save_file` joins Pi's exact-path mutation queue.
 The extension disables the unrestricted OpenPencil `eval` operation and stops
 its MCP child during session shutdown.
 
-The OpenPencil program installs the desktop editor, headless `openpencil` CLI,
-`openpencil-mcp`, and `openpencil-mcp-http`. The MCP process receives the
-current trusted project as `OPENPENCIL_MCP_ROOT`. The desktop app must be open
-with a document loaded for live canvas operations.
-
-The global `ui-system-initializer` skill guides initialization through product
-direction, hierarchy, visual foundations, reusable patterns, and verified
-OpenPencil resources. It creates a project-local `ui-system` skill only after
-fresh CLI verification succeeds. Initialization stops before feature UI design.
-[UI system initialization](../explanation/ui-system-initialization.md) explains
-this boundary and the independent verification requirement.
+The OpenPencil program installs the desktop editor, `openpencil-mcp`, and
+`openpencil-mcp-http`. The MCP process receives the current trusted project as
+`OPENPENCIL_MCP_ROOT`. The desktop app must be open with a document loaded for
+live canvas operations.
 
 ## Extension updates
 
@@ -504,8 +497,8 @@ total combines scanner diagnostics with malformed or missing typed-link edges.
 resources and rescans the project. Tool output follows Pi's standard truncation
 limits and points to the full source path when truncated.
 
-Home Manager installs the global `brainstorming`, `writing-pi-extensions`, and
-`ui-system-initializer` skills under `~/.pi/agent/skills/`. Extension designs
+Home Manager installs the global `brainstorming` and `writing-pi-extensions`
+skills under `~/.pi/agent/skills/`. Extension designs
 must decide whether they introduce a durable resource kind that needs a
 typed-link adapter.
 [Pi typed-link navigation](../explanation/pi-typed-links.md) explains the

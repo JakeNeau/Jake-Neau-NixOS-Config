@@ -79,7 +79,8 @@
       # --------
       environment.systemPackages = with pkgs; [
         vscode
-        audacity # Audio recording program
+        # Fails to build against Qt 6.12; see "Waiting on upstream" in TODO.md
+        # audacity # Audio recording program
         bitwarden-desktop # Password manager for all devices
         bluetui # A tui for managing bluetooth
         # (bottles.override {

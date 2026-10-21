@@ -7,12 +7,12 @@ let
       pname = "openpencil-tools";
       inherit version;
       src = ./npm;
-      npmDepsHash = "sha256-altDBhKKTTJYgA2qDsh5MttX9Ed9+UyJfYHbdwufabM=";
+      npmDepsHash = "sha256-Sy5Zx0hq6iFZwDbGD8P9Aaw0ckwz47MBk1GABjSg9II=";
       dontNpmBuild = true;
       # buildNpmPackage links only this wrapper's own bins, not its dependencies'.
       postInstall = ''
         mkdir -p "$out/bin"
-        for command in openpencil openpencil-mcp openpencil-mcp-http; do
+        for command in openpencil-mcp openpencil-mcp-http; do
           ln -s "$out/lib/node_modules/openpencil-tools/node_modules/.bin/$command" "$out/bin/$command"
         done
       '';

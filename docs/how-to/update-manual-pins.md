@@ -17,14 +17,14 @@ nix build '.#homeConfigurations."<user>@<host>".activationPackage' --no-link
 
 ## OpenPencil
 
-Location: `modules/programs/openpencil/`. The desktop app, `openpencil-mcp`,
-and the `openpencil` CLI must share one version. Update all three together.
+Location: `modules/programs/openpencil/`. The desktop app and `openpencil-mcp`
+must share one version. Update both together.
 
 1. Find the latest release on
    [GitHub](https://github.com/open-pencil/open-pencil/releases/latest).
 2. In `openpencil.nix`, set `version`.
-3. In `npm/package.json`, set `version` and both `@open-pencil/*`
-   dependencies to the same version.
+3. In `npm/package.json`, set `version` and the `@open-pencil/mcp`
+   dependency to the same version.
 4. Regenerate the npm lockfile:
 
    ```sh

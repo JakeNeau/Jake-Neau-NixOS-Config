@@ -171,14 +171,13 @@ declaration, the rest are hand-written aspects.
   settings](neovim-indentation.md) and [Neovim
   indentation](../explanation/neovim-indentation.md).
 - `onedrive/`: macOS OneDrive app installed through a Homebrew cask.
-- `openpencil/` — local open-source UI design editor plus its headless CLI and
-  MCP servers. Every host receives it through `globalPrograms`.
+- `openpencil/` — local open-source UI design editor plus its MCP servers. Every host receives it through `globalPrograms`.
 - `papirus-icon-theme/` — fallback icon set.
 - `pavucontrol/` — sound settings GUI.
 - `pi/` — `jakeneau`'s coding agent, with declarative web research, native
   browser access, and a bounded OpenPencil MCP bridge. Its `config/skills/`
-  carries every skill it indexes, including UI-system initialization, writing,
-  comment, and documentation policies. `writing/` holds the
+  carries every skill it indexes, including writing, comment, and
+  documentation policies. `writing/` holds the
   `pi-writing-lint` source. See [pi](pi.md), [Pi's writing
   system](../explanation/pi-writing-system.md), [coding
   agents](../explanation/coding-agents.md).

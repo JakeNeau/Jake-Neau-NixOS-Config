@@ -3,7 +3,6 @@
   "private": true,
   "version": "0.16.0",
   "dependencies": {
-    "@open-pencil/cli": "0.16.0",
     "@open-pencil/mcp": "0.16.0"
   }
 }

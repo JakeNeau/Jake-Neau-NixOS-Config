@@ -366,7 +366,10 @@
       That block works around stylix setting the renamed
       `vim.statusline.lualine.theme` option, which warned on every eval.
 - [ ] Remove the `indentRepair` block in `modules/programs/nvf/indent.nix` once
-      `neovim/neovim` issue 25526 is fixed. An autocommand that deletes itself
+      Neovim or lz.n stops the truncation below. `neovim/neovim` issue 25526
+      closed in February 2025, but a build without the block still failed on
+      Neovim 0.12.6. No open upstream issue tracks the truncation, so retest
+      after each Neovim or lz.n update. An autocommand that deletes itself
       mid-dispatch truncates the chain it was dispatched from, and because
       filetype detection dispatches `FileType` nested inside `BufReadPost`,
       lz.n's `once = true` lazy-loading handlers starve everything registered
@@ -376,14 +379,12 @@
       way the block was verified: open a lua and a markdown file as a
       command-line argument and confirm the settings match opening the same file
       with `:edit`.
-- [ ] Remove the `agents-md-context` session-start hook once Claude Code
-      natively supports BOTH conventions it bridges: reading a project-root
-      `AGENTS.md` (upstream feature request: anthropics/claude-code#6235) AND
-      auto-discovering skills in the cross-tool `.agents/skills/` directory
-      (upstream feature request: anthropics/claude-code#22902). Both must land
-      first — until then the hook still does at least one useful job. When they
-      do, delete the hook script
-      `modules/programs/claude-code/config/hooks/agents-md-context` and its
+- [ ] Remove the `agents-skills-context` session-start hook once Claude Code
+      auto-discovers skills in the cross-tool `.agents/skills/` directory. No
+      open upstream request tracks this feature.
+      anthropics/claude-code#22902 closed as a duplicate of #18621, and #18621
+      closed as not planned. When the feature lands, delete the hook script
+      `modules/programs/claude-code/config/hooks/agents-skills-context` and its
       `settingsPolicy.hooks.SessionStart` registration in
       `modules/programs/claude-code/claude-code.nix`.
 - [ ] Remove the codediff.nvim 3.1.4 pin once Neovim relands its fix for
@@ -399,14 +400,12 @@
       In `esmuellert/codediff.nvim` PR 557, codediff 4.0.4 replaced its own
       scroll sync with native `'scrollbind'` because of that fix. Without the
       fix, added or deleted lines taller than the window misalign the panes.
-- [ ] Remove the `typescript-language-server` overlay in
-      `modules/nix/tools/home-manager/common-nixpkgs.nix` once the locked
-      nixpkgs contains `NixOS/nixpkgs` PR 572951 (merge commit `eabfbbcf`). The
-      locked nixpkgs pins a stale hash for the package's pnpm dependencies, so
-      every home failed to build. Check with
-      `gh api repos/NixOS/nixpkgs/compare/eabfbbcf...<locked rev> --jq .status`,
-      which must print `ahead` or `identical`. Then confirm that the cedar home
-      still builds without the overlay.
+- [ ] Restore `audacity` in the `environment.systemPackages` list of
+      `modules/host-config/roles/desktop/desktop.nix` once nixpkgs fixes
+      `NixOS/nixpkgs` issue 572942. Audacity 4.0.0 fails to build against
+      Qt 6.12. Its unity build places Qt's generated QML code after source
+      files that declare `using namespace muse::extensions`, so the name
+      `Type` becomes ambiguous. Done means the redwood system builds with the line restored.
 
 ## When I get a homelab
 

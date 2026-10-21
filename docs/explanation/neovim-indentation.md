@@ -130,8 +130,9 @@ registered after it. Lua kept `GetLuaIndent()` and Markdown had no
 
 The repair reapplies both starved layers once per buffer on `BufEnter`. This
 design rejects redispatching `FileType`, because that reruns the ftplugins and
-clobbers the width sleuth chose. A fix for `neovim/neovim` issue 25526 retires
-the block, and `TODO.md` tracks that removal.
+clobbers the width sleuth chose. Issue 25526 closed in February 2025, but the
+truncation still occurs on Neovim 0.12.6. The block stays until a retest
+without it passes, and `TODO.md` tracks that removal.
 
 ## Accepted trade-offs
 

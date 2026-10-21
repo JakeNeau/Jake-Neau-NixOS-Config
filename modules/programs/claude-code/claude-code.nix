@@ -77,6 +77,9 @@
         # Stops self-written per-project notes only; CLAUDE.md and rules still load.
         settingsPolicy.autoMemoryEnabled = false;
 
+        # The default reads AGENTS.md only in projects without a CLAUDE.md.
+        settingsPolicy.instructionFiles = "claude-md-and-agents-md";
+
         # Force-enable plugins. Claude Code never auto-fetches plugins from settings
         # alone, so each machine's cache is populated once via `claude plugin install
         # <plugin>@claude-plugins-official`; these entries just keep them enabled
@@ -138,8 +141,8 @@
             SessionStart = [
               {
                 hooks = [
-                  # no native AGENTS.md support in Claude Code; inject one from the project root
-                  (cmd "~/.claude/hooks/agents-md-context")
+                  # Claude Code does not discover .agents/skills/; list those skills
+                  (cmd "~/.claude/hooks/agents-skills-context")
                   # development-flow map (the hook explains why it lives there, not in CLAUDE.md)
                   (cmd "~/.claude/hooks/session-flow-map")
                 ];

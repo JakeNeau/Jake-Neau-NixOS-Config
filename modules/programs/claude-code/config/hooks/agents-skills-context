@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# Claude Code reads only its own CLAUDE.md and auto-loads only .claude/skills/;
-# this bridges the two cross-tool conventions it ignores — a root AGENTS.md and
-# skills under .agents/skills/ — by injecting them at session start.
+# Claude Code auto-loads only .claude/skills/, so this bridges the cross-tool
+# .agents/skills/ convention by listing those skills at session start.
 set -euo pipefail
 
 input=$(cat)
@@ -14,15 +13,6 @@ cwd=$("$jq_bin" -r '.cwd // empty' <<<"$input" 2>/dev/null || true)
 
 root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null || true)
 [ -n "$root" ] || root="$cwd" # non-git project: use cwd directly
-
-context=""
-
-agents_md="$root/AGENTS.md"
-if [ -f "$agents_md" ]; then
-  context="AGENTS.md found at the project root — treat its instructions with the same authority as CLAUDE.md:
-
-$(cat "$agents_md")"
-fi
 
 # Progressive disclosure: surface only each skill's frontmatter (name/description)
 # and path, never the full body — Claude reads the SKILL.md on demand when its
@@ -39,14 +29,9 @@ $skill_file
 $frontmatter"
 done
 
-if [ -n "$skills" ]; then
-  [ -n "$context" ] && context="$context
+[ -n "$skills" ] || exit 0
 
-"
-  context="${context}Project skills under .agents/skills/ — Claude Code does not auto-load these. Read a skill's SKILL.md when its description matches your task:$skills"
-fi
-
-[ -n "$context" ] || exit 0
+context="Project skills under .agents/skills/ — Claude Code does not auto-load these. Read a skill's SKILL.md when its description matches your task:$skills"
 
 "$jq_bin" -n --arg content "$context" \
   '{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $content}}'

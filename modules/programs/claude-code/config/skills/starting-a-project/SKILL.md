@@ -17,8 +17,9 @@ live — only for their *format*. So each tool reads its own path, and the fix i
 to pick one vendor-neutral home and bridge outward.
 
 - **Instructions:** `AGENTS.md` at the repo root is the converging cross-tool
-  filename — read natively by Codex, Cursor, and others. Claude Code is the
-  exception: it reads its own `CLAUDE.md`, not `AGENTS.md`.
+  filename — read natively by Codex, Cursor, and others. Claude Code 2.1.277
+  and later reads `AGENTS.md` only in a project without a `CLAUDE.md`. The
+  `instructionFiles` setting `claude-md-and-agents-md` makes it load both.
 - **Skills:** the Agent Skills standard defines only the skill *folder* format (a
   directory with a `SKILL.md`), not a discovery location. `.agents/skills/` is the
   emerging vendor-neutral convention; Claude Code auto-loads only `.claude/skills/`.
@@ -69,14 +70,14 @@ my-project/
 ## On this user's machines, `AGENTS.md` is already seen
 
 Tools that read `AGENTS.md` natively (Codex, Cursor, …) discover the
-root file themselves, and on this user's machines Claude Code gets it too: a
-global `SessionStart` hook (`agents-md-context`) auto-injects a root `AGENTS.md`
-and each `.agents/skills/` skill's frontmatter into every Claude Code session.
-But that injection only supplies descriptions as context text; it does not
-register skills as natively invokable. So the vendor-path symlinks are still
-worth adding for full native behavior, and are required on any machine or tool
-without such support. The injection and the symlinks are complementary, not
-redundant.
+root file themselves. On this user's machines, Claude Code loads it too: the
+managed settings set `instructionFiles` to `claude-md-and-agents-md`. A global
+`SessionStart` hook (`agents-skills-context`) also injects each
+`.agents/skills/` skill's frontmatter into every Claude Code session.
+That injection supplies descriptions as context text and does not register
+skills as natively invokable. So the skill symlinks are still worth
+adding for full native behavior. Any machine or tool without such support
+requires the vendor-path bridges.
 
 ## Don't
 
