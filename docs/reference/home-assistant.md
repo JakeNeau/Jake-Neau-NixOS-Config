@@ -33,8 +33,8 @@ When a home enables the companion program, Pi adds the `home-assistant-filesyste
 The Apartment dashboard contains five lighting presets backed by scripts and exact-state template binary sensors.
 
 - **Off** turns off every entity labeled `Preset Lights`.
-- **Minimal** enables the living-room Tree and Vine lights, bedroom Paper Lights, and Kitchen Lamp.
-- **Cozy** enables every `Preset Lights` entity except the living-room Vertical Lamp.
+- **Minimal** enables the living-room Tree Lights, bedroom Vine Lights, bedroom Paper Lights, and Kitchen Lamp.
+- **Cozy** enables every `Preset Lights` entity except the living-room Vertical Lamp and Tree Lamp bulbs.
 - **Bright** enables every `Preset Lights` entity except entities labeled `Work Lights`.
 - **All** enables every `Preset Lights` entity, including `Work Lights`.
 
