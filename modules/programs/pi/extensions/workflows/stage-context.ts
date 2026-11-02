@@ -1,6 +1,7 @@
 import type { WorkflowArtifact } from "./artifacts.ts";
 
 export const MAX_STAGE_CONTEXT_BYTES = 50 * 1024;
+export const READ_ONLY_INSTRUCTION = "This stage is read-only: do not change files, the project, or the system.";
 
 type EvidenceFinding = {
   claim?: unknown;
@@ -20,6 +21,11 @@ export interface FittedStageContext {
   artifacts: WorkflowArtifact[];
   serialized: string;
   compacted: boolean;
+}
+
+export function stagePrompt(template: string, stageContext: string, readOnly: boolean): string {
+  const prompt = `${template}\n\n## Stage context\n\n${stageContext}`;
+  return readOnly ? `${prompt}\n\n${READ_ONLY_INSTRUCTION}` : prompt;
 }
 
 export function serializeStageContext(

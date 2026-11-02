@@ -36,7 +36,6 @@ Create `workflow.json`:
   "stages": {
     "inspect": {
       "prompt": "stages/inspect.md",
-      "tools": ["read", "grep", "find", "ls"],
       "readOnly": true,
       "inputs": ["workflow-input"],
       "outputSchema": "schemas/inspect.json",
@@ -46,7 +45,6 @@ Create `workflow.json`:
     },
     "report": {
       "prompt": "stages/report.md",
-      "tools": ["read", "bash"],
       "readOnly": true,
       "inputs": ["review-evidence"],
       "outputSchema": "schemas/report.json",
@@ -61,6 +59,11 @@ Create `workflow.json`:
 Each transition value contains allowed successor sets. `[["report"]]` has one
 possible set with one stage. `[["spec-scout", "code-scout"]]` forks into two
 stages. An empty list ends a terminal outcome.
+
+Give every `outcome` value in a stage's output schema a key in that stage's
+`transitions`. Pi rejects an unrouted outcome when it loads the workflow.
+
+Omit `tools` from a read-only stage. A read-only stage receives every tool.
 
 Do not add model, provider, or thinking fields. The workflow inherits those
 choices from the user.
@@ -140,46 +143,23 @@ branch can continue safely.
 
 ## 6. Add user checkpoints
 
-Set `"checkpoint": "question"` when the stage returns the standard question
-payload used by `refine-spec`. Pi presents the choices and records the answer as
-a new artifact.
+Set `"checkpoint": "question"` when the stage returns a `question` artifact with
+the payload in [Question
+checkpoints](../reference/pi-workflows.md#question-checkpoints). Pi presents
+the choices and records the answer as a new artifact.
 
 Set `"checkpoint": "proposal"` before a mutation stage. The proposal payload
 must contain `files`, with one `path` per requested mutation. Pi asks for
 approval and gives later mutation stages only those exact paths.
 
-A mutation stage must set `"readOnly": false`, list `mutationPaths`, and omit
-Bash unless the procedure requires it. Read-only stages receive a conservative
-Bash policy even when they list the Bash tool.
+Add a stage named `clarify` to answer a clarifying question from the question
+dialog. The `clarify` stage needs no route for its outcomes.
 
-## 7. Add a read-only Bash exception
+A mutation stage must set `"readOnly": false` and list `mutationPaths`. It can
+never use Bash. Read-only stages have no Bash policy. They receive every tool,
+and only their prompt tells them not to change anything.
 
-Add `.pi/workflows/read-only-exceptions.json` when a read-only stage must run a
-project validation command that the default policy blocks:
-
-```json
-{
-  "version": 1,
-  "workflows": {
-    "review-change": {
-      "report": {
-        "allowedCommandPrefixes": ["nix flake check", "cargo test"]
-      }
-    }
-  }
-}
-```
-
-The named stage must set `readOnly` to `true` and include `bash` in `tools`.
-Scope each prefix to the narrowest command form that supports the stage.
-Arguments may follow a prefix. Pi still blocks shell composition, redirection,
-command substitution, and multiline commands.
-
-Trust the project before Pi loads the policy. One invalid entry rejects the
-complete exception file, and Pi reports a workflow diagnostic. Exceptions
-never permit `edit` or `write` in a read-only stage.
-
-## 8. Replace a global workflow explicitly
+## 7. Replace a global workflow explicitly
 
 A project workflow cannot shadow a global workflow accidentally. Add `replaces`
 when replacement is intentional:
@@ -193,7 +173,7 @@ when replacement is intentional:
 
 Pi shows the project source in the active mode label.
 
-## 9. Reload and run
+## 8. Reload and run
 
 Trust the project, then run `/reload`. Use `/workflow` to inspect available
 modes.
@@ -205,5 +185,5 @@ directly:
 /workflow run review-change inspect the current branch
 ```
 
-Use `/workflow status` during the run. Use `/workflow stop` or Escape to abort
-it.
+The running workflow holds the editor, so Escape is the only control during a
+run. Press Escape to stop it.

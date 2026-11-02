@@ -20,8 +20,6 @@ export interface WorkflowQuestion {
   recommendation: string | null;
 }
 
-const EXPLORE_DECISION_LABEL = "Explore this decision";
-
 export interface WorkflowUiState {
   name: string;
   source: "global" | "project";
@@ -78,13 +76,21 @@ export class WorkflowUi {
     this.pi.appendEntry(workflowEntryType(checkpoint), artifact);
   }
 
-  async runLoader<T>(label: string, action: (signal: AbortSignal) => Promise<T>): Promise<T | undefined> {
-    if (this.ctx.mode !== "tui") return action(new AbortController().signal);
+  async runLoader<T>(
+    label: string,
+    stop: AbortSignal,
+    action: (signal: AbortSignal) => Promise<T>,
+  ): Promise<T | undefined> {
     return this.ctx.ui.custom<T | undefined>((tui, theme, _keybindings, done) => {
       const loader = new BorderedLoader(tui, theme, label);
+      const signal = AbortSignal.any([loader.signal, stop]);
       loader.onAbort = () => done(undefined);
-      action(loader.signal).then(done).catch((error) => {
-        this.ctx.ui.notify(error instanceof Error ? error.message : String(error), "error");
+      action(signal).then(done).catch((error) => {
+        // An abort is a deliberate stop, so its error is not reported.
+        if (!signal.aborted) {
+          const message = error instanceof Error ? error.message : String(error);
+          this.ctx.ui.notify(message.trim().split("\n", 1)[0].slice(0, 200), "error");
+        }
         done(undefined);
       });
       return loader;
@@ -97,41 +103,11 @@ export class WorkflowUi {
     const optionLabels = question.options.map((option) => `${option.label} — ${option.consequence}`);
     const answerLabels = optionLabels.map((label, index) => `${index + 1}. ${label}`);
 
-    if (this.ctx.mode === "tui") {
-      const event = await runAskUserTui(
-        {
-          question: title,
-          options: [...optionLabels.map((label) => ({ label })), { label: EXPLORE_DECISION_LABEL }],
-        },
-        this.ctx,
-      );
-      return workflowAnswerForDialogEvent(answerLabels, event, optionLabels.length);
-    }
-
-    const freeForm = "Type a free-form answer...";
-    const clarify = "Ask a clarifying question...";
-    while (true) {
-      const choice = await this.ctx.ui.select(title, [
-        ...answerLabels,
-        EXPLORE_DECISION_LABEL,
-        freeForm,
-        clarify,
-      ]);
-      if (!choice) return { answer: null, status: "cancelled" };
-      if (choice === EXPLORE_DECISION_LABEL) return { answer: null, status: "explore" };
-      if (choice === freeForm) {
-        const answer = (await this.ctx.ui.input("Free-form answer", "Type your answer"))?.trim();
-        if (answer) return { answer, status: "answered" };
-        continue;
-      }
-      if (choice === clarify) {
-        const clarification = (await this.ctx.ui.input("Clarifying question", "Ask what you need to know"))?.trim();
-        if (clarification) return { answer: null, clarification, status: "clarification" };
-        continue;
-      }
-      const index = answerLabels.indexOf(choice);
-      if (index >= 0) return { answer: answerLabels[index], index: index + 1, status: "answered" };
-    }
+    const event = await runAskUserTui(
+      { question: title, options: optionLabels.map((label) => ({ label })) },
+      this.ctx,
+    );
+    return workflowAnswerForDialogEvent(answerLabels, event);
   }
 
   async choose(title: string, options: string[]): Promise<string | undefined> {

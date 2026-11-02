@@ -2,17 +2,20 @@ import type {
   ExtensionAPI,
   ExtensionContext,
 } from "@earendil-works/pi-coding-agent";
+import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 
+import { ANSWER_MESSAGE_TYPE, answerRunEndedEarly, ENTRY_TYPE, pendingClarification } from "./branch.ts";
 import {
+  type AskUserDetails,
   type AskUserParams,
   type AskUserResult,
+  normalizeAskUserParams,
   resultForDialogEvent,
   runAskUser,
   unavailableResult,
 } from "./core.ts";
 import { runAskUserTui } from "./dialog.ts";
-import { PendingQuestion } from "./pending-question.ts";
 
 const AskUserOption = Type.Object(
   {
@@ -68,19 +71,30 @@ async function ask(
   });
 }
 
-function repeatedAnswerMessage(result: AskUserResult): string | undefined {
-  const { details } = result;
+function answerContent(details: AskUserDetails): string | undefined {
+  // JSON quoting keeps quotes inside the question unambiguous.
+  const question = JSON.stringify(details.question);
   if (details.status === "answered" && details.answer) {
-    return `My answer to the pending question "${details.question}": ${details.answer}`;
+    return `Answer to the pending question ${question}: ${details.answer}`;
   }
   if (details.status === "clarification" && details.clarification) {
-    return `I need another clarification before answering "${details.question}": ${details.clarification}`;
+    return `Clarifying question before answering ${question}: ${details.clarification}`;
   }
   return undefined;
 }
 
+// Uses the wording of the tool's own result text.
+function answerLine(details: AskUserDetails): string {
+  if (details.status === "clarification") return `User asked: ${details.clarification}`;
+  if (details.source === "free-form") return `User wrote: ${details.answer}`;
+  return `User selected option ${details.index}: ${details.answer}`;
+}
+
 export default function askUser(pi: ExtensionAPI) {
-  const pending = new PendingQuestion();
+  // Another extension's run can settle before the answer is saved, so one reopen must not repeat.
+  let reopenedMarkerId: string | undefined;
+  // Pi does not set aborted when Escape cancels an auto-compaction.
+  let compactionCancelled = false;
 
   pi.registerTool({
     name: "ask_user",
@@ -96,33 +110,53 @@ export default function askUser(pi: ExtensionAPI) {
       "Do not use ask_user when the existing context already determines the answer.",
     ],
     parameters: AskUserParameters,
+    prepareArguments: (args) => normalizeAskUserParams(args) as AskUserParams,
+    // Codemode scripts would receive the clarification text that the model never sees.
+    exposure: "model-only",
     executionMode: "sequential",
 
     async execute(_toolCallId, params, signal, _onUpdate, ctx) {
-      pending.beginToolCall();
-      const question = params as AskUserParams;
-      const result = await ask(question, ctx, signal);
-      pending.finishToolCall(question, result.details.status);
-      return result;
+      return ask(params as AskUserParams, ctx, signal);
     },
   });
 
-  pi.on("agent_settled", async (_event, ctx) => {
-    const question = pending.beginReopen();
-    if (!question) return;
+  pi.registerMessageRenderer<AskUserDetails>(ANSWER_MESSAGE_TYPE, (message, options) =>
+    new Text(answerLine(message.details!), options.outputPad, 0)
+  );
 
-    try {
-      const result = await ask(question, ctx);
-      pending.finishReopen(result.details.status);
-
-      const message = repeatedAnswerMessage(result);
-      if (message) pi.sendUserMessage(message);
-    } catch (error) {
-      pending.releaseReopen();
-      throw error;
-    }
+  pi.on("session_compact_failed", (event) => {
+    // A manual /compact aborts the run first, and one cancelled while idle must keep the question.
+    if (event.aborted && event.reason !== "manual") compactionCancelled = true;
   });
 
-  pi.on("session_start", () => pending.reset());
-  pi.on("session_shutdown", () => pending.reset());
+  pi.on("session_tree", () => {
+    // Returning to the same clarification through /tree must reopen it.
+    reopenedMarkerId = undefined;
+  });
+
+  pi.on("agent_settled", async (event, ctx) => {
+    const cancelled = event.aborted || compactionCancelled;
+    compactionCancelled = false;
+    const branch = ctx.sessionManager.getBranch();
+    const pending = pendingClarification(branch);
+    if (pending?.markerId !== reopenedMarkerId) reopenedMarkerId = undefined;
+    // Returns before the cancel below, so an aborted queued run cannot drop an in-flight reopen.
+    if (!pending || reopenedMarkerId) return;
+
+    // The agent never finished answering the clarification, so a reopen would lack that answer.
+    if (cancelled || answerRunEndedEarly(branch)) {
+      pi.appendEntry(ENTRY_TYPE, resultForDialogEvent(pending.question, { type: "cancelled" }).details);
+      return;
+    }
+
+    reopenedMarkerId = pending.markerId;
+    const { details } = await ask(pending.question, ctx);
+    const content = answerContent(details);
+    if (content) {
+      pi.sendMessage({ customType: ANSWER_MESSAGE_TYPE, content, display: true, details }, { triggerTurn: true });
+    } else {
+      // A cancelled or unavailable reopen is recorded so /tree does not bring the question back.
+      pi.appendEntry(ENTRY_TYPE, details);
+    }
+  });
 }

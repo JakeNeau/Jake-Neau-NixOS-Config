@@ -6,7 +6,7 @@ import {
   workflowEntryType,
 } from "../artifacts.ts";
 import { workflowAutocompleteItems } from "../autocomplete.ts";
-import { workflowAnswerForDialogEvent } from "../question.ts";
+import { questionErrors, workflowAnswerForDialogEvent } from "../question.ts";
 
 const labels = [
   "1. Keep both — Preserves both interfaces.",
@@ -73,9 +73,38 @@ test("maps the shared question dialog events to workflow answers", () => {
   );
 });
 
-test("maps the workflow exploration action without recording a decision", () => {
-  assert.deepEqual(
-    workflowAnswerForDialogEvent(labels, { type: "selected", index: labels.length }, labels.length),
-    { answer: null, status: "explore" },
-  );
+const questionArtifact = (question: unknown) => ({
+  artifactKind: "question",
+  outcome: "asked",
+  summary: "One decision is open.",
+  payload: { question },
+});
+
+test("accepts a question payload that the question dialog can read", () => {
+  const question = {
+    text: "Keep the old interface?",
+    why: "Both callers depend on it.",
+    options: [{ id: "keep", label: "Keep both", consequence: "Preserves both interfaces." }],
+    recommendation: null,
+  };
+  assert.deepEqual(questionErrors(questionArtifact(question)), []);
+  assert.deepEqual(questionErrors(questionArtifact({ ...question, recommendation: "keep" })), []);
+  assert.deepEqual(questionErrors({ ...questionArtifact(undefined), artifactKind: "decision-record" }), []);
+});
+
+test("reports each missing question field", () => {
+  assert.deepEqual(questionErrors(questionArtifact(undefined)), ["payload.question must be an object"]);
+  assert.deepEqual(questionErrors(questionArtifact("Keep both?")), ["payload.question must be an object"]);
+  assert.deepEqual(questionErrors(questionArtifact(["Keep both?"])), ["payload.question must be an object"]);
+  assert.deepEqual(questionErrors(questionArtifact({ options: [] })), [
+    "payload.question.text must be a string",
+    "payload.question.why must be a string",
+    "payload.question.options must be a non-empty array",
+  ]);
+  assert.deepEqual(questionErrors(questionArtifact({ text: "Keep?", why: "Callers.", options: [{ label: "Keep" }, null], recommendation: 3 })), [
+    "payload.question.options[0].consequence must be a string",
+    "payload.question.options[1].label must be a string",
+    "payload.question.options[1].consequence must be a string",
+    "payload.question.recommendation must be a string or null",
+  ]);
 });

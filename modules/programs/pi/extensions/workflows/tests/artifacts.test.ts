@@ -87,3 +87,12 @@ test("builds a bounded catalog without artifact payloads", () => {
     parentArtifactIds: [],
   }]);
 });
+
+test("refuses appends after the run stops", () => {
+  const store = new ArtifactStore("run", "demo");
+  const candidate = { artifactKind: "decision-record", outcome: "answered", summary: "Keep both.", payload: {} };
+  const first = store.append("input", "stage-1", [], candidate);
+  store.stop();
+  assert.throws(() => store.append("decision", "stage-2", [first.artifactId], candidate), { name: "AbortError" });
+  assert.deepEqual(store.list(), [first]);
+});

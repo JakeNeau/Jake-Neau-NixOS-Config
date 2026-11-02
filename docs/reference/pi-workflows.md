@@ -31,6 +31,11 @@ the input router and appear in workflow autocomplete.
 Only one workflow can run at a time. A completed or stopped workflow returns Pi
 to `normal`. Pi does not resume workflows across sessions.
 
+A running workflow holds the editor with its loader or a checkpoint dialog. The
+user therefore cannot type `/workflow status` or `/workflow stop` during a run.
+Escape and quitting Pi are the only ways to reach a running workflow. Each one
+stops the run.
+
 ## Definition locations
 
 Pi loads definitions from:
@@ -51,25 +56,17 @@ Project definitions load only when `ctx.isProjectTrusted()` is true. A project
 workflow can replace a global workflow only with an explicit `replaces` field.
 Pi reports invalid definitions and name collisions.
 
-A trusted project may define read-only Bash exceptions at
-`.pi/workflows/read-only-exceptions.json`:
+Pi shows each definition diagnostic as a warning that starts with the path of
+the file at fault. It shows the first five and counts the rest.
 
-```json
-{
-  "version": 1,
-  "workflows": {
-    "review-change": {
-      "inspect": {
-        "allowedCommandPrefixes": ["nix flake check", "cargo test"]
-      }
-    }
-  }
-}
+Pi no longer reads `.pi/workflows/read-only-exceptions.json`. When a trusted
+project still has the file, Pi reports this diagnostic:
+
+```text
+<path>: read-only-exceptions.json is no longer used, because read-only stages are prompt-only
 ```
 
-Each exception applies to one existing read-only stage that enables `bash`.
-Commands may equal an approved prefix or add arguments. Pi blocks shell
-composition. An invalid policy rejects every exception in that file.
+A definition that sets `readOnlyCommandPrefixes` fails to load.
 
 A workflow cannot set a model, provider, or thinking level. Pi snapshots the
 active model and thinking level when the run starts.
@@ -81,8 +78,8 @@ Each stage in `workflow.json` defines:
 | Field | Meaning |
 |---|---|
 | `prompt` | Markdown prompt path relative to the workflow directory |
-| `tools` | Exact child tool allowlist |
-| `readOnly` | Whether the child enforces read-only policy |
+| `tools` | Exact child tool allowlist for a mutation stage. Optional for a read-only stage, which ignores its value. When present, it must be a string array, or the definition fails with `tools must be strings`. |
+| `readOnly` | Whether the stage is read-only. The prompt tells a read-only stage not to change anything, and no tool enforces it. |
 | `inputs` | Artifact kinds included in the stage prompt |
 | `outputSchema` | Portable JSON schema for `workflow_output` |
 | `transitions` | Output outcomes mapped to allowed successor sets |
@@ -94,14 +91,29 @@ A successor set is an array of stage names. A transition may offer several
 sets. Pi asks a router child to select among them. Several names in one set form
 a fork. An empty transition list ends the workflow for that outcome.
 
+Each `outcome` value that a stage's output schema lists in `enum` or `const`
+needs its own key in `transitions`. Otherwise the definition fails to load with
+`stage <name> outcome has no route: <outcome>`. A stage named `clarify` is
+exempt, because Pi never routes its outcome.
+
 Read-only branches may run concurrently. `maxParallel` limits the run. Mutation
-and user-decision stages run serially.
+and user-decision stages run serially. When one parallel branch fails, Pi stops
+its sibling branches and starts no new branch from that batch.
 
 ## Child stages and artifacts
 
 Each stage uses a fresh `pi --mode rpc --no-session` child process. The child
 receives the project directory, trust decision, model snapshot, stage prompt,
-selected artifacts, artifact catalog, and tool allowlist.
+selected artifacts, artifact catalog, and tool set.
+
+The tool set depends on the stage:
+
+- A mutation stage receives its `tools` list plus the two workflow tools.
+- A read-only stage receives `--tools *`. The `*` pattern activates every
+  built-in and extension tool, including `codemode`. MCP tools keep Pi's
+  internal deferred exposure, so `*` does not activate them, and Pi does not
+  declare them to the model. A `codemode` script can still call them.
+- The router child receives only the two workflow tools.
 
 The child process registers two workflow tools:
 
@@ -109,8 +121,37 @@ The child process registers two workflow tools:
 - `request_workflow_artifacts` loads up to three earlier artifacts within a
   combined 50 KB limit.
 
+Both workflow tools are model-only. The model calls them directly, but a
+`codemode` script cannot call them.
+
 The parent validates `workflow_output` again. Invalid or missing output receives
-one correction prompt. A second failure stops the stage.
+one correction prompt. The correction also covers these errors:
+
+- an outcome with no route
+- a router choice outside the allowed successor sets
+- a question payload that lacks a field that the question dialog reads
+
+A route lookup uses only the transitions' own keys. An outcome named
+`constructor` or `toString` therefore has no route. A second failure stops the
+stage and lists every error on one line:
+
+```text
+Invalid workflow artifact after repair: <error>; <error>
+```
+
+A stage fails at once, without a correction, in these cases:
+
+- The child rejects the prompt, for example because no model or API key is
+  set. The stage reports the child's error.
+- An extension or command in the child handles the prompt without starting a
+  run.
+- The last assistant message ends with a provider error, and the stage has no
+  valid artifact. The stage reports the provider's error message.
+- The child exits before the correction.
+
+A `select`, `confirm`, `input`, or `editor` dialog in the child receives a
+cancel reply, because nobody can answer it. A cancelled `confirm` reads as
+`false`. Each attempt has its own 10-minute timeout.
 
 The parent assigns each artifact a run identity, stage identity, parent
 identities, timestamp, kind, outcome, summary, and payload. Parents must already
@@ -118,18 +159,72 @@ exist. Pi stores artifacts as non-context session entries. The TUI shows an
 ordinary artifact as a compact entry and reveals its payload when expanded. A
 proposal checkpoint uses a review entry that shows the complete design.
 
-Escape, `/workflow stop`, reload, and session shutdown abort active work and
-clean up temporary files and processes.
+Escape or quitting Pi stops the run. Pi stops each child and removes its
+temporary files. After Escape, Pi checks the abort before each append, so a
+stage that finishes late records no artifact. Pi then reports
+`Workflow stopped: <name>` without an error toast. After quitting, that notice
+can reach a context that no longer exists. Quitting also closes the run's
+artifact store, so a dialog that resolves after quitting records no decision,
+approval, or clarification request.
+
+When a stage fails, its error toast shows only the first line of the error, cut
+at 200 characters.
+
+Artifacts stay on the branch where the run happened. Pi never reads them back.
+A `write` stage's edits stay on disk and follow no branch.
+
+| Path after a run | Effect |
+|---|---|
+| `/tree` to an earlier entry | The artifacts stay on the old branch. `/workflow restart` reruns the last workflow from the new point. |
+| `/fork` or `/clone` | The copy includes the artifacts. `/workflow restart` has no last workflow. |
+| `/new`, `/resume`, or `pi -c` | `/workflow restart` has no last workflow. |
+| `/reload` | `/workflow restart` has no last workflow. |
+| Compaction | Artifacts are not model context, so compaction leaves them as they are. |
+
+None of these paths can run during a workflow. Quitting is the only exit, and
+it stops the run.
+
+## Question checkpoints
+
+A stage with `"checkpoint": "question"` that returns a `question` artifact opens
+the ask-user dialog. The payload's `question` object must contain:
+
+- `text` and `why` strings
+- a non-empty `options` array whose items have string `label` and
+  `consequence` fields
+- an optional `recommendation` string or `null`
+
+The dialog title shows the text, the reason, and the recommendation. Each
+option renders as `<label> — <consequence>`. The dialog adds the free-form and
+clarifying-question rows. Pi removes bare carriage returns from the question and
+labels.
+
+- A preset option or a free-form answer records a `decision-record` artifact,
+  and the run continues.
+- A clarifying question records a `clarification-request` artifact. When the
+  workflow has a stage named `clarify`, Pi runs it and shows its answer. Pi then
+  asks the question again. Without a `clarify` stage, Pi warns and asks again.
+- Escape stops the run.
+
+The `clarify` stage needs no route for its outcomes.
 
 ## Mutation policy
 
-Read-only stages block `edit`, `write`, and Bash outside the inspection-command
-policy. A trusted project policy may add stage-scoped Bash prefixes.
+Read-only stages are advisory. Pi appends this sentence to each read-only stage
+prompt:
 
-Mutation stages may use `edit` and `write`. They cannot use Bash or unknown
-custom tools. A proposal checkpoint shows the design and exact file list. The
-user must approve before Pi gives those paths to the mutation stage. The stage
-cannot edit other paths.
+```text
+This stage is read-only: do not change files, the project, or the system.
+```
+
+No tool enforces it. A read-only stage receives every tool, including Bash,
+`edit`, and `write`.
+
+Mutation stages may use `edit` and `write`. Their `tools` list may name only
+approved mutation tools, and that list excludes Bash. The exact allowlist is
+the only thing that keeps Bash out. A proposal checkpoint shows the design and
+exact file list. The user must approve before Pi gives those paths to the
+mutation stage. The stage cannot edit other paths.
 
 ## Bundled refinement workflows
 
@@ -157,3 +252,24 @@ of auditing every implementation detail.
 Prompts and artifact requests use Pi's 50 KB and 2,000-line limits. A workflow
 run stops after 100 stage invocations. Project workflow schemas use a portable
 subset of JSON Schema.
+
+Each attempt of a stage has its own 10-minute timeout. A stage with a
+correction can therefore take about 20 minutes.
+
+Pi measures each stage's peak context use. For each assistant message, the
+request size is `usage.totalTokens`, or the sum of input, output, cache-read,
+and cache-write tokens. The peak is the largest request across both attempts.
+Pi warns when the peak exceeds 20% of the model's context window:
+
+```text
+<stage> used <n>% of the context window, above the 20% budget
+```
+
+`<n>` is `Math.ceil((peak * 100) / contextWindow)`, so the percentage rounds up.
+The warning follows these rules:
+
+- Each stage gets at most one warning.
+- The warning never stops the stage.
+- The router child gets no warning.
+- A stage that fails never reaches the warning.
+- No warning appears when the model's context window is unknown.

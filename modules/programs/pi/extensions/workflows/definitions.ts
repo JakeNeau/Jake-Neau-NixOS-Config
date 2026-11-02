@@ -2,8 +2,6 @@ import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import { isAbsolute, join, normalize, relative } from "node:path";
 
-import { hasShellControlSyntax } from "./runner.ts";
-
 export interface JoinDefinition {
   mode: "all" | "any";
   stages: string[];
@@ -11,7 +9,7 @@ export interface JoinDefinition {
 
 export interface StageDefinition {
   prompt: string;
-  tools: string[];
+  tools?: string[];
   readOnly: boolean;
   inputs: string[];
   outputSchema: string;
@@ -37,7 +35,6 @@ export interface WorkflowDefinition {
 export interface LoadedWorkflow extends WorkflowDefinition {
   source: "global" | "project";
   root: string;
-  readOnlyCommandPrefixes?: Record<string, string[]>;
 }
 
 export interface DiscoveryResult {
@@ -45,11 +42,11 @@ export interface DiscoveryResult {
   diagnostics: string[];
 }
 
-export const APPROVED_READ_ONLY_TOOLS = new Set([
-  "read", "grep", "find", "ls", "bash", "follow_link", "rust_code", "web_search",
-  "fetch_content", "get_search_content",
+// A mutation stage gets exactly its listed tools, so this set alone keeps Bash out of it.
+const APPROVED_MUTATION_TOOLS = new Set([
+  "read", "grep", "find", "ls", "follow_link", "rust_code", "web_search",
+  "fetch_content", "get_search_content", "edit", "write",
 ]);
-const APPROVED_MUTATION_TOOLS = new Set([...APPROVED_READ_ONLY_TOOLS].filter((name) => name !== "bash").concat(["edit", "write"]));
 
 const RESERVED_NAMES = new Set([
   "workflow", "model", "settings", "resume", "new", "session", "tree", "fork",
@@ -124,12 +121,14 @@ export function validateWorkflowDefinition(value: unknown): string[] {
       if (forbidden in rawStage) errors.push(`stage ${stageName}: ${forbidden} is forbidden`);
     }
     if (typeof rawStage.prompt !== "string") errors.push(`stage ${stageName}: prompt is required`);
-    if (!isStringArray(rawStage.tools)) {
-      errors.push(`stage ${stageName}: tools must be strings`);
-    } else {
-      const approved = rawStage.readOnly === true ? APPROVED_READ_ONLY_TOOLS : APPROVED_MUTATION_TOOLS;
-      for (const tool of rawStage.tools) {
-        if (!approved.has(tool)) errors.push(`stage ${stageName}: tool is not approved for this permission mode: ${tool}`);
+    // Read-only stages receive every tool, so they may omit the list.
+    if (rawStage.tools !== undefined || rawStage.readOnly !== true) {
+      if (!isStringArray(rawStage.tools)) {
+        errors.push(`stage ${stageName}: tools must be strings`);
+      } else if (rawStage.readOnly !== true) {
+        for (const tool of rawStage.tools) {
+          if (!APPROVED_MUTATION_TOOLS.has(tool)) errors.push(`stage ${stageName}: tool is not approved for mutation stages: ${tool}`);
+        }
       }
     }
     if (!isStringArray(rawStage.inputs)) errors.push(`stage ${stageName}: inputs must be strings`);
@@ -172,6 +171,13 @@ export function validateWorkflowDefinition(value: unknown): string[] {
   return errors;
 }
 
+function schemaOutcomes(schema: unknown): string[] {
+  const outcome = isRecord(schema) && isRecord(schema.properties) ? schema.properties.outcome : undefined;
+  if (!isRecord(outcome)) return [];
+  if (typeof outcome.const === "string") return [outcome.const];
+  return isStringArray(outcome.enum) ? outcome.enum : [];
+}
+
 async function loadOne(root: string, directory: string, source: "global" | "project"): Promise<{ workflow?: LoadedWorkflow; diagnostics: string[] }> {
   const workflowRoot = join(root, directory);
   const path = join(workflowRoot, "workflow.json");
@@ -200,6 +206,14 @@ async function loadOne(root: string, directory: string, source: "global" | "proj
         try {
           const schema = JSON.parse(await readFile(resolved, "utf8"));
           diagnostics.push(...validatePortableSchema(schema).map((error) => `${resolved}: ${error}`));
+          // The clarify stage answers a clarification request and is never routed.
+          if (stageName !== "clarify" && isRecord(stageValue.transitions)) {
+            for (const outcome of schemaOutcomes(schema)) {
+              if (!Object.hasOwn(stageValue.transitions, outcome)) {
+                diagnostics.push(`${path}: stage ${stageName} outcome has no route: ${outcome}`);
+              }
+            }
+          }
         } catch (error) {
           diagnostics.push(`${resolved}: ${String(error)}`);
         }
@@ -221,78 +235,6 @@ async function loadRoot(root: string | undefined, source: "global" | "project"):
     diagnostics.push(...result.diagnostics);
   }
   return { workflows, diagnostics };
-}
-
-async function loadReadOnlyExceptions(
-  projectRoot: string | undefined,
-  workflows: Map<string, LoadedWorkflow>,
-): Promise<{ exceptions: Map<string, Record<string, string[]>>; diagnostics: string[] }> {
-  const exceptions = new Map<string, Record<string, string[]>>();
-  if (!projectRoot) return { exceptions, diagnostics: [] };
-  const path = join(projectRoot, "read-only-exceptions.json");
-  if (!existsSync(path)) return { exceptions, diagnostics: [] };
-
-  let raw: unknown;
-  try {
-    raw = JSON.parse(await readFile(path, "utf8"));
-  } catch (error) {
-    return { exceptions, diagnostics: [`${path}: ${String(error)}`] };
-  }
-
-  const errors: string[] = [];
-  if (!isRecord(raw)) {
-    errors.push("policy must be an object");
-  } else {
-    if (raw.version !== 1) errors.push("version must be 1");
-    if (!isRecord(raw.workflows)) {
-      errors.push("workflows must be an object");
-    } else {
-      for (const [workflowName, rawStages] of Object.entries(raw.workflows)) {
-        const workflow = workflows.get(workflowName);
-        if (!workflow) {
-          errors.push(`unknown workflow: ${workflowName}`);
-          continue;
-        }
-        if (!isRecord(rawStages)) {
-          errors.push(`workflow exceptions must be an object: ${workflowName}`);
-          continue;
-        }
-        const stages: Record<string, string[]> = {};
-        for (const [stageName, rawPolicy] of Object.entries(rawStages)) {
-          const stage = workflow.stages[stageName];
-          if (!stage) {
-            errors.push(`unknown stage: ${workflowName}.${stageName}`);
-            continue;
-          }
-          if (!stage.readOnly) {
-            errors.push(`stage is not read-only: ${workflowName}.${stageName}`);
-            continue;
-          }
-          if (!stage.tools.includes("bash")) {
-            errors.push(`stage does not enable bash: ${workflowName}.${stageName}`);
-            continue;
-          }
-          if (!isRecord(rawPolicy) || !isStringArray(rawPolicy.allowedCommandPrefixes)) {
-            errors.push(`allowedCommandPrefixes must be strings: ${workflowName}.${stageName}`);
-            continue;
-          }
-          const prefixes = rawPolicy.allowedCommandPrefixes.map((prefix) => prefix.trim());
-          if (prefixes.length === 0 || prefixes.some((prefix) => prefix.length === 0)) {
-            errors.push(`allowedCommandPrefixes must contain non-empty command prefixes: ${workflowName}.${stageName}`);
-            continue;
-          }
-          if (prefixes.some(hasShellControlSyntax)) {
-            errors.push(`allowedCommandPrefixes cannot contain shell control syntax: ${workflowName}.${stageName}`);
-            continue;
-          }
-          stages[stageName] = [...new Set(prefixes)];
-        }
-        if (Object.keys(stages).length > 0) exceptions.set(workflowName, stages);
-      }
-    }
-  }
-  if (errors.length > 0) return { exceptions: new Map(), diagnostics: errors.map((error) => `${path}: ${error}`) };
-  return { exceptions, diagnostics: [] };
 }
 
 export async function discoverWorkflowDefinitions(options: {
@@ -317,13 +259,9 @@ export async function discoverWorkflowDefinitions(options: {
     }
     workflows.set(workflow.name, workflow);
   }
-  if (options.projectTrusted) {
-    const policy = await loadReadOnlyExceptions(options.projectRoot, workflows);
-    diagnostics.push(...policy.diagnostics);
-    for (const [workflowName, readOnlyCommandPrefixes] of policy.exceptions) {
-      const workflow = workflows.get(workflowName);
-      if (workflow) workflows.set(workflowName, { ...workflow, readOnlyCommandPrefixes });
-    }
+  const exceptionsPath = options.projectRoot && join(options.projectRoot, "read-only-exceptions.json");
+  if (options.projectTrusted && exceptionsPath && existsSync(exceptionsPath)) {
+    diagnostics.push(`${exceptionsPath}: read-only-exceptions.json is no longer used, because read-only stages are prompt-only`);
   }
   return { workflows, diagnostics };
 }

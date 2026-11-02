@@ -354,6 +354,54 @@
       activation rather than at the system switch, and that a new user who edits
       secrets must add the program. A design question for the user to decide,
       not a defect.
+- [ ] Docs gap: add a how-to under `docs/how-to/` for patching a third-party
+      pi extension. It should cover declaring the package as a non-flake
+      input, applying `modules/programs/pi/patches/*.patch`, running the
+      matching `patches/*.test.mjs`, and re-exporting the patched package from
+      the home config. It should also cover rebasing a patch when `nrr` fails
+      on a failed hunk. Today only `docs/how-to/update-manual-pins.md` touches
+      this, and only for pi-usage-limits.
+- [ ] Docs gap: no doc states that pi's RPC `get_commands` lists commands but
+      no tools, so no Nix check in `modules/programs/pi/pi.nix` can assert
+      that a tool name is registered. Document the limit in
+      `docs/reference/pi.md`, and consider a check approach that can assert a
+      registered tool.
+- [ ] `mkPiThirdPartyExtensionsCheck` in `modules/programs/pi/pi.nix` does not
+      assert that `mkPiClaudeBridge` removed its bundled `@earendil-works` and
+      `typebox` copies from `lib/node_modules/pi-claude-bridge`, although the
+      build removes them. Add that assertion so a regression that leaves the
+      duplicate copies in place fails the check.
+- [ ] Decide whether to build or drop `specs/pi-handoff-and-lsp.md`. It appears
+      unimplemented: `modules/programs/pi/pi.nix` has no `pi-lsp` or handoff
+      wiring, and `docs/reference/pi.md` has no section for either. Done means
+      the spec is implemented (then retired into the docs) or deleted.
+- [ ] Remove the leftover untracked directory
+      `modules/programs/pi/extensions/minimal-transcript/` from the tidy-tools
+      change (`specs/pi-tidy-tools.md`). It holds no files, only an empty
+      `.claude/.cc-writes` harness directory. The directory itself is
+      root-owned without group write, so removing it may need `sudo`.
+- [ ] Pi core re-appends every user message on the current branch to the
+      editor's up-arrow history each time it rebuilds the transcript, so the
+      history fills with duplicates. In pi 1.3.0,
+      `InteractiveMode.renderInitialMessages` calls `renderSessionEntries` with
+      `populateHistory: true`, and `Editor.addToHistory` skips only
+      consecutive duplicates and never clears. Each `/tree`, session switch,
+      resume, and extension `ctx.navigateTree` call therefore duplicates
+      history entries; the local `/tune` rewind
+      (`modules/programs/pi/extensions/tune/core.ts`) calls `ctx.navigateTree`
+      once per run. This is upstream Pi behavior (github.com/badlogic/pi-mono,
+      `packages/coding-agent/src/modes/interactive/interactive-mode.ts`),
+      separate from the ask-user synthetic-message bug, which is fixed locally
+      (see `docs/explanation/pi-ask-user.md`). Done means it is
+      reported upstream, or worked around locally if the user prefers. Get the
+      user's go-ahead before anyone contacts upstream.
+- [ ] `specs/pi-scrollable-question-previews.md` still refers to the ask-user
+      "pending-question" module and its tests (around lines 25, 38, 102, and
+      132). That module, `pending-question.ts`, is deleted; the ask-user
+      extension now derives a pending clarification from the session branch
+      in `modules/programs/pi/extensions/ask-user/branch.ts`, explained in
+      `docs/explanation/pi-ask-user.md`. Done means the spec no longer names
+      the deleted module, or the spec is retired if its work already shipped.
 
 ## Waiting on upstream
 

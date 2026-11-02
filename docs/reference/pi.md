@@ -115,9 +115,87 @@ an empty submission restores the action label. A nonempty free-form answer
 completes the tool call.
 
 A clarifying question leaves the original decision pending. The agent answers
-the clarification first. The extension then reopens the original dialog unless
-the agent already called `ask_user` again. An answer or cancellation clears the
-pending question.
+the clarification first. After Pi settles, the extension reopens the original
+dialog unless the agent already called `ask_user` again.
+
+The extension sends the reopened dialog's answer as an `ask-user-answer`
+custom message. The model reads it as user text, but it never enters the
+editor's up-arrow history. The transcript renders it as one line, padded by the
+user's `outputPad` setting:
+
+- `User selected option <n>: <label>` for a preset option
+- `User wrote: <text>` for a free-form answer
+- `User asked: <clarification>` for another clarification
+
+The answer does not appear in the `/fork` selector or in the user-message count
+of the session statistics. RPC clients receive it as a message with role
+`custom`.
+
+### Pending questions and the session branch
+
+The extension derives the pending question from the current session branch.
+The latest ask-user marker on the branch decides. Each of these entries is a
+marker:
+
+- an `ask_user` tool result with a `details.status`
+- an `ask-user-answer` custom message
+- an `ask-user` custom entry, which records a cancelled, unavailable, or dropped
+  reopen outside the model context
+
+The question is pending only when the latest marker is a clarification.
+Navigation therefore changes the pending question:
+
+| Path | Pending question afterward |
+|---|---|
+| `/tree` to an entry before the clarification | None |
+| `/tree` to the clarification's tool result | Pending. The dialog reopens after the next message. |
+| `/tree` to the `ask-user-answer` entry | Pending again. Pi puts the old answer into the editor, and the user can answer again. |
+| `/fork` | The forked branch decides. |
+| `/clone` | The copied branch decides. A clone made during the answer run keeps the question pending, and the source branch drops it. |
+| `/new` | None |
+| `/resume` or `pi -c` | The resumed branch decides. A pending question reopens after the next message. |
+| `/reload` | The branch decides. Pi refuses `/reload` during a response. |
+| Compaction | Unchanged |
+
+The extension drops the question when the answer run ends early. It writes a
+`cancelled` `ask-user` entry and opens no dialog. These events drop it:
+
+- an abort, such as Escape, `/tree`, `/fork`, `/clone`, `/new`, `/resume`, or
+  `/compact` during the run
+- a cancelled auto-retry or a cancelled auto-compaction during the run
+- a provider error with no retry left
+- an extension that cancels an auto-compaction
+
+A manual compaction that the user cancels while Pi is idle keeps the question
+pending.
+
+The tool is model-only. The model calls `ask_user` directly, but a `codemode`
+script cannot call it.
+
+The extension removes every bare carriage return (`\r`) from the question, each
+label, and each preview before schema validation. A `\r\n` becomes `\n`. The
+result text and the recorded label therefore carry the normalized label. A `\n`
+stays and renders as an extra row.
+
+Sessions saved before the custom message keep their synthetic user messages.
+Each transcript rebuild still adds those messages to the up-arrow history. In
+such a session, a branch whose last marker is a clarification reopens its
+question once after the next message. Escape then dismisses it for good.
+
+These limits remain:
+
+- When one assistant message makes two `ask_user` calls, the later result is
+  the latest marker. A clarification on the first call is lost.
+- When the deferred answer run fails in Pi's `_prepareRun`, Pi saves no answer.
+  The question stays closed until a different marker appears or `/tree` runs.
+- `pi -c -p` on a session with a pending question reaches the reopen in print
+  mode. Print mode has no dialog, so the reopen records `unavailable` and
+  clears the question.
+
+[Why ask-user follows the session branch](../explanation/pi-ask-user.md)
+explains this design.
+
+### Modes
 
 The custom inline dialog, previews, and preview scrolling work only in TUI mode.
 RPC mode uses Pi's separate selection and input dialogs. It accepts the same

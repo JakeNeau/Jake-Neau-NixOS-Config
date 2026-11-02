@@ -33,6 +33,33 @@ export type AskUserResult = {
   details: AskUserDetails;
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+// A bare carriage return renders as a line break, so a label could show as stacked rows.
+function withoutCarriageReturns(
+  record: Record<string, unknown>,
+  keys: string[],
+): Record<string, unknown> {
+  const result = { ...record };
+  for (const key of keys) {
+    const value = result[key];
+    if (typeof value === "string") result[key] = value.replaceAll("\r", "");
+  }
+  return result;
+}
+
+// Malformed input passes through unchanged for validation to reject.
+export function normalizeAskUserParams<T>(params: T): T {
+  if (!isRecord(params) || !Array.isArray(params.options)) return params;
+  if (!params.options.every(isRecord)) return params;
+  return {
+    ...withoutCarriageReturns(params, ["question"]),
+    options: params.options.map((option) => withoutCarriageReturns(option, ["label", "preview"])),
+  } as T;
+}
+
 export function resultForDialogEvent(
   params: AskUserParams,
   event: DialogEvent,

@@ -56,9 +56,18 @@ test("accepts a reachable workflow and rejects model control", () => {
     validateWorkflowDefinition({ ...validDefinition, readOnlyCommandPrefixes: { start: ["rm"] } }).join("\n"),
     /readOnlyCommandPrefixes/,
   );
-  const unsafe = structuredClone(validDefinition);
-  unsafe.stages.start.tools = ["unknown_mutator"];
-  assert.match(validateWorkflowDefinition(unsafe).join("\n"), /not approved/);
+});
+
+test("lets read-only stages list any tool and restricts mutation stages", () => {
+  const anyTool = structuredClone(validDefinition) as any;
+  anyTool.stages.start.tools = ["bash", "unknown_tool"];
+  assert.deepEqual(validateWorkflowDefinition(anyTool), []);
+
+  const mutation = structuredClone(validDefinition) as any;
+  mutation.stages.finish = { ...mutation.stages.finish, readOnly: false, mutationPaths: ["$approved"], tools: ["read", "unknown_mutator"] };
+  assert.match(validateWorkflowDefinition(mutation).join("\n"), /not approved/);
+  mutation.stages.finish.tools = ["read", "bash"];
+  assert.match(validateWorkflowDefinition(mutation).join("\n"), /not approved for mutation stages: bash/);
 });
 
 test("rejects broken transitions, joins, and nonterminal dead ends", () => {
@@ -95,57 +104,21 @@ test("loads compact bundled refinement workflows", async () => {
   }
 });
 
-test("loads trusted read-only command exceptions with workflow and stage scope", async () => {
+test("warns that a trusted project's read-only exceptions file is no longer used", async () => {
   const root = await mkdtemp(join(tmpdir(), "pi-workflows-"));
   const globalRoot = join(root, "global");
   const projectRoot = join(root, "project");
-  const definition = structuredClone(validDefinition);
-  definition.stages.start.tools = ["read", "bash"];
-  await writeWorkflow(globalRoot, "demo", definition);
+  await writeWorkflow(globalRoot, "demo", validDefinition);
   await mkdir(projectRoot, { recursive: true });
-  await writeFile(join(projectRoot, "read-only-exceptions.json"), JSON.stringify({
-    version: 1,
-    workflows: {
-      demo: {
-        start: {
-          allowedCommandPrefixes: ["nix flake check", "cargo test"],
-        },
-      },
-    },
-  }));
+  await writeFile(join(projectRoot, "read-only-exceptions.json"), "{}");
 
   const untrusted = await discoverWorkflowDefinitions({ globalRoot, projectRoot, projectTrusted: false });
-  assert.equal(untrusted.workflows.get("demo")?.readOnlyCommandPrefixes, undefined);
-
+  assert.deepEqual(untrusted.diagnostics, []);
   const trusted = await discoverWorkflowDefinitions({ globalRoot, projectRoot, projectTrusted: true });
-  assert.deepEqual(trusted.diagnostics, []);
-  assert.deepEqual(trusted.workflows.get("demo")?.readOnlyCommandPrefixes, {
-    start: ["nix flake check", "cargo test"],
-  });
-  assert.equal(trusted.workflows.get("demo")?.readOnlyCommandPrefixes?.finish, undefined);
-});
-
-test("rejects malformed read-only command exceptions", async () => {
-  const root = await mkdtemp(join(tmpdir(), "pi-workflows-"));
-  const globalRoot = join(root, "global");
-  const projectRoot = join(root, "project");
-  const definition = structuredClone(validDefinition);
-  definition.stages.start.tools = ["read", "bash"];
-  await writeWorkflow(globalRoot, "demo", definition);
-  await mkdir(projectRoot, { recursive: true });
-
-  for (const [policy, expected] of [
-    [{ version: 2, workflows: {} }, /version must be 1/],
-    [{ version: 1, workflows: { missing: { start: { allowedCommandPrefixes: ["cargo test"] } } } }, /unknown workflow: missing/],
-    [{ version: 1, workflows: { demo: { missing: { allowedCommandPrefixes: ["cargo test"] } } } }, /unknown stage: demo\.missing/],
-    [{ version: 1, workflows: { demo: { start: { allowedCommandPrefixes: [""] } } } }, /non-empty command prefixes/],
-    [{ version: 1, workflows: { demo: { start: { allowedCommandPrefixes: ["cargo test; rm -rf ."] } } } }, /shell control syntax/],
-  ] as const) {
-    await writeFile(join(projectRoot, "read-only-exceptions.json"), JSON.stringify(policy));
-    const result = await discoverWorkflowDefinitions({ globalRoot, projectRoot, projectTrusted: true });
-    assert.match(result.diagnostics.join("\n"), expected);
-    assert.equal(result.workflows.get("demo")?.readOnlyCommandPrefixes, undefined);
-  }
+  assert.deepEqual(trusted.diagnostics, [
+    `${join(projectRoot, "read-only-exceptions.json")}: read-only-exceptions.json is no longer used, because read-only stages are prompt-only`,
+  ]);
+  assert.ok(trusted.workflows.get("demo"));
 });
 
 test("loads trusted project workflows and requires explicit replacement", async () => {
@@ -166,4 +139,54 @@ test("loads trusted project workflows and requires explicit replacement", async 
   const replaced = await discoverWorkflowDefinitions({ globalRoot, projectRoot, projectTrusted: true });
   assert.equal(replaced.workflows.get("demo")?.source, "project");
   assert.equal(replaced.workflows.get("demo")?.replaces, "demo");
+});
+
+test("lets a read-only stage omit tools and requires them on a mutation stage", () => {
+  const readOnly = structuredClone(validDefinition) as any;
+  delete readOnly.stages.start.tools;
+  assert.deepEqual(validateWorkflowDefinition(readOnly), []);
+
+  const mutation = structuredClone(validDefinition) as any;
+  mutation.stages.finish = { ...mutation.stages.finish, readOnly: false, mutationPaths: ["$approved"] };
+  delete mutation.stages.finish.tools;
+  assert.match(validateWorkflowDefinition(mutation).join("\n"), /tools must be strings/);
+});
+
+test("rejects a schema outcome without a route, except in the clarify stage", async () => {
+  const root = await mkdtemp(join(tmpdir(), "pi-workflows-"));
+  const definition = structuredClone(validDefinition) as any;
+  definition.stages.start.outputSchema = "schemas/start-outcomes.json";
+  definition.stages.clarify = { ...definition.stages.finish, outputSchema: "schemas/clarify.json", transitions: {} };
+  await writeWorkflow(root, "demo", definition);
+  const schemas = join(root, "demo", "schemas");
+  await writeFile(join(schemas, "clarify.json"), JSON.stringify({ type: "object", properties: { outcome: { enum: ["answered"] } } }));
+
+  const startOutcome = (outcome: unknown) =>
+    writeFile(join(schemas, "start-outcomes.json"), JSON.stringify({ type: "object", properties: { outcome } }));
+
+  for (const outcome of [{ enum: ["ready", "blocked"] }, { const: "blocked" }]) {
+    await startOutcome(outcome);
+    const unrouted = await discoverWorkflowDefinitions({ globalRoot: root, projectTrusted: false });
+    assert.match(unrouted.diagnostics.join("\n"), /stage start outcome has no route: blocked/);
+    assert.equal(unrouted.workflows.get("demo"), undefined);
+  }
+
+  await startOutcome({ const: "ready" });
+  const routed = await discoverWorkflowDefinitions({ globalRoot: root, projectTrusted: false });
+  assert.deepEqual(routed.diagnostics, []);
+  assert.ok(routed.workflows.get("demo"));
+});
+
+test("treats an inherited key such as constructor as an outcome without a route at load", async () => {
+  const root = await mkdtemp(join(tmpdir(), "pi-workflows-"));
+  const definition = structuredClone(validDefinition) as any;
+  definition.stages.start.outputSchema = "schemas/start-outcomes.json";
+  await writeWorkflow(root, "demo", definition);
+  await writeFile(
+    join(root, "demo", "schemas", "start-outcomes.json"),
+    JSON.stringify({ type: "object", properties: { outcome: { enum: ["ready", "constructor"] } } }),
+  );
+  const result = await discoverWorkflowDefinitions({ globalRoot: root, projectTrusted: false });
+  assert.match(result.diagnostics.join("\n"), /stage start outcome has no route: constructor/);
+  assert.equal(result.workflows.get("demo"), undefined);
 });

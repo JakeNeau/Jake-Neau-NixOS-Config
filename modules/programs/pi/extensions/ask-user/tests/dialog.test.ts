@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  type ExtensionContext,
   getMarkdownTheme,
   initTheme,
   type Theme,
@@ -13,7 +14,7 @@ import {
   visibleWidth,
 } from "@earendil-works/pi-tui";
 
-import { AskUserDialog } from "../dialog.ts";
+import { AskUserDialog, runAskUserTui } from "../dialog.ts";
 import type { DialogEvent } from "../dialog-state.ts";
 
 const SCROLL_DOWN = "\x1b\n";
@@ -260,4 +261,21 @@ test("narrow renders stay within the terminal width", () => {
   }
 
   assert.ok(previewContent(dialog.render(32)).some((line) => line.includes("narrow-01")));
+});
+
+test("runAskUserTui renders a label with a bare carriage return on one row", async () => {
+  let rendered: string[] = [];
+  const ctx = {
+    ui: {
+      custom: async (factory: (...args: unknown[]) => AskUserDialog) => {
+        const tui = { requestRender: () => {} };
+        const theme = { fg: (_color: string, text: string) => text, bg: (_color: string, text: string) => text };
+        rendered = plain(factory(tui, theme, undefined, () => {}).render(60));
+        return { type: "cancelled" };
+      },
+    },
+  } as unknown as ExtensionContext;
+
+  await runAskUserTui({ question: "Choose one.", options: [{ label: "First\rpart" }, { label: "Second" }] }, ctx);
+  assert.ok(rendered.some((line) => line.includes("1. Firstpart")));
 });

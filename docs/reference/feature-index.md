@@ -181,7 +181,8 @@ declaration, the rest are hand-written aspects.
   carries every skill it indexes, including writing, comment, and
   documentation policies. `writing/` holds the
   `pi-writing-lint` source. See [pi](pi.md), [Pi's writing
-  system](../explanation/pi-writing-system.md), [coding
+  system](../explanation/pi-writing-system.md), [Pi's ask-user
+  extension](../explanation/pi-ask-user.md), [coding
   agents](../explanation/coding-agents.md).
 - `podman/` — daemonless container engine.
 - `qpwgraph/` — pipewire patchbay.

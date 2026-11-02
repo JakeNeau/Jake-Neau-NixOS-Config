@@ -155,11 +155,17 @@ export class ArtifactStore {
   private readonly artifacts: WorkflowArtifact[] = [];
   private readonly byId = new Map<string, WorkflowArtifact>();
   private readonly producerIds = new Set<string>();
+  private stopped = false;
 
   constructor(runId: string, workflow: string, now: () => string = () => new Date().toISOString()) {
     this.runId = runId;
     this.workflow = workflow;
     this.now = now;
+  }
+
+  // After stop, a late caller must not grow the run's artifact chain.
+  stop(): void {
+    this.stopped = true;
   }
 
   append(
@@ -168,6 +174,7 @@ export class ArtifactStore {
     parentArtifactIds: string[],
     candidate: ArtifactCandidate,
   ): WorkflowArtifact {
+    if (this.stopped) throw new DOMException("Workflow stopped", "AbortError");
     if (this.producerIds.has(stageInvocationId)) {
       throw new Error(`Stage invocation ${stageInvocationId} already produced an artifact`);
     }

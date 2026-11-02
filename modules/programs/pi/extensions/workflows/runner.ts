@@ -45,52 +45,28 @@ export function buildChildArguments(options: {
   provider: string;
   model: string;
   thinking: string;
-  tools: string[];
+  tools: string[] | "*";
   trusted: boolean;
 }): string[] {
   return [
     "--mode", "rpc", "--no-session",
     "--model", `${options.provider}/${options.model}`,
     "--thinking", options.thinking,
-    "--tools", [...new Set(options.tools)].join(","),
+    "--tools", options.tools === "*" ? "*" : [...new Set(options.tools)].join(","),
     options.trusted ? "--approve" : "--no-approve",
   ];
 }
 
-const destructive = [
-  /\brm\b/i, /\brmdir\b/i, /\bmv\b/i, /\bcp\b/i, /\bmkdir\b/i, /\btouch\b/i,
-  /\bchmod\b/i, /\bchown\b/i, /\bln\b/i, /\btee\b/i, /\btruncate\b/i,
-  /(^|[^<])>(?!>)/, />>/, /\bsudo\b/i, /\bkill(all)?\b/i, /\bpkill\b/i,
-  /\bgit\s+(add|commit|push|pull|merge|rebase|reset|checkout|stash|cherry-pick|revert|tag|init|clone)\b/i,
-  /\b(npm|pnpm|yarn)\s+(install|add|remove|update|ci|publish)\b/i,
-  /\b(nix|nixos-rebuild|darwin-rebuild)\s+(build|run|develop|shell)|\bswitch\b/i,
-];
-const safeStarts = [
-  "cat", "head", "tail", "less", "more", "grep", "find", "ls", "pwd", "echo",
-  "printf", "wc", "sort", "uniq", "diff", "file", "stat", "du", "df", "tree",
-  "which", "whereis", "type", "env", "printenv", "uname", "whoami", "id", "date",
-  "git status", "git log", "git diff", "git show", "git branch", "git remote",
-  "git config --get", "git ls-", "jq", "sed -n", "awk", "rg", "fd", "bat", "eza",
-  "pi-writing-lint",
-];
-
-export function isSafeReadOnlyCommand(command: string): boolean {
-  if (destructive.some((pattern) => pattern.test(command))) return false;
-  const normalized = command.trim().replace(/\s+/g, " ");
-  return safeStarts.some((prefix) => normalized === prefix || normalized.startsWith(`${prefix} `));
-}
-
-export function hasShellControlSyntax(command: string): boolean {
-  return /[\r\n;&|<>`]/.test(command) || command.includes("$(");
-}
-
-export function isAllowedReadOnlyCommand(command: string, allowedPrefixes: string[]): boolean {
-  if (hasShellControlSyntax(command)) return false;
-  const normalized = command.trim().replace(/[ \t]+/g, " ");
-  return allowedPrefixes.some((rawPrefix) => {
-    const prefix = rawPrefix.trim().replace(/[ \t]+/g, " ");
-    return normalized === prefix || normalized.startsWith(`${prefix} `);
-  });
+export function mutationBlockReason(
+  readOnly: boolean,
+  approvedPaths: ReadonlySet<string>,
+  path: string | undefined,
+): string | undefined {
+  // Read-only is enforced by the stage prompt alone; the empty approved set would block every edit.
+  if (readOnly) return undefined;
+  if (path === undefined) return "Workflow mutation has no path";
+  if (!approvedPaths.has(path)) return `Workflow mutation path is not approved: ${path}`;
+  return undefined;
 }
 
 export interface StageRunOptions {
@@ -100,16 +76,18 @@ export interface StageRunOptions {
   provider: string;
   model: string;
   thinking: string;
-  tools: string[];
+  tools: string[] | "*";
   trusted: boolean;
   readOnly: boolean;
-  readOnlyCommandPrefixes?: string[];
   approvedPaths?: string[];
   artifacts: WorkflowArtifact[];
   catalog: unknown[];
   signal?: AbortSignal;
   timeoutMs?: number;
   onEvent?: (event: unknown) => void;
+  // Builds the child command in place of the running Pi.
+  invocation?: (args: string[]) => { command: string; args: string[] };
+  check?: (artifact: ArtifactCandidate) => string[];
 }
 
 export interface StageRunResult {
@@ -117,6 +95,25 @@ export interface StageRunResult {
   repaired: boolean;
   requestedArtifactIds: string[];
   usage: { input: number; output: number; cacheRead: number; cacheWrite: number; cost: number };
+  peakContextTokens: number;
+}
+
+const DIALOG_METHODS = new Set(["select", "confirm", "input", "editor"]);
+
+// Mirrors Pi's calculateContextTokens: the size of the request that produced one message.
+function contextTokens(usage: Record<string, number | undefined>): number {
+  return usage.totalTokens || (usage.input ?? 0) + (usage.output ?? 0) + (usage.cacheRead ?? 0) + (usage.cacheWrite ?? 0);
+}
+
+export function contextBudgetWarning(
+  stageType: string,
+  peakContextTokens: number,
+  contextWindow: number | undefined,
+): string | undefined {
+  if (!contextWindow || contextWindow <= 0 || peakContextTokens <= 0.2 * contextWindow) return undefined;
+  // Rounding up keeps any share above the budget from reading as 20%.
+  const percent = Math.ceil((peakContextTokens * 100) / contextWindow);
+  return `${stageType} used ${percent}% of the context window, above the 20% budget`;
 }
 
 function getPiInvocation(args: string[]): { command: string; args: string[] } {
@@ -179,8 +176,15 @@ export async function runStage(options: StageRunOptions): Promise<StageRunResult
     artifactManifest[artifact.artifactId] = path;
   }
   await writeFile(manifestPath, JSON.stringify({ catalog: options.catalog, artifacts: artifactManifest }), { mode: 0o600 });
+  // The finally block below starts after the spawn, so this path cleans up itself.
+  if (options.signal?.aborted) {
+    await rm(stageDir, { recursive: true, force: true });
+    options.signal.throwIfAborted();
+  }
 
-  const tools = [...new Set([...options.tools, "workflow_output", "request_workflow_artifacts"])];
+  const tools = options.tools === "*"
+    ? "*"
+    : [...new Set([...options.tools, "workflow_output", "request_workflow_artifacts"])];
   const args = buildChildArguments({
     provider: options.provider,
     model: options.model,
@@ -188,7 +192,7 @@ export async function runStage(options: StageRunOptions): Promise<StageRunResult
     tools,
     trusted: options.trusted,
   });
-  const invocation = getPiInvocation(args);
+  const invocation = (options.invocation ?? getPiInvocation)(args);
   const child = spawn(invocation.command, invocation.args, {
     cwd: options.cwd,
     env: {
@@ -197,7 +201,6 @@ export async function runStage(options: StageRunOptions): Promise<StageRunResult
       PI_WORKFLOW_SCHEMA: schemaPath,
       PI_WORKFLOW_ARTIFACT_MANIFEST: manifestPath,
       PI_WORKFLOW_READ_ONLY: options.readOnly ? "1" : "0",
-      PI_WORKFLOW_READ_ONLY_COMMAND_PREFIXES: JSON.stringify(options.readOnlyCommandPrefixes ?? []),
       PI_WORKFLOW_APPROVED_PATHS: JSON.stringify(options.approvedPaths ?? []),
     },
     detached: process.platform !== "win32",
@@ -206,9 +209,13 @@ export async function runStage(options: StageRunOptions): Promise<StageRunResult
 
   const decoder = new StrictJsonlDecoder();
   const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0 };
+  let peakContextTokens = 0;
   let artifact: ArtifactCandidate | undefined;
+  let lastAssistant: { stopReason?: string; errorMessage?: string } | undefined;
   const requestedArtifactIds = new Set<string>();
   let stderr = "";
+  // A child killed by a signal has exitCode null, so the exit handler records the exit.
+  let exited = false;
   let awaitingSettled = true;
   let settledResolve: (() => void) | undefined;
   let settledReject: ((error: Error) => void) | undefined;
@@ -216,6 +223,11 @@ export async function runStage(options: StageRunOptions): Promise<StageRunResult
     settledResolve = resolve;
     settledReject = reject;
   });
+  const startTimer = () => setTimeout(
+    () => settledReject?.(new Error("Workflow stage timed out")),
+    options.timeoutMs ?? 600_000,
+  );
+  let timeout = startTimer();
 
   const resetSettled = () => {
     awaitingSettled = true;
@@ -223,11 +235,29 @@ export async function runStage(options: StageRunOptions): Promise<StageRunResult
       settledResolve = resolve;
       settledReject = reject;
     });
+    clearTimeout(timeout);
+    timeout = startTimer();
+    // The exit handler skips its reject between attempts, so a child that died then fails here.
+    if (exited) settledReject?.(new Error(stderr || "Child Pi exited before the correction"));
+  };
+  const send = (record: unknown) => {
+    if (!exited && !child.stdin.destroyed) child.stdin.write(`${JSON.stringify(record)}\n`);
   };
   const handle = (raw: unknown) => {
     options.onEvent?.(raw);
     if (!raw || typeof raw !== "object") return;
     const event = raw as Record<string, any>;
+    // A rejected or handled prompt starts no run, so no agent_settled follows.
+    if (event.type === "response" && event.command === "prompt") {
+      if (!event.success) settledReject?.(new Error(event.error ?? "Child Pi rejected the stage prompt"));
+      else if (event.data?.disposition === "handled") {
+        settledReject?.(new Error("Child Pi handled the stage prompt without starting a run"));
+      }
+    }
+    // Nobody can answer a dialog in the child, so it gets the protocol's cancel reply.
+    if (event.type === "extension_ui_request" && DIALOG_METHODS.has(event.method)) {
+      send({ type: "extension_ui_response", id: event.id, cancelled: true });
+    }
     if (event.type === "tool_execution_end" && event.toolName === "workflow_output") {
       artifact = event.result?.details?.artifact as ArtifactCandidate | undefined;
     }
@@ -237,8 +267,10 @@ export async function runStage(options: StageRunOptions): Promise<StageRunResult
       }
     }
     if (event.type === "message_end" && event.message?.role === "assistant") {
+      lastAssistant = event.message;
       const current = event.message.usage;
       if (current) {
+        peakContextTokens = Math.max(peakContextTokens, contextTokens(current));
         usage.input += current.input ?? 0;
         usage.output += current.output ?? 0;
         usage.cacheRead += current.cacheRead ?? 0;
@@ -261,39 +293,49 @@ export async function runStage(options: StageRunOptions): Promise<StageRunResult
   });
   child.stderr.on("data", (chunk: Buffer) => { stderr += chunk.toString(); });
   child.on("error", (error) => settledReject?.(error));
+  child.stdin.on("error", (error) => settledReject?.(error));
   child.on("exit", (code) => {
+    exited = true;
     if (awaitingSettled) settledReject?.(new Error(stderr || `Child Pi exited before settling with ${code ?? "no status"}`));
   });
 
-  const timeout = setTimeout(() => settledReject?.(new Error("Workflow stage timed out")), options.timeoutMs ?? 600_000);
   const abort = () => void stopProcess(child);
   options.signal?.addEventListener("abort", abort, { once: true });
 
   const artifactErrors = (candidate: ArtifactCandidate | undefined): string[] => {
     if (!candidate) return ["workflow_output was not called"];
     const errors = validateSchemaValue(options.schema, candidate);
+    // Checks read the payload, so they run only on a schema-valid artifact.
+    if (errors.length === 0 && options.check) errors.push(...options.check(candidate));
     const serialized = JSON.stringify(candidate, null, 2);
     if (Buffer.byteLength(serialized) > 50 * 1024) errors.push("workflow artifact exceeds 50 KB");
     if (serialized.split("\n").length > 2000) errors.push("workflow artifact exceeds 2,000 lines");
     return errors;
   };
 
-  try {
-    child.stdin.write(`${JSON.stringify({ type: "prompt", message: options.prompt })}\n`);
+  const attempt = async (message: string): Promise<string[]> => {
+    send({ type: "prompt", message });
     await settled;
-    let errors = artifactErrors(artifact);
-    let repaired = false;
-    if (errors.length > 0) {
-      repaired = true;
+    options.signal?.throwIfAborted();
+    const errors = artifactErrors(artifact);
+    // Unless the artifact is valid, a provider error ends the stage: a correction cannot fix it.
+    if (errors.length > 0 && lastAssistant?.stopReason === "error") {
+      throw new Error(lastAssistant.errorMessage ?? "Child Pi provider request failed");
+    }
+    return errors;
+  };
+
+  try {
+    let errors = await attempt(options.prompt);
+    const repaired = errors.length > 0;
+    if (repaired) {
       artifact = undefined;
       resetSettled();
-      const correction = `Your stage output was invalid:\n${errors.join("\n")}\nCall workflow_output once with a corrected artifact.`;
-      child.stdin.write(`${JSON.stringify({ type: "prompt", message: correction })}\n`);
-      await settled;
-      errors = artifactErrors(artifact);
+      errors = await attempt(`Your stage output was invalid:\n${errors.join("\n")}\nCall workflow_output once with a corrected artifact.`);
     }
-    if (!artifact || errors.length > 0) throw new Error(`Invalid workflow artifact after repair:\n${errors.join("\n")}`);
-    return { artifact, repaired, requestedArtifactIds: [...requestedArtifactIds], usage };
+    // One line, so a display of only the first line still shows every error.
+    if (!artifact || errors.length > 0) throw new Error(`Invalid workflow artifact after repair: ${errors.join("; ")}`);
+    return { artifact, repaired, requestedArtifactIds: [...requestedArtifactIds], usage, peakContextTokens };
   } finally {
     clearTimeout(timeout);
     options.signal?.removeEventListener("abort", abort);

@@ -9,7 +9,6 @@
   "stages": {
     "refine": {
       "prompt": "stages/refine.md",
-      "tools": ["read", "bash", "follow_link", "rust_code"],
       "readOnly": true,
       "inputs": ["workflow-input"],
       "outputSchema": "schemas/refine.json",

@@ -5,7 +5,9 @@ import type { WorkflowArtifact } from "../artifacts.ts";
 import {
   fitEvidenceStageContext,
   MAX_STAGE_CONTEXT_BYTES,
+  READ_ONLY_INSTRUCTION,
   serializeStageContext,
+  stagePrompt,
 } from "../stage-context.ts";
 
 function evidence(lens: string, index: number): WorkflowArtifact {
@@ -62,4 +64,16 @@ test("compacts oversized synthesis evidence without changing stored artifacts", 
   assert.match(compactFinding.claim, /^Claim 0/);
   assert.equal(compactFinding.path, "docs/specification-0.md");
   assert.match(compactFinding.meaning, /^Meaning 0/);
+});
+
+test("puts the stage context after the template", () => {
+  assert.equal(stagePrompt("Write the plan.", "{}", false), "Write the plan.\n\n## Stage context\n\n{}");
+});
+
+test("appends the read-only instruction after the stage context of a read-only stage", () => {
+  assert.equal(READ_ONLY_INSTRUCTION, "This stage is read-only: do not change files, the project, or the system.");
+  assert.equal(
+    stagePrompt("Refine the plan.", "{}", true),
+    `Refine the plan.\n\n## Stage context\n\n{}\n\n${READ_ONLY_INSTRUCTION}`,
+  );
 });

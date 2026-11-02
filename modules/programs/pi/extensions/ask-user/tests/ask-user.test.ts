@@ -4,6 +4,7 @@ import { test } from "node:test";
 import {
   CLARIFICATION_CHOICE,
   FREE_FORM_CHOICE,
+  normalizeAskUserParams,
   runAskUser,
 } from "../core.ts";
 
@@ -152,4 +153,32 @@ test("directs the agent to plain text when interactive UI is unavailable", async
       status: "unavailable",
     },
   });
+});
+
+test("normalizes carriage returns in a copy of the question, labels, and previews", () => {
+  const params = {
+    question: "Which\r\ndatabase?",
+    options: [{ label: "Postgre\rSQL", preview: "a\r\nb\nc" }, { label: "SQLite" }],
+  };
+  assert.deepEqual(normalizeAskUserParams(params), {
+    question: "Which\ndatabase?",
+    options: [{ label: "PostgreSQL", preview: "a\nb\nc" }, { label: "SQLite" }],
+  });
+  assert.equal(params.options[0].label, "Postgre\rSQL");
+});
+
+test("returns malformed parameters unchanged for validation to reject", () => {
+  for (const params of [
+    "Which database?",
+    null,
+    { question: "Which\rdatabase?", options: "SQLite" },
+    { question: "Which\rdatabase?", options: ["SQLite"] },
+  ]) {
+    assert.equal(normalizeAskUserParams(params), params);
+  }
+});
+
+test("leaves values that are not strings unchanged", () => {
+  const options = [{ label: 7 }, { label: "SQLite", preview: null }];
+  assert.deepEqual(normalizeAskUserParams({ question: 3, options }), { question: 3, options });
 });

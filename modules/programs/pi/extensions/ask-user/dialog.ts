@@ -16,7 +16,7 @@ import {
   wrapTextWithAnsi,
 } from "@earendil-works/pi-tui";
 
-import type { AskUserParams } from "./core.ts";
+import { type AskUserParams, normalizeAskUserParams } from "./core.ts";
 import {
   activePreview,
   createDialogState,
@@ -281,7 +281,7 @@ export async function runAskUserTui(
   try {
     return await ctx.ui.custom<DialogEvent>((tui, theme, _keybindings, done) => {
       finish = done;
-      return new AskUserDialog(params, tui, theme, done);
+      return new AskUserDialog(normalizeAskUserParams(params), tui, theme, done);
     });
   } finally {
     signal?.removeEventListener("abort", abort);

@@ -4,7 +4,7 @@ import { basename, dirname, isAbsolute, resolve } from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 
-import { isAllowedReadOnlyCommand, isSafeReadOnlyCommand } from "./runner.ts";
+import { mutationBlockReason } from "./runner.ts";
 
 function canonicalTarget(cwd: string, path: string): string {
   const absolute = isAbsolute(path) ? resolve(path) : resolve(cwd, path);
@@ -31,9 +31,6 @@ export default function registerWorkflowChild(pi: ExtensionAPI): void {
     artifacts: Record<string, string>;
   };
   const readOnly = process.env.PI_WORKFLOW_READ_ONLY === "1";
-  const readOnlyCommandPrefixes = JSON.parse(
-    process.env.PI_WORKFLOW_READ_ONLY_COMMAND_PREFIXES ?? "[]",
-  ) as string[];
   const approved = new Set<string>(
     (JSON.parse(process.env.PI_WORKFLOW_APPROVED_PATHS ?? "[]") as string[])
       .map((path) => canonicalTarget(process.cwd(), path)),
@@ -49,6 +46,8 @@ export default function registerWorkflowChild(pi: ExtensionAPI): void {
       "Do not describe a workflow artifact only in assistant text.",
     ],
     parameters: Type.Unsafe(schema),
+    // A nested codemode call's terminate would not stop the outer loop.
+    exposure: "model-only",
     executionMode: "sequential",
     async execute(_toolCallId, params) {
       return {
@@ -67,6 +66,7 @@ export default function registerWorkflowChild(pi: ExtensionAPI): void {
       artifactIds: Type.Array(Type.String(), { minItems: 1, maxItems: 3, uniqueItems: true }),
       reason: Type.String({ minLength: 1, maxLength: 500 }),
     }, { additionalProperties: false }),
+    exposure: "model-only",
     executionMode: "sequential",
     async execute(_toolCallId, params) {
       const loaded: unknown[] = [];
@@ -89,17 +89,10 @@ export default function registerWorkflowChild(pi: ExtensionAPI): void {
   });
 
   pi.on("tool_call", (event, ctx) => {
-    if (event.toolName === "bash" && readOnly) {
-      const command = String((event.input as { command?: unknown }).command ?? "");
-      if (!isSafeReadOnlyCommand(command) && !isAllowedReadOnlyCommand(command, readOnlyCommandPrefixes)) {
-        return { block: true, reason: `Workflow read-only stage blocked command: ${command}` };
-      }
-    }
     if (event.toolName !== "edit" && event.toolName !== "write") return;
-    if (readOnly) return { block: true, reason: "Workflow stage is read-only" };
     const inputPath = (event.input as { path?: unknown }).path;
-    if (typeof inputPath !== "string") return { block: true, reason: "Workflow mutation has no path" };
-    const path = canonicalTarget(ctx.cwd, inputPath);
-    if (!approved.has(path)) return { block: true, reason: `Workflow mutation path is not approved: ${path}` };
+    const path = typeof inputPath === "string" ? canonicalTarget(ctx.cwd, inputPath) : undefined;
+    const reason = mutationBlockReason(readOnly, approved, path);
+    if (reason) return { block: true, reason };
   });
 }

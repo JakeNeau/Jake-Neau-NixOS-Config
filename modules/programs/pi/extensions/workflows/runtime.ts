@@ -6,9 +6,23 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 
 import { ArtifactStore, type ArtifactCandidate, type WorkflowArtifact } from "./artifacts.ts";
 import type { LoadedWorkflow, StageDefinition } from "./definitions.ts";
-import { InvocationGraph, mapWithConcurrency, resolveSuccessorSet, validateRouterSelection } from "./engine.ts";
-import { runStage, type StageRunResult } from "./runner.ts";
-import { fitEvidenceStageContext, MAX_STAGE_CONTEXT_BYTES, serializeStageContext } from "./stage-context.ts";
+import {
+  InvocationGraph,
+  mapWithConcurrency,
+  outcomeChoices,
+  resolveSuccessorSet,
+  routeErrors,
+  routerSelectionErrors,
+  validateRouterSelection,
+} from "./engine.ts";
+import { questionErrors } from "./question.ts";
+import { contextBudgetWarning, runStage, type StageRunResult } from "./runner.ts";
+import {
+  fitEvidenceStageContext,
+  MAX_STAGE_CONTEXT_BYTES,
+  serializeStageContext,
+  stagePrompt,
+} from "./stage-context.ts";
 import { WorkflowUi, type WorkflowQuestion } from "./ui.ts";
 
 class WorkflowStopped extends Error {}
@@ -46,6 +60,7 @@ export class WorkflowRuntime {
   private readonly provider: string;
   private readonly model: string;
   private readonly thinking: string;
+  private readonly contextWindow: number | undefined;
   private readonly trusted: boolean;
   private readonly abortController = new AbortController();
 
@@ -58,6 +73,8 @@ export class WorkflowRuntime {
     this.provider = ctx.model.provider;
     this.model = ctx.model.id;
     this.thinking = pi.getThinkingLevel();
+    // Stage children inherit this model, so its window is theirs.
+    this.contextWindow = ctx.model.contextWindow;
     this.trusted = ctx.isProjectTrusted();
     this.artifacts = new ArtifactStore(this.runId, definition.name);
     this.graph = new InvocationGraph(this.runId);
@@ -66,10 +83,7 @@ export class WorkflowRuntime {
 
   requestStop(): void {
     this.abortController.abort();
-  }
-
-  private stageSignal(signal: AbortSignal): AbortSignal {
-    return AbortSignal.any([signal, this.abortController.signal]);
+    this.artifacts.stop();
   }
 
   private updateUsage(result: StageRunResult): void {
@@ -110,7 +124,10 @@ export class WorkflowRuntime {
     extra: Record<string, unknown>,
     signal: AbortSignal,
     approvedPaths?: string[],
+    // Only graph stages route on their outcome; clarify runs through stage() without one.
+    routed = false,
   ): Promise<WorkflowArtifact> {
+    signal.throwIfAborted();
     const stage = this.definition.stages[stageType];
     if (!stage) throw new Error(`Unknown workflow stage: ${stageType}`);
     const inputs = this.selectedInputs(stage, parents);
@@ -140,7 +157,7 @@ export class WorkflowRuntime {
       throw new Error(`Stage ${stageType} inputs exceed 50 KB`);
     }
     if (stageContext.split("\n").length > 2000) throw new Error(`Stage ${stageType} inputs exceed 2,000 lines`);
-    const prompt = `${promptTemplate}\n\n## Stage context\n\n${stageContext}`;
+    const prompt = stagePrompt(promptTemplate, stageContext, stage.readOnly);
     this.ui.update({ stage: stageType });
     const result = await runStage({
       cwd: this.ctx.cwd,
@@ -149,16 +166,24 @@ export class WorkflowRuntime {
       provider: this.provider,
       model: this.model,
       thinking: this.thinking,
-      tools: stage.tools,
+      // Read-only stages are limited by their prompt, not their tools.
+      tools: stage.readOnly ? "*" : stage.tools ?? [],
       trusted: this.trusted,
       readOnly: stage.readOnly,
-      readOnlyCommandPrefixes: this.definition.readOnlyCommandPrefixes?.[stageType],
       approvedPaths,
       artifacts: [...this.artifacts.list()],
       catalog: this.artifacts.catalog(),
       signal,
+      check: (artifact) => [
+        ...(routed ? routeErrors(stage.transitions, artifact.outcome) : []),
+        ...(stage.checkpoint === "question" ? questionErrors(artifact) : []),
+      ],
     });
+    // A late append after session_shutdown would throw on a stale context.
+    signal.throwIfAborted();
     this.updateUsage(result);
+    const warning = contextBudgetWarning(stageType, result.peakContextTokens, this.contextWindow);
+    if (warning) this.ctx.ui.notify(warning, "warning");
     const requested = result.requestedArtifactIds.map((artifactId) => {
       const artifact = this.artifacts.get(artifactId);
       if (!artifact) throw new Error(`Child requested an unknown artifact: ${artifactId}`);
@@ -181,22 +206,8 @@ export class WorkflowRuntime {
     extra: Record<string, unknown> = {},
     approvedPaths?: string[],
   ): Promise<WorkflowArtifact> {
-    const result = await this.ui.runLoader(`${this.definition.name}: ${stageType}`, (signal) =>
-      this.executeStage(stageType, parents, extra, this.stageSignal(signal), approvedPaths)
-    );
-    if (!result) throw new WorkflowStopped("Workflow stopped");
-    return result;
-  }
-
-  async parallelStage(
-    stageType: string,
-    parents: WorkflowArtifact[],
-    variants: Array<Record<string, unknown>>,
-  ): Promise<WorkflowArtifact[]> {
-    const result = await this.ui.runLoader(`${this.definition.name}: ${stageType} (${variants.length} branches)`, (signal) =>
-      mapWithConcurrency(variants, this.definition.maxParallel ?? 4, (variant) =>
-        this.executeStage(stageType, parents, variant, this.stageSignal(signal))
-      )
+    const result = await this.ui.runLoader(`${this.definition.name}: ${stageType}`, this.abortController.signal, (signal) =>
+      this.executeStage(stageType, parents, extra, signal, approvedPaths)
     );
     if (!result) throw new WorkflowStopped("Workflow stopped");
     return result;
@@ -227,20 +238,25 @@ export class WorkflowRuntime {
       },
     };
     const prompt = `Choose the best next stage set for workflow ${this.definition.name}.\n\nCurrent stage: ${stageType}\nArtifact: ${JSON.stringify(artifact)}\nAllowed sets: ${JSON.stringify(choices)}\n\nReturn a route artifact through workflow_output.`;
-    const result = await this.ui.runLoader(`${this.definition.name}: route`, (signal) => runStage({
-      cwd: this.ctx.cwd,
-      prompt,
-      schema,
-      provider: this.provider,
-      model: this.model,
-      thinking: this.thinking,
-      tools: [],
-      trusted: this.trusted,
-      readOnly: true,
-      artifacts: [...this.artifacts.list()],
-      catalog: this.artifacts.catalog(),
-      signal: this.stageSignal(signal),
-    }));
+    const result = await this.ui.runLoader(`${this.definition.name}: route`, this.abortController.signal, async (signal) => {
+      const route = await runStage({
+        cwd: this.ctx.cwd,
+        prompt,
+        schema,
+        provider: this.provider,
+        model: this.model,
+        thinking: this.thinking,
+        tools: [],
+        trusted: this.trusted,
+        readOnly: true,
+        artifacts: [...this.artifacts.list()],
+        catalog: this.artifacts.catalog(),
+        signal,
+        check: (artifact) => routerSelectionErrors(choices, array(object(artifact.payload).stages).map(String)),
+      });
+      signal.throwIfAborted();
+      return route;
+    });
     if (!result) throw new WorkflowStopped("Workflow stopped");
     this.updateUsage(result);
     const route = this.addArtifact("route", [artifact], result.artifact);
@@ -270,10 +286,11 @@ export class WorkflowRuntime {
           : [first];
         for (const item of batch) pending.splice(pending.indexOf(item), 1);
         invocationCount += batch.length;
-        const results = await this.ui.runLoader(`${this.definition.name}: ${batch.map((item) => item.stageType).join(", ")}`, (signal) =>
-          mapWithConcurrency(batch, this.definition.maxParallel ?? 4, (item) =>
-            this.executeStage(item.stageType, item.parents, { input, iteration: item.iteration }, this.stageSignal(signal), item.approvedPaths)
-          )
+        const label = `${this.definition.name}: ${batch.map((item) => item.stageType).join(", ")}`;
+        const results = await this.ui.runLoader(label, this.abortController.signal, (signal) =>
+          mapWithConcurrency(batch, this.definition.maxParallel ?? 4, (item, _index, branchSignal) =>
+            this.executeStage(item.stageType, item.parents, { input, iteration: item.iteration }, branchSignal, item.approvedPaths, true),
+          signal)
         );
         if (!results) throw new WorkflowStopped("Workflow stopped");
 
@@ -326,7 +343,7 @@ export class WorkflowRuntime {
             });
           }
 
-          const choices = stage.transitions[artifact.outcome];
+          const choices = outcomeChoices(stage.transitions, artifact.outcome);
           if (!choices) throw new Error(`Stage ${item.stageType} has no route for ${artifact.outcome}`);
           if (choices.length === 0) continue;
           const successors = resolveSuccessorSet(stage.transitions, artifact.outcome)
@@ -354,7 +371,8 @@ export class WorkflowRuntime {
       }
       return "done";
     } catch (error) {
-      if (error instanceof WorkflowStopped) return "stopped";
+      // After a stop, the abort surfaces as whatever error the interrupted stage threw.
+      if (error instanceof WorkflowStopped || this.abortController.signal.aborted) return "stopped";
       throw error;
     } finally {
       this.ui.stop();
