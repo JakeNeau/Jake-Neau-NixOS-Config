@@ -67,6 +67,8 @@
         hyprlock
         udiskie
         xwayland-satellite
+        # A flake.programs declaration: request it here only, never also in globalPrograms.
+        noctalia
         candy-icons
         papirus-icon-theme
         hidden-desktop-entries

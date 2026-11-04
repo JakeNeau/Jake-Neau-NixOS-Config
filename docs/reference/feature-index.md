@@ -64,8 +64,8 @@ Machine-level config: what needs root, shared by all users.
   - `desktop/` — `role-desktop`: the coarse desktop layer shared by every
     workstation.
   - `niri-desktop/` — the complete niri wayland desktop in one import
-    (compositor, portals, greetd session, per-user wayland plumbing);
-    NixOS-only.
+    (compositor, portals, greetd session, Noctalia shell, per-user wayland
+    plumbing); NixOS-only.
 
 ## modules/hosts
 
@@ -166,6 +166,8 @@ declaration, the rest are hand-written aspects.
 - `librewolf/` — privacy-hardened Firefox fork with separate work, strict,
   compatibility, and development profiles. See [LibreWolf](librewolf.md).
 - `nautilus/`: graphical file manager installed for Redwood users.
+- `noctalia/`: Wayland desktop shell. The `niri-desktop` role requests it, so
+  do not also add it to `globalPrograms`.
 - `nvf/` — declarative Neovim, the same editor on every host. `indent.nix` holds
   every tab and space setting. See [Neovim indentation
   settings](neovim-indentation.md), [Neovim
