@@ -70,59 +70,6 @@
     boot.initrd.luks.devices."luks-014e6aef-d36f-4b5b-9b48-447d6bc40b95".device =
       "/dev/disk/by-uuid/014e6aef-d36f-4b5b-9b48-447d6bc40b95";
 
-    # -----
-    # Audio
-    # -----
-    # Replicate audio output to multiple sinks (Focusrite + FiiO).
-    services.pipewire.extraConfig.pipewire = {
-      "91-null-sinks" = {
-        "context.objects" = [
-          {
-            factory = "adapter";
-            args = {
-              "factory.name" = "support.null-audio-sink";
-              "node.name" = "Multi-Output";
-              "node.desctiption" = "Replicates output to multiple sinks";
-              "media.class" = "Audio/Sink";
-              "audio.position" = "FL,FR";
-            };
-          }
-        ];
-      };
-    };
-
-    # Run pipewire setup scripts on startup
-    systemd.user.services.create-pipewire-links = {
-      description = "create-pipewire-links: sets up pipewire connections after pipewire is set up";
-      wantedBy = [
-        "pipewire.service"
-      ];
-      requires = [
-        "pipewire.service"
-        "wireplumber.service"
-      ];
-      after = [
-        "pipewire.service"
-        "wireplumber.service"
-      ];
-      preStart = "sleep 5";
-      serviceConfig = {
-        Restart = "on-failure";
-        RestartSec = 5;
-      };
-      script = ''
-        # ports obtained from `pw-link -io`
-
-        # Connect multi-output to focusrite headphones
-        /run/current-system/sw/bin/pw-link "Multi-Output:monitor_FL" "alsa_output.usb-Focusrite_Scarlett_2i2_USB_Y8XBPE40BA5F9E-00.HiFi__Line1__sink:playback_FL"
-        /run/current-system/sw/bin/pw-link "Multi-Output:monitor_FR" "alsa_output.usb-Focusrite_Scarlett_2i2_USB_Y8XBPE40BA5F9E-00.HiFi__Line1__sink:playback_FR"
-
-        # Connect multi-output to fiio amp
-        /run/current-system/sw/bin/pw-link "Multi-Output:monitor_FL" "alsa_output.usb-GuangZhou_FiiO_Electronics_Co._Ltd_FiiO_K7-00.analog-stereo:playback_FL"
-        /run/current-system/sw/bin/pw-link "Multi-Output:monitor_FR" "alsa_output.usb-GuangZhou_FiiO_Electronics_Co._Ltd_FiiO_K7-00.analog-stereo:playback_FR"
-      '';
-    };
-
     # --------------
     # Steam / gaming
     # --------------
