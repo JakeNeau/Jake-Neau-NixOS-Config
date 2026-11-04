@@ -7,10 +7,10 @@ Review and automatically conform comments in this scope:
 
 ${ARGUMENTS:-comments added, deleted, or modified in `git diff HEAD`}
 
-First follow the global [[skill:comments]] policy with
-`follow_link global:skill:comments`. Identify only comments in the requested
-scope, read enough surrounding code and real dependencies to establish intent,
-classify each comment, and load each applicable linked category skill once.
+First follow the global [[skill:writing-comments]] policy with
+`follow_link global:skill:writing-comments`. Identify only comments in the
+requested scope, read enough surrounding code and real dependencies to
+establish intent, and classify each comment.
 When the scope names a file, review every comment in that file.
 
 Work deletion-first. Delete comments that do not earn a line, then shorten,

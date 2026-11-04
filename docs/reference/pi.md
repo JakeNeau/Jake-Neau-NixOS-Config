@@ -582,6 +582,31 @@ typed-link adapter.
 [Pi typed-link navigation](../explanation/pi-typed-links.md) explains the
 registry's design.
 
+## System prompt
+
+Pi assembles its system prompt from named sections in a fixed order. The
+`preamble` is one identity sentence. `tools`, `rules`, and `docs` describe the
+tools, their guidelines, and where Pi's own documentation lives. `addendum`
+holds the managed `~/.pi/agent/APPEND_SYSTEM.md`. `project_context` holds the
+managed `~/.pi/agent/AGENTS.md` and any project `AGENTS.md`. `skills` lists the
+name and description of each skill linked under `~/.pi/agent/skills/`. `cwd`
+closes the prompt.
+
+`modules/programs/pi/config/APPEND_SYSTEM.md` supplies the addendum. It states
+how Pi refines its picture of the task, when it asks the user, when it checks
+the web before relying on memory, what it confirms before an irreversible
+action, how it explains, and which approach it prefers. Its `Skills` section
+requires Pi to load `global:skill:writing-code` before writing or changing
+code, `global:skill:writing-tests` before tests, and
+`global:skill:writing-comments` before comments. Those three skills hold the
+detailed house style and reach Pi only through the typed-link registry, so
+they cost no prompt tokens until loaded.
+
+A trusted project's `.pi/APPEND_SYSTEM.md` replaces the global addendum rather
+than extending it. No project in this flake carries one. A `SYSTEM.md` would
+replace the preamble and drop the `tools`, `rules`, and `docs` sections, so the
+module does not manage one.
+
 ## Documentation workflow
 
 The managed `~/.pi/agent/AGENTS.md` requires Pi to load
@@ -619,8 +644,8 @@ The router loads focused policy bodies through typed links:
   consequences, and artifact order.
 - `global:skill:controlled-writing` controls terms, vocabulary, sentences,
   voice, lists, paragraphs, and protected text.
-- `global:skill:comments` controls whether a code comment exists and which
-  comment policy applies.
+- `global:skill:writing-comments` controls whether a code comment exists and
+  what it says.
 - `global:skill:documentation` controls documentation architecture and
   placement when those decisions are part of the task.
 
@@ -646,13 +671,14 @@ The design rationale is in
 
 ## Comment policy
 
-The writing router follows `global:skill:comments` before it applies general
-prose rules to a code comment. The shared comment skill classifies the comment,
-then links to one focused category policy. Categories cover redundant narration,
-rationale, invariants, workarounds, API contracts, structural markers,
-functional directives, provenance, task markers, and disabled code. Category
-bodies load only when encountered. Ordinary prose targets one line and has a
-two-line ceiling.
+The writing router and the system prompt's `Skills` section both send Pi to
+`global:skill:writing-comments` before it writes, changes, or reviews a code
+comment. The skill is one document: a comment exists only to say why one side
+of a trade-off was chosen or why surprising code is right, a doc comment states
+what the signature cannot, and sections cover rationale, invariants,
+workarounds, doc comments, structural markers, task markers, verbatim
+directives and provenance, and disabled code. Ordinary prose targets one line
+and has a two-line ceiling.
 
 The global `/comment-review [scope]` prompt conforms comments automatically. Its
 default scope is comments added, deleted, or modified in `git diff HEAD`. A

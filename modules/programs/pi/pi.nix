@@ -953,6 +953,7 @@ in
             "app.tools.expand" = "alt+o";
           };
           ".pi/agent/AGENTS.md".text = agentContext;
+          ".pi/agent/APPEND_SYSTEM.md".source = ./config/APPEND_SYSTEM.md;
 
           # Unattended research should return raw evidence to the main agent, not
           # open the interactive curator or delegate synthesis to another model.

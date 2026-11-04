@@ -48,6 +48,17 @@ stack and typed-link navigation:
 - **the writing system** routes prose through controlled form and substantive
   structure policies. See [Pi's writing system](pi-writing-system.md) for its
   design.
+- **the system prompt addendum** corrects the model's defaults without
+  replacing pi's own prompt. Pi's built-in prompt and tool definitions total
+  under a thousand tokens, and a replacement `SYSTEM.md` would drop the tool
+  guidance to save almost nothing, so the module appends instead. Each line in
+  the addendum targets a behaviour the model gets wrong unaided: over-built
+  code, silent guessing, code that ignores the repository, reasoning-first
+  explanations. The detailed house style for code, tests, and comments lives
+  in three skills the addendum requires pi to load before that work, because
+  a context file costs its tokens on every turn while a skill costs them only
+  when used, and instruction-following measurably drops as the always-on
+  instruction count rises.
 
 Search is deliberately owned by one extension; the browser extension's
 companion search tool is disabled. Browser-cookie extraction is also disabled,
