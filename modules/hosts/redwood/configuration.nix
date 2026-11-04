@@ -1,9 +1,4 @@
 { inputs, ... }: {
-  flake-file.inputs.steamvr-kernel-patch = {
-    url = "file+https://github.com/Frogging-Family/community-patches/raw/master/linux61-tkg/cap_sys_nice_begone.mypatch";
-    flake = false;
-  };
-
   # The NixOS desktop ("redwood"). Shared desktop config comes from
   # role-desktop; this file holds only desktop-specific hardware/features.
   flake.hosts.redwood = {
@@ -25,6 +20,7 @@
       "role-desktop"
       "niri-desktop"
       "stylix"
+      "steamvr"
     ];
   };
 
@@ -35,6 +31,7 @@
         lanzaboote
         nix-minecraft
         home-assistant-filesystem
+        steamvr
       ])
       ++ [ inputs.self.modules.generic.numtide-cache ];
 
@@ -59,14 +56,6 @@
       MemorySleepMode = "deep";
       SuspendState = "mem";
     };
-    boot.kernelPatches = [
-      {
-        # Patches for running steamVR
-        name = "amdgpu-ignore-ctx-privileges";
-        patch = inputs.steamvr-kernel-patch;
-      }
-    ];
-
     boot.initrd.luks.devices."luks-014e6aef-d36f-4b5b-9b48-447d6bc40b95".device =
       "/dev/disk/by-uuid/014e6aef-d36f-4b5b-9b48-447d6bc40b95";
 

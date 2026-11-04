@@ -200,6 +200,10 @@ declaration, the rest are hand-written aspects.
 - `steam/` — Steam on macOS. Redwood configures the NixOS client with a bounded
   font set. See [Steam font compatibility](../explanation/steam-font-compatibility.md)
   and [Repair Steam font rendering](../how-to/repair-steam-fonts.md).
+  `steamvr.nix` holds the SteamVR aspects. `nixos.steamvr` applies the amdgpu
+  kernel patch that SteamVR needs. `homeManager.steamvr` hides SteamVR's URI
+  handlers from the launcher and keeps the handlers. Redwood imports the NixOS
+  aspect and lists `steamvr` in its baselines.
 - `swaybg/` — wayland wallpaper setter.
 - `udiskie/` — automatic removable-media mounting.
 - `ungoogled-chromium/`: Chromium with Google integration removed. Every host
