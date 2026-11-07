@@ -749,6 +749,10 @@
             # library check reuse the project client instead.
             servers."rust-analyzer" = lib.mkIf config.programs.nvf.settings.vim.languages.rust.enable {
               settings."rust-analyzer".cargo.sysrootSrc = "${pkgs.rustPlatform.rustLibSrc}";
+              # Checks keep their own build dir so they never wait on the lock
+              # of a build-dir that a parent .cargo/config.toml shares with builds.
+              settings."rust-analyzer".cargo.extraEnv.CARGO_BUILD_BUILD_DIR =
+                "{workspace-root}/target/rust-analyzer";
             };
           };
 

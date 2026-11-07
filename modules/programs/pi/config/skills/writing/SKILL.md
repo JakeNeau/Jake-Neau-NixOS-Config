@@ -8,7 +8,7 @@ description: Routes every Pi prose task through the house writing system with pr
 Classify the artifact before drafting. Load each selected policy at most once per task.
 
 1. For code comments, first call `follow_link global:skill:writing-comments`.
-2. For documentation architecture or placement, first call `follow_link global:skill:documentation`.
+2. For documentation architecture or placement, first call `follow_link global:skill:writing-documentation`.
 3. For a material claim, explanation, recommendation, documented behavior, or nontrivial reply, call `follow_link global:skill:writing-substance`.
 4. For all authored prose, call `follow_link global:skill:controlled-writing`.
 
@@ -27,4 +27,4 @@ Resolve valid findings. Report heuristic exceptions instead of distorting accura
 - [[skill:writing-substance]]: select, support, connect, and order the content.
 - [[skill:controlled-writing]]: apply the controlled-English form and final check.
 - [[skill:writing-comments]]: decide whether a code comment exists and what it says.
-- [[skill:documentation]]: establish documentation type, architecture, and placement.
+- [[skill:writing-documentation]]: establish documentation architecture and placement.

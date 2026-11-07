@@ -56,7 +56,8 @@ walking was rejected because one highly connected skill could pull an
 unbounded chain into context and recreate the original context-pressure problem.
 
 The writing policy uses this boundary deliberately. Pi's global `AGENTS.md`
-contains only the `[[skill:documentation]]` and `[[skill:writing]]` routing
+contains only the `[[skill:reading-documentation]]`,
+`[[skill:writing-documentation]]`, and `[[skill:writing]]` routing
 instructions with their canonical global registry IDs, and the system prompt's
 `Skills` section adds the same kind of route to the code, test, and comment
 skills. The writing router then selects the substance, form, documentation,

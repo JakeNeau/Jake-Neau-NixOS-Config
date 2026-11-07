@@ -76,5 +76,7 @@ quadrant folders that contain current pages.
 
 ## Related skills
 
-- [[skill:documentation]]: documentation-first navigation, defect handling,
+- [[skill:reading-documentation]]: documentation-first navigation and defect
+  reporting
+- [[skill:writing-documentation]]: documentation placement, defect correction,
   and post-code updates

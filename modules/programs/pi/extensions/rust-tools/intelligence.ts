@@ -113,6 +113,10 @@ async function symbolPoint(analyzer: Analyzer, input: RustCodeInput): Promise<{ 
   };
 }
 
+// Checks keep their own build dir so they never wait on the lock
+// of a build-dir that a parent .cargo/config.toml shares with builds.
+const RUST_ANALYZER_BUILD_DIR = "{workspace-root}/target/rust-analyzer";
+
 export function resolveRustAnalyzerStart(
   project: Pick<RustProject, "root" | "cargo">,
   config: RustIntelligenceConfig,
@@ -125,7 +129,7 @@ export function resolveRustAnalyzerStart(
       executable: config.nixPath,
       args,
       cwd: project.root,
-      env: project.cargo.env,
+      env: { ...project.cargo.env, CARGO_BUILD_BUILD_DIR: RUST_ANALYZER_BUILD_DIR },
       timeoutMs: config.timeoutMs,
     };
   }
@@ -138,6 +142,7 @@ export function resolveRustAnalyzerStart(
         ? `${config.toolPath}:${process.env.PATH ?? ""}`
         : process.env.PATH,
       RUSTC: config.rustcPath,
+      CARGO_BUILD_BUILD_DIR: RUST_ANALYZER_BUILD_DIR,
     },
     timeoutMs: config.timeoutMs,
   };

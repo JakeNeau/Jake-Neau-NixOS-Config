@@ -68,6 +68,31 @@ test("launches rust-analyzer inside a documented Nix development shell", () => {
   assert.equal(start.env.RUSTC, undefined);
 });
 
+test("gives rust-analyzer its own build dir on both launch paths", () => {
+  const config = {
+    rustAnalyzerPath: "/nix/store/rust-analyzer/bin/rust-analyzer",
+    cargoPath: "cargo",
+    rustcPath: "rustc",
+    nixPath: "/nix/store/nix/bin/nix",
+  };
+  const inShell = resolveRustAnalyzerStart({
+    root: fixture,
+    cargo: {
+      executable: "/nix/store/nix/bin/nix",
+      argsPrefix: ["develop", "--command", "cargo"],
+      env: { HOME: "/tmp/home" },
+    },
+  } as any, config);
+  const direct = resolveRustAnalyzerStart({
+    root: fixture,
+    cargo: { executable: "cargo", argsPrefix: [], env: {} },
+  } as any, config);
+  for (const start of [inShell, direct]) {
+    assert.equal(start.env.CARGO_BUILD_BUILD_DIR, "{workspace-root}/target/rust-analyzer");
+  }
+  assert.equal(inShell.env.HOME, "/tmp/home");
+});
+
 test("registers rust_code and starts rust-analyzer lazily", async () => {
   const pi = fakePi();
   const session = fakeSession();

@@ -257,6 +257,9 @@
             extensionToLanguage = {
               ".rs" = "rust";
             };
+            # Checks keep their own build dir so they never wait on the lock
+            # of a build-dir that a parent .cargo/config.toml shares with builds.
+            initializationOptions.cargo.extraEnv.CARGO_BUILD_BUILD_DIR = "{workspace-root}/target/rust-analyzer";
           };
           svelte = {
             command = "${pkgs.svelte-language-server}/bin/svelteserver";

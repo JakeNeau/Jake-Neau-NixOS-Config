@@ -17,5 +17,15 @@
   };
 
   flake.modules.nixos.direnv.imports = [ inputs.self.modules.generic.direnv ];
-  flake.modules.darwin.direnv.imports = [ inputs.self.modules.generic.direnv ];
+  flake.modules.darwin.direnv =
+    { config, ... }:
+    {
+      imports = [ inputs.self.modules.generic.direnv ];
+
+      # Every Imperia worktree carries a committed .envrc; trusting the folder
+      # spares a `direnv allow` per new worktree.
+      programs.direnv.settings.whitelist.prefix = [
+        "${config.users.users.${config.system.primaryUser}.home}/Projects/Imperia"
+      ];
+    };
 }

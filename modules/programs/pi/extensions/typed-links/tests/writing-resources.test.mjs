@@ -17,10 +17,11 @@ const EXPECTED_IDS = [
   "global:skill:brainstorming",
   "global:skill:controlled-writing",
   "global:skill:diataxis",
-  "global:skill:documentation",
+  "global:skill:reading-documentation",
   "global:skill:writing",
   "global:skill:writing-code",
   "global:skill:writing-comments",
+  "global:skill:writing-documentation",
   "global:skill:writing-pi-extensions",
   "global:skill:writing-substance",
   "global:skill:writing-tests",
@@ -78,11 +79,17 @@ test("compiles the Pi policy graph", async () => {
   assert.ok(writing.links.length >= 3);
   assert.ok(writing.links.every((link) => link.status === "resolved"));
 
-  const documentation = registry.entries.find(
-    (entry) => entry.id === "global:skill:documentation",
-  );
-  assert.deepEqual(
-    documentation.links.map((link) => link.targetId),
-    ["global:skill:diataxis"],
-  );
+  const linksOf = (id) => registry.entries
+    .find((entry) => entry.id === id)
+    .links.map((link) => link.targetId);
+  assert.deepEqual(linksOf("global:skill:reading-documentation"), [
+    "global:skill:diataxis",
+    "global:skill:writing-documentation",
+  ]);
+  assert.deepEqual(linksOf("global:skill:writing-documentation"), [
+    "global:skill:diataxis",
+    "global:skill:reading-documentation",
+    "global:skill:writing-substance",
+    "global:skill:writing",
+  ]);
 });

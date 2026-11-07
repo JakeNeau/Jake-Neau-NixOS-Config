@@ -609,27 +609,35 @@ module does not manage one.
 
 ## Documentation workflow
 
-The managed `~/.pi/agent/AGENTS.md` requires Pi to load
-`global:skill:documentation` before using code for high-level project
-navigation. Pi reads the project's documentation first and uses code for
-low-level implementation details.
+Two skills split the documentation discipline: one for reading documentation
+and one for writing it. The managed `~/.pi/agent/AGENTS.md` requires Pi to load
+`global:skill:reading-documentation` before using code for high-level project
+navigation, and `global:skill:writing-documentation` after changing code.
 
-The documentation skill defines these requirements:
+The reading skill defines these requirements:
+
+- Pi reads the project's documentation first and uses code for low-level
+  implementation details.
+- Missing high-level information found in code becomes a reported
+  documentation gap, classified as a reference gap, a how-to gap, stale
+  documentation, or misplaced documentation.
+- A read-only investigation never creates a documentation system.
+
+The writing skill defines these requirements:
 
 - Existing project architecture, terms, style, and tooling take precedence.
 - Diátaxis supplies the default architecture when no existing system applies.
-- Missing high-level information found in code becomes a reported
-  documentation gap.
 - Pi corrects verified documentation errors during the same task.
 - Every code change receives a documentation pass before completion.
 - Each new capability receives durable documentation in the same task.
 - A project without documentation receives the minimum required Diátaxis
   structure after Pi adds code.
 
-Pi applies `global:skill:writing` before editing documentation. It runs
-`pi-writing-lint` on changed Markdown and plain-text files. The global
-`global:skill:diataxis` skill defines the four documentation types and their
-placement rules.
+Both skills link to `global:skill:diataxis`, which defines the four
+documentation types and their placement rules. The writing skill builds a
+page's content through `global:skill:writing-substance` and applies its form
+through `global:skill:writing`. Pi runs `pi-writing-lint` on changed Markdown
+and plain-text files.
 
 ## Writing system
 
@@ -646,8 +654,8 @@ The router loads focused policy bodies through typed links:
   voice, lists, paragraphs, and protected text.
 - `global:skill:writing-comments` controls whether a code comment exists and
   what it says.
-- `global:skill:documentation` controls documentation architecture and
-  placement when those decisions are part of the task.
+- `global:skill:writing-documentation` controls documentation architecture
+  and placement when those decisions are part of the task.
 
 The router contains links and classification rules only. Policy bodies remain
 outside startup context. Pi loads each selected body at most once per task.
