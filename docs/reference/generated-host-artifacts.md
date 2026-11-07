@@ -17,6 +17,9 @@ hand-written `flake.modules.<class>.<host>` aspect. It imports:
   factory, *placement* is the declaration's;
 - the system unit (`nixos.<p>` / `darwin.<p>`) of every `globalPrograms`
   entry whose resolved way is not `"home"`.
+- on darwin hosts, the VPN sync module (`flake.lib.vpnSync.darwin`). It
+  passes the executables of the `excludeFromVpn` globals installed as casks
+  to every `hostConstants.vpn.syncExcludedApps` command at activation.
 
 ## flake.modules.homeManager.\<host\>-baseline
 
@@ -28,6 +31,9 @@ The per-host baseline aspect every listed user's home imports. It imports:
   when the resolved way is `"home"`, the `homeManager.<p>-config` unit
   otherwise;
 - the `hostConstants` read-through module.
+- the home VPN sync module (`flake.lib.vpnSync.homeManager`). It declares
+  `vpnExclusion.packages` and passes their app executables to every
+  `hostConstants.vpn.syncExcludedApps` command at home activation.
 
 ## The hostConstants read-through module
 

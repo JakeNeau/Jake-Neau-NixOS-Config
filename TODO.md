@@ -338,7 +338,7 @@
 - [ ] Extend sops secret consumption to the macs (aspen, cedar). Today only the
       NixOS side decrypts secrets: the hand-written
       `flake.modules.nixos.secrets-management` aspect has no darwin equivalent,
-      and the `secrets-management` program's `install.macos`
+      and the `secrets-management` program's macOS install
       (`modules/programs/secrets-management/secrets-management.nix`) covers only
       the `sops`/`age` CLIs, not any decryption wiring. Done means a darwin
       counterpart decrypts secrets on the macs the way the NixOS aspect does.

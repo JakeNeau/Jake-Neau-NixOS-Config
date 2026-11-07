@@ -31,9 +31,34 @@ wiring is generated, under four principles:
    model](standalone-homes.md).
 4. **Uniformity.** Programs, hosts, and users are each one structured
    declaration; everything else is generated. Hand-written aspects stay
-   first-class for what doesn't fit (services, daemons, oddballs like
+   first-class for what doesn't fit (standalone services, oddballs like
    yazi's portal routing) — that's what the `handWritten` suppression
    field is for.
+
+A program whose system install needs a daemon declares it in
+`systemConfig`. A host's single `globalPrograms` entry then installs the
+package or cask together with its daemon. A hand-written aspect for the
+daemon would instead need a second, separate import on every host, and the
+two could drift apart.
+
+Some programs install through their own system module, such as a NixOS
+`programs.<name>.enable` module. They declare the `"custom"` way. The
+generator installs nothing for that way and routes it like any
+machine-wide install. The program's `systemConfig` does the install.
+
+### Why platform blocks
+
+A declaration splits into `shared`, `linux`, and `macos` blocks with the
+same fields. Each platform reads its own block and then `shared`. The
+generator gates a platform block's home-manager config on its platform, so
+the module itself needs no `isLinux` or `isDarwin` check. A platform check
+remains only where it picks a value inside a shared option, as in
+fastfetch's install-date command.
+
+The gate covers config but not option declarations. An option declared on
+both platforms is harmless, and a shared module may read it. A platform
+block may not import modules, because the generator cannot gate a module
+it imports. Imports belong in `shared.config`.
 
 Each declaration covers one axis, and together they close the grid:
 `globalPrograms` is per-host-all-users, the user's aspect is
@@ -86,9 +111,9 @@ type check as a raw `{_type = "if"; ...}` attrset ("A definition for
 option ... is not of type ..."). The reverse nesting,
 `mkIf c (mkDefault v)`, works fine.
 
-This isn't theoretical: it bites ghostty (`package = mkIf isDarwin null`),
-yazi (whose entire home config is one `mkIf isLinux`), and fish (a
-top-level `mkMerge` of `mkIf` branches). So the wrapper recurses *into*
+This is not theoretical. The generator gates every platform block's config
+in one `mkIf` on its platform, and fish's home config is a top-level
+`mkMerge` of `mkIf` branches. So the wrapper recurses *into*
 property markers and stamps the priority underneath them, producing the
 working if-outside/override-inside nesting leaf by leaf.
 
@@ -175,6 +200,9 @@ Two failure modes, two mechanisms:
   These are authoring errors; failing at eval, before any unit is imported
   anywhere, with a message naming the subject and the fix, catches them at
   the first `nix` command.
+- **An import inside a platform block throws when a home imports the
+  unit.** The generator sees a module function's imports only once the
+  module system calls it, so this check cannot run at declaration eval.
 - **Plausible-but-unsupported imports get tombstones** — a generated
   module carrying a failing assertion. Importing `darwin.<p>` for a
   program with no cask is a *consumer* error at a distance; without the

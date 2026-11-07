@@ -9,7 +9,7 @@
   };
 
   # Part of claude-code's config, so only homes that import Claude Code get it.
-  flake.programs.claude-code.config =
+  flake.programs.claude-code.shared.config =
     { pkgs, lib, ... }:
     let
       src = inputs.open-claude-in-chrome;

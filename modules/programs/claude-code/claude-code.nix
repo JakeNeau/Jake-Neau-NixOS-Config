@@ -18,11 +18,10 @@
   # home-manager instead materialises each file from its text, so the config is
   # shared across machines through the flake rather than via a symlink farm.
   flake.programs.claude-code = {
-    install.linux = [ "home" ];
-    install.macos = [ "home" ];
+    shared.install = [ "home" ];
     # home-manager's real programs.claude-code module supplies the enable
     # toggle, so hasEnableOption keeps its default.
-    config =
+    shared.config =
       {
         pkgs,
         lib,

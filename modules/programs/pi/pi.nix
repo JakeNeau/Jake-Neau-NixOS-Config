@@ -621,6 +621,33 @@ let
       mkdir -p "$root/node_modules"
       cp -R ${inputs.pi-tidy-tools-semver} "$root/node_modules/semver"
     '';
+  # Pi reaches Home Assistant over MCP, plus the www share when the host mounts it.
+  mkPiMcpFiles =
+    {
+      pkgs,
+      lib,
+      config,
+    }:
+    {
+      ".pi/agent/mcp.json".text = builtins.toJSON {
+        mcpServers = {
+          "home-assistant" = {
+            url = "https://ha.jakeneau.com/api/mcp";
+            oauth.clientRegistration = "cimd";
+          };
+        }
+        //
+          lib.optionalAttrs (lib.attrByPath [ "programs" "home-assistant-filesystem" "enable" ] false config)
+            {
+              "home-assistant-filesystem" = {
+                command = lib.getExe pkgs.mcp-server-filesystem;
+                args = [ "/mnt/home-assistant-www" ];
+              };
+            };
+      };
+    };
+  homeAssistantMcpIntegration =
+    { lib, config }: lib.attrByPath [ "programs" "home-assistant" "enableMcpIntegration" ] false config;
   mkPiThirdPartyExtensionsCheck =
     pkgs:
     let
@@ -778,11 +805,10 @@ in
   };
 
   flake.programs.pi = {
-    install.linux = [ "home" ];
-    install.macos = [ "home" ];
+    shared.install = [ "home" ];
     hasEnableOption = false;
 
-    packages =
+    shared.packages =
       pkgs:
       let
         system = pkgs.stdenv.hostPlatform.system;
@@ -795,7 +821,7 @@ in
         inputs.llm-agents.packages.${system}.agent-browser
       ];
 
-    config =
+    shared.config =
       {
         pkgs,
         lib,
@@ -856,33 +882,6 @@ in
         fishEnabled = config.programs.fish.enable;
         fishShell = "${config.programs.fish.package}/bin/fish";
         settingsUpdater = mkPiSettingsUpdater pkgs;
-        homeAssistantMcpEnabled =
-          lib.attrByPath [ "programs" "home-assistant" "enableMcpIntegration" ] false config
-          && (
-            pkgs.stdenv.hostPlatform.isDarwin
-            || lib.attrByPath [ "programs" "home-assistant" "enable" ] false config
-          );
-        homeAssistantFilesystemMcpEnabled = lib.attrByPath [
-          "programs"
-          "home-assistant-filesystem"
-          "enable"
-        ] false config;
-        homeAssistantMcpFiles = lib.optionalAttrs homeAssistantMcpEnabled {
-          ".pi/agent/mcp.json".text = builtins.toJSON {
-            mcpServers = {
-              "home-assistant" = {
-                url = "https://ha.jakeneau.com/api/mcp";
-                oauth.clientRegistration = "cimd";
-              };
-            }
-            // lib.optionalAttrs homeAssistantFilesystemMcpEnabled {
-              "home-assistant-filesystem" = {
-                command = lib.getExe pkgs.mcp-server-filesystem;
-                args = [ "/mnt/home-assistant-www" ];
-              };
-            };
-          };
-        };
         agentContext =
           builtins.readFile ./config/AGENTS.md
           + lib.optionalString fishEnabled ''
@@ -993,12 +992,7 @@ in
       in
       {
         home.file =
-          fixedHomeFiles
-          // skillHomeFiles
-          // agentHomeFiles
-          // promptHomeFiles
-          // subagentPromptHomeFiles
-          // homeAssistantMcpFiles;
+          fixedHomeFiles // skillHomeFiles // agentHomeFiles // promptHomeFiles // subagentPromptHomeFiles;
         home.activation = {
           piCompaction = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
             $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \
@@ -1034,6 +1028,41 @@ in
               ''
           );
         };
+      };
+
+    # Home Assistant is a home install on Linux, so its MCP server also needs
+    # the home's enable.
+    linux.config =
+      {
+        pkgs,
+        lib,
+        config,
+        ...
+      }:
+      {
+        home.file =
+          lib.mkIf
+            (
+              homeAssistantMcpIntegration { inherit lib config; }
+              && lib.attrByPath [ "programs" "home-assistant" "enable" ] false config
+            )
+            (mkPiMcpFiles {
+              inherit pkgs lib config;
+            });
+      };
+
+    # Home Assistant is a cask on macOS, so only the integration switch counts.
+    macos.config =
+      {
+        pkgs,
+        lib,
+        config,
+        ...
+      }:
+      {
+        home.file = lib.mkIf (homeAssistantMcpIntegration { inherit lib config; }) (mkPiMcpFiles {
+          inherit pkgs lib config;
+        });
       };
   };
 

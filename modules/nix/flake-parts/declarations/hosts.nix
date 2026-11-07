@@ -56,9 +56,10 @@ let
         };
         description = ''
           Per-program install-way override: picks a declared non-default way
-          for this host (per-user "home" wins by default). Reroutes both
-          halves of a globalPrograms entry, and user-declaration resolution
-          honors it too — filtering entries it routes to a system install.
+          for this host ("home" wins by default), including "custom".
+          Reroutes both halves of a globalPrograms entry, and user-declaration
+          resolution honors it too — filtering entries it routes to a
+          machine-wide install.
         '';
       };
 
@@ -218,13 +219,13 @@ let
       ways =
         program:
         if config.flake.programs ? ${program} then
-          config.flake.programs.${program}.install.${platform}
+          config.flake.lib.installWays config.flake.programs.${program} platform
         else
           fail "requests program \"${program}\", which has no flake.programs declaration; declare it or drop the entry";
 
       # The way chosen for (program, this host): the override if set — it
       # must name a declared way — else per-user "home" when declared, else
-      # the platform's sole system way.
+      # the first declared way (platform block first, then shared).
       wayOf =
         program:
         let
@@ -241,7 +242,7 @@ let
         else if declared != [ ] then
           lib.head declared
         else
-          fail "lists ${program} in globalPrograms, but it declares no install way on ${platform}; add one to flake.programs.${program}.install or drop the entry";
+          fail "lists ${program} in globalPrograms, but it declares no install way on ${platform}; add one to flake.programs.${program}.${platform}.install or drop the entry";
 
       # Force every override through wayOf so a bad one throws at
       # declaration eval, not first use.
@@ -263,6 +264,12 @@ let
         g: inputs.self.modules.homeManager.${if g.way == "home" then g.program else "${g.program}-config"}
       ) globals;
 
+      # Machine-wide excludeFromVpn globals: macOS system activation passes
+      # their executables to the VPNs' sync commands.
+      vpnExcluded = lib.filter (
+        g: g.way != "home" && config.flake.programs.${g.program}.excludeFromVpn
+      ) globals;
+
       baseline = {
         imports =
           map (n: inputs.self.modules.homeManager.${n}) host.baselines
@@ -271,13 +278,17 @@ let
             # Host facts read through the evaluated system config — neither
             # sharedModules nor osConfig exists on the standalone path.
             { hostConstants = inputs.self."${host.class}Configurations".${name}.config.hostConstants; }
+            config.flake.lib.vpnSync.homeManager
           ];
       };
 
       hostConfig = {
         # Account definition stays in the factory; placement is this
         # declaration's job — users lists each account exactly once.
-        imports = map (u: inputs.self.modules.${host.class}.${u}) host.users ++ systemUnits;
+        imports =
+          map (u: inputs.self.modules.${host.class}.${u}) host.users
+          ++ systemUnits
+          ++ lib.optional (host.class == "darwin") (config.flake.lib.vpnSync.darwin name vpnExcluded);
       };
     in
     assert overridesValid;

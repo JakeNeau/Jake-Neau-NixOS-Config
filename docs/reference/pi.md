@@ -10,10 +10,12 @@ used by Neovim. Why pi, and why it routes per user:
 
 ## The declaration
 
-- `install.linux = ["home"]`, `install.macos = ["home"]`: per-user on both
-  platforms. Delivered by `flake.users.jakeneau.programs`.
-- `hasEnableOption = false` + `packages`: the generator supplies the enable
-  toggle and installs both pi and `agent-browser` behind it.
+- `shared.install = [ "home" ]`: per-user on both platforms. Delivered by
+  `flake.users.jakeneau.programs`.
+- `hasEnableOption = false` + `shared.packages`: the generator supplies the
+  enable toggle and installs both pi and `agent-browser` behind it.
+- `linux.config` and `macos.config` hold the platform-specific parts of the
+  home configuration. The generator applies each only on its platform.
 - Pi comes from `inputs.llm-agents.packages.<system>.pi`, via
   **llm-agents.nix** (`github:numtide/llm-agents.nix`). The input deliberately
   does not follow this flake's nixpkgs. The module runs the `ask-user` tests

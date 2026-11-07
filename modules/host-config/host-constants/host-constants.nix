@@ -49,6 +49,30 @@
           declares only the GPU it has.
         '';
       };
+      # Set by each installed VPN's systemConfig, beside the enable that
+      # installs it; read by the flake.programs excludeFromVpn machinery.
+      vpn = {
+        excludeCommands = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ ];
+          description = ''
+            Linux: shell lines, one per VPN, that exclude the current shell
+            process ($$) from that VPN. A line must not fail when its VPN is
+            unavailable. Wrappers of excludeFromVpn programs run every line
+            before exec'ing the program.
+          '';
+        };
+        syncExcludedApps = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ ];
+          description = ''
+            macOS: commands, one per VPN, that take a state-file path followed
+            by zero or more executable paths. Each makes its VPN exclude
+            exactly those paths for the state file's owner and leaves other
+            entries alone. System and home activation run every command.
+          '';
+        };
+      };
     };
   };
 

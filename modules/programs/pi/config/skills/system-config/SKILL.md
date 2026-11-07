@@ -22,9 +22,10 @@ then the page that this skill names for the task.
 All wiring is generated from three structured declarations:
 
 - `flake.programs.<name>` in `modules/programs/<name>/` declares how a program
-  installs per platform (`install.linux`: `home` or `system`, `install.macos`:
-  `home` or `cask`) plus a shared home-manager `config` module. The generator
-  emits `flake.modules` units for each class.
+  installs and is configured in three blocks: `shared`, `linux`, and `macos`.
+  Each block holds `install` (`home`, `system` or `cask`, or `custom`),
+  home-manager `config`, machine-level `systemConfig`, and `packages`. The
+  generator emits `flake.modules` units for each class.
 - `flake.hosts.<name>` in `modules/hosts/<host>/configuration.nix` declares
   `class`, `system`, `users`, `globalPrograms`, `installOverrides`, and
   `baselines`. The generator routes each global program by its install way and

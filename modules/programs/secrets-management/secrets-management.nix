@@ -10,12 +10,11 @@
   flake.programs.secrets-management = {
     # Per-user everywhere: home-manager-first, and these ship in nixpkgs, so
     # the macOS cask way doesn't apply.
-    install.linux = [ "home" ];
-    install.macos = [ "home" ];
+    shared.install = [ "home" ];
     # No HM programs.secrets-management module exists, so the generator
     # supplies the enable toggle and installs the CLIs behind it.
     hasEnableOption = false;
-    packages = pkgs: [
+    shared.packages = pkgs: [
       pkgs.sops # edits and re-encrypts secrets/secrets.yaml
       pkgs.age # the encryption backend those secrets use
     ];

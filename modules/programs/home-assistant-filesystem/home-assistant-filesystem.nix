@@ -4,12 +4,12 @@
 }:
 {
   flake.programs.home-assistant-filesystem = {
-    install.linux = [ "home" ];
+    linux.install = [ "home" ];
     hasEnableOption = false;
-    packages = pkgs: [ pkgs.mcp-server-filesystem ];
+    linux.packages = pkgs: [ pkgs.mcp-server-filesystem ];
     handWritten = [ "nixos" ];
 
-    config =
+    shared.config =
       { config, ... }:
       {
         assertions = [

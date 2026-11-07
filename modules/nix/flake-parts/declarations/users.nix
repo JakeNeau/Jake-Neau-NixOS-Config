@@ -71,7 +71,7 @@ let
       ways =
         forPlatform: program:
         if config.flake.programs ? ${program} then
-          config.flake.programs.${program}.install.${forPlatform}
+          config.flake.lib.installWays config.flake.programs.${program} forPlatform
         else
           fail "requests program \"${program}\", which has no flake.programs declaration; declare it or drop the entry";
 
@@ -98,7 +98,7 @@ let
         then
           p
         else
-          fail "programs lists ${p}, which declares no per-user (\"home\") install way on any platform; request it from a host's globalPrograms instead, or add a \"home\" way to flake.programs.${p}.install"
+          fail "programs lists ${p}, which declares no per-user (\"home\") install way on any platform; request it from a host's globalPrograms instead, or add \"home\" to an install list of flake.programs.${p}"
       ) decl.programs;
 
       # `hosts.<h>.programs` named this host deliberately, so a program with
@@ -108,7 +108,7 @@ let
         if lib.elem "home" (ways platform p) then
           p
         else
-          fail "hosts.${hostName}.programs lists ${p}, which declares no per-user (\"home\") install way on ${platform}; deliver it via flake.hosts.${hostName}.globalPrograms instead, or add a \"home\" way to flake.programs.${p}.install.${platform}"
+          fail "hosts.${hostName}.programs lists ${p}, which declares no per-user (\"home\") install way on ${platform}; deliver it via flake.hosts.${hostName}.globalPrograms instead, or add a \"home\" way to flake.programs.${p}.${platform}.install"
       ) (decl.hosts.${hostName}.programs or [ ]);
 
       # hosts.<h> must name a host this user is listed on.
@@ -133,8 +133,9 @@ in
     description = "User declarations, each resolving to per-(user, host) HM unit sets.";
   };
 
-  # flake-parts doesn't declare flake.lib itself; homeUnits (consumed by the
-  # hosts generator at stamping) is its only occupant.
+  # flake-parts doesn't declare flake.lib itself. It carries homeUnits
+  # (consumed by the hosts generator at stamping) and installWays and vpnSync
+  # (from the programs generator).
   options.flake.lib = lib.mkOption {
     type = types.attrsOf types.unspecified;
     default = { };

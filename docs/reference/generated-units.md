@@ -7,22 +7,31 @@ The `flake.modules` units the programs generator
 plain config: [the framework's
 why](../explanation/declaration-framework.md).
 
+Both home-manager units compose the same three config modules:
+`shared.config` unchanged, then `linux.config` and `macos.config`. The
+generator gates a platform block's config on
+`pkgs.stdenv.hostPlatform.isLinux` or `isDarwin`. It leaves the block's
+option declarations ungated, because declaring an option on both
+platforms is harmless. A platform block that contains `imports` throws
+when a home imports the unit, because an import would escape the gate.
+
 ## homeManager.\<name\>
 
-The per-user install unit, generated when any `install.<platform>` list
-contains `"home"`. It:
+The per-user install unit. The generator emits it when either platform's
+effective `install` contains `"home"`. The unit:
 
-- imports the declaration's `config` module;
+- imports the composed config modules.
 - gates its content (never its imports) on the platforms that declare
-  `"home"`, via `pkgs.stdenv.hostPlatform.isLinux` / `isDarwin`;
-- sets `programs.<name>.enable = true` plainly — the boundary wrapper
+  `"home"`, via `pkgs.stdenv.hostPlatform.isLinux` or `isDarwin`.
+- sets `programs.<name>.enable = true` plainly. The boundary wrapper
   lands it at priority 900 at host stamping, so a user's plain
-  `programs.<name>.enable = false;` (priority 100) wins;
-- when `hasEnableOption = false`, declares the `programs.<name>.enable`
-  toggle itself (`lib.mkEnableOption`) and installs the declaration's
-  `packages` behind it via a plain `home.packages` definition — the
-  boundary wrapper exempts lists, so it concatenates with a user's own
-  `home.packages` like an upstream home-manager module's would.
+  `programs.<name>.enable = false;` (priority 100) wins.
+- declares the `programs.<name>.enable` toggle itself
+  (`lib.mkEnableOption`) when `hasEnableOption = false`. It then installs
+  the platform's effective `packages` behind the toggle through a plain
+  `home.packages` definition. The boundary wrapper exempts lists, so that
+  definition concatenates with a user's own `home.packages`, as an
+  upstream home-manager module's would.
 
 The install channel hangs off the enable toggle rather than being a bare
 `home.packages` contribution so opting out stays the uniform
@@ -31,25 +40,35 @@ The install channel hangs off the enable toggle rather than being a bare
 ## homeManager.\<name\>-config
 
 The config-only unit — for users on machines where the install is
-global/system-level; the hosts generator routes it into the baseline in
-place of the full unit (see [generated host
-artifacts](generated-host-artifacts.md)).
+machine-wide; the hosts generator routes it into the baseline in place of
+the full unit (see [generated host artifacts](generated-host-artifacts.md)).
 
-- When `hasEnableOption = true` **and** the declaration has a true-system
-  way (`"system"` on Linux or `"cask"` on macOS): the declaration's
-  `config` plus `programs.<name>.package = null` — home-manager's
-  configure-without-installing mode, so enabling the program configures
-  the system-installed app instead of double-installing the nix package.
-- Otherwise: the declaration's `config`, verbatim.
+- When `hasEnableOption = true` **and** the declaration has a machine-wide
+  way (`"system"`, `"cask"`, or `"custom"`) on either platform: the
+  composed config plus `programs.<name>.package = null`. That is
+  home-manager's configure-without-installing mode, so enabling the program
+  configures the machine-installed app instead of double-installing the nix
+  package.
+- Otherwise: the composed config alone.
 
 ## nixos.\<name\> / darwin.\<name\>
 
-True-system install units, generated only for programs that declare one:
+Machine-wide install units, generated only for programs that declare a
+machine-wide way on that platform. Each imports the platform's effective
+`systemConfig`: the platform block's, then `shared`'s.
 
-- `nixos.<name>` — when `install.linux` contains `"system"`:
+- `nixos.<name>` exists when the Linux effective `install` contains
+  `"system"` or `"custom"`. With `"system"` it also sets
   `environment.systemPackages = [pkgs.<name>]`.
-- `darwin.<name>` — when `install.macos` contains `"cask"`:
+- `darwin.<name>` exists when the macOS effective `install` contains
+  `"cask"` or `"custom"`. With `"cask"` it also sets
   `homebrew.casks = ["<name>"]`.
+- With `"custom"` alone, the unit installs nothing itself. The
+  `systemConfig` installs the program.
+- With `excludeFromVpn = true`, `nixos.<name>` also adds the wrapped copy
+  that [excludeFromVpn](declaration-schema.md#excludefromvpn) describes, and
+  so does `homeManager.<name>`. The home unit also lists its packages in
+  `vpnExclusion.packages` for the macOS home sync.
 
 ## Tombstones
 
@@ -57,9 +76,11 @@ Every plausible-but-unsupported unit is generated as a module carrying a
 failing assertion that names the program and the fix, so importing it
 fails readably instead of with an "attribute ... missing" error:
 
-- `homeManager.<name>` when no platform declares `"home"`;
-- `nixos.<name>` when `install.linux` lacks `"system"`;
-- `darwin.<name>` when `install.macos` lacks `"cask"`.
+- `homeManager.<name>` when no platform declares `"home"`.
+- `nixos.<name>` when the Linux effective `install` has neither `"system"`
+  nor `"custom"`.
+- `darwin.<name>` when the macOS effective `install` has neither `"cask"`
+  nor `"custom"`.
 
 ## Class suppression
 
@@ -77,12 +98,13 @@ default at priority 100 vs 900. The setting depends on the resolved install
 way:
 
 - **Home install** (`homeManager.<name>`): `programs.<name>.enable = false;`.
-- **System or cask install:** The install is machine-wide, so no user can opt
-  out of it. The user receives only `homeManager.<name>-config` and can
-  disable only that config. With `hasEnableOption = true`,
+- **System, cask, or custom install:** The install is machine-wide, so no
+  user can opt out of it. The user receives only
+  `homeManager.<name>-config` and can disable only that config. With
+  `hasEnableOption = true`,
   `programs.<name>.enable = false;` disables it. With
   `hasEnableOption = false`, no `programs.<name>` option exists. The user
-  disables the home-manager module that the declaration's `config` enables.
+  disables the home-manager module that the declaration's config enables.
   For `ungoogled-chromium`, that setting is `programs.chromium.enable = false;`.
 
 Documented edge — yazi on Linux: opting out also releases the

@@ -1,6 +1,5 @@
 {
   flake.programs.gh = {
-    install.linux = [ "home" ];
-    install.macos = [ "home" ];
+    shared.install = [ "home" ];
   };
 }

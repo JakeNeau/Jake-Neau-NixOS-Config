@@ -9,17 +9,24 @@ reference](../reference/declaration-schema.md).
 
 ## Per (program, host), not per platform
 
-A program declares the *set* of ways it supports per platform
-(`install.linux`, `install.macos`). Which way actually applies is a fact
-about a machine, not a platform: cedar takes the firefox cask because
-*cedar's* org SSO breaks the nix package, while aspen — same platform —
-takes the home-manager install. So resolution happens per (program, host):
+A program declares the *set* of ways it supports per platform. A
+platform's effective set is its own block's `install` list, followed by
+`shared.install`. Which way actually applies is a fact about a machine,
+not a platform. Cedar takes the firefox cask because *cedar's* org SSO
+breaks the nix package. Aspen, on the same platform, takes the
+home-manager install. So resolution happens per (program, host):
 
 - the host's `installOverrides.<program>`, if set, wins (and must name a
   declared way, or declaration eval throws);
 - otherwise per-user `"home"` wins when declared — home-manager installs
   everything it possibly can;
-- otherwise the platform's sole system way.
+- otherwise the first declared way wins, in that combined order.
+
+Every way except `"home"` is machine-wide. That covers `"system"`,
+`"cask"`, and `"custom"`, whose own `systemConfig` installs the program.
+They all route the same way: the system unit goes into the host config,
+and the `-config` unit goes into the baseline. User declarations filter
+them alike.
 
 ## Why the override reroutes both halves
 

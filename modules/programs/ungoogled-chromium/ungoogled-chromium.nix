@@ -18,13 +18,13 @@
 
   flake.programs.ungoogled-chromium = {
     # nixpkgs builds Chromium only on Linux, so macOS takes the Homebrew cask.
-    install.linux = [ "system" ];
-    install.macos = [ "cask" ];
+    linux.install = [ "system" ];
+    macos.install = [ "cask" ];
     # false: home-manager's module is programs.chromium, so the default would
     # null a programs.ungoogled-chromium.package option that does not exist.
     hasEnableOption = false;
 
-    config =
+    shared.config =
       { pkgs, ... }:
       let
         # Applied to this home's pkgs; legacyPackages would instantiate a second nixpkgs.

@@ -30,13 +30,17 @@ Field-by-field schema:
 Rationale:
 [the framework's why](../../../docs/explanation/declaration-framework.md).
 
-- **`flake.programs.<name>`** (in `modules/programs/<name>/`) declares install
-  ways per platform (`install.linux`: `home`/`system`; `install.macos`:
-  `home`/`cask`) plus a shared home-manager `config` module. The generator
-  emits importable `flake.modules` units — `homeManager.<name>`,
-  `homeManager.<name>-config`, `nixos.<name>`/`darwin.<name>`, tombstones for
-  unsupported imports — per the
-  [generated-units reference](../../../docs/reference/generated-units.md).
+- **`flake.programs.<name>`** (in `modules/programs/<name>/`) has three
+  blocks, `shared`, `linux`, and `macos`. Each block sets `install`,
+  `config` (home-manager), `systemConfig`, and `packages`. A platform
+  reads its own block and then `shared`. The install ways are
+  `linux.install`: `home`/`system`/`custom`, `macos.install`:
+  `home`/`cask`/`custom`, and `shared.install`: `home`/`custom`. A
+  platform block's `config` applies on that platform only, so it needs no
+  platform check. The generator emits importable `flake.modules` units
+  (`homeManager.<name>`, `homeManager.<name>-config`,
+  `nixos.<name>`/`darwin.<name>`, and tombstones for unsupported imports),
+  per the [generated-units reference](../../../docs/reference/generated-units.md).
 - **`flake.hosts.<name>`** (in `modules/hosts/<host>/configuration.nix`)
   declares `class`, `system`, `users`, `globalPrograms`, `installOverrides`,
   and `baselines`. The generator routes each global program's halves by its
@@ -103,8 +107,10 @@ Per-directory map:
 Every kind of edit, with the page that carries the depth:
 
 - **Add a program** — write `flake.programs.<name>` in
-  `modules/programs/<name>/`; pick install ways, `config`, and
-  `hasEnableOption`/`packages`/`handWritten` where needed.
+  `modules/programs/<name>/`. Pick each block's install ways and `config`,
+  and set `hasEnableOption`/`packages`/`handWritten`/`systemConfig` where
+  needed. Set `excludeFromVpn = true;` for a program whose traffic must
+  bypass every VPN on its hosts.
   [Add a program](../../../docs/how-to/declarations/add-a-program.md).
 - **Add a host** — one `configuration.nix` with the `flake.hosts` declaration
   plus a hand-written quirks aspect (`hostConstants` values, role imports,
@@ -131,16 +137,22 @@ Every kind of edit, with the page that carries the depth:
   defaults (900); no `mkForce` needed.
   [The framework's why](../../../docs/explanation/declaration-framework.md).
 - **Opt out of a global program:** for a home install, set
-  `programs.<name>.enable = false;` in the user's folder. A system or cask
-  install is machine-wide, so a user can disable only its config (for
+  `programs.<name>.enable = false;` in the user's folder. A system, cask, or
+  custom install is machine-wide, so a user can disable only its config (for
   ungoogled-chromium, `programs.chromium.enable = false;`).
   [Generated units: per-user opt-out](../../../docs/reference/generated-units.md#per-user-opt-out).
 - **Write or edit a hand-written aspect** — for services/daemons and oddballs
   beyond declarations; follow the rules below and the pattern catalog in
   [`aspects.md`](aspects.md).
-- **Add a service/daemon** — a hand-written aspect under `modules/services/`
-  (or `modules/host-config/` for machine-level plumbing), imported by the
-  hosts or roles that run it; declarations don't cover services.
+- **Add a program's daemon** — the declaration's `linux.systemConfig` (or
+  `macos.systemConfig`), installed beside its `"system"` (or `"cask"`) way.
+  A program that its own system module installs declares the `"custom"`
+  way, and its `systemConfig` does the install.
+  [Add a program](../../../docs/how-to/declarations/add-a-program.md).
+- **Add a standalone service/daemon** — one that belongs to no declared
+  program: a hand-written aspect under `modules/services/` (or
+  `modules/host-config/` for machine-level plumbing), imported by the hosts
+  or roles that run it.
 - **Touch roles and baselines** — roles live in `modules/host-config/roles/`
   as aggregate aspects (`role-minimal`, `role-default`, `role-desktop`,
   `niri-desktop`); their homeManager aggregates reach homes only
@@ -173,7 +185,8 @@ When you define `flake.modules.<class>.<name>`:
    declaration) — double delivery concatenates list options.
 5. **Merge with `lib.mkMerge`, not `//`.** `//` is a shallow overwrite.
 6. **Detect the platform with `pkgs.stdenv.hostPlatform.isLinux` / `isDarwin`**,
-   not hand-rolled flags.
+   not hand-rolled flags. In a program declaration, put platform-only config
+   in the `linux` or `macos` block instead.
 
 The recurring aspect shapes — Declaration, Simple, Inheritance, Conditional,
 Collector, Constants, DRY, Factory — are cataloged with code in

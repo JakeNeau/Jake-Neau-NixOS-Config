@@ -29,12 +29,13 @@ nix build '.#homeConfigurations."<user>@<host>".activationPackage' --no-link
 ## When an entry filters vs throws
 
 User entries are per-user-only: they resolve to the per-user ("home") install
-way or drop out — they never cause a system install. Per (program, host):
+way or drop out — they never cause a machine-wide install. Per (program,
+host):
 
 | Situation | `programs` (all hosts) | `hosts.<h>.programs` (one host) |
 |---|---|---|
 | Per-user way declared for the host's platform, no override | delivered | delivered |
-| Host's `installOverrides` forces a system way (e.g. cedar's firefox cask) | **filters silently** — the host installs it globally; the baseline carries the `-config` unit | **filters silently** |
+| Host's `installOverrides` forces a machine-wide way (`"system"`, `"cask"`, or `"custom"`, such as cedar's firefox cask) | **filters silently** — the host installs it globally; the baseline carries the `-config` unit | **filters silently** |
 | No per-user way on this host's platform (but one exists elsewhere) | **filters silently** — the program appears on the user's other platforms | **throws** — deliver it via the host's `globalPrograms` or add a `"home"` way |
 | No per-user way on *any* platform | **throws** — it can never be a per-user program | **throws** |
 | Host not in `flake.hosts.<h>.users` for this user | n/a | **throws** — list the user on the host or drop the entry |

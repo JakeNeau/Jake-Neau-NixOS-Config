@@ -4,15 +4,12 @@
   # breaks (e.g. against an org's SSO); those hosts pick the cask via
   # installOverrides.
   #
-  # No shared HM config exists yet, so no config field and no
+  # No shared HM config exists yet, so no shared.config and no
   # programs.firefox.enable = true: cask hosts just run firefox, and a user
   # who enables it for HM config gets the -config unit's package = null
   # instead of the broken-there nix package.
   flake.programs.firefox = {
-    install.linux = [ "home" ];
-    install.macos = [
-      "home"
-      "cask"
-    ];
+    shared.install = [ "home" ];
+    macos.install = [ "cask" ];
   };
 }

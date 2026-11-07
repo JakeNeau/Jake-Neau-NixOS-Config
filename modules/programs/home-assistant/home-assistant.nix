@@ -6,11 +6,11 @@
   };
 
   flake.programs.home-assistant = {
-    install.linux = [ "home" ];
-    install.macos = [ "cask" ];
+    linux.install = [ "home" ];
+    macos.install = [ "cask" ];
     hasEnableOption = false;
 
-    packages =
+    linux.packages =
       pkgs:
       let
         icon = "${inputs.home-assistant-icon}";
@@ -38,7 +38,7 @@
           startupWMClass = "home-assistant";
         };
       in
-      lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+      [
         (pkgs.symlinkJoin {
           name = "home-assistant-control";
           paths = [
@@ -48,7 +48,7 @@
         })
       ];
 
-    config = { lib, ... }: {
+    shared.config = { lib, ... }: {
       options.programs.home-assistant.enableMcpIntegration = lib.mkOption {
         type = lib.types.bool;
         default = true;

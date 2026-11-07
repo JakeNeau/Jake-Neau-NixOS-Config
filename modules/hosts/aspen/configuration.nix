@@ -10,6 +10,7 @@
       "fastfetch"
       "gh"
       "home-assistant"
+      "mullvad-vpn"
       "openpencil"
       "steam"
       "ungoogled-chromium"

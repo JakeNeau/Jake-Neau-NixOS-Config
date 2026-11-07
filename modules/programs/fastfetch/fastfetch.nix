@@ -214,8 +214,7 @@ in
   # Fastfetch: the system-info splash shells show as their greeting, so it
   # installs per-user on every machine.
   flake.programs.fastfetch = {
-    install.linux = [ "home" ];
-    install.macos = [ "home" ];
-    config = fastfetch-config;
+    shared.install = [ "home" ];
+    shared.config = fastfetch-config;
   };
 }

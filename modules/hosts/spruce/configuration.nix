@@ -11,6 +11,7 @@
       "fastfetch"
       "gh"
       "home-assistant"
+      "mullvad-vpn"
       "openpencil"
       "ungoogled-chromium"
     ];

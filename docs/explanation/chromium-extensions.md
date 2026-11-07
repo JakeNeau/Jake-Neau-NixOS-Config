@@ -114,7 +114,7 @@ Open Claude in Chrome lets Claude Code drive the browser. It has three parts:
 ### Placement is the gate
 
 `modules/programs/claude-code/open-claude-in-chrome.nix` holds every part. It
-adds to the claude-code declaration's `config`, so only homes that include
+adds to the claude-code declaration's `shared.config`, so only homes that include
 Claude Code evaluate it. Other homes never fetch or build these parts. Today
 the one such home is `jake.neau@cedar`.
 

@@ -62,10 +62,9 @@ declaration).
 # modules/programs/kubernetes/kubernetes.nix
 {
   flake.programs.kubernetes = {
-    install.linux = ["home"];
-    install.macos = ["home"];
+    shared.install = [ "home" ];
     hasEnableOption = false; # no HM module; the generator supplies the toggle
-    packages = pkgs: [pkgs.kubectl pkgs.k9s];
+    shared.packages = pkgs: [ pkgs.kubectl pkgs.k9s ];
   };
 }
 ```
@@ -168,8 +167,9 @@ breaking evaluation with a conditional import.
 runtime-detectable condition (`pkgs.stdenv.hostPlatform.isLinux/isDarwin`). If the
 contexts are genuinely separate modules, prefer Simple's per-class split; reach for
 Conditional when you want one aspect that bends rather than several that duplicate.
-The same shape works inside a program declaration's `config` field (ghostty's module
-gates its macOS-only lines on `pkgs.stdenv.hostPlatform.isDarwin`).
+A program declaration needs no such gate for whole branches: platform-only config
+goes in its `linux.config` or `macos.config` block (ghostty's macOS-only lines live in
+`macos.config`). Keep a manual check only around a value inside a shared option.
 
 ```nix
 flake.modules.homeManager.office = {pkgs, lib, ...}:

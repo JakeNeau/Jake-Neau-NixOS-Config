@@ -73,3 +73,19 @@ two can never drift apart, and readers of the fact (fish's `mc-*` helpers,
 branching from standalone homes via the read-through) stay in lockstep
 with the service by construction. redwood imports the feature and keeps
 only the server definitions; the meaning travels with the import.
+
+The VPN facts use the same pattern as a contract between programs and
+VPNs. Each VPN's `systemConfig` appends to them beside the enable that
+installs it, so a host without a VPN keeps both lists empty.
+
+- `hostConstants.vpn.excludeCommands` (Linux) lists shell lines. Each line
+  excludes the current shell process, `$$`, from one VPN and never fails the
+  launch.
+- `hostConstants.vpn.syncExcludedApps` (macOS) lists commands. Each command
+  takes a state file and executable paths. It makes its VPN exclude exactly
+  those paths for the state file's owner.
+
+A program with `excludeFromVpn = true` reads these facts in its system
+install and, through the read-through, in its home install. Mullvad sets
+both in `modules/programs/mullvad-vpn/mullvad-vpn.nix`. See [VPN exclusion
+and Mullvad split tunneling](mullvad-split-tunneling.md).

@@ -25,8 +25,7 @@ mkdir modules/programs/hello
 # modules/programs/hello/hello.nix
 {
   flake.programs.hello = {
-    install.linux = ["home"];
-    install.macos = ["home"];
+    shared.install = [ "home" ];
     hasEnableOption = false;
   };
 }
@@ -34,20 +33,20 @@ mkdir modules/programs/hello
 
 Reading it field by field:
 
-- `install.linux` / `install.macos` — the supported install ways per
-  platform. `"home"` means a per-user home-manager install; the alternatives
-  are `"system"` (Linux, NixOS system packages) and `"cask"` (macOS, a
-  homebrew cask). Declaring `"home"` on both platforms makes hello available
-  per-user everywhere.
+- `shared.install`: the install ways on both platforms. `"home"` means a
+  per-user home-manager install, so hello is available per-user everywhere.
+  A declaration can also set `linux.install` or `macos.install` for one
+  platform. Linux adds `"system"` for NixOS system packages. macOS adds
+  `"cask"` for a homebrew cask.
 - `hasEnableOption = false` — home-manager has no `programs.hello` module, so
   the generator supplies the `programs.hello.enable` toggle itself and
   installs `pkgs.hello` behind it. (For programs where the package attribute
   differs from the name, or several packages are needed, you'd add a
-  `packages` field — the default is `pkgs: [pkgs.<name>]`.)
+  `shared.packages` field. The default is `pkgs: [pkgs.<name>]`.)
 
-We declared no `config` field: hello has no settings to share. See the
-[declaration schema reference](../reference/declaration-schema.md) for every
-field.
+We declared no `shared.config` field, because hello has no settings to
+share. See the [declaration schema
+reference](../reference/declaration-schema.md) for every field.
 
 ## 2. Stage it
 

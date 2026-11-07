@@ -165,6 +165,12 @@ declaration, the rest are hand-written aspects.
 - `libreoffice/` — office suite.
 - `librewolf/` — privacy-hardened Firefox fork with separate work, strict,
   compatibility, and development profiles. See [LibreWolf](librewolf.md).
+- `mullvad-vpn/`: Mullvad VPN on Redwood, Spruce, and Aspen. On NixOS its
+  `"custom"` way installs the daemon and GUI through `linux.systemConfig`. On
+  macOS it installs the cask. Each platform's `systemConfig` also sets the
+  `hostConstants.vpn` fact that excludes `excludeFromVpn` programs. See [Set
+  up Mullvad VPN](../how-to/set-up-mullvad-vpn.md) and [VPN exclusion and
+  Mullvad split tunneling](../explanation/mullvad-split-tunneling.md).
 - `nautilus/`: graphical file manager installed for Redwood users.
 - `noctalia/`: Wayland desktop shell. The `niri-desktop` role requests it, so
   do not also add it to `globalPrograms`.
@@ -197,13 +203,18 @@ declaration, the rest are hand-written aspects.
   Stylix target because Sioyek's custom-color shader distorts PDF colors, and
   maps `h` to Vim-style movement instead of the upstream highlight command.
 - `spotify/` — Spotify, wrapped to launch with `--in-process-gpu`.
-- `steam/` — Steam on macOS. Redwood configures the NixOS client with a bounded
-  font set. See [Steam font compatibility](../explanation/steam-font-compatibility.md)
-  and [Repair Steam font rendering](../how-to/repair-steam-fonts.md).
+- `steam/` — Steam, which bypasses every VPN through `excludeFromVpn`.
+  NixOS installs it through the `"custom"` way and the NixOS Steam module.
+  On macOS it installs as a cask. Redwood and Aspen list it as a global program.
+  Redwood's host config sets its other `programs.steam` options, including a
+  bounded font set. See [Steam font
+  compatibility](../explanation/steam-font-compatibility.md) and [Repair Steam
+  font rendering](../how-to/repair-steam-fonts.md).
   `steamvr.nix` holds the SteamVR aspects. `nixos.steamvr` applies the amdgpu
   kernel patch that SteamVR needs. `homeManager.steamvr` hides SteamVR's URI
   handlers from the launcher and keeps the handlers. Redwood imports the NixOS
-  aspect and lists `steamvr` in its baselines.
+  aspect and lists `steamvr` in its baselines. See [VPN exclusion and Mullvad
+  split tunneling](../explanation/mullvad-split-tunneling.md).
 - `swaybg/` — wayland wallpaper setter.
 - `udiskie/` — automatic removable-media mounting.
 - `ungoogled-chromium/`: Chromium with Google integration removed. Every host

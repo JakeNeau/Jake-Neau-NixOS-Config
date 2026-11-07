@@ -12,8 +12,10 @@
       "gh"
       "home-assistant"
       "home-assistant-filesystem"
+      "mullvad-vpn"
       "nautilus"
       "openpencil"
+      "steam"
       "ungoogled-chromium"
     ];
     baselines = [
@@ -62,9 +64,9 @@
     # --------------
     # Steam / gaming
     # --------------
-    # PC game platform
+    # PC game platform. The steam declaration installs it and excludes it
+    # from the VPN. These are redwood's own settings.
     programs.steam = {
-      enable = true;
       remotePlay.openFirewall = true;
       dedicatedServer.openFirewall = true;
       localNetworkGameTransfers.openFirewall = true;

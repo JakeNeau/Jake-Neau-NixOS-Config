@@ -52,7 +52,7 @@ also omits it because the hook self-filters from `agent_type` in the payload.
 ## Open Claude in Chrome
 
 `modules/programs/claude-code/open-claude-in-chrome.nix` adds to the
-`flake.programs.claude-code` declaration's `config`. Only homes that request
+`flake.programs.claude-code` declaration's `shared.config`. Only homes that request
 Claude Code evaluate it. The design rationale is in [Chromium
 extensions](../explanation/chromium-extensions.md#open-claude-in-chrome).
 
