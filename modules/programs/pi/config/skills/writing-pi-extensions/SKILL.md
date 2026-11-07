@@ -50,3 +50,9 @@ should navigate by name.
 Write tests before production code and run them through Nix. Then run
 `nix flake check` and dry-build or evaluate all Pi homes without activating any
 home. Never invoke `hr`, `nr`, `nrr`, or a switch command.
+
+## Related skills
+
+- [[skill:pi-config]]: where Pi's configuration lives and how it is wired
+- [[skill:system-config]]: the repository rules and edit procedures
+- [[skill:nix-config]]: where the repository is and how a change is applied

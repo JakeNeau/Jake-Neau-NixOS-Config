@@ -831,6 +831,28 @@ in
             source = "${pi-subagents-root}/prompts/${name}";
           }
         ) subagentPromptFiles;
+        # Every skill under config/skills/ is global: linked for startup listing
+        # and indexed by the registry.
+        skillDirs = lib.filterAttrs (_: type: type == "directory") (builtins.readDir ./config/skills);
+        skillHomeFiles = lib.mapAttrs' (
+          name: _:
+          lib.nameValuePair ".pi/agent/skills/${name}" {
+            source = ./config/skills + "/${name}";
+          }
+        ) skillDirs;
+        # Agent profiles for pi-subagents. The directory exists only once the
+        # first profile does.
+        agentFiles = lib.optionalAttrs (builtins.pathExists ./config/agents) (
+          lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (
+            builtins.readDir ./config/agents
+          )
+        );
+        agentHomeFiles = lib.mapAttrs' (
+          name: _:
+          lib.nameValuePair ".pi/agent/agents/${name}" {
+            source = ./config/agents + "/${name}";
+          }
+        ) agentFiles;
         fishEnabled = config.programs.fish.enable;
         fishShell = "${config.programs.fish.package}/bin/fish";
         settingsUpdater = mkPiSettingsUpdater pkgs;
@@ -943,10 +965,8 @@ in
               toolPath: "${rustToolPath pkgs}",
             });
           '';
-          ".pi/agent/skills/brainstorming".source = ./config/skills/brainstorming;
           ".pi/agent/skills/pi-subagents".source = "${pi-subagents-root}/skills/pi-subagents";
           ".pi/agent/skills/council-mode".source = "${pi-subagents-root}/skills/council-mode";
-          ".pi/agent/skills/writing-pi-extensions".source = ./config/skills/writing-pi-extensions;
           ".pi/agent/link-registry.json".source = linkRegistry;
           ".pi/agent/keybindings.json".text = builtins.toJSON {
             "app.thinking.cycle" = "ctrl+shift+l";
@@ -972,7 +992,13 @@ in
         };
       in
       {
-        home.file = fixedHomeFiles // promptHomeFiles // subagentPromptHomeFiles // homeAssistantMcpFiles;
+        home.file =
+          fixedHomeFiles
+          // skillHomeFiles
+          // agentHomeFiles
+          // promptHomeFiles
+          // subagentPromptHomeFiles
+          // homeAssistantMcpFiles;
         home.activation = {
           piCompaction = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
             $DRY_RUN_CMD ${settingsUpdater}/bin/pi-settings-update \

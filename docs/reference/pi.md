@@ -575,10 +575,39 @@ total combines scanner diagnostics with malformed or missing typed-link edges.
 resources and rescans the project. Tool output follows Pi's standard truncation
 limits and points to the full source path when truncated.
 
-Home Manager installs the global `brainstorming` and `writing-pi-extensions`
-skills under `~/.pi/agent/skills/`. Extension designs
+Home Manager links every directory under `modules/programs/pi/config/skills/`
+into `~/.pi/agent/skills/`, so every skill there is global. Each skill's name
+and description enter the system prompt, and its body loads only through a
+typed link. The `global:skill:pi-config` skill states that a new skill is
+global unless the user says otherwise when creating it. Extension designs
 must decide whether they introduce a durable resource kind that needs a
 typed-link adapter.
+
+## Configuration skills
+
+Four global skills cover the Nix configuration itself:
+
+- `global:skill:nix-config` states that one repository is the root of all
+  system configuration, where it is on each platform, which hosts exist, and
+  that the user alone applies a change.
+- `global:skill:system-config` holds the repository's structure, the three
+  declarations, the editing rules, the procedure for each kind of change, and
+  the dry-build validation commands.
+- `global:skill:pi-config` covers Pi's own configuration under
+  `modules/programs/pi/`: the addendum, the context file, prompts, skills,
+  extensions, and the registry test that pins the skill set.
+- `global:skill:neovim` covers Neovim configuration with nvf's standalone
+  builder.
+
+The Pi skills link back to `global:skill:system-config` and
+`global:skill:nix-config`, so every change to Pi goes through the repository.
+`global:skill:writing-pi-extensions` and `global:skill:writing-pi-agents` link
+to `global:skill:pi-config`.
+
+Subagent profiles live under `modules/programs/pi/config/agents/<name>.md`.
+Home Manager links each file into `~/.pi/agent/agents/`, where a profile with
+a bundled agent's name replaces it. `global:skill:writing-pi-agents` states
+the frontmatter fields and the council advisor convention.
 [Pi typed-link navigation](../explanation/pi-typed-links.md) explains the
 registry's design.
 
@@ -626,7 +655,8 @@ The reading skill defines these requirements:
 The writing skill defines these requirements:
 
 - Existing project architecture, terms, style, and tooling take precedence.
-- Diátaxis supplies the default architecture when no existing system applies.
+- Pi recommends Diátaxis only when the user starts or refactors a
+  documentation system.
 - Pi corrects verified documentation errors during the same task.
 - Every code change receives a documentation pass before completion.
 - Each new capability receives durable documentation in the same task.
@@ -635,9 +665,8 @@ The writing skill defines these requirements:
 
 Both skills link to `global:skill:diataxis`, which defines the four
 documentation types and their placement rules. The writing skill builds a
-page's content through `global:skill:writing-substance` and applies its form
-through `global:skill:writing`. Pi runs `pi-writing-lint` on changed Markdown
-and plain-text files.
+page's content and applies its form through `global:skill:writing`. Pi runs
+`pi-writing-lint` on changed Markdown and plain-text files.
 
 ## Writing system
 
@@ -646,19 +675,19 @@ route. Pi follows `global:skill:writing` before it writes or revises prose. The
 route covers user output, documentation, comments, plans, reviews, and interface
 text.
 
-The router loads focused policy bodies through typed links:
+The skill holds two policies in one body. The substance policy controls
+purpose, claims, support, relations, consequences, and artifact order. The form
+policy controls terms, vocabulary, sentences, voice, lists, paragraphs, and
+protected text. It omits the reply rules that the system prompt addendum
+already states. Two artifacts load a further policy through a typed link:
 
-- `global:skill:writing-substance` controls purpose, claims, support, relations,
-  consequences, and artifact order.
-- `global:skill:controlled-writing` controls terms, vocabulary, sentences,
-  voice, lists, paragraphs, and protected text.
 - `global:skill:writing-comments` controls whether a code comment exists and
   what it says.
 - `global:skill:writing-documentation` controls documentation architecture
   and placement when those decisions are part of the task.
 
-The router contains links and classification rules only. Policy bodies remain
-outside startup context. Pi loads each selected body at most once per task.
+Policy bodies remain outside startup context. Pi loads each selected body at
+most once per task.
 
 The `pi-writing-lint` command checks Markdown, plain text, or standard input. It
 returns `0` without diagnostics, `1` with diagnostics, and `2` for input errors.

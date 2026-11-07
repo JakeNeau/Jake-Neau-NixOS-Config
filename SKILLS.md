@@ -40,12 +40,6 @@ does not natively read `.agents/skills/`, so on these machines the global
   and how to perform every kind of edit to the repo. Bundles `aspects.md`, a
   reference for the aspect design patterns (Declaration plus the seven
   dendritic ones).
-- **nvf** (`.agents/skills/nvf/SKILL.md`) — how to configure Neovim with
-  [nvf](https://github.com/NotAShelf/nvf) using the standalone flake method
-  (`nvf.lib.neovimConfiguration`), which builds Neovim as a self-contained,
-  portable package exposed as a flake output rather than a NixOS/home-manager
-  module. Covers the builder API, the `vim` option namespace, wiring the built
-  editor into a host, and migrating off the old `programs.nvf` module.
 - **repo-permissions** (`.agents/skills/repo-permissions/SKILL.md`) — how write
   access to this root-owned repo works: the `config` group owns `/etc/nixos` so
   members edit without sudo, how to check it is set up on the current machine,

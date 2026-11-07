@@ -60,9 +60,9 @@ contains only the `[[skill:reading-documentation]]`,
 `[[skill:writing-documentation]]`, and `[[skill:writing]]` routing
 instructions with their canonical global registry IDs, and the system prompt's
 `Skills` section adds the same kind of route to the code, test, and comment
-skills. The writing router then selects the substance, form, documentation,
-and comment policies, so a user reply does not pull the documentation and
-comment guidance into the same turn.
+skills. The writing skill holds the substance and form policies and links to
+the documentation and comment policies, so a user reply does not pull the
+documentation and comment guidance into the same turn.
 
 ## The vocabulary stays earned
 

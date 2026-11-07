@@ -15,15 +15,18 @@ const EXPECTED_IDS = [
   "global:command:comment-review",
   "global:command:writing-review",
   "global:skill:brainstorming",
-  "global:skill:controlled-writing",
   "global:skill:diataxis",
+  "global:skill:neovim",
+  "global:skill:nix-config",
+  "global:skill:pi-config",
   "global:skill:reading-documentation",
+  "global:skill:system-config",
   "global:skill:writing",
   "global:skill:writing-code",
   "global:skill:writing-comments",
   "global:skill:writing-documentation",
+  "global:skill:writing-pi-agents",
   "global:skill:writing-pi-extensions",
-  "global:skill:writing-substance",
   "global:skill:writing-tests",
 ];
 
@@ -73,15 +76,13 @@ test("compiles the Pi policy graph", async () => {
     "Pi global resources must not contain unresolved typed links",
   );
 
-  const writing = registry.entries.find(
-    (entry) => entry.id === "global:skill:writing",
-  );
-  assert.ok(writing.links.length >= 3);
-  assert.ok(writing.links.every((link) => link.status === "resolved"));
-
   const linksOf = (id) => registry.entries
     .find((entry) => entry.id === id)
     .links.map((link) => link.targetId);
+  assert.deepEqual(linksOf("global:skill:writing"), [
+    "global:skill:writing-comments",
+    "global:skill:writing-documentation",
+  ]);
   assert.deepEqual(linksOf("global:skill:reading-documentation"), [
     "global:skill:diataxis",
     "global:skill:writing-documentation",
@@ -89,7 +90,6 @@ test("compiles the Pi policy graph", async () => {
   assert.deepEqual(linksOf("global:skill:writing-documentation"), [
     "global:skill:diataxis",
     "global:skill:reading-documentation",
-    "global:skill:writing-substance",
     "global:skill:writing",
   ]);
 });

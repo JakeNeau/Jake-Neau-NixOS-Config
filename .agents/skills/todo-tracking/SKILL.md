@@ -10,6 +10,11 @@ There is no second destination — no issue tracker, no per-module TODO lists, n
 TODO comments used as tracking. Every item, whatever its topic, goes in that one
 file.
 
+## Only on request
+
+Never add, change, or remove an entry unless the user asks for it. Report
+follow-up work in your reply and let the user decide whether it becomes a TODO.
+
 ## Format
 
 `TODO.md` is a flat markdown checklist under a single `# TODO` heading:

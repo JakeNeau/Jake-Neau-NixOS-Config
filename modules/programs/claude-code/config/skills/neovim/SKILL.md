@@ -1,6 +1,6 @@
 ---
-name: nvf
-description: How to configure Neovim with nvf in this repo using the standalone flake method (nvf.lib.neovimConfiguration), which builds Neovim as a self-contained, portable package exposed as a flake output instead of a NixOS/home-manager module. Use when adding, editing, or migrating Neovim configuration — plugins, languages, LSP, keymaps, theme/options — or when wiring the built editor into a host.
+name: neovim
+description: How to configure Neovim with nvf in the user's Nix configuration using the standalone flake method (nvf.lib.neovimConfiguration), which builds Neovim as a self-contained, portable package exposed as a flake output instead of a NixOS/home-manager module. Use when adding, editing, or migrating Neovim configuration (plugins, languages, LSP, keymaps, theme, options) or when wiring the built editor into a host.
 ---
 
 # Configuring Neovim with nvf (standalone flake method)
@@ -181,8 +181,8 @@ home-manager equivalent) — nvf does not own that.
 
 ## Fitting it into this dendritic repo
 
-This repo is a flake-parts / dendritic config (see [[skill:nix-config]]). Two
-clean ways to bring the standalone editor in:
+This repo is a flake-parts / dendritic config (see [[skill:nix-config]]).
+Two clean ways to bring the standalone editor in:
 
 1. **Separate flake input (most "its own flake").** Keep the Neovim flake above
    in its own repo (or subdir), add it to a feature's `flake-file.inputs`, then
@@ -258,6 +258,20 @@ nix run  .#write-flake      # only if you added/removed a flake input
 
 Format Nix with **`nix fmt`** (nixfmt, 2-space indent), matching the rest of the repo.
 
+## Answering questions about Neovim
+
+When the user asks how Neovim is set up or why it behaves a certain way, read
+these in order and answer from them:
+
+1. `docs/reference/neovim-*.md` for what is configured and
+   `docs/explanation/neovim-*.md` for why.
+2. `modules/programs/nvf/nvf.nix` and `modules/programs/nvf/indent.nix` for
+   the exact option values.
+3. The nvf options reference at <https://nvf.notashelf.dev/options.html> for
+   what an option does.
+
+If the answer needed the code, the documentation has a gap. Report it.
+
 ## References
 
 - Indentation: every tab and space setting lives in
@@ -276,4 +290,5 @@ Format Nix with **`nix fmt`** (nixfmt, 2-space indent), matching the rest of the
 
 ## Related skills
 
-- [[skill:nix-config]] — features/aspects/flake wiring this fits into
+- [[skill:nix-config]] — the repository structure, rules, and the feature wiring this fits into
+- [[skill:machine-layout]] — where the repository is and how the user applies a change

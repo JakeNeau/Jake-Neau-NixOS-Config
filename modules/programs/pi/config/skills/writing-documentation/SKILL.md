@@ -19,8 +19,9 @@ migration.
 A lone README still documents the project. Extend its established structure
 when that structure fits the required content.
 
-When no existing architecture determines placement, use Diátaxis through
-[[skill:diataxis]]. Create only the pages and folders required by the current
+When the user starts a documentation system or refactors one, recommend
+Diátaxis through [[skill:diataxis]]. Otherwise place content in the existing
+architecture. Create only the pages and folders required by the current
 change. Do not create speculative empty sections.
 
 ## Correct documentation defects
@@ -59,11 +60,9 @@ sections and project-specific conventions.
 
 Documentation states behavior that readers depend on, so build its substance
 first. Before drafting or revising a page, call
-`follow_link global:skill:writing-substance` and follow it.
-[[skill:writing-substance]] decides which claims the page needs and what
-supports each claim. It also orders the ideas. Then call
-`follow_link global:skill:writing` for the form policies and the project's
-local style. Skip a call only when the task already loaded that skill.
+`follow_link global:skill:writing` and follow it. [[skill:writing]] decides
+which claims the page needs and what supports each claim. It also sets the
+form rules. Skip the call only when the task already loaded that skill.
 
 For Pi, run this command after changing Markdown or plain text:
 
@@ -77,10 +76,8 @@ project's documentation build or checks when they exist.
 
 ## Related skills
 
-- [[skill:diataxis]]: the default architecture when the project has no existing
-  documentation system
-- [[skill:writing-substance]]: select, support, connect, and order the content
-  of a page
-- [[skill:writing]]: the form policies and the lint check
+- [[skill:diataxis]]: the recommended architecture when starting or
+  refactoring a documentation system
+- [[skill:writing]]: the substance and form policies and the lint check
 - [[skill:reading-documentation]]: documentation-first navigation and defect
   classification

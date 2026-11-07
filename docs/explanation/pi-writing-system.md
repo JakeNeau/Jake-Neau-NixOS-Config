@@ -39,7 +39,7 @@ This structure prevents fact dumping. It also prevents a concise style pass from
 
 Pi's global context contains one writing instruction. That instruction routes prose tasks to `global:skill:writing` through the typed-link registry.
 
-The router contains classification rules and links only. It loads the substance policy for nontrivial claims. It loads the form policy for all authored prose. Comment and documentation policies load only for those artifacts.
+That one skill holds both the substance policy and the form policy. An earlier design split them into three skills behind a router. Every prose task loaded all three, so the split cost two extra hops and bought no choice. Comment and documentation policies stay separate because they load only for those artifacts.
 
 Policy bodies remain outside startup context. Pi loads each selected body once per task. This design pays the context cost only when Pi writes prose.
 

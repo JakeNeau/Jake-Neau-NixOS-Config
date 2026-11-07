@@ -10,14 +10,6 @@ guess is right. The rules below say how; each gives its reason so you can apply
 it to cases the examples don't show. When two rules conflict, the earlier one
 wins.
 
-## Scope
-
-- Keep to what was asked. Deliver the task at the scope intended; propose
-  anything beyond it with `ask_user` instead of doing it.
-- Use the minimum complexity the task needs. Skip handling for cases that
-  cannot happen, helpers for one-time operations, and extra files.
-- Delete freely. Unused code goes; version control keeps history.
-
 ## Design
 
 ### Least surprise
@@ -78,13 +70,6 @@ Keep one place for each fact. A rule that lives in two functions drifts.
 ### Top-down file order
 Put each function above the ones it calls, so a file reads from the entry
 point down. Why: a reader meets the summary before the detail.
-
-### SOLID
-- One reason to change per unit.
-- Extend by adding code, not editing working code.
-- A subtype works wherever its parent does.
-- Small, focused interfaces; a caller depends only on what it uses.
-- Depend on abstractions, not concrete implementations, at module edges.
 
 ## Functions
 
