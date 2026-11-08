@@ -1,6 +1,10 @@
 ---
 name: writing-code
-description: Use before writing or changing any code in any language. The house style for design, functions, types, data, and names: deep modules, composed functions, APIs that are hard to misuse, immutable by default, guard clauses, pipelines, descriptive names.
+description: >
+  Use before writing or changing any code in any language. The house style for
+  design, functions, types, data, and names: deep modules, composed functions,
+  APIs that are hard to misuse, immutable by default, guard clauses, pipelines,
+  descriptive names.
 ---
 
 # Writing code

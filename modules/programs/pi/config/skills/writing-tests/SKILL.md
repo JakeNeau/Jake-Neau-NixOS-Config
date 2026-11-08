@@ -1,6 +1,10 @@
 ---
 name: writing-tests
-description: Use before writing or changing any test. The house style for tests: arrange/act/assert, behaviour over implementation, no logic in tests, DAMP over DRY, fakes over mocks, property-based tests and file snapshots where they fit.
+description: >
+  Use before writing or changing any test. The house style for tests:
+  arrange/act/assert, behaviour over implementation, no logic in tests, DAMP
+  over DRY, fakes over mocks, property-based tests and file snapshots where they
+  fit.
 ---
 
 # Writing tests

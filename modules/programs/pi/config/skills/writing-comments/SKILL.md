@@ -1,6 +1,9 @@
 ---
 name: writing-comments
-description: Use before writing, changing, or reviewing any code comment in any language. The house style: comments explain why, never what; doc comments state the contract; directives, licences, and generated markers stay verbatim.
+description: >
+  Use before writing, changing, or reviewing any code comment in any language.
+  The house style: comments explain why, never what; doc comments state the
+  contract; directives, licences, and generated markers stay verbatim.
 ---
 
 # Writing comments

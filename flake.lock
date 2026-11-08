@@ -560,11 +560,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1794058687,
-        "narHash": "sha256-WvlPLJ6DqvldVEvD2Pl+rRSOeUmb+jGSWUxGC01NNd4=",
+        "lastModified": 1794136683,
+        "narHash": "sha256-cvhBTH6nsE6R6b6uNjoSeuCOH4iaurC5A+/prTxk8Rw=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "0d2034d5c9453db4247d90cabec3c7b8edd52668",
+        "rev": "b351c893c53850908a89bc30ea2cbf6437ada413",
         "type": "github"
       },
       "original": {
@@ -640,11 +640,11 @@
     "nix-browser-addons-data": {
       "flake": false,
       "locked": {
-        "lastModified": 1794010734,
-        "narHash": "sha256-N/BLJbLNcj5VWbg4NLdBylljVlpRGF//AWRV1wpliMM=",
+        "lastModified": 1794097482,
+        "narHash": "sha256-7r/0plBDVii8Mi0azZK0flOmL43g0pz4cvZskx5KT/k=",
         "owner": "andre4ik3",
         "repo": "nix-browser-addons",
-        "rev": "6c2fa61996048c9d43c03623012d6bcb0e6d24e7",
+        "rev": "0dcea2bd13c8ce10826af2f437122e1943afd726",
         "type": "github"
       },
       "original": {
@@ -825,11 +825,11 @@
     },
     "nixpkgs_6": {
       "locked": {
-        "lastModified": 1793876309,
-        "narHash": "sha256-Wojg9lIH/hDH91iDVH2/EPw8oDSpxjxhXONbU1yf4Zg=",
+        "lastModified": 1794042290,
+        "narHash": "sha256-ziZn2PvCJE5JEEpqTdxXwJpPB+L3YqoCpTAMCzyaP3U=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "f9a75f41be3a74eab55d3a7679d34ad6cc0da977",
+        "rev": "f4a03c008967841f2a0b3cb7c436fc6fc31671f6",
         "type": "github"
       },
       "original": {
@@ -841,11 +841,11 @@
     },
     "nixpkgs_7": {
       "locked": {
-        "lastModified": 1793876309,
-        "narHash": "sha256-Wojg9lIH/hDH91iDVH2/EPw8oDSpxjxhXONbU1yf4Zg=",
+        "lastModified": 1794042290,
+        "narHash": "sha256-ziZn2PvCJE5JEEpqTdxXwJpPB+L3YqoCpTAMCzyaP3U=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "f9a75f41be3a74eab55d3a7679d34ad6cc0da977",
+        "rev": "f4a03c008967841f2a0b3cb7c436fc6fc31671f6",
         "type": "github"
       },
       "original": {
@@ -874,11 +874,11 @@
         "nixpkgs": "nixpkgs_7"
       },
       "locked": {
-        "lastModified": 1794058461,
-        "narHash": "sha256-Llade20JTeTJWUNWrr65rJUWClii/05Qh2qd2brj9XU=",
+        "lastModified": 1794163786,
+        "narHash": "sha256-16a6U+FcTHw2nhvgvowX0fmgkyo2NzU+z7Mw1PzwuHU=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "553520f71c970973432dfc67452ce6ee741c7a0c",
+        "rev": "716931d600b05e1bb737b68c1d6544f0a497c718",
         "type": "github"
       },
       "original": {
@@ -919,11 +919,11 @@
         "nixpkgs": "nixpkgs_8"
       },
       "locked": {
-        "lastModified": 1794049908,
-        "narHash": "sha256-K1rzAlksFZWJ0JQfB9kIEFIp9N+pzZs9881Va5LmytY=",
+        "lastModified": 1794159704,
+        "narHash": "sha256-2xkGsyT1C6+z9fx72VeRdmExCIOibm4q0Rk7mfKBCj0=",
         "owner": "notashelf",
         "repo": "nvf",
-        "rev": "d36cd373c5636f9a97c228ffaaec857383d88cbc",
+        "rev": "c5a635adcd638bc1d5bc31098a2ba4b89bfe787b",
         "type": "github"
       },
       "original": {
@@ -951,11 +951,11 @@
     "pi-agent-browser-native": {
       "flake": false,
       "locked": {
-        "lastModified": 1793942845,
-        "narHash": "sha256-WGwxCPLF25zF61yApbhmBIUDEXHwFqwie5dsDmGYgWw=",
+        "lastModified": 1794143340,
+        "narHash": "sha256-FU0AbYYxyIRUCchNt4VsMQJy3RSLdrUv6jk+FjPOJWM=",
         "owner": "fitchmultz",
         "repo": "pi-agent-browser-native",
-        "rev": "fa2189e1debc09335336dcd6a822924804469b21",
+        "rev": "a3e411093e1ae2459392eca8f30c698f1d9cbf51",
         "type": "github"
       },
       "original": {
@@ -1015,11 +1015,11 @@
     "pi-subagents": {
       "flake": false,
       "locked": {
-        "lastModified": 1794035953,
-        "narHash": "sha256-jjumBpE2OrUmeut7M3wZDlLjEA9mbA7Q21NepUYHU5s=",
+        "lastModified": 1794076036,
+        "narHash": "sha256-DkelgRS5CRtyRYiILiVkrFXRY+H33/4LlbZVeFPhOwY=",
         "owner": "nicobailon",
         "repo": "pi-subagents",
-        "rev": "52e68e9ef0e563d5c97b28519f9999f1b5fbbbea",
+        "rev": "3ff4f75545edf2695d5ea82bf46a1ea9ef2008a8",
         "type": "github"
       },
       "original": {

@@ -21,7 +21,10 @@ let
     pkgs:
     pkgs.runCommand "pi-link-registry.json"
       {
-        nativeBuildInputs = [ pkgs.nodejs ];
+        nativeBuildInputs = [
+          pkgs.nodejs
+          pkgs.yq-go
+        ];
       }
       ''
         cp -R ${./extensions/typed-links} typed-links

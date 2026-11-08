@@ -552,6 +552,11 @@ These two roots are the only sources. The `pi-typed-links` check pins the
 complete set of global resource ids. It also requires an empty scanner
 diagnostic list. It then asserts that the compiler read every entry from inside
 one of those roots. Any resource that Pi does not own therefore fails the check.
+
+The check also parses each resource's frontmatter with `yq`. The registry's own
+frontmatter parser is lenient, but Pi drops any resource whose frontmatter is
+not valid YAML. For example, a plain `description` value that contains `: `
+fails. A folded `>` scalar must hold such prose.
 The manifest contains metadata and immutable source paths, not resource bodies.
 
 The same dependency-free compiler scans these project paths after Pi trusts the

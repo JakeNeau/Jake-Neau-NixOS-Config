@@ -49,7 +49,9 @@ link.
 To add or remove a skill:
 
 1. Create or delete `config/skills/<name>/SKILL.md` with `name` and
-   `description` frontmatter.
+   `description` frontmatter. Write the description as a folded `>` scalar.
+   Pi drops a skill whose frontmatter is not valid YAML, and a plain value
+   that contains `: ` is not valid.
 2. Add or remove its id in `EXPECTED_IDS` in
    `extensions/typed-links/tests/writing-resources.test.mjs`. The registry
    build runs that test and fails on any difference.
