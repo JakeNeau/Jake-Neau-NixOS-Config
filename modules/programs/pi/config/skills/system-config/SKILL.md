@@ -12,7 +12,7 @@ description: >
 
 # Editing the system and program configuration
 
-[[skill:nix-config]] states where the repository is and how the user applies
+[[skill:machine-layout]] states where the repository is and how the user applies
 a change. This skill states how the repository is built and how to edit it.
 The repository's `docs/` tree carries the depth. Read `docs/README.md` first,
 then the page that this skill names for the task.
@@ -150,6 +150,6 @@ NixOS host there with `nix eval` on its `drvPath`. Never run `switch`,
 
 ## Related skills
 
-- [[skill:nix-config]]: where the repository is and how the user applies a change
+- [[skill:machine-layout]]: where the repository is and how the user applies a change
 - [[skill:pi-config]]: Pi's own configuration inside the repository
 - [[skill:neovim]]: Neovim configuration inside the repository

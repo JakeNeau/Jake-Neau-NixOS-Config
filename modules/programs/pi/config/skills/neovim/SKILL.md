@@ -291,4 +291,4 @@ If the answer needed the code, the documentation has a gap. Report it.
 ## Related skills
 
 - [[skill:system-config]] — the repository structure, rules, and the feature wiring this fits into
-- [[skill:nix-config]] — where the repository is and how the user applies a change
+- [[skill:machine-layout]] — where the repository is and how the user applies a change

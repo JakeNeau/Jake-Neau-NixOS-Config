@@ -594,9 +594,11 @@ typed-link adapter.
 
 Four global skills cover the Nix configuration itself:
 
-- `global:skill:nix-config` states that one repository is the root of all
+- `global:skill:machine-layout` states that one repository is the root of all
   system configuration, where it is on each platform, which hosts exist, and
-  that the user alone applies a change.
+  that the user alone applies a change. It is not named `nix-config` because
+  the repository's project skill `.agents/skills/nix-config` has that name.
+  Pi keeps only the first of two skills with one name and warns.
 - `global:skill:system-config` holds the repository's structure, the three
   declarations, the editing rules, the procedure for each kind of change, and
   the dry-build validation commands.
@@ -607,7 +609,8 @@ Four global skills cover the Nix configuration itself:
   builder.
 
 The Pi skills link back to `global:skill:system-config` and
-`global:skill:nix-config`, so every change to Pi goes through the repository.
+`global:skill:machine-layout`, so every change to Pi goes through the
+repository.
 `global:skill:writing-pi-extensions` and `global:skill:writing-pi-agents` link
 to `global:skill:pi-config`.
 

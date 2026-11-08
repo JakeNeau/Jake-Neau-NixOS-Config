@@ -11,7 +11,7 @@ description: >
 # Editing Pi's configuration
 
 Pi's configuration is part of the Nix configuration. Follow
-[[skill:system-config]] for the repository rules and [[skill:nix-config]] for
+[[skill:system-config]] for the repository rules and [[skill:machine-layout]] for
 where the repository is and how the user applies a change. Never edit
 `~/.pi/` directly. Home Manager regenerates it on every rebuild.
 
@@ -85,6 +85,6 @@ Never run `hr`, `nr`, `nrr`, or a `switch` command.
 ## Related skills
 
 - [[skill:system-config]]: the repository rules and edit procedures
-- [[skill:nix-config]]: where the repository is and how a change is applied
+- [[skill:machine-layout]]: where the repository is and how a change is applied
 - [[skill:writing-pi-extensions]]: creating and changing extensions
 - [[skill:writing-pi-agents]]: creating and changing subagent profiles

@@ -1,5 +1,5 @@
 ---
-name: nix-config
+name: machine-layout
 description: >
   Where all of the user's system and user configuration lives. One Nix flake in
   a root-owned repository, /etc/nixos on NixOS and /etc/nix-darwin on macOS,

@@ -55,4 +55,4 @@ home. Never invoke `hr`, `nr`, `nrr`, or a switch command.
 
 - [[skill:pi-config]]: where Pi's configuration lives and how it is wired
 - [[skill:system-config]]: the repository rules and edit procedures
-- [[skill:nix-config]]: where the repository is and how a change is applied
+- [[skill:machine-layout]]: where the repository is and how a change is applied
