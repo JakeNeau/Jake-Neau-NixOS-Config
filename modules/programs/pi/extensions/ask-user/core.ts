@@ -90,7 +90,7 @@ export function resultForDialogEvent(
       content: [
         {
           type: "text",
-          text: `User asked: ${event.value} Answer the question. Pi will then reopen the pending question.`,
+          text: `User asked: ${event.value} Reply to this clarifying question in visible text and end your turn. Do not call ask_user to repeat the question. Pi reopens it after your reply.`,
         },
       ],
       details: {

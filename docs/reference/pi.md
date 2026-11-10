@@ -116,9 +116,16 @@ question and every other option remain visible while the user types. Escape or
 an empty submission restores the action label. A nonempty free-form answer
 completes the tool call.
 
-A clarifying question leaves the original decision pending. The agent answers
-the clarification first. After Pi settles, the extension reopens the original
-dialog unless the agent already called `ask_user` again.
+A clarifying question leaves the original decision pending. The agent must
+reply to the clarification in visible text first. After Pi settles, the
+extension reopens the original dialog unless the agent already called
+`ask_user` again.
+
+The tool refuses a call while a clarification is pending and no assistant text
+follows it. The refusal is an error result, so the question stays pending.
+Without this rule, a model can write its reply only in its thinking and ask
+again at once, and the user never sees the reply. After a visible reply, the
+agent may call `ask_user` with a revised question.
 
 The extension sends the reopened dialog's answer as an `ask-user-answer`
 custom message. The model reads it as user text, but it never enters the
@@ -128,6 +135,10 @@ user's `outputPad` setting:
 - `User selected option <n>: <label>` for a preset option
 - `User wrote: <text>` for a free-form answer
 - `User asked: <clarification>` for another clarification
+
+A revised answer from `/tree` reaches the model as text that starts with
+`Revised answer to the question`. The model then knows that the answer
+replaces the earlier one.
 
 The answer does not appear in the `/fork` selector or in the user-message count
 of the session statistics. RPC clients receive it as a message with role
@@ -145,13 +156,23 @@ marker:
   reopen outside the model context
 
 The question is pending only when the latest marker is a clarification.
-Navigation therefore changes the pending question:
+Navigation therefore changes the pending question.
+
+In `/tree`, Pi hides an assistant message that holds only tool calls. The
+question itself is therefore not a row. Each `ask_user` call appears as its
+result row, such as `User selected option 2: SQLite`. After `/tree`, when Pi is
+idle, the extension opens the dialog right away in two cases:
+
+- The question is pending. The extension sends the answer as for any reopen.
+- The selected row is an `ask_user` result. The extension sends the answer as
+  a revised answer. Escape keeps the earlier answer and records nothing.
 
 | Path | Pending question afterward |
 |---|---|
 | `/tree` to an entry before the clarification | None |
-| `/tree` to the clarification's tool result | Pending. The dialog reopens after the next message. |
-| `/tree` to the `ask-user-answer` entry | Pending again. Pi puts the old answer into the editor, and the user can answer again. |
+| `/tree` to the clarification's tool result | Pending. The dialog reopens right away. |
+| `/tree` to an answered `ask_user` result | None. The dialog reopens right away for a revised answer. |
+| `/tree` to the `ask-user-answer` entry | Pending again. The dialog reopens right away. Pi copies the old answer into an empty editor, and the extension clears that copy. |
 | `/fork` | The forked branch decides. |
 | `/clone` | The copied branch decides. A clone made during the answer run keeps the question pending, and the source branch drops it. |
 | `/new` | None |
@@ -190,6 +211,9 @@ These limits remain:
   the latest marker. A clarification on the first call is lost.
 - When the deferred answer run fails in Pi's `_prepareRun`, Pi saves no answer.
   The question stays closed until a different marker appears or `/tree` runs.
+- `/tune` returns to the original entry through tree navigation. When that
+  entry is an `ask_user` result, such as after Escape on a revised answer, the
+  dialog reopens after `/tune`.
 - `pi -c -p` on a session with a pending question reaches the reopen in print
   mode. Print mode has no dialog, so the reopen records `unavailable` and
   clears the question.

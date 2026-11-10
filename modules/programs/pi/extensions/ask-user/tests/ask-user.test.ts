@@ -74,7 +74,7 @@ test("returns a free-form answer", async () => {
   });
 });
 
-test("returns a clarifying question and directs the agent to ask again", async () => {
+test("returns a clarifying question and directs the agent to reply in visible text", async () => {
   const result = await runAskUser(question, {
     select: async (_prompt, options) => {
       assert.deepEqual(options, menu);
@@ -91,7 +91,7 @@ test("returns a clarifying question and directs the agent to ask again", async (
     content: [
       {
         type: "text",
-        text: "User asked: Does this service need concurrent writes? Answer the question. Pi will then reopen the pending question.",
+        text: "User asked: Does this service need concurrent writes? Reply to this clarifying question in visible text and end your turn. Do not call ask_user to repeat the question. Pi reopens it after your reply.",
       },
     ],
     details: {

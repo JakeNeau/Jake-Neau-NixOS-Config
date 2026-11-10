@@ -20,12 +20,13 @@ export interface BranchEntry {
   type: string;
   id: string;
   customType?: string;
+  content?: BranchMessage["content"];
   data?: unknown;
   details?: unknown;
   message?: BranchMessage;
 }
 
-export interface PendingClarification {
+export interface MarkedQuestion {
   markerId: string;
   question: AskUserParams;
 }
@@ -59,8 +60,8 @@ function marker(entry: BranchEntry): Marker | undefined {
   return undefined;
 }
 
-export function pendingClarification(branch: readonly BranchEntry[]): PendingClarification | undefined {
-  let pending: PendingClarification | undefined;
+export function pendingClarification(branch: readonly BranchEntry[]): MarkedQuestion | undefined {
+  let pending: MarkedQuestion | undefined;
   for (const entry of branch) {
     const found = marker(entry);
     if (!found) continue;
@@ -69,6 +70,28 @@ export function pendingClarification(branch: readonly BranchEntry[]): PendingCla
     pending = found.status === "clarification" && question ? { markerId: entry.id, question } : undefined;
   }
   return pending;
+}
+
+/** True while a clarification is pending and no assistant text after it shows the user a reply. */
+export function clarificationAwaitsReply(branch: readonly BranchEntry[]): boolean {
+  const pending = pendingClarification(branch);
+  if (!pending) return false;
+  const markerIndex = branch.findIndex((entry) => entry.id === pending.markerId);
+  return !branch.slice(markerIndex + 1).some(hasVisibleAssistantText);
+}
+
+function hasVisibleAssistantText(entry: BranchEntry): boolean {
+  const message = entry.message;
+  if (message?.role !== "assistant" || !Array.isArray(message.content)) return false;
+  return message.content.some((part) => part.type === "text" && Boolean(part.text?.trim()));
+}
+
+/** The question of an `ask_user` result that ends the branch, which is where `/tree` leaves the user on its row. */
+export function questionAtLeaf(branch: readonly BranchEntry[]): MarkedQuestion | undefined {
+  const leaf = branch.at(-1);
+  if (leaf?.message?.role !== "toolResult" || leaf.message.toolName !== "ask_user") return undefined;
+  const found = detailsMarker(leaf.message.details);
+  return found?.question && { markerId: leaf.id, question: found.question };
 }
 
 export function answerRunEndedEarly(branch: readonly BranchEntry[]): boolean {

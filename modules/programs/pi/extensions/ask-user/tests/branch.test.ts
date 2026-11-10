@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { type BranchEntry, pendingClarification } from "../branch.ts";
+import { type BranchEntry, clarificationAwaitsReply, pendingClarification, questionAtLeaf } from "../branch.ts";
 import {
   answered,
   answerMessage,
   askUserEntry,
   assistant,
+  assistantText,
   clarification,
   question,
   toolResult,
@@ -70,6 +71,29 @@ test("markers from other tools and extensions are ignored", () => {
     ]),
     { markerId: "t1", question },
   );
+});
+
+test("a clarification awaits a reply until the assistant writes visible text after it", () => {
+  const thinkingOnly: BranchEntry = {
+    type: "message",
+    id: "a1",
+    message: { role: "assistant", stopReason: "toolUse", content: [{ type: "thinking" }, { type: "text", text: " " }] },
+  };
+
+  assert.equal(clarificationAwaitsReply([toolResult("t1", clarification)]), true);
+  assert.equal(clarificationAwaitsReply([toolResult("t1", clarification), thinkingOnly]), true);
+  assert.equal(clarificationAwaitsReply([assistantText("a0", "Earlier."), toolResult("t1", clarification)]), true);
+  assert.equal(clarificationAwaitsReply([toolResult("t1", clarification), assistantText("a1", "Yes, it does.")]), false);
+  assert.equal(clarificationAwaitsReply([toolResult("t1", answered)]), false);
+});
+
+test("the question at the leaf comes from an ask_user result that is the last branch entry", () => {
+  assert.deepEqual(questionAtLeaf([toolResult("t1", answered)]), { markerId: "t1", question });
+  assert.deepEqual(questionAtLeaf([toolResult("t1", clarification)]), { markerId: "t1", question });
+  assert.equal(questionAtLeaf([toolResult("t1", answered), assistant("a1")]), undefined);
+  assert.equal(questionAtLeaf([toolResult("t1", {})]), undefined);
+  assert.equal(questionAtLeaf([askUserEntry("e1", { ...question, answer: null, status: "cancelled" })]), undefined);
+  assert.equal(questionAtLeaf([]), undefined);
 });
 
 test("an ordinary user message is not a marker", () => {

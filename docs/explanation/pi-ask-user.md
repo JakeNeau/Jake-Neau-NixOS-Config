@@ -10,8 +10,9 @@ These behaviors stay fixed:
 - Markdown option previews, scrolled with `Ctrl+Alt+J` and `Ctrl+Alt+K`, with
   the `┃` thumb on the `│` track.
 - The free-form row and the clarifying-question row.
-- The reopen after Pi settles. `agent_settled` stays the reopen event, because
-  Pi fires it after retries, compaction, queued work, and continuations.
+- The reopen after Pi settles. `agent_settled` stays the reopen event after a
+  run, because Pi fires it after retries, compaction, queued work, and
+  continuations. `/tree` starts no run, so it has its own reopen.
 - Escape inside an input row returns to the option menu.
 
 The extension adopts a robustness pattern only when it prevents a failure that
@@ -120,9 +121,39 @@ back to the clarification and after every session replacement.
 
 ### Why going back to an answer reopens the question
 
-`/tree` to an `ask-user-answer` entry makes the question pending again and puts
-the old answer into the editor. The user chose this behavior. Going back to an
-answer then works like going back to a user message: the user can answer again.
+Going back to an answer should work like going back to a user message: the
+user can answer again. The user chose this behavior for every `ask_user` row in
+`/tree`.
+
+A reopen that waited for `agent_settled` failed this goal. `/tree` starts no
+run, so the dialog appeared only after the user sent an unrelated message. An
+answered row was never pending, so it never reopened.
+
+The extension therefore reopens from `session_tree`. Pi awaits that handler
+before it redraws the chat and fills the editor. A dialog awaited inside the
+handler would block the navigation, so the extension defers the reopen with
+`setTimeout`. When `/tree` targets an `ask-user-answer` entry, Pi copies the
+old answer into an empty editor. The extension clears that copy, because a
+submitted editor would send the old answer as a prompt.
+
+Only an `ask_user` tool result reopens as a revised answer. An `ask-user`
+custom entry also becomes the leaf when the user presses Escape on a reopen.
+The `/tune` command returns to that leaf. A reopen from that entry would show a
+question that the user just dismissed.
+
+## Why the agent must reply in visible text
+
+The old clarification result told the model to `Answer the question`. A model
+read "the question" as the pending question and read "reopen" as its own job.
+It wrote its reply only in its thinking and called `ask_user` again at once. The
+new answer became the latest marker, so the extension never reopened the
+original dialog. The user never saw a reply to the clarification.
+
+The result text now names the clarifying question and forbids a repeat call.
+Wording alone depends on the model, so `execute` also refuses a call while a
+clarification awaits a visible reply. A refusal is an error result without
+`details.status`, so the branch rule keeps the question pending. The agent may
+still ask a revised question after its visible reply.
 
 ## Why an early-ending answer run drops the question
 

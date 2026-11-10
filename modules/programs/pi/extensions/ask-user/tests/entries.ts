@@ -39,3 +39,7 @@ export function answerMessage(id: string, details: unknown): BranchEntry {
 export function askUserEntry(id: string, data: unknown): BranchEntry {
   return { type: "custom", id, customType: "ask-user", data };
 }
+
+export function assistantText(id: string, text: string): BranchEntry {
+  return { type: "message", id, message: { role: "assistant", stopReason: "stop", content: [{ type: "text", text }] } };
+}
