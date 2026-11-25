@@ -10,6 +10,7 @@
       "fastfetch"
       "gh"
       "home-assistant"
+      "logseq"
       "mullvad-vpn"
       "openpencil"
       "steam"

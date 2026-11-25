@@ -10,6 +10,7 @@
       "firefox"
       "fastfetch"
       "gh"
+      "logseq"
       "onedrive"
       "openpencil"
       "windows-app"

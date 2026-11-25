@@ -11,6 +11,7 @@
       "fastfetch"
       "gh"
       "home-assistant"
+      "logseq"
       "mullvad-vpn"
       "openpencil"
       "ungoogled-chromium"

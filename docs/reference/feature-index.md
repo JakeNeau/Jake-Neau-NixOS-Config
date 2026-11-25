@@ -54,8 +54,8 @@ Machine-level config: what needs root, shared by all users.
   platforms.
 - `network/` — hostname wiring from `hostConstants.hostName` on both
   platforms.
-- `printing/` — CUPS with avahi/mDNS discovery on NixOS; print-dialog
-  defaults on macOS.
+- `printing/` — CUPS with avahi/mDNS discovery and the Rollo label-printer
+  driver on NixOS; print-dialog defaults on macOS.
 - `roles/` — layered baselines naming what a host *is*:
   - `minimal/` — `role-minimal`: baseline settings every system and home
     needs (nix daemon settings, `home.stateVersion`, ...).
@@ -165,6 +165,11 @@ declaration, the rest are hand-written aspects.
 - `libreoffice/` — office suite.
 - `librewolf/` — privacy-hardened Firefox fork with separate work, strict,
   compatibility, and development profiles. See [LibreWolf](librewolf.md).
+- `logseq/`: outliner notes app. Every host receives it through
+  `globalPrograms`. Its package override keeps nixpkgs' end-of-life
+  `electron_39`, because no supported Electron compiles Logseq's native
+  SQLite module. Hydra therefore caches no build, and each nixpkgs update
+  compiles Logseq locally.
 - `mullvad-vpn/`: Mullvad VPN on Redwood, Spruce, and Aspen. On NixOS its
   `"custom"` way installs the daemon and GUI through `linux.systemConfig`. On
   macOS it installs the cask. Each platform's `systemConfig` also sets the

@@ -454,6 +454,15 @@
       Qt 6.12. Its unity build places Qt's generated QML code after source
       files that declare `using namespace muse::extensions`, so the name
       `Type` becomes ambiguous. Done means the redwood system builds with the line restored.
+- [ ] Remove the `electron_39` override in `modules/programs/logseq/logseq.nix`
+      once nixpkgs builds `logseq` against a supported Electron. nixpkgs pins
+      Logseq 0.10.15 to `electron_39`, which is EOL and marked insecure, and
+      its `better-sqlite3` 12.8.0 fails to compile against Electron 43 and 45
+      (V8 API changes). The override clears the insecure flag for Logseq
+      alone. It stops evaluating with "unexpected argument 'electron_39'" when
+      nixpkgs renames that argument; then delete it and confirm every home
+      builds with plain `pkgs.logseq`. Until then, Hydra caches no Logseq
+      build, so each nixpkgs update compiles it locally.
 
 ## When I get a homelab
 

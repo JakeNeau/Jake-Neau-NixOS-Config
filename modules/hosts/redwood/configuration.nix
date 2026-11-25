@@ -12,6 +12,7 @@
       "gh"
       "home-assistant"
       "home-assistant-filesystem"
+      "logseq"
       "mullvad-vpn"
       "nautilus"
       "openpencil"
